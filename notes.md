@@ -1,5 +1,6 @@
 # Content
 - CTF
+    - Writeup shiny Contest win Label adden zB für umdctf, cscg etc und verlinken
     - Search functionality for ctfs and writeups
         - ctf tags bei den einzelnen Writeups clickable machen sodass gefiltert wird nach dem tag unter den writeups
         - Suchfilter und Filteroption nach Jahr/Datum
