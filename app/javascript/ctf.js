@@ -212,5 +212,13 @@ if (searchInput) {
     }
 
     searchInput.addEventListener('input', filterCards);
+
+    const clearBtn = document.getElementById('ctf-search-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        filterCards();
+      });
+    }
   });
 }

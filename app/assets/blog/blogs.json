@@ -1,0 +1,9 @@
+{
+  "htb-cpts": {
+    "terminal_path": "htb-cpts",
+    "logo": "blog/htb-cpts.png",
+    "title": "HTB CPTS",
+    "category": "Certificate",
+    "description": "This blog post documents my experience with the Hack The Box Certified Penetration Testing Specialist (HTB CPTS) certification."
+  }
+}

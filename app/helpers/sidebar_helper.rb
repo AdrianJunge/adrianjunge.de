@@ -51,7 +51,7 @@ module SidebarHelper
 
       concat(taskbar_icon_item(
         image_path: "task-bar/post.svg",
-        alt_text: "Blogs Icon",
+        alt_text: "Posts Icon",
         label: "Posts",
         link: posts_path,
         icon_class: taskbar_icon_class,

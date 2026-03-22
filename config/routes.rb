@@ -11,4 +11,10 @@ Rails.application.routes.draw do
   get "/ctf/:which/:writeup", to: "ctf#writeup"
 
   get "/posts-timeline", to: "posts#timeline", as: :posts
+
+  get "/blog/feed", to: "blog#feed", as: :blog_feed, defaults: { format: :rss }
+  get "/blog/feed.atom", to: "blog#feed", defaults: { format: :atom }
+
+  get "/blog", to: "blog#index", as: :blog
+  get "/blog/:which", to: "blog#show", as: :blog_post
 end

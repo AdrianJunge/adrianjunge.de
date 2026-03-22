@@ -15,7 +15,15 @@
 <div class="ctf-overview">
   <div class="ctf-header-section">
     <div class="ctf-header-center">
-      <input type="text" id="ctf-search-input" placeholder="Search CTFs..." class="ctf-search-input">
+      <div class="search-wrapper relative">
+        <input type="text" id="ctf-search-input" placeholder="Search CTFs..." class="ctf-search-input">
+        <button type="button" class="search-clear-btn" id="ctf-search-clear" aria-label="Clear search">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <div class="ctf-header-right">

@@ -8,6 +8,7 @@
 
 <%= render_taskbar_items([
     { image_path: 'task-bar/flag.svg', alt_text: "CTF Icon", label: "CTF", link: ctf_path },
+    { image_path: 'task-bar/blog.svg', alt_text: "Blog Icon", label: "Blog", link: blog_path },
 ]) %>
 <%= render_terminal(['ctf'], true) %>
 <% posts_link = "/posts-timeline" %>
@@ -22,34 +23,34 @@
       <span id="typing" class="font-medium inline-block min-h-[1.5rem]"></span>
     </div>
 
-<div class="info-cards-container">
-    <div class="writeup-card bg-primary">
-        <a href="<%= posts_link %>">
-<div class="profile-card">
-    <%= image_tag("landing/profile.png", alt: "profile", class: "rounded-3xl w-32 h-32 md:w-40 md:h-40 mx-auto") %>
-    <h3 class="text-2xl md:text-3xl font-bold mt-6 text-white text-center">Adrian aka vurlo</h3>
-    <p class="text-gray-300 text-center mt-2">Explore my CTF writeups and insights</p>
+    <div class="info-cards-container">
+        <div class="writeup-card bg-primary">
+            <a href="<%= posts_link %>">
+                <div class="profile-card">
+                    <%= image_tag("landing/profile.png", alt: "profile", class: "rounded-3xl w-32 h-32 md:w-40 md:h-40 mx-auto") %>
+                    <h3 class="text-2xl md:text-3xl font-bold mt-6 text-white text-center">Adrian aka vurlo</h3>
+                    <p class="text-gray-300 text-center mt-2">Explore my CTF writeups and insights</p>
 
-    <div class="mt-6 flex items-center justify-center gap-16">
-        <div class="flex flex-col items-center">
-            <p class="text-white text-3xl font-bold"><%= @amount_posts %></p>
-            <p class="text-gray-300">Posts</p>
-        </div>
+                    <div class="mt-6 flex items-center justify-center gap-16">
+                        <div class="flex flex-col items-center">
+                            <p class="text-white text-3xl font-bold"><%= @amount_posts %></p>
+                            <p class="text-gray-300">Posts</p>
+                        </div>
 
-        <div class="flex flex-col items-center">
-            <p class="text-white text-3xl font-bold"><%= @amount_tags %></p>
-            <p class="text-gray-300">Tags</p>
-        </div>
+                        <div class="flex flex-col items-center">
+                            <p class="text-white text-3xl font-bold"><%= @amount_tags %></p>
+                            <p class="text-gray-300">Tags</p>
+                        </div>
 
-        <div class="flex flex-col items-center">
-            <p class="text-white text-3xl font-bold"><%= @amount_ctfs %></p>
-            <p class="text-gray-300">CTFs</p>
+                        <div class="flex flex-col items-center">
+                            <p class="text-white text-3xl font-bold"><%= @amount_ctfs %></p>
+                            <p class="text-gray-300">CTFs</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
-</div>
-        </a>
-    </div>
-</div>
     <div class="info-cards-container">
         <div class="writeup-card bg-primary">
             <a href="<%= kitctf_link %>" target="_blank" rel="noopener noreferrer">

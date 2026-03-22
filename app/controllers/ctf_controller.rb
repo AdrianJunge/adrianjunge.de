@@ -82,13 +82,13 @@ class CtfController < ApplicationController
     end
   end
 
-  private
-
   def get_previous_and_next_writeup(writeup)
     slug  = writeup.to_s
     items = get_timeline.flat_map { |_, year_items| year_items }
 
     index = items.index { |i| i[:slug].downcase == slug.downcase }
+    return [nil, nil] unless index.present?
+    
     nxt  = index > 0 ? items[index - 1] : nil   # newer
     prev = index < items.length - 1 ? items[index + 1] : nil  # older
 

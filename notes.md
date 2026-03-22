@@ -1,8 +1,15 @@
 # Content
-- Landing
-    - Posts Button deutlich größer darstellen als KITCTF und KIT Buttons (zB darüber und die beiden anderen darunter)
+- Blog
+    - Features
+        - Search bar
+        - RSS Feed
+    - CPTS
+    - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln
+    - Java Strings
+    - Falls Wordpress CVE gefunden mit POP Chain diese ebenfalls im Blog veröffentlichen
 - CTF
     - Writeup shiny Contest win Label adden zB für umdctf, cscg etc und verlinken
+        - UMDCTF: https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959
     - Search functionality for ctfs and writeups
         - ctf tags bei den einzelnen Writeups clickable machen sodass gefiltert wird nach dem tag unter den writeups
         - Suchfilter und Filteroption nach Jahr/Datum
@@ -18,13 +25,6 @@
         - Hintergrund Image des CTFs
     - automatisch PDF erstellen falls noch nicht vorhanden/premade (zB wie bei cscg writeups mit demselben Format zB Ctf Logo auf 1. Seite dann Ctf chal Metadaten und dann Kapitel etc)
 - Upcoming
-    - Blog
-        - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln
-        - Java Strings
-        - Falls Wordpress CVE gefunden mit POP Chain diese ebenfalls im Blog veröffentlichen
-        - Ideen
-            - Java Strings
-        - RSS Feed
     - Real World Exploitation (Bug Bounty/CVE)
     - Competitive Programming
     - Minigames (eigene App wie das Terminal)

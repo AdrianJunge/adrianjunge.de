@@ -52,6 +52,37 @@
     max-width: 90%;
 }
 
+.search-wrapper {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+}
+
+.search-clear-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5vmin;
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: -3.5vmin;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease, visibility 0.2s ease, color 0.2s ease;
+    position: relative;
+}
+
+.search-wrapper input:not(:placeholder-shown) ~ .search-clear-btn {
+    visibility: visible;
+    opacity: 1;
+}
+
+.search-clear-btn:hover {
+    color: #dc2626;
+}
+
 .ctf-cards-container {
     display: grid;
     place-items: center;

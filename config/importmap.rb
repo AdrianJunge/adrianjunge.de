@@ -2,9 +2,11 @@
 
 pin "application", preload: true
 
+pin "sidebar", to: "sidebar.js"
 pin "landing", to: "landing.js"
 pin "terminal", to: "terminal.js"
 pin "ctf", to: "ctf.js"
+pin "blog", to: "blog.js"
 
 pin "flowbite", to: "flowbite.turbo.min.js"
 # pin "flowbite", to: "https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.turbo.min.js"
