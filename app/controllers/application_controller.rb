@@ -179,7 +179,7 @@ class ApplicationController < ActionController::Base
       .group_by { |i| i[:published].year }
       .tap { |grouped|
         return grouped.keys.sort.reverse.map { |year|
-          [year, grouped[year].sort_by { |i| -i[:published].to_i }]
+          [ year, grouped[year].sort_by { |i| -i[:published].to_i } ]
         }
       }
   end
@@ -211,7 +211,7 @@ class ApplicationController < ActionController::Base
                   end
 
       link = "/blog/#{slug}"
-      
+
       # Get category from blogs.json
       blog_info = blog_metadata[slug] || {}
       category = blog_info["category"] || "POST"
@@ -239,12 +239,12 @@ class ApplicationController < ActionController::Base
   def get_mixed_timeline
     ctf_items = get_all_posts_for_feed(BASE_PATH, CTF_INFO_PATH, "/ctf")
     blog_items = get_blog_posts_for_feed
-    
+
     combined = ctf_items + blog_items
-    
+
     grouped = combined.group_by { |i| i[:published].year }
     timeline = grouped.keys.sort.reverse.map { |year|
-      [year, grouped[year].sort_by { |i| i[:published] }.reverse]
+      [ year, grouped[year].sort_by { |i| i[:published] }.reverse ]
     }
     timeline
   end

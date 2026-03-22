@@ -20,7 +20,7 @@ function initBlogSearch() {
       const titleEl = card.querySelector('.blog-post-title');
       const descEl = card.querySelector('.blog-post-description');
       const topicEl = card.querySelector('.blog-post-topic');
-      
+
       const title = titleEl ? titleEl.textContent.toLowerCase() : '';
       const desc = descEl ? descEl.textContent.toLowerCase() : '';
       const topic = topicEl ? topicEl.textContent.toLowerCase() : '';
@@ -61,7 +61,7 @@ function initBlogTOC() {
   function highlightCurrentSection() {
     let scrollPosition = window.scrollY + 10;
     let currentSection = null;
-    
+
     headings.forEach((heading) => {
       const anchor = heading.querySelector("a[id]");
       if (anchor && anchor.offsetTop <= scrollPosition) {

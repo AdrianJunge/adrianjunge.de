@@ -87,8 +87,8 @@ class CtfController < ApplicationController
     items = get_timeline.flat_map { |_, year_items| year_items }
 
     index = items.index { |i| i[:slug].downcase == slug.downcase }
-    return [nil, nil] unless index.present?
-    
+    return [ nil, nil ] unless index.present?
+
     nxt  = index > 0 ? items[index - 1] : nil   # newer
     prev = index < items.length - 1 ? items[index + 1] : nil  # older
 

@@ -6,9 +6,9 @@ module BlogHelper
     published = post_info["published"] || "Unknown date"
     categories = Array(post_info["categories"]).presence || []
     category_text = categories.join(", ").presence || "Post"
-    
+
     logo_url = post_info["logo"]
-    
+
     if !logo_url.present?
       blogs_metadata.each do |slug, blog|
         if slug.downcase == post_slug.downcase

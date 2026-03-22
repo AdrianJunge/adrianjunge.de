@@ -2,7 +2,7 @@
 function initSidebar() {
   const menuIcons = document.querySelectorAll(".menu-icon");
   const taskbarLeft = document.getElementById("taskbar-left");
-  
+
   if (!menuIcons.length || !taskbarLeft) return;
 
   menuIcons.forEach(function(menuIcon) {
