@@ -2,7 +2,7 @@ class LandingController < ApplicationController
   def index
     ctf_infos = get_all_ctf_infos()
     @most_recent_ctfs = most_recent_ctf_writeups(ctf_infos, 3)
-    @amount_posts, @amount_tags = get_amounts()
+    @amount_posts, @amount_tags, @amount_ctfs = get_amounts()
   end
 
   private
@@ -20,7 +20,7 @@ class LandingController < ApplicationController
         end
       end
     end
-    [ post_amount, tags.size ]
+    [ post_amount, tags.size, ctf_infos.length ]
   end
 
 

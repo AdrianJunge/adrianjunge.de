@@ -44,4 +44,7 @@ gem install bundler
 
 overcommit --install
 
-bundle exec rake db:migrate
+./update.sh
+
+echo "[*] All necessary dependencies have been installed and the project is up to date."
+echo "[*] Please restart your terminal to apply the changes and then execute bin/dev to start the development server."

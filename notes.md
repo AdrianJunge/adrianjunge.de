@@ -1,4 +1,6 @@
 # Content
+- Landing
+    - Posts Button deutlich größer darstellen als KITCTF und KIT Buttons (zB darüber und die beiden anderen darunter)
 - CTF
     - Writeup shiny Contest win Label adden zB für umdctf, cscg etc und verlinken
     - Search functionality for ctfs and writeups
