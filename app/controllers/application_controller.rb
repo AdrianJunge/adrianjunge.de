@@ -122,6 +122,7 @@ class ApplicationController < ActionController::Base
         link = "#{link_prefix}/#{dir_name}/#{slug}"
 
         items << {
+          type: "ctf",
           which: item_key,
           item: item_key,
           slug: slug,
@@ -129,6 +130,8 @@ class ApplicationController < ActionController::Base
           published: published,
           link: link,
           description: meta["description"].to_s,
+          categories: Array(meta["categories"]),
+          logo: item_meta["logo"],
           content: content
         }
       end
@@ -203,7 +206,12 @@ class ApplicationController < ActionController::Base
 
       meta = parsed.front_matter || {}
       slug = File.basename(file_path, ".md")
-      title = meta["title"].presence || slug.humanize
+
+      # Get category from blogs.json
+      blog_info = blog_metadata[slug] || {}
+      category = blog_info["category"] || "POST"
+      title = blog_info["title"].presence || meta["title"].presence || slug.humanize
+
       published = begin
                     Time.parse(meta["published"].to_s)
                   rescue StandardError
@@ -211,10 +219,6 @@ class ApplicationController < ActionController::Base
                   end
 
       link = "/blog/#{slug}"
-
-      # Get category from blogs.json
-      blog_info = blog_metadata[slug] || {}
-      category = blog_info["category"] || "POST"
 
       items << {
         type: "blog",

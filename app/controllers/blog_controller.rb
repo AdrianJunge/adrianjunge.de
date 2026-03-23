@@ -30,6 +30,7 @@ class BlogController < ApplicationController
 
     blog_config = @blogs[@post_slug] || {}
     @blog_category = blog_config["category"] || "Post"
+    @blog_title = blog_config["title"].presence || @blog_info["title"].presence || @post_slug.humanize
   end
 
   def feed
