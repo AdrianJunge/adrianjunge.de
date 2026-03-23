@@ -42,7 +42,7 @@ gem install overcommit
 gem install rails
 gem install bundler
 
-overcommit --install
+bundle exec overcommit --install
 
 ./update.sh
 
