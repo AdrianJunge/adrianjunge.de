@@ -1,11 +1,7 @@
 # Content
 - Blog
-    - Features
-        - Search bar
-        - RSS Feed
-    - CPTS
-    - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln
     - Java Strings
+    - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln
     - Falls Wordpress CVE gefunden mit POP Chain diese ebenfalls im Blog veröffentlichen
 - CTF
     - Writeup shiny Contest win Label adden zB für umdctf, cscg etc und verlinken
