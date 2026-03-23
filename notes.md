@@ -6,6 +6,7 @@
 - CTF
     - Writeup shiny Contest win Label adden zB für umdctf, cscg etc und verlinken
         - UMDCTF: https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959
+        - CSCG: PDF Urkunde mit attachen wie bei https://morrisbe.de/ctf/supercluster
     - Search functionality for ctfs and writeups
         - ctf tags bei den einzelnen Writeups clickable machen sodass gefiltert wird nach dem tag unter den writeups
         - Suchfilter und Filteroption nach Jahr/Datum
