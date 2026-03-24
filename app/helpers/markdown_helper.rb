@@ -40,9 +40,11 @@ module MarkdownHelper
   end
 
   def replace_asset_paths(html_content)
-    html_content.gsub!(/"\/?([A-z0-9\-_+]+\/)*([A-z0-9]+\.([A-z0-9])*)"/) do |match|
-      match = match.gsub(/"/, "")
-      ActionController::Base.helpers.asset_path(match)
+    html_content.gsub!(/(src|href)="([^"]*)"/) do
+      attr = Regexp.last_match(1)
+      path = Regexp.last_match(2)
+      new_path = ActionController::Base.helpers.asset_path(path)
+      "#{attr}=\"#{new_path}\""
     end
   end
 end
