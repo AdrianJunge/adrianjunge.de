@@ -100,51 +100,6 @@ document.addEventListener('click', function(event) {
 });
 
 
-document.addEventListener("DOMContentLoaded", function () {
-    const tocLinks = document.querySelectorAll(".toc-anchor");
-    const headings = document.querySelectorAll(".markdown-content h1, .markdown-content h2, .markdown-content h3");
-
-    if (tocLinks.length > 0) {
-      tocLinks[0].classList.add("active-anchor");
-    }
-
-    function highlightCurrentSection() {
-      let scrollPosition = window.scrollY + 10;
-
-      let currentSection = null;
-      headings.forEach((heading) => {
-        const anchor = heading.querySelector("a[id]");
-        if (anchor && anchor.offsetTop <= scrollPosition) {
-          currentSection = anchor;
-        }
-      });
-
-      if (currentSection) {
-        tocLinks.forEach((link) => {
-          link.classList.remove("active-anchor");
-          if (link.getAttribute("href") === `#${currentSection.id}`) {
-            link.classList.add("active-anchor");
-          }
-        });
-      }
-    }
-
-    window.addEventListener("scroll", highlightCurrentSection);
-    highlightCurrentSection();
-
-    /* TOC toggle using Tailwind utility classes (avoid .collapse collision) */
-    document.querySelectorAll('[data-toc-toggle]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const targetId = btn.getAttribute('data-toc-toggle') || btn.getAttribute('aria-controls');
-        const toc = document.getElementById(targetId);
-        if (!toc) return;
-
-        const nowHidden = toc.classList.toggle('hidden');
-        const expanded = (!nowHidden).toString();
-        btn.setAttribute('aria-expanded', expanded);
-      });
-    });
-});
 
 document.addEventListener('click', event => {
   const btn = event.target.closest('.copy-btn');
@@ -162,20 +117,6 @@ document.addEventListener('click', event => {
 });
 
 
-const btn = document.getElementById("toc-toggle");
-const icon = document.getElementById("toc-toggle-icon");
-const toc  = document.getElementById("toc");
-
-if (btn && icon && toc) {
-  btn.addEventListener("click", () => {
-    const expanded = btn.getAttribute("aria-expanded") === "true";
-    if (expanded) {
-      icon.classList.add("rotate-180");
-    } else {
-      icon.classList.remove("rotate-180");
-    }
-  });
-}
 
 const searchInput = document.getElementById('ctf-search-input');
 if (searchInput) {

@@ -49,7 +49,7 @@ CPTS was a lot of work, but it was good work. It gave me a much stronger methodo
 
 The biggest difference between this and pure CTF-style learning was the pace. CPTS made me slow down, write better notes, and care about completeness instead of just "getting the flag". For me, that was exactly the value of it. I would still recommend going into it with a lot of time, a disciplined note-taking setup, and the expectation that the exam is a serious multi-day effort rather than a quick challenge. The biggest downside, in my opinion, is the time commitment — both for finishing the course and for surviving the **10-day** exam window, especially if you are working full time next to it and cannot freely use work hours to prepare. The learning experience and the practical knowledge you gain from CPTS are absolutely worth it. If you are currently preparing for it yourself, I wish you the best of luck and a lot of perseverance on your own CPTS journey.
 
-# 10. Certificate
+# 10. Certificate<a id="Certificate"></a>
 Check out the badge on [credly](https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url).
 
 ![certificate](blog/posts/htb-cpts/cpts-certificate.png "certificate")
