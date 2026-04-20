@@ -1,6 +1,7 @@
 # Content
 - Adde noch mehr self erasing tags zu website: ctf player, security researcher, bug bounty hunter, gamer und adde CVE counter
 - Adde Features und Info tables wie bei https://dimasc.tf/ zu meiner Website wie zB die Blog Übersicht und die Filter die man applyen kann
+- Nur die skallierung vom Terminal kommt nicht so gut auf hochauflösenden Display - wenn man die seite auf 200% skalliert gehts aber sehr gut.
 - Blog
     - Java Strings
     - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln
