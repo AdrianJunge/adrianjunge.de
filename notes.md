@@ -1,4 +1,5 @@
 # Content
+- Adde noch mehr self erasing tags zu website: ctf player, security researcher, bug bounty hunter, gamer und adde CVE counter
 - Blog
     - Java Strings
     - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln
