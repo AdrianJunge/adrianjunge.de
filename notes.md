@@ -39,6 +39,7 @@
         - live Rendering des Markdowns
 
 # Visuals
+- Landing page anpassen für kleine Bildschirme
 - Fehler pages updaten
 - Writeups
     - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
