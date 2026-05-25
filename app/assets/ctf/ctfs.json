@@ -27,13 +27,13 @@
   //   "website": "https://hacking-meisterschaft.de/",
   //   "description": "The DHM is the annual CTF final round of the CSCG qualifiers, where teams of 6 members compete against each other for the chance to qualify for the ECSC."
   // },
-  // "KITCTF":{
-  //   "terminal_path": "kitctf",
-  //   "logo": "ctf/kitctf.png",
-  //   "writeups": "/ctf/kitctf",
-  //   "website": "https://kitctf.de/",
-  //   "description": "KITCTF organizes the local IntroCTF @KIT every semester and the GPNCTF annually."
-  // },
+  "KITCTF":{
+    "terminal_path": "kitctf",
+    "logo": "ctf/kitctf.png",
+    "writeups": "/ctf/kitctf",
+    "website": "https://kitctf.de/",
+    "description": "KITCTF organizes the local IntroCTF @KIT every semester and the GPNCTF annually."
+  },
   "SMILEYCTF": {
     "terminal_path": "smileyctf",
     "logo": "ctf/smileyctf.png",

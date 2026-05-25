@@ -5,7 +5,6 @@
 - Blog
     - Java Strings
     - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln
-    - Falls Wordpress CVE gefunden mit POP Chain diese ebenfalls im Blog veröffentlichen
 - CTF
     - Writeup shiny Contest win Label adden zB für umdctf, cscg etc und verlinken
         - UMDCTF: https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959
@@ -16,9 +15,6 @@
     - “My Challenges” Section adden zu CTF (unter Angabe bei welchem CTF das veröffentlicht wurde und Link zu meinem Writeup dazu)
         => Übersicht über meine Challenges
         => jeweils redirect zu bereits published Post
-    - awards/achievements
-        - e.g. winning writeup @cscg (best writeup for challenge) oder @umdctf (best web writeup)
-        - top 5, 3 oder winner (zB DHM)
     - Writeup
         - hints anzeigen über die Metadaten und Template erweitern
         - Autoren auflisten evtl auch deren Blog verlinken
@@ -30,13 +26,10 @@
     - Minigames (eigene App wie das Terminal)
         - TicTacToe vs AI
     - Custom Tools
-    - Ask me anything - Chatbot (chat with me)
-## Neue Writeups
-- OpenECSC
 
 # Content Management
-    - Writeups/Blogs erstellen/editieren/löschen
-        - live Rendering des Markdowns
+- Writeups/Blogs erstellen/editieren/löschen
+    - live Rendering des Markdowns
 
 # Visuals
 - Landing page anpassen für kleine Bildschirme
@@ -58,7 +51,6 @@
 # Misc
 - xterm + flowbite css über CDN fetchen
 - mathjax aus `application.html.erb` moven in JS file
-- fetch favicon from ctf site and **cache it**
 - `vurlo.de` sichern und DNS einrichten sodass sowohl `adrianjunge.de` als auch `vurlo.de` auf dieselbe IP zeigen
 - SEO (search engine optimization)
 - kompletten boiler plate Code von Rails durchgehen und das rauswerfen was ich nicht brauche
@@ -68,6 +60,7 @@
 
 # Security
 - Fetched ctf favicon sanitzen wegen XSS vector mit DOMPurify
+    - fetch favicon from ctf site and **cache it**
 
 # Fix
 - Writeups und paths für ctf file zips in Datenbank verschieben anstatt .md files einzulesen

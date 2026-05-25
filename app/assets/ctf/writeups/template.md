@@ -2,8 +2,10 @@
 - Grammarly
 - adversiting the writeup
 # Common syntax
+```md
 - [link description](link)
 - ![picture description](ctf/writeups/<picture-path> "screen-readers")
+```
 
 ---
 ctf:
