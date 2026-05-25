@@ -19,7 +19,7 @@ published: "2026-05-25"
 # 1. Introduction<a id="introduction"></a>
 This challenge was about exploiting a custom heap implementation. The actual binary is called `sandbox` which prompts the user with a menu of different options, but there is no seccomp filter or syscall sandbox involved. The "sandbox" is the allocator itself, which is implemented in `libsecureheap.so`.
 
-The binary gives us the usual heap menu with typical heap challenge options like `alloc`, `delete`, `edit` and `show`. The interesting part about this challenge is that allocations and frees do not call **malloc** and **free**. Instead, the challenge uses `xmalloc` and `xfree` from the custom shared library. So basically the challenge implements its own small allocator with metadata, freelists and integrity checks. The description already hints at the idea of the challenge: this allocator tries to be more secure than **glibc**, but it still has to manage all of this state correctly.
+The binary gives us the usual heap menu with typical heap challenge options like `alloc`, `delete`, `edit` and `show`. The interesting part about this challenge is that allocations and frees are not implemented by calling **malloc** and **free** from **glibc**. Instead, the challenge uses `xmalloc` and `xfree` from the custom shared library. So basically the challenge implements its own small allocator with metadata, freelists and integrity checks. The description already hints at the idea of the challenge: this allocator tries to be more secure than **glibc**, but it still has to manage all of this state correctly.
 
 # 2. Reconnaissance<a id="reconnaissance"></a>
 Checking with `checksec` we discover that the deployed `sandbox` has a lot of the relevant hardening properties enabled:
@@ -167,6 +167,8 @@ In [pwndbg](https://pwndbg.re/) we can see that the three created chunks are con
 
 ![initial state](ctf/writeups/kitctf/xmalloc/initial-state.png "initial state")
 
+The blue box marks pointers into the `xmain_arena` area.
+
 Now the first chunk can overflow into the freed second chunk. The distance from the first chunk's user data to the second chunk's cookie is `0x70`, so the exploit sends `14*8` bytes and leaks the remaining seven cookie bytes:
 
 ```python
@@ -177,8 +179,6 @@ show(first_chunk)
 Now we can see the newline overflowing into the first byte of the cookie, thus replacing the null byte and enabling the leak via `puts`:
 
 ![first overflow state](ctf/writeups/kitctf/xmalloc/first-overflow-state-get-cookie.png "first overflow state")
-
-The blue box marks pointers into the `xmain_arena` area.
 
 After that, the exploit leaks a pointer from the large freelist metadata with the same approach. The second freed chunk's `prev_free` field is at offset `0x70 + 0x18` from the first chunk's user pointer:
 
