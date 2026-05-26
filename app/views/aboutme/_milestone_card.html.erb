@@ -1,0 +1,38 @@
+<% details = aboutme_visible_details(entry["details"]) %>
+<% links = aboutme_visible_links(entry["links"]) %>
+
+<article class="aboutme-achievement-card">
+  <% if entry["category"].present? || entry["date"].present? %>
+    <div class="aboutme-achievement-meta">
+      <% if entry["category"].present? %>
+        <span><%= entry["category"] %></span>
+      <% end %>
+      <% if entry["date"].present? %>
+        <time datetime="<%= entry["date"] %>"><%= entry["date"] %></time>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if entry["title"].present? %>
+    <h3><%= aboutme_optional_link(entry["title"], entry["title_url"], class_name: "aboutme-title-link") %></h3>
+  <% end %>
+  <% if entry["summary"].present? %>
+    <p><%= entry["summary"] %></p>
+  <% end %>
+
+  <% if details.any? %>
+    <ul class="aboutme-achievement-details">
+      <% details.each do |detail| %>
+        <li><%= detail %></li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <% if links.any? %>
+    <div class="aboutme-link-row">
+      <% links.each do |link| %>
+        <%= aboutme_external_link(link) %>
+      <% end %>
+    </div>
+  <% end %>
+</article>

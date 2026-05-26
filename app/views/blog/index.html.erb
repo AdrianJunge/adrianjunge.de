@@ -12,7 +12,13 @@
 <% terminal_paths = @blog_posts.map { |post| post[:slug] } %>
 <%= render_terminal(terminal_paths, true) %>
 
-<div class="blog-overview">
+<main class="content-page blog-overview">
+  <%= render "shared/content_hero",
+             icon_path: "task-bar/blog.svg",
+             icon_alt: "Blog",
+             title: "Blog",
+             description: "Longer notes on security work, learning, and practical writeups outside the CTF archive." %>
+
   <div class="blog-header-section">
     <div class="blog-header-center">
       <div class="search-wrapper relative">
@@ -28,11 +34,11 @@
 
     <div class="blog-header-right">
       <a href="/blog/feed" class="blog-rss-feed">
-        <%= image_tag("task-bar/rss.svg", alt: "RSS Feed Icon", class: "blog-rss-icon bg-tertiary") %>
+        <%= image_tag("task-bar/rss.svg", alt: "RSS Feed Icon", class: "blog-rss-icon") %>
       </a>
 
       <a href="/blog/feed.atom" class="blog-atom-feed">
-        <%= image_tag("task-bar/atom.svg", alt: "Atom Feed Icon", class: "blog-atom-icon bg-tertiary") %>
+        <%= image_tag("task-bar/atom.svg", alt: "Atom Feed Icon", class: "blog-atom-icon") %>
       </a>
     </div>
   </div>
@@ -53,5 +59,4 @@
       </div>
     <% end %>
   </div>
-</div>
-
+</main>

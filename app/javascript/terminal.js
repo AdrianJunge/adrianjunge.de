@@ -40,7 +40,7 @@ const fitAddon = new FitAddon.FitAddon();
 term.loadAddon(fitAddon);
 
 const terminalElement = document.getElementById('terminal-container');
-const pathsArray = JSON.parse(terminalElement.dataset.terminalText);
+const pathsArray = JSON.parse(terminalElement.dataset.terminalText).map(normalizePathEntry);
 let linkTooltip = document.getElementById('terminal-link-tooltip');
 
 let inputBuffer = '';
@@ -109,6 +109,18 @@ function createHyperlink(text, url) {
     return `\x1b]8;;${url}\x07${text}\x1b]8;;\x07`
 }
 
+function normalizePathEntry(entry) {
+    if (typeof entry === 'string') {
+        return { label: entry, url: null, description: null };
+    }
+
+    return {
+        label: String(entry.label || entry.path || ''),
+        url: entry.url || null,
+        description: entry.description || null,
+    };
+}
+
 const customLinkHandler = {
   allowNonHttpProtocols: false,
 
@@ -155,7 +167,14 @@ function typeText(text, color, callback) {
 }
 
 
-function getTargetUrl(path) {
+function getTargetUrl(pathEntry) {
+    const entry = normalizePathEntry(pathEntry);
+    const path = entry.label;
+
+    if (entry.url) {
+        return new URL(entry.url, window.location.origin).href;
+    }
+
     let url;
     if (path === '~') {
         url = window.location.origin;
@@ -175,9 +194,9 @@ function processCommand(command) {
         generateLsOutput(pathsArray);
     } else if (/^cd\s+([^<>:"|?*\r\n]+)?\s*$/.test(command)) {
         const target = command.substring(3).trim();
-        if (pathsArray.includes(target)) {
-            let targetUrl;
-            targetUrl = getTargetUrl(target);
+        const targetEntry = pathsArray.find(entry => entry.label === target);
+        if (targetEntry) {
+            const targetUrl = getTargetUrl(targetEntry);
             printLine(`\n  Changing to ${target}...\n`);
             window.location.href = targetUrl;
             return;
@@ -265,20 +284,17 @@ function getFormattedDate() {
 }
 
 function generateLsOutput(pathsArray) {
-    pathsArray.forEach(path => {
-        let pathDisplay = path;
+    pathsArray.forEach(entry => {
+        let pathDisplay = entry.label;
         let hyperlink = '';
         let url = '';
-        url = getTargetUrl(path);
+        url = getTargetUrl(entry);
 
         hyperlink = colorize(createHyperlink(pathDisplay, url), COLORS.bold);
+        const description = entry.description;
 
-        if (path === '~') {
-            printLine(`\n  drwxrwxr-x  5 adrian adrian  4.0K ${getFormattedDate()}  ${hyperlink}   (home)`, COLORS.brightBlue);
-        } else if (path === '.') {
-            printLine(`\n  drwxrwxr-x  5 adrian adrian  4.0K ${getFormattedDate()}  ${hyperlink}   (current)`, COLORS.brightBlue);
-        } else if (path === '..') {
-            printLine(`\n  drwxrwxr-x  5 adrian adrian  4.0K ${getFormattedDate()}  ${hyperlink}  (parent)`, COLORS.brightBlue);
+        if (description) {
+            printLine(`\n  drwxrwxr-x  5 adrian adrian  4.0K ${getFormattedDate()}  ${hyperlink}   (${description})`, COLORS.brightBlue);
         } else {
             printLine(`\n  drwxrwxr-x  5 adrian adrian  4.0K ${getFormattedDate()}  ${hyperlink}`, COLORS.brightBlue);
         }

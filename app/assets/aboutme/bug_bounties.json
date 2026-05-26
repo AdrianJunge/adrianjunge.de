@@ -1,0 +1,37 @@
+[
+  {
+    "id": "firedancer-tba",
+    "project": "Firedancer",
+    "project_url": "https://github.com/firedancer-io/firedancer",
+    "title": "Firedancer bug bounty finding (TBA)",
+    "title_url": "https://immunefi.com/bug-bounty/firedancer/information/",
+    "cve_id": "",
+    "severity": "",
+    "short_summary": "",
+    "summary": "",
+    "tested_version": "",
+    "impact": "",
+    "github_advisories": [
+      {
+        "label": "",
+        "url": ""
+      }
+    ],
+    "timeline": [
+      {
+        "date": "",
+        "event": ""
+      }
+    ],
+    "references": [
+      {
+        "label": "Firedancer repository",
+        "url": "https://github.com/firedancer-io/firedancer"
+      },
+      {
+        "label": "Firedancer bug bounty",
+        "url": "https://immunefi.com/bug-bounty/firedancer/information/"
+      }
+    ]
+  }
+]

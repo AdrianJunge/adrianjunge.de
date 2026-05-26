@@ -5,6 +5,12 @@ class ApplicationController < ActionController::Base
   CTF_INFO_PATH = Rails.root.join("app", "assets", "ctf", "ctfs.json")
   BLOG_BASE_PATH = Rails.root.join("app", "assets", "blog", "posts")
   BLOG_INFO_PATH = Rails.root.join("app", "assets", "blog", "blogs.json")
+  ABOUTME_BASE_PATH = Rails.root.join("app", "assets", "aboutme")
+  ABOUTME_TEXT_PATH = ABOUTME_BASE_PATH.join("about.md")
+  ABOUTME_CVES_PATH = ABOUTME_BASE_PATH.join("cves.json")
+  ABOUTME_BUG_BOUNTIES_PATH = ABOUTME_BASE_PATH.join("bug_bounties.json")
+  ABOUTME_CERTIFICATES_PATH = ABOUTME_BASE_PATH.join("certificates.json")
+  ABOUTME_ACHIEVEMENTS_PATH = ABOUTME_BASE_PATH.join("achievements.json")
 
   def parse_markdown_content(content)
     begin

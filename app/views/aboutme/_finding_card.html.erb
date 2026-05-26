@@ -1,0 +1,121 @@
+<% collapsible = aboutme_finding_collapsible?(entry) %>
+<% card_classes = [ "aboutme-finding-card", "aboutme-finding-card-#{kind}", ("aboutme-finding-card-static" unless collapsible) ].compact.join(" ") %>
+<% title_label = entry["title"].presence || entry["short_summary"].presence || entry["summary"].presence %>
+<% github_advisories = aboutme_visible_links(entry["github_advisories"]) %>
+<% references = aboutme_visible_links(entry["references"]) %>
+<% timeline_items = aboutme_timeline_items(entry["timeline"]) %>
+<% header_content = capture do %>
+  <span class="aboutme-finding-main">
+    <% if entry["project"].present? %>
+      <span class="aboutme-finding-project">
+        <%= aboutme_optional_link(entry["project"], entry["project_url"], class_name: "aboutme-finding-project-link") %>
+      </span>
+    <% end %>
+    <% if title_label.present? %>
+      <span class="aboutme-finding-summary">
+        <%= aboutme_optional_link(title_label, entry["title_url"], class_name: "aboutme-finding-summary-link") %>
+      </span>
+    <% end %>
+  </span>
+
+  <% if entry["severity"].present? || entry["cve_id"].present? %>
+    <span class="aboutme-finding-badges">
+      <% if entry["severity"].present? %>
+        <span class="aboutme-severity <%= aboutme_severity_class(entry["severity"]) %>"><%= entry["severity"] %></span>
+      <% end %>
+    <% if entry["cve_id"].present? %>
+      <span class="aboutme-cve-id"><%= entry["cve_id"] %></span>
+    <% end %>
+    </span>
+  <% end %>
+<% end %>
+
+<% if collapsible %>
+  <details class="<%= card_classes %>">
+    <summary>
+      <%= header_content %>
+    </summary>
+
+    <div class="aboutme-finding-body">
+      <% if entry["project"].present? || entry["cve_id"].present? || aboutme_visible_detail?(entry["tested_version"]) || aboutme_visible_detail?(entry["impact"]) %>
+        <dl class="aboutme-finding-facts">
+          <% if entry["project"].present? %>
+            <div>
+              <dt>Project</dt>
+              <dd><%= aboutme_optional_link(entry["project"], entry["project_url"]) %></dd>
+            </div>
+          <% end %>
+        <% if entry["cve_id"].present? %>
+          <div>
+            <dt>CVE ID</dt>
+            <dd><%= entry["cve_id"] %></dd>
+          </div>
+        <% end %>
+        <% if aboutme_visible_detail?(entry["tested_version"]) %>
+          <div>
+            <dt>Tested version</dt>
+            <dd><%= entry["tested_version"] %></dd>
+          </div>
+        <% end %>
+        <% if aboutme_visible_detail?(entry["impact"]) %>
+          <div>
+            <dt>Impact</dt>
+            <dd><%= entry["impact"] %></dd>
+          </div>
+        <% end %>
+        </dl>
+      <% end %>
+
+      <% if aboutme_visible_detail?(entry["summary"]) %>
+        <div class="aboutme-detail-block">
+          <h3>Summary</h3>
+          <p><%= entry["summary"] %></p>
+        </div>
+      <% end %>
+
+      <% if github_advisories.any? %>
+        <div class="aboutme-detail-block">
+          <h3>GitHub advisories</h3>
+          <div class="aboutme-link-row">
+            <% github_advisories.each do |link| %>
+              <%= aboutme_external_link(link) %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <% if references.any? %>
+        <div class="aboutme-detail-block">
+          <h3>References</h3>
+          <div class="aboutme-link-row">
+            <% references.each do |link| %>
+              <%= aboutme_external_link(link) %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <% if timeline_items.any? %>
+        <div class="aboutme-detail-block">
+          <h3>Disclosure timeline</h3>
+          <ol class="aboutme-timeline">
+            <% timeline_items.each do |item| %>
+              <li>
+                <% if item["date"].present? %>
+                  <time datetime="<%= item["date"] %>"><%= item["date"] %></time>
+                <% end %>
+                <span><%= item["event"] %></span>
+              </li>
+            <% end %>
+          </ol>
+        </div>
+      <% end %>
+    </div>
+  </details>
+<% else %>
+  <article class="<%= card_classes %>">
+    <div class="aboutme-finding-static">
+      <%= header_content %>
+    </div>
+  </article>
+<% end %>

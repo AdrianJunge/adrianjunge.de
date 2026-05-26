@@ -82,33 +82,35 @@ function initBlogTOC() {
   window.addEventListener("scroll", highlightCurrentSection);
   highlightCurrentSection();
 
-  // TOC toggle
+  function updateTocState(targetId, collapsed) {
+    const toc = document.getElementById(targetId);
+    if (!toc) return;
+
+    toc.hidden = collapsed;
+
+    const wrapper = toc.closest(".writeup-wrapper");
+    if (wrapper) wrapper.classList.toggle("toc-collapsed", collapsed);
+
+    const expanded = (!collapsed).toString();
+    const label = collapsed ? "Show table of contents" : "Collapse table of contents";
+
+    document.querySelectorAll(`[data-toc-toggle="${targetId}"]`).forEach(control => {
+      control.setAttribute("aria-expanded", expanded);
+      control.setAttribute("aria-label", label);
+      control.setAttribute("title", label);
+      control.classList.toggle("is-collapsed", collapsed);
+    });
+  }
+
   document.querySelectorAll('[data-toc-toggle]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-toc-toggle') || btn.getAttribute('aria-controls');
       const toc = document.getElementById(targetId);
       if (!toc) return;
 
-      const nowHidden = toc.classList.toggle('hidden');
-      const expanded = (!nowHidden).toString();
-      btn.setAttribute('aria-expanded', expanded);
+      updateTocState(targetId, !toc.hidden);
     });
   });
-
-  // TOC toggle icon rotation
-  const btn = document.getElementById("toc-toggle");
-  const icon = document.getElementById("toc-toggle-icon");
-
-  if (btn && icon) {
-    btn.addEventListener("click", () => {
-      const expanded = btn.getAttribute("aria-expanded") === "true";
-      if (expanded) {
-        icon.classList.add("rotate-180");
-      } else {
-        icon.classList.remove("rotate-180");
-      }
-    });
-  }
 }
 
 // Copy code functionality
@@ -141,4 +143,3 @@ if (document.readyState === 'loading') {
   initBlogTOC();
   initCodeCopy();
 }
-

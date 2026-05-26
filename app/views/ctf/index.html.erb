@@ -12,7 +12,13 @@
 <% terminal_paths = @ctfs.map { |name, ctf| ctf["terminal_path"] } %>
 <%= render_terminal(terminal_paths, true) %>
 
-<div class="ctf-overview">
+<main class="content-page ctf-overview">
+  <%= render "shared/content_hero",
+             icon_path: "task-bar/flag.svg",
+             icon_alt: "CTF",
+             title: "CTF writeups",
+             description: "Competition notes, challenge writeups, and security research practice grouped by event." %>
+
   <div class="ctf-header-section">
     <div class="ctf-header-center">
       <div class="search-wrapper relative">
@@ -28,22 +34,24 @@
 
     <div class="ctf-header-right">
       <a href="/ctf/feed" class="ctf-rss-feed">
-        <%= image_tag("task-bar/rss.svg", alt: "RSS Feed Icon", class: "ctf-rss-icon bg-tertiary") %>
+        <%= image_tag("task-bar/rss.svg", alt: "RSS Feed Icon", class: "ctf-rss-icon") %>
       </a>
 
       <a href="/ctf/feed.atom" class="ctf-atom-feed">
-        <%= image_tag("task-bar/atom.svg", alt: "Atom Feed Icon", class: "ctf-atom-icon bg-tertiary") %>
+        <%= image_tag("task-bar/atom.svg", alt: "Atom Feed Icon", class: "ctf-atom-icon") %>
       </a>
     </div>
   </div>
 
   <div class="ctf-cards-container">
     <% @ctfs.each do |name, ctf| %>
-      <div class="ctf-card">
+      <div class="ctf-card" data-expandable="false">
         <%= image_tag(ctf["logo"], alt: "#{name} Logo", class: "ctf-logo") %>
         <div class="ctf-details">
-          <h3 class="ctf-name font-bold"><%= name %></h3>
-          <p class="ctf-description"><%= ctf["description"] %></p>
+          <div class="ctf-text">
+            <h3 class="ctf-name font-bold"><%= name %></h3>
+            <p class="ctf-description"><%= ctf["description"] %></p>
+          </div>
           <div class="ctf-button-container">
             <a href="<%= ctf["website"] %>" target="_blank" class="ctf-button website-button">Website</a>
             <a href="<%= ctf["writeups"] %>" class="ctf-button writeups-button">Writeups</a>
@@ -52,4 +60,4 @@
       </div>
     <% end %>
   </div>
-</div>
+</main>

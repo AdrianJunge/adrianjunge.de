@@ -11,7 +11,14 @@
 ]) %>
 <%= render_terminal([], true) %>
 
-<div class="max-w-4xl mx-auto">
+<main class="content-page timeline-page">
+<%= render "shared/content_hero",
+           icon_path: "task-bar/post.svg",
+           icon_alt: "Posts timeline",
+           title: "Posts timeline",
+           description: "All blog posts and CTF writeups ordered by publication year." %>
+
+<div class="timeline-shell">
   <ul class="timeline">
     <% @timeline.each do |year, items| %>
       <li class="mb-6">
@@ -36,16 +43,16 @@
                 <div class="dot"></div>
               </div>
 
-              <div class="timeline-content">
-                <a href="<%= item[:link] %>" class="timeline-title hover:underline">
+              <a href="<%= item[:link] %>" class="timeline-content" aria-label="Open <%= item[:title] %>">
+                <span class="timeline-title">
                   <%= item[:title] %>
-                </a>
+                </span>
 
                 <div class="timeline-meta mt-1">
                     <%= item[:description] %>
                 </div>
 
-              </div>
+              </a>
             </li>
           <% end %>
         </ul>
@@ -53,3 +60,4 @@
     <% end %>
   </ul>
 </div>
+</main>

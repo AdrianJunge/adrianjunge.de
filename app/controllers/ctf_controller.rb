@@ -17,7 +17,8 @@ class CtfController < ApplicationController
     @writeups = Dir.entries(BASE_PATH.join(@which))
                    .select { |file| file.end_with?(".md") }
                    .map { |file| file.sub(".md", "") }
-    @ctf_info = get_ctf_infos(@which, @writeups)
+    @ctf_info = sort_writeups_by_published(get_ctf_infos(@which, @writeups))
+    @writeups = @ctf_info.keys
   end
 
   def writeup
@@ -93,5 +94,17 @@ class CtfController < ApplicationController
     prev = index < items.length - 1 ? items[index + 1] : nil  # older
 
     [ prev, nxt ]
+  end
+
+  private
+
+  def sort_writeups_by_published(writeups_info)
+    writeups_info.sort_by do |_, info|
+      begin
+        -Time.parse(info["published"].to_s).to_i
+      rescue StandardError
+        0
+      end
+    end.to_h
   end
 end

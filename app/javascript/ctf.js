@@ -34,7 +34,7 @@ window.MathJax = {
   }
 };
 
-document.querySelectorAll('.ctf-card').forEach(card => {
+document.querySelectorAll('.ctf-card:not([data-expandable="false"])').forEach(card => {
   card.addEventListener('transitionend', event => {
     if (!card.classList.contains('expanded')) {
       card.style.zIndex = '';
@@ -89,7 +89,7 @@ document.querySelectorAll('.ctf-card').forEach(card => {
 });
 
 document.addEventListener('click', function(event) {
-  if (!event.target.closest('.ctf-card')) {
+  if (!event.target.closest('.ctf-card:not([data-expandable="false"])')) {
     const expandedCard = document.querySelector('.ctf-card.expanded');
     if (expandedCard) {
       expandedCard.classList.remove('expanded');

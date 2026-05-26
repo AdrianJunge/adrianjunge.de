@@ -1,0 +1,659 @@
+@import "variables";
+
+.aboutme-page {
+    min-height: 100dvh;
+    color: #f8fafc;
+    background:
+        linear-gradient(180deg, rgba(85, 170, 255, 0.08) 0%, rgba(10, 16, 26, 0) 24rem),
+        $color-default;
+}
+
+.aboutme-page * {
+    box-sizing: border-box;
+}
+
+.aboutme-hero {
+    border-bottom: 1px solid rgba(93, 116, 158, 0.55);
+    padding: 5rem 1.5rem 3rem;
+}
+
+.aboutme-hero-inner,
+.aboutme-section {
+    width: calc(100% - 2rem);
+    max-width: 72rem;
+    margin: 0 auto;
+}
+
+.aboutme-identity {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.aboutme-icon-wrap {
+    display: grid;
+    place-items: center;
+    width: 5rem;
+    height: 5rem;
+    flex: 0 0 auto;
+    border: var(--default-border);
+    border-radius: 8px;
+    background: rgba(24, 36, 58, 0.86);
+}
+
+.aboutme-hero-icon {
+    width: 3.25rem;
+    height: 3.25rem;
+    filter: invert(1);
+}
+
+.aboutme-kicker,
+.aboutme-section-kicker {
+    margin: 0 0 0.4rem;
+    color: #7dd3fc;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.aboutme-hero h1 {
+    margin: 0;
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.aboutme-copy {
+    max-width: 60rem;
+}
+
+.aboutme-copy .markdown-content,
+.aboutme-copy .markdown-content span {
+    color: rgba(248, 250, 252, 0.9) !important;
+}
+
+.aboutme-copy p {
+    margin: 0 0 1rem;
+    font-size: 1.08rem;
+    line-height: 1.8;
+}
+
+.aboutme-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    margin-top: 2.25rem;
+    overflow: hidden;
+    border: 1px solid rgba(93, 116, 158, 0.65);
+    border-radius: 8px;
+    background: rgba(93, 116, 158, 0.65);
+}
+
+.aboutme-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 1.1rem;
+    background: rgba(24, 36, 58, 0.84);
+}
+
+.aboutme-stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #fef3c7;
+}
+
+.aboutme-stat-label {
+    color: rgba(226, 232, 240, 0.78);
+    font-size: 0.92rem;
+}
+
+.aboutme-section {
+    padding: 3rem 0 0;
+    scroll-margin-top: 5rem;
+}
+
+.aboutme-section:last-child {
+    padding-bottom: 4rem;
+}
+
+.aboutme-section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: 1.25rem;
+}
+
+.aboutme-section-header::after {
+    content: "";
+    width: 3.5rem;
+    height: 2px;
+    margin-top: 0.55rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #7dd3fc, #fef3c7);
+}
+
+.aboutme-section-title {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.aboutme-finding-grid,
+.aboutme-achievement-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.aboutme-finding-card,
+.aboutme-achievement-card,
+.aboutme-empty-state {
+    border: 1px solid rgba(93, 116, 158, 0.7);
+    border-radius: 8px;
+    background: rgba(24, 36, 58, 0.82);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.18);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.aboutme-finding-card {
+    overflow: hidden;
+}
+
+.aboutme-finding-card summary,
+.aboutme-finding-static {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 8.5rem;
+    list-style: none;
+    transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.aboutme-finding-card summary {
+    padding: 1.25rem 3rem 1.25rem 1.25rem;
+    cursor: pointer;
+}
+
+.aboutme-finding-static {
+    padding: 1.25rem;
+}
+
+.aboutme-finding-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.aboutme-finding-card summary::after {
+    content: "";
+    position: absolute;
+    top: 1.55rem;
+    right: 1.25rem;
+    width: 0.65rem;
+    height: 0.65rem;
+    flex: 0 0 auto;
+    border-right: 2px solid #7dd3fc;
+    border-bottom: 2px solid #7dd3fc;
+    transform: rotate(45deg);
+    transition: transform 0.18s ease;
+}
+
+.aboutme-finding-card[open] summary {
+    border-bottom: 1px solid rgba(93, 116, 158, 0.55);
+    background: rgba(51, 68, 97, 0.5);
+}
+
+.aboutme-finding-card[open] summary::after {
+    transform: rotate(225deg);
+}
+
+.aboutme-finding-card summary:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: -4px;
+}
+
+.aboutme-finding-main {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.aboutme-finding-project {
+    color: #ffffff;
+    font-size: 1.35rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-finding-summary {
+    color: rgba(226, 232, 240, 0.82);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-finding-badges {
+    display: flex;
+    align-items: flex-end;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.aboutme-severity,
+.aboutme-cve-id,
+.aboutme-achievement-meta span,
+.aboutme-achievement-meta time {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.8rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-cve-id {
+    color: #cffafe;
+    border: 1px solid rgba(125, 211, 252, 0.45);
+    background: rgba(8, 145, 178, 0.2);
+}
+
+.aboutme-severity-critical {
+    color: #fecaca;
+    background: rgba(185, 28, 28, 0.34);
+}
+
+.aboutme-severity-high {
+    color: #fed7aa;
+    background: rgba(194, 65, 12, 0.34);
+}
+
+.aboutme-severity-medium {
+    color: #fde68a;
+    background: rgba(161, 98, 7, 0.34);
+}
+
+.aboutme-severity-low {
+    color: #bbf7d0;
+    background: rgba(21, 128, 61, 0.32);
+}
+
+.aboutme-severity-info {
+    color: #bae6fd;
+    background: rgba(2, 132, 199, 0.3);
+}
+
+.aboutme-severity-tba {
+    color: #ddd6fe;
+    background: rgba(109, 40, 217, 0.28);
+}
+
+.aboutme-finding-body {
+    padding: 1.25rem;
+}
+
+.aboutme-finding-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 0.75rem;
+    margin: 0 0 1.25rem;
+}
+
+.aboutme-finding-facts div {
+    padding: 0.85rem;
+    border: 1px solid rgba(93, 116, 158, 0.45);
+    border-radius: 8px;
+    background: rgba(10, 16, 26, 0.38);
+}
+
+.aboutme-finding-facts dt {
+    margin-bottom: 0.3rem;
+    color: rgba(148, 163, 184, 0.95);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.aboutme-finding-facts dd {
+    margin: 0;
+    color: rgba(248, 250, 252, 0.92);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-detail-block {
+    margin-top: 1.25rem;
+}
+
+.aboutme-detail-block h3 {
+    margin: 0 0 0.55rem;
+    color: #fef3c7;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.aboutme-detail-block p {
+    margin: 0;
+    color: rgba(226, 232, 240, 0.86);
+    line-height: 1.7;
+}
+
+.aboutme-link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.aboutme-link-row a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    min-height: 2.2rem;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid rgba(125, 211, 252, 0.45);
+    border-radius: 8px;
+    color: #cffafe;
+    background: rgba(8, 145, 178, 0.18);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.aboutme-link-row a:hover {
+    transform: translateY(-1px);
+    background: rgba(8, 145, 178, 0.32);
+}
+
+.aboutme-finding-project a,
+.aboutme-finding-summary a,
+.aboutme-finding-facts dd a,
+.aboutme-achievement-card h3 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.aboutme-finding-project a:hover,
+.aboutme-finding-summary a:hover,
+.aboutme-finding-facts dd a:hover,
+.aboutme-achievement-card h3 a:hover {
+    color: #7dd3fc;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+}
+
+.aboutme-timeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding-left: 1.2rem;
+    color: rgba(226, 232, 240, 0.88);
+}
+
+.aboutme-timeline li {
+    padding-left: 0.25rem;
+}
+
+.aboutme-timeline time {
+    display: block;
+    color: #7dd3fc;
+    font-size: 0.83rem;
+    font-weight: 800;
+}
+
+.aboutme-empty-state {
+    position: relative;
+    overflow: hidden;
+    padding: 1.4rem;
+    color: rgba(226, 232, 240, 0.78);
+}
+
+.aboutme-empty-state::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: #7dd3fc;
+    opacity: 0.75;
+}
+
+.aboutme-empty-state p {
+    margin: 0;
+}
+
+.aboutme-achievement-card {
+    display: flex;
+    min-height: 17rem;
+    flex-direction: column;
+    padding: 1.25rem;
+}
+
+.aboutme-achievement-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.aboutme-achievement-meta span {
+    color: #d9f99d;
+    background: rgba(77, 124, 15, 0.28);
+}
+
+.aboutme-achievement-meta time {
+    color: #fed7aa;
+    background: rgba(194, 65, 12, 0.25);
+}
+
+.aboutme-achievement-card h3 {
+    margin: 0 0 0.75rem;
+    color: #ffffff;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-achievement-card p {
+    margin: 0 0 1rem;
+    color: rgba(226, 232, 240, 0.84);
+    line-height: 1.65;
+}
+
+.aboutme-achievement-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+    padding-left: 1.1rem;
+    color: rgba(226, 232, 240, 0.82);
+    line-height: 1.55;
+}
+
+.aboutme-achievement-card .aboutme-link-row {
+    margin-top: auto;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .aboutme-finding-card:hover,
+    .aboutme-achievement-card:hover {
+        border-color: rgba(125, 211, 252, 0.85);
+        box-shadow: 0 1.25rem 2.5rem rgba(0, 0, 0, 0.24);
+        transform: translateY(-2px);
+    }
+
+    .aboutme-finding-card summary:hover {
+        background: rgba(51, 68, 97, 0.28);
+    }
+}
+
+@media (max-width: 720px) {
+    .aboutme-hero-inner,
+    .aboutme-section {
+        width: calc(100% - 3.5rem);
+        margin-right: 1rem;
+        margin-left: 2.5rem;
+    }
+
+    .aboutme-hero {
+        padding: 4.25rem 1rem 2.5rem;
+    }
+
+    .aboutme-identity {
+        align-items: center;
+        gap: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .aboutme-icon-wrap {
+        width: 4rem;
+        height: 4rem;
+    }
+
+    .aboutme-hero-icon {
+        width: 2.55rem;
+        height: 2.55rem;
+    }
+
+    .aboutme-hero h1 {
+        font-size: 2.4rem;
+    }
+
+    .aboutme-kicker,
+    .aboutme-section-kicker {
+        font-size: 0.75rem;
+        line-height: 1.3;
+    }
+
+    .aboutme-copy p {
+        font-size: 1rem;
+        line-height: 1.68;
+    }
+
+    .aboutme-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 1.75rem;
+    }
+
+    .aboutme-stat {
+        padding: 0.95rem 1rem;
+    }
+
+    .aboutme-section {
+        padding-top: 2.4rem;
+    }
+
+    .aboutme-section-title {
+        font-size: 1.75rem;
+    }
+
+    .aboutme-finding-card summary,
+    .aboutme-finding-static {
+        align-items: stretch;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .aboutme-finding-card summary {
+        padding: 1rem 2.75rem 1rem 1rem;
+    }
+
+    .aboutme-finding-static {
+        padding: 1rem;
+    }
+
+    .aboutme-finding-badges {
+        align-items: flex-start;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .aboutme-finding-project,
+    .aboutme-achievement-card h3 {
+        font-size: 1.15rem;
+    }
+
+    .aboutme-finding-body,
+    .aboutme-achievement-card,
+    .aboutme-empty-state {
+        padding: 1rem;
+    }
+
+    .aboutme-finding-facts {
+        grid-template-columns: 1fr;
+    }
+
+    .aboutme-achievement-card {
+        min-height: 0;
+    }
+
+    .aboutme-link-row a {
+        width: 100%;
+    }
+
+    .aboutme-finding-grid,
+    .aboutme-achievement-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 380px) {
+    .aboutme-hero-inner,
+    .aboutme-section {
+        width: calc(100% - 3.25rem);
+        margin-right: 1rem;
+        margin-left: 2.25rem;
+    }
+
+    .aboutme-identity {
+        gap: 0.75rem;
+    }
+
+    .aboutme-icon-wrap {
+        width: 3.6rem;
+        height: 3.6rem;
+    }
+
+    .aboutme-hero-icon {
+        width: 2.3rem;
+        height: 2.3rem;
+    }
+
+    .aboutme-hero h1 {
+        font-size: 2rem;
+    }
+
+    .aboutme-copy p {
+        font-size: 0.96rem;
+        line-height: 1.62;
+    }
+
+    .aboutme-section-title {
+        font-size: 1.55rem;
+    }
+
+    .aboutme-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .aboutme-severity,
+    .aboutme-cve-id,
+    .aboutme-achievement-meta span,
+    .aboutme-achievement-meta time {
+        min-height: 1.65rem;
+        padding: 0.22rem 0.55rem;
+        font-size: 0.72rem;
+    }
+}

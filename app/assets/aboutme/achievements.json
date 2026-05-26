@@ -1,0 +1,53 @@
+[
+  {
+    "id": "firedancer-v1-audit-competition-tba",
+    "title": "Firedancer v1.0 audit competition (TBA)",
+    "title_url": "https://immunefi.com/audit-competition/firedancer-v1-audit-comp/information/",
+    "category": "Audit Competition",
+    "date": "2026",
+    "links": [
+      {
+        "label": "Audit competition",
+        "url": "https://immunefi.com/audit-competition/firedancer-v1-audit-comp/information/"
+      },
+      {
+        "label": "Firedancer repository",
+        "url": "https://github.com/firedancer-io/firedancer"
+      }
+    ]
+  },
+  {
+    "id": "dhm-2025",
+    "title": "DHM 2025 - 7th place",
+    "title_url": "https://hacking-meisterschaft.de/",
+    "category": "CTF Competition",
+    "date": "2025",
+    "summary": "Placed #7 at the Deutsche Hacking-Meisterschaft 2025.",
+    "details": [
+      "Onsite CTF competition with CSCG as the individual qualifiers focused on practical security challenges across categories such as web, crypto, reversing, pwn, networking, and forensics."
+    ],
+    "links": [
+      {
+        "label": "DHM",
+        "url": "https://hacking-meisterschaft.de/"
+      }
+    ]
+  },
+  {
+    "id": "dhm-2024",
+    "title": "DHM 2024 - 1st place",
+    "title_url": "https://hacking-meisterschaft.de/",
+    "category": "CTF Competition",
+    "date": "2024",
+    "summary": "Placed #1 at the Deutsche Hacking-Meisterschaft 2024.",
+    "details": [
+      "Onsite CTF competition with CSCG as the individual qualifiers focused on practical security challenges across categories such as web, crypto, reversing, pwn, networking, and forensics."
+    ],
+    "links": [
+      {
+        "label": "DHM",
+        "url": "https://hacking-meisterschaft.de/"
+      }
+    ]
+  }
+]

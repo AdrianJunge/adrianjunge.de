@@ -11,15 +11,16 @@
 ]) %>
 <%= render_terminal(@writeups, true) %>
 
-<div class="ctf-container">
-  <div class="header-container">
-    <a href="<%= @ctf["website"] %>" target="_blank">
-        <button type="button" class="bg-primary header flex text-white rounded-xl text-5xl px-5 py-2.5 inline-flex items-center">
-        <%= fetch_favicon(@ctf["website"]) %>
-        <%= @which.upcase %>
-      </button>
-    </a>
-  </div>
+<main class="content-page ctf-container">
+  <%= render "shared/content_hero",
+             icon_path: @ctf["logo"],
+             icon_alt: "#{@which.upcase} logo",
+             icon_class: "content-hero-logo",
+             invert_icon: false,
+             title: @which.upcase,
+             description: "Writeups for #{@ctf["terminal_path"].upcase} challenges.",
+             url: @ctf["website"],
+             external: true %>
 
   <div class="writeup-content">
     <div class="writeup-overview">
@@ -31,4 +32,4 @@
       <% end %>
     </div>
   </div>
-</div>
+</main>

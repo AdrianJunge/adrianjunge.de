@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   root "landing#index"
 
+  get "/about", to: "aboutme#index", as: :about
+  get "/aboutme", to: redirect("/about")
+
   get "/ctf/files/*file_path", to: "ctf_files#download", as: :ctf_file_download
 
   get "/ctf/feed", to: "ctf#feed", as: :ctf_feed, defaults: { format: :rss }

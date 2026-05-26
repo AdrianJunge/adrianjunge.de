@@ -1,0 +1,34 @@
+<% invert_icon = local_assigns.fetch(:invert_icon, true) %>
+<% icon_classes = [ "content-hero-icon" ] %>
+<% icon_classes << "content-hero-icon-inverted" if invert_icon %>
+<% icon_classes << local_assigns[:icon_class] if local_assigns[:icon_class].present? %>
+<% link_target = local_assigns[:external] ? "_blank" : nil %>
+<% link_rel = local_assigns[:external] ? "noopener noreferrer" : nil %>
+
+<section class="content-hero">
+  <div class="content-hero-inner">
+    <% title_row = capture do %>
+      <span class="content-hero-icon-wrap">
+        <%= image_tag(icon_path, alt: icon_alt, class: icon_classes.join(" ")) %>
+      </span>
+      <h1><%= title %></h1>
+    <% end %>
+
+    <% if local_assigns[:url].present? %>
+      <%= link_to local_assigns[:url],
+                  class: "content-hero-title-row content-hero-title-link",
+                  target: link_target,
+                  rel: link_rel do %>
+        <%= title_row %>
+      <% end %>
+    <% else %>
+      <div class="content-hero-title-row">
+        <%= title_row %>
+      </div>
+    <% end %>
+
+    <% if description.present? %>
+      <p><%= description %></p>
+    <% end %>
+  </div>
+</section>

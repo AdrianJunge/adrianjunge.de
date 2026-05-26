@@ -1,0 +1,371 @@
+[
+  {
+    "id": "suitecrm-tba-2",
+    "project": "SuiteCRM",
+    "project_url": "https://github.com/salesagility/SuiteCRM",
+    "title": "SuiteCRM advisory #2 (TBA)",
+    "title_url": "https://github.com/salesagility/SuiteCRM",
+    "cve_id": "",
+    "severity": "",
+    "short_summary": "",
+    "summary": "",
+    "tested_version": "",
+    "impact": "",
+    "github_advisories": [
+      {
+        "label": "",
+        "url": ""
+      }
+    ],
+    "timeline": [
+      {
+        "date": "",
+        "event": ""
+      }
+    ],
+    "references": [
+      {
+        "label": "SuiteCRM repository",
+        "url": "https://github.com/salesagility/SuiteCRM"
+      }
+    ]
+  },
+  {
+    "id": "suitecrm-tba-1",
+    "project": "SuiteCRM",
+    "project_url": "https://github.com/salesagility/SuiteCRM",
+    "title": "SuiteCRM advisory #1 (TBA)",
+    "title_url": "https://github.com/salesagility/SuiteCRM",
+    "cve_id": "",
+    "severity": "",
+    "short_summary": "",
+    "summary": "",
+    "tested_version": "",
+    "impact": "",
+    "github_advisories": [
+      {
+        "label": "",
+        "url": ""
+      }
+    ],
+    "timeline": [
+      {
+        "date": "",
+        "event": ""
+      }
+    ],
+    "references": [
+      {
+        "label": "SuiteCRM repository",
+        "url": "https://github.com/salesagility/SuiteCRM"
+      }
+    ]
+  },
+  {
+    "id": "joomla-tba-2",
+    "project": "Joomla CMS",
+    "project_url": "https://github.com/joomla/joomla-cms",
+    "title": "Joomla advisory #2 (TBA)",
+    "title_url": "https://github.com/joomla/joomla-cms",
+    "cve_id": "",
+    "severity": "",
+    "short_summary": "",
+    "summary": "",
+    "tested_version": "",
+    "impact": "",
+    "github_advisories": [
+      {
+        "label": "",
+        "url": ""
+      }
+    ],
+    "timeline": [
+      {
+        "date": "",
+        "event": ""
+      }
+    ],
+    "references": [
+      {
+        "label": "Joomla CMS repository",
+        "url": "https://github.com/joomla/joomla-cms"
+      }
+    ]
+  },
+  {
+    "id": "joomla-tba-1",
+    "project": "Joomla CMS",
+    "project_url": "https://github.com/joomla/joomla-cms",
+    "title": "Joomla advisory #1 (TBA)",
+    "title_url": "https://github.com/joomla/joomla-cms",
+    "cve_id": "",
+    "severity": "",
+    "short_summary": "",
+    "summary": "",
+    "tested_version": "",
+    "impact": "",
+    "github_advisories": [
+      {
+        "label": "",
+        "url": ""
+      }
+    ],
+    "timeline": [
+      {
+        "date": "",
+        "event": ""
+      }
+    ],
+    "references": [
+      {
+        "label": "Joomla CMS repository",
+        "url": "https://github.com/joomla/joomla-cms"
+      }
+    ]
+  },
+  {
+    "id": "churchcrm-settingsindividual-blind-sqli",
+    "project": "ChurchCRM",
+    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "Authenticated blind SQL injection in SettingsIndividual.php",
+    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-8g53-72jr-39w6",
+    "cve_id": "CVE-2026-39334",
+    "severity": "High",
+    "short_summary": "Authenticated blind SQL injection in SettingsIndividual.php.",
+    "summary": "ChurchCRM settings input could be used by an authenticated user to influence a SQL query in SettingsIndividual.php and confirm injection through blind SQL techniques.",
+    "tested_version": "ChurchCRM 7.0.5",
+    "impact": "Authenticated database query manipulation and sensitive data extraction through blind SQL injection.",
+    "github_advisories": [
+      {
+        "label": "GHSA-8g53-72jr-39w6",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-8g53-72jr-39w6"
+      }
+    ],
+    "references": [
+      {
+        "label": "ChurchCRM repository",
+        "url": "https://github.com/ChurchCRM/CRM"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "event": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "event": "GitHub advisory published and CVE assigned."
+      }
+    ]
+  },
+  {
+    "id": "churchcrm-propertyassign-blind-sqli",
+    "project": "ChurchCRM",
+    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "Authenticated blind SQL injection in PropertyAssign.php",
+    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-xq86-jh52-728g",
+    "cve_id": "CVE-2026-39330",
+    "severity": "High",
+    "short_summary": "Authenticated blind SQL injection in PropertyAssign.php.",
+    "summary": "ChurchCRM property assignment handling exposed a blind SQL injection path through PropertyAssign.php for authenticated users.",
+    "tested_version": "ChurchCRM 7.0.5",
+    "impact": "Authenticated attackers could infer database contents and potentially alter application data through injected SQL.",
+    "github_advisories": [
+      {
+        "label": "GHSA-xq86-jh52-728g",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-xq86-jh52-728g"
+      }
+    ],
+    "references": [
+      {
+        "label": "ChurchCRM repository",
+        "url": "https://github.com/ChurchCRM/CRM"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "event": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "event": "GitHub advisory published and CVE assigned."
+      }
+    ]
+  },
+  {
+    "id": "churchcrm-eventnames-blind-sqli",
+    "project": "ChurchCRM",
+    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "Authenticated blind SQL injection in EventNames.php",
+    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-ggfm-5q4w-p93g",
+    "cve_id": "CVE-2026-39329",
+    "severity": "High",
+    "short_summary": "Authenticated blind SQL injection in EventNames.php.",
+    "summary": "ChurchCRM event-name management exposed SQL injection behavior reachable by authenticated users with access to the affected event configuration path.",
+    "tested_version": "ChurchCRM 7.0.5",
+    "impact": "Authenticated SQL injection could expose or modify ChurchCRM database records.",
+    "github_advisories": [
+      {
+        "label": "GHSA-ggfm-5q4w-p93g",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-ggfm-5q4w-p93g"
+      }
+    ],
+    "references": [
+      {
+        "label": "ChurchCRM repository",
+        "url": "https://github.com/ChurchCRM/CRM"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "event": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "event": "GitHub advisory published and CVE assigned."
+      }
+    ]
+  },
+  {
+    "id": "churchcrm-memberrolechange-sqli",
+    "project": "ChurchCRM",
+    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "Authenticated SQL injection in MemberRoleChange.php",
+    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-66fc-v5xj-x859",
+    "cve_id": "CVE-2026-39327",
+    "severity": "High",
+    "short_summary": "Authenticated SQL injection in MemberRoleChange.php.",
+    "summary": "ChurchCRM allowed authenticated users with group and role management privileges to inject SQL through the MemberRoleChange.php role update flow.",
+    "tested_version": "ChurchCRM 7.0.5",
+    "impact": "Database read/write access through injected SQL, with potential privilege escalation depending on deployment configuration.",
+    "github_advisories": [
+      {
+        "label": "GHSA-66fc-v5xj-x859",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-66fc-v5xj-x859"
+      }
+    ],
+    "references": [
+      {
+        "label": "ChurchCRM repository",
+        "url": "https://github.com/ChurchCRM/CRM"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-25",
+        "event": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "event": "GitHub advisory published and CVE assigned."
+      }
+    ]
+  },
+  {
+    "id": "churchcrm-propertytypeeditor-blind-sqli",
+    "project": "ChurchCRM",
+    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "Authenticated blind SQL injection in PropertyTypeEditor.php",
+    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-mch7-6v8f-c4j5",
+    "cve_id": "CVE-2026-39326",
+    "severity": "High",
+    "short_summary": "Authenticated blind SQL injection in PropertyTypeEditor.php.",
+    "summary": "ChurchCRM property type editing accepted input that could influence SQL statements in PropertyTypeEditor.php when reached by an authenticated user.",
+    "tested_version": "ChurchCRM 7.0.5",
+    "impact": "Authenticated database compromise through SQL injection, including data extraction or modification.",
+    "github_advisories": [
+      {
+        "label": "GHSA-mch7-6v8f-c4j5",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-mch7-6v8f-c4j5"
+      }
+    ],
+    "references": [
+      {
+        "label": "ChurchCRM repository",
+        "url": "https://github.com/ChurchCRM/CRM"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "event": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "event": "GitHub advisory published and CVE assigned."
+      }
+    ]
+  },
+  {
+    "id": "churchcrm-settingsuser-blind-sqli",
+    "project": "ChurchCRM",
+    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "Authenticated blind SQL injection in SettingsUser.php",
+    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-cf68-g7vf-9xrq",
+    "cve_id": "CVE-2026-39325",
+    "severity": "High",
+    "short_summary": "Authenticated blind SQL injection in SettingsUser.php.",
+    "summary": "ChurchCRM user settings handling exposed an authenticated blind SQL injection path in SettingsUser.php.",
+    "tested_version": "ChurchCRM 7.0.5",
+    "impact": "Authenticated attackers could infer and extract database data through timing-based or boolean blind SQL techniques.",
+    "github_advisories": [
+      {
+        "label": "GHSA-cf68-g7vf-9xrq",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-cf68-g7vf-9xrq"
+      }
+    ],
+    "references": [
+      {
+        "label": "ChurchCRM repository",
+        "url": "https://github.com/ChurchCRM/CRM"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "event": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "event": "GitHub advisory published and CVE assigned."
+      }
+    ]
+  },
+  {
+    "id": "churchcrm-fundraisereditor-second-order-sqli",
+    "project": "ChurchCRM",
+    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "Second-order SQL injection via FundRaiserEditor.php",
+    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-vg4m-hc29-jgqj",
+    "cve_id": "CVE-2026-39319",
+    "severity": "High",
+    "short_summary": "Second-order SQL injection via FundRaiserEditor.php.",
+    "summary": "ChurchCRM allowed stored input from FundRaiserEditor.php to become executable SQL later in the affected fundraiser workflow.",
+    "tested_version": "ChurchCRM 7.1.2 and earlier affected",
+    "impact": "Second-order SQL injection could lead to database compromise after malicious stored input is processed.",
+    "github_advisories": [
+      {
+        "label": "GHSA-vg4m-hc29-jgqj",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-vg4m-hc29-jgqj"
+      }
+    ],
+    "references": [
+      {
+        "label": "ChurchCRM repository",
+        "url": "https://github.com/ChurchCRM/CRM"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "event": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "event": "GitHub advisory published and CVE assigned."
+      }
+    ]
+  }
+]

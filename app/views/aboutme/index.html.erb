@@ -1,0 +1,123 @@
+<% content_for :head do %>
+  <title>About me</title>
+  <meta name="description" content="<%= @about_info["description"] || "About Adrian Junge, security research, CVEs, bug bounties, certificates, and achievements." %>">
+  <meta property="og:title" content="About Adrian Junge">
+  <meta property="og:description" content="<%= @about_info["description"] || "Security research, CTFs, bug bounties, certificates, and achievements." %>">
+  <meta property="og:type" content="profile">
+<% end %>
+
+<%= render_taskbar_items([
+  { image_path: "task-bar/flag.svg", alt_text: "CTF Icon", label: "CTF", link: ctf_path },
+  { image_path: "task-bar/blog.svg", alt_text: "Blog Icon", label: "Blog", link: blog_path },
+]) %>
+<%= render_terminal([ "ctf", "blog" ], true) %>
+
+<main class="aboutme-page">
+  <section class="aboutme-hero">
+    <div class="aboutme-hero-inner">
+      <div class="aboutme-identity">
+        <div class="aboutme-icon-wrap">
+          <%= image_tag("task-bar/about.svg", alt: "About me", class: "aboutme-hero-icon") %>
+        </div>
+        <div>
+          <h1>About me</h1>
+        </div>
+      </div>
+
+      <div class="aboutme-copy">
+        <%= @about_html %>
+      </div>
+
+      <div class="aboutme-stats" aria-label="Public security work summary">
+        <div class="aboutme-stat">
+          <span class="aboutme-stat-value"><%= @cve_entry_count %></span>
+          <span class="aboutme-stat-label">CVEs</span>
+        </div>
+        <div class="aboutme-stat">
+          <span class="aboutme-stat-value"><%= @bug_bounties.length %></span>
+          <span class="aboutme-stat-label">Bug bounties</span>
+        </div>
+        <div class="aboutme-stat">
+          <span class="aboutme-stat-value"><%= @certificates.length %></span>
+          <span class="aboutme-stat-label">Certificates</span>
+        </div>
+        <div class="aboutme-stat">
+          <span class="aboutme-stat-value"><%= @achievements.length %></span>
+          <span class="aboutme-stat-label">Achievements</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="aboutme-section" id="cves">
+    <div class="aboutme-section-header">
+      <h2 class="aboutme-section-title">CVEs</h2>
+    </div>
+
+    <% if @cves.any? %>
+      <div class="aboutme-finding-grid">
+        <% @cves.each do |entry| %>
+          <%= render "finding_card", entry: entry, kind: "cve" %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="aboutme-empty-state">
+        <p>No public CVEs are listed yet.</p>
+      </div>
+    <% end %>
+  </section>
+
+  <section class="aboutme-section" id="bug-bounties">
+    <div class="aboutme-section-header">
+      <h2 class="aboutme-section-title">Bug bounties</h2>
+    </div>
+
+    <% if @bug_bounties.any? %>
+      <div class="aboutme-finding-grid">
+        <% @bug_bounties.each do |entry| %>
+          <%= render "finding_card", entry: entry, kind: "bug-bounty" %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="aboutme-empty-state">
+        <p>No public bug bounty reports are listed yet.</p>
+      </div>
+    <% end %>
+  </section>
+
+  <section class="aboutme-section" id="certificates">
+    <div class="aboutme-section-header">
+      <h2 class="aboutme-section-title">Certificates</h2>
+    </div>
+
+    <% if @certificates.any? %>
+      <div class="aboutme-achievement-grid">
+        <% @certificates.each do |certificate| %>
+          <%= render "milestone_card", entry: certificate %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="aboutme-empty-state">
+        <p>No certificates are listed yet.</p>
+      </div>
+    <% end %>
+  </section>
+
+  <section class="aboutme-section" id="achievements">
+    <div class="aboutme-section-header">
+      <h2 class="aboutme-section-title">Relevant achievements</h2>
+    </div>
+
+    <% if @achievements.any? %>
+      <div class="aboutme-achievement-grid">
+        <% @achievements.each do |achievement| %>
+          <%= render "milestone_card", entry: achievement %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="aboutme-empty-state">
+        <p>No achievements are listed yet.</p>
+      </div>
+    <% end %>
+  </section>
+</main>

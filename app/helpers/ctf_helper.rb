@@ -1,6 +1,3 @@
-require "open-uri"
-require "nokogiri"
-
 module CtfHelper
   def get_category_svg(category)
     svg_filename = Rails.root.join("app", "assets", "ctf", "categories", "#{category.downcase}.svg")
@@ -43,25 +40,5 @@ module CtfHelper
         concat(content_tag(:span, "#{published}", class: "text-sm text-gray-400"))
       end)
     end
-  end
-
-  def fetch_favicon(url)
-    uri = URI.parse(url)
-    return unless uri.host
-
-    favicon_url = extract_favicon_from_meta_tags(url) || "#{uri.scheme}://#{uri.host}/favicon.ico"
-    image_tag(favicon_url, alt: "Favicon", class: "w-12 h-12 me-2 -ms-1")
-  rescue StandardError => e
-    Rails.logger.error("Failed to fetch favicon: #{e.message}")
-    nil
-  end
-
-  private
-
-  def extract_favicon_from_meta_tags(url)
-    html = URI.open(url).read
-    doc = Nokogiri::HTML(html)
-    link_tag = doc.at('link[rel="icon"], link[rel="shortcut icon"]')
-    link_tag ? URI.join(url, link_tag["href"]).to_s : nil
   end
 end
