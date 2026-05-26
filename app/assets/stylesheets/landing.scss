@@ -21,24 +21,6 @@
     margin-bottom: 5rem;
 }
 
-.info-cards-container {
-    display: flex;
-    margin: 1.5rem;
-    gap: 1.5rem;
-    justify-content: center;
-}
-
-.info-cards-container img {
-    width: 8dvh;
-    height: 8dvh;
-}
-
-.profile-card, .ctfteam-card, .university-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
 .landing-writeup-cards {
     gap: 1.5rem;
     max-width: 100dvh;
@@ -49,17 +31,10 @@
 }
 
 @media (max-width: 600px) {
-    .info-cards-container {
-        flex-direction: column;
-        align-items: center;
-    }
     #landing-top {
         margin-top: 5rem;
     }
     #scroll-down-button {
         display: none;
-    }
-    .writeup-card {
-        width: 70% !important;
     }
 }

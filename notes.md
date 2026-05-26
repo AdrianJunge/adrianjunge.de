@@ -1,11 +1,15 @@
 # TODOs
-- Add to landing page more counters like CVEs, Bug Bounties, Certificates, Achievements but in their own clickable area
-    - change title from "Welcome to my flag collection - CTF writeups & more" to something more fitting, this is not only about ctfs anymore
-- Adde Features und Info tables wie bei https://dimasc.tf/ zu meiner Website wie zB die Blog Übersicht und die Filter die man applyen kann
-- Nur die skallierung vom Terminal kommt nicht so gut auf hochauflösenden Display - wenn man die seite auf 200% skalliert gehts aber sehr gut.
-- Writeup shiny Contest win Label adden zB für umdctf, cscg etc und verlinken
-    - UMDCTF: https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959
-    - CSCG: PDF Urkunde mit attachen wie bei https://morrisbe.de/ctf/supercluster
+- replace DHM achievement with something like
+    - DHM section with 2024 #1 and participated 2025
+    - CSCG section with 2024 qualified for DHM and 2025 qualified and top 6
+remove #7th place DHM and replace it with top 10 cscg qualifiers or top 6 seniors idk?
+    => screenshot raussuchen
+- on the very top is some space used for the "taskbar-item" and thus shifting everything down, this is weird
+- Add Features and Info tables like on https://dimasc.tf/
+    - to do this, thoroughly scrape through the whole website
+    - add stuff like the Blog overview if its not already present on my website and the filters that can be applied
+
+- Fix the scaling of the terminal for high resolution displays
 - Search functionality for ctfs and writeups and blogs
     - ctf tags bei den einzelnen Writeups clickable machen sodass gefiltert wird nach dem tag unter den writeups
     - Suchfilter und Filteroption nach Jahr/Datum
@@ -25,12 +29,16 @@
 - SEO (search engine optimization)
 - xterm + flowbite css über CDN fetchen anstatt eigene file im repo
 
+- Add for the writeups shiny Contest win labels for the following writeups and apply the links behind these labels so you are able to see the proof
+    - [ ] Davor aber die PDF Urkunde downloaden und in public folder stellen
+    - UMDCTF: https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959
+    - CSCG: PDF Urkunde mit attachen wie bei https://morrisbe.de/ctf/supercluster
+
 # Content
 - Aboutme adds
     - Firedancer Bug Bounty
     - Firedancer Audit Competition
     - Wordpress Bug Bounty + CVE
-    - Joomla CVEs
     - SuiteCRM CVEs
 - Blog
     - Java Strings

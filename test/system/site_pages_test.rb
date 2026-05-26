@@ -2,7 +2,7 @@ require "application_system_test_case"
 
 class SitePagesTest < ApplicationSystemTestCase
   PAGES = {
-    "/" => "Welcome to my flag collection",
+    "/" => "Welcome to my bug collection 🐛",
     "/ctf" => "CTF writeups",
     "/ctf/lactf" => "LACTF",
     "/ctf/lactf/Gamedev" => "Gamedev",
@@ -121,6 +121,32 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_in_delta metrics["containerWidth"], width, 1
     end
     assert_in_delta metrics["gaps"].first, metrics["gaps"].last, 1
+  end
+
+  test "landing page exposes about section counters as direct links" do
+    visit "/"
+
+    assert_text "creating writeups, collecting CVEs, bounties"
+    assert_text "occasionally convince software to confess"
+    assert_no_text "Security researcher and computer science student focused on web security"
+    assert_no_text "Welcome to my flag collection"
+    assert_selector ".landing-action[href='/posts-timeline']", text: "Posts timeline"
+    assert_selector ".landing-action[href='/about']", text: "About me"
+    assert_selector ".landing-metric", count: 6
+
+    [
+      [ "/about#cves", "CVEs", JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH)).length ],
+      [ "/about#bug-bounties", "Bug bounties", JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)).length ],
+      [ "/about#certificates", "Certificates", JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH)).length ],
+      [ "/about#achievements", "Achievements", JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH)).length ]
+    ].each do |href, label, count|
+      assert_selector ".landing-metric[href='#{href}']", text: label
+      assert_selector ".landing-metric[href='#{href}'] .landing-metric-value", text: count.to_s
+    end
+
+    assert_selector ".landing-metric[href='/posts-timeline']", text: "Posts"
+    assert_selector ".landing-metric[href='/ctf']", text: "CTFs"
+    assert_no_selector ".landing-metric", text: "Tags"
   end
 
   test "TBA findings render as static cards while disclosed findings stay collapsible" do

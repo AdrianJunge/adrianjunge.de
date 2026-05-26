@@ -747,6 +747,10 @@
 .landing-page #landing-top {
     min-height: 100dvh;
     padding: 5rem 0 3rem;
+    gap: 1rem;
+    align-items: stretch;
+    position: relative;
+    text-align: left;
 }
 
 .landing-page #landing-bottom {
@@ -756,6 +760,17 @@
 .landing-page h1 {
     font-size: 4rem;
     line-height: 1;
+}
+
+.landing-page .landing-title-nowrap {
+    white-space: nowrap;
+}
+
+.landing-page .landing-title-emoji {
+    display: inline-block;
+    font-size: 0.78em;
+    line-height: 1;
+    vertical-align: 0.02em;
 }
 
 .landing-page .writeup-card {
@@ -771,7 +786,6 @@
     width: 100%;
 }
 
-.landing-page .info-cards-container,
 .landing-page .landing-writeup-cards {
     width: 100%;
 }
@@ -804,43 +818,223 @@
     gap: 0.75rem;
 }
 
-.landing-page .info-cards-container {
-    margin-right: 0;
-    margin-left: 0;
-}
-
-.landing-page .profile-card > .mt-6 {
-    justify-content: space-around;
-    width: 100%;
-    gap: 1rem !important;
-}
-
-.landing-page .profile-card > .mt-6 > div {
-    min-width: 4rem;
-    flex: 1 1 0;
-}
-
-.landing-page .profile-card > .mt-6 p {
-    white-space: nowrap;
-}
-
-.landing-page .profile-card {
+.landing-page .landing-hero-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+    align-items: center;
+    gap: 1.5rem;
     width: 100%;
 }
 
-.landing-page .profile-card h3,
-.landing-page .profile-card > p {
-    width: 100%;
-}
-
-.landing-page .info-cards-container .writeup-card {
-    min-height: 0;
-}
-
-.landing-page .ctfteam-card,
-.landing-page .university-card {
+.landing-page .landing-hero-copy {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
-    min-height: 14rem;
+    min-width: 0;
+}
+
+.landing-page .landing-kicker {
+    margin: 0 0 0.85rem;
+    color: #7dd3fc;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.landing-page .landing-lead {
+    max-width: 52rem;
+    margin: 1rem 0 0;
+    color: rgba(226, 232, 240, 0.86);
+    font-size: 1.12rem;
+    line-height: 1.75;
+}
+
+.landing-page .landing-typed-line {
+    min-height: 2.6rem;
+    margin-top: 1.25rem;
+    color: rgba(248, 250, 252, 0.92);
+    font-size: 1.08rem;
+    line-height: 1.5;
+}
+
+.landing-page .landing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.landing-page .landing-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 2.85rem;
+    padding: 0.65rem 0.95rem;
+    border: 1px solid rgba(125, 211, 252, 0.45);
+    border-radius: 8px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.landing-page .landing-action:hover {
+    transform: translateY(-2px);
+}
+
+.landing-page .landing-action-primary {
+    color: #fff;
+    background: rgba(8, 145, 178, 0.35);
+}
+
+.landing-page .landing-action-primary:hover {
+    border-color: rgba(125, 211, 252, 0.9);
+    background: rgba(8, 145, 178, 0.52);
+}
+
+.landing-page .landing-action-secondary {
+    color: #cffafe;
+    background: rgba(24, 36, 58, 0.82);
+}
+
+.landing-page .landing-action-secondary:hover {
+    border-color: rgba(125, 211, 252, 0.85);
+    background: rgba(24, 36, 58, 0.96);
+}
+
+.landing-page .landing-action-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: 0 0 auto;
+    filter: invert(1);
+}
+
+.landing-page .landing-profile-panel,
+.landing-page .landing-metric {
+    border: 1px solid rgba(93, 116, 158, 0.7);
+    border-radius: 8px;
+    background: rgba(24, 36, 58, 0.82);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.18);
+}
+
+.landing-page .landing-profile-panel {
+    display: grid;
+    align-content: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.landing-page .landing-profile-image {
+    width: 8.5rem;
+    height: 8.5rem;
+    margin: 0 auto;
+    border: 1px solid rgba(93, 116, 158, 0.7);
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.landing-page .landing-affiliation-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.landing-page .landing-affiliation-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    min-height: 3.2rem;
+    padding: 0.55rem;
+    border: 1px solid rgba(125, 211, 252, 0.26);
+    border-radius: 8px;
+    background: rgba(10, 16, 26, 0.24);
+    color: #f8fafc;
+    font-weight: 800;
+    text-decoration: none;
+    transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.landing-page .landing-affiliation-link:hover {
+    border-color: rgba(125, 211, 252, 0.78);
+    background: rgba(10, 16, 26, 0.4);
+    transform: translateY(-2px);
+}
+
+.landing-page .landing-affiliation-link img {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 6px;
+    object-fit: contain;
+}
+
+.landing-page .landing-metrics {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    overflow: hidden;
+    width: 100%;
+    margin-top: 0.5rem;
+    border: 1px solid rgba(93, 116, 158, 0.7);
+    border-radius: 8px;
+    background: rgba(24, 36, 58, 0.82);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.18);
+}
+
+.landing-page .landing-metric {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 5.5rem;
+    padding: 0.85rem 0.65rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.landing-page .landing-metric + .landing-metric::before {
+    position: absolute;
+    top: 1rem;
+    bottom: 1rem;
+    left: 0;
+    width: 1px;
+    background: rgba(125, 211, 252, 0.24);
+    content: "";
+}
+
+.landing-page .landing-metric:hover {
+    background: rgba(8, 145, 178, 0.22);
+    transform: translateY(-2px);
+}
+
+.landing-page .landing-metric-value {
+    color: #fff;
+    font-size: 1.9rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.landing-page .landing-metric-label {
+    margin-top: 0.45rem;
+    color: rgba(226, 232, 240, 0.84);
+    font-size: 0.9rem;
+    font-weight: 800;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.landing-page #scroll-down-button {
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 @media (max-width: 720px) {
@@ -936,9 +1130,29 @@
         font-size: 2rem;
     }
 
-    .landing-page .info-cards-container,
     .landing-page .landing-writeup-cards {
         align-items: stretch;
+    }
+
+    .landing-page .landing-hero-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .landing-page .landing-hero-copy {
+        align-items: center;
+        text-align: center;
+    }
+
+    .landing-page .landing-actions {
+        justify-content: center;
+    }
+
+    .landing-page .landing-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .landing-page .landing-metric:nth-child(odd)::before {
+        display: none;
     }
 
     .landing-page .writeup-card {
@@ -1030,27 +1244,27 @@
         height: 2.25rem;
     }
 
-    .landing-page .profile-card > .mt-6 {
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0.5rem !important;
+    .landing-page .landing-actions {
+        width: 100%;
     }
 
-    .landing-page .profile-card > .mt-6 > div {
-        min-width: 0;
+    .landing-page .landing-action {
+        width: 100%;
     }
 
-    .landing-page .profile-card h3 {
-        font-size: 1.35rem;
-        line-height: 1.2;
+    .landing-page .landing-metrics {
+        grid-template-columns: 1fr;
     }
 
-    .landing-page .profile-card > .mt-6 p:first-child {
-        font-size: 1.55rem;
-        line-height: 1.1;
+    .landing-page .landing-metric::before {
+        display: none;
     }
 
-    .landing-page .profile-card > .mt-6 p:last-child {
-        font-size: 0.85rem;
+    .landing-page .landing-metric + .landing-metric {
+        border-top: 1px solid rgba(125, 211, 252, 0.24);
+    }
+
+    .landing-page .landing-metric {
+        min-height: 4.75rem;
     }
 }

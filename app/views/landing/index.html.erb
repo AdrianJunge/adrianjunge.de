@@ -1,8 +1,8 @@
 <% content_for :head do %>
   <title>vurlo</title>
-  <meta name="description" content="Welcome to my personal website featuring CTF writeups and more.">
-  <meta property="og:title" content="Landing Page">
-  <meta property="og:description" content="Welcome to my personal website featuring CTF writeups and more.">
+  <meta name="description" content="Security research, CVEs, bug bounty work, source review, CTF writeups, and technical notes by Adrian Junge.">
+  <meta property="og:title" content="Welcome to my bug collection 🐛">
+  <meta property="og:description" content="Security research, CVEs, bug bounty work, source review, CTF writeups, and technical notes by Adrian Junge.">
   <meta property="og:type" content="website">
 <% end %>
 
@@ -12,70 +12,67 @@
 ]) %>
 <%= render_terminal([ 'about', 'ctf', 'blog' ], true) %>
 <% posts_link = "/posts-timeline" %>
+<% about_link = about_path %>
 <% kit_link = "https://www.kit.edu" %>
 <% kitctf_link = "https://kitctf.de" %>
+<% landing_metrics = [
+  { label: "CVEs", value: @amount_cves, link: about_path(anchor: "cves") },
+  { label: "Bug bounties", value: @amount_bug_bounties, link: about_path(anchor: "bug-bounties") },
+  { label: "Certificates", value: @amount_certificates, link: about_path(anchor: "certificates") },
+  { label: "Achievements", value: @amount_achievements, link: about_path(anchor: "achievements") },
+  { label: "Posts", value: @amount_posts, link: posts_link },
+  { label: "CTFs", value: @amount_ctfs, link: ctf_path }
+] %>
 
 <main class="landing-page">
 <section id="landing-top">
-    <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 text-white">Welcome to my flag collection</h1>
-    <h2 class="text-2xl md:text-3xl text-gray-300 mb-6">CTF writeups & more</h2>
+    <div class="landing-hero-shell">
+        <div class="landing-hero-copy">
+            <p class="landing-kicker">Adrian "vurlo" Junge</p>
+            <h1>Welcome to my <span class="landing-title-nowrap">bug collection <span class="landing-title-emoji">🐛</span></span></h1>
+            <p class="landing-lead">
+                CTF player, vulnerability researcher, and computer science student creating writeups, collecting CVEs, bounties, and notes from real targets and challenges. I poke things politely and occasionally convince software to confess.
+            </p>
 
-    <div class="text-2xl md:text-3xl text-gray-200">
-      <span id="typing" class="font-medium inline-block min-h-[1.5rem]"></span>
+            <div class="landing-typed-line">
+                <span id="typing" class="font-medium inline-block min-h-[1.5rem]"></span>
+            </div>
+
+            <div class="landing-actions" aria-label="Primary links">
+                <a href="<%= posts_link %>" class="landing-action landing-action-primary">
+                    <%= image_tag("task-bar/post.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
+                    <span>Posts timeline</span>
+                </a>
+                <a href="<%= about_link %>" class="landing-action landing-action-secondary">
+                    <%= image_tag("task-bar/about.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
+                    <span>About me</span>
+                </a>
+            </div>
+        </div>
+
+        <aside class="landing-profile-panel" aria-label="Profile summary">
+            <%= image_tag("landing/profile.png", alt: "Adrian Junge profile image", class: "landing-profile-image") %>
+
+            <div class="landing-affiliation-links">
+                <a href="<%= kitctf_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link">
+                    <%= image_tag("landing/kitctf.png", alt: "", aria: { hidden: true }) %>
+                    <span>KITCTF</span>
+                </a>
+                <a href="<%= kit_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link">
+                    <%= image_tag("landing/kit.png", alt: "", aria: { hidden: true }) %>
+                    <span>KIT</span>
+                </a>
+            </div>
+        </aside>
     </div>
 
-    <div class="info-cards-container">
-        <div class="writeup-card bg-primary">
-            <a href="<%= posts_link %>">
-                <div class="profile-card">
-                    <%= image_tag("landing/profile.png", alt: "profile", class: "rounded-3xl w-32 h-32 md:w-40 md:h-40 mx-auto") %>
-                    <h3 class="text-2xl md:text-3xl font-bold mt-6 text-white text-center">Adrian aka vurlo</h3>
-                    <p class="text-gray-300 text-center mt-2">Explore my CTF writeups and insights</p>
-
-                    <div class="mt-6 flex items-center justify-center gap-16">
-                        <div class="flex flex-col items-center">
-                            <p class="text-white text-3xl font-bold"><%= @amount_posts %></p>
-                            <p class="text-gray-300">Posts</p>
-                        </div>
-
-                        <div class="flex flex-col items-center">
-                            <p class="text-white text-3xl font-bold"><%= @amount_tags %></p>
-                            <p class="text-gray-300">Tags</p>
-                        </div>
-
-                        <div class="flex flex-col items-center">
-                            <p class="text-white text-3xl font-bold"><%= @amount_ctfs %></p>
-                            <p class="text-gray-300">CTFs</p>
-                        </div>
-                    </div>
-                </div>
+    <div class="landing-metrics" aria-label="Site and security profile counters">
+        <% landing_metrics.each do |metric| %>
+            <a href="<%= metric[:link] %>" class="landing-metric">
+                <span class="landing-metric-value"><%= metric[:value] %></span>
+                <span class="landing-metric-label"><%= metric[:label] %></span>
             </a>
-        </div>
-    </div>
-    <div class="info-cards-container">
-        <div class="writeup-card bg-primary">
-            <a href="<%= kitctf_link %>" target="_blank" rel="noopener noreferrer">
-                <div class="ctfteam-card">
-                    <%= image_tag("landing/kitctf.png", alt: "ctf logo", class: "rounded-3xl") %>
-                    <h3 class="text-xl font-bold mt-4 text-white">KITCTF</h3>
-                    <div class="mt-2 flex flex-col items-center">
-                        <p class="text-white mt-2 text-lg font-semibold">Enjoying CTFs with KITCTF</p>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="writeup-card bg-primary">
-            <a href="<%= kit_link %>" target="_blank" rel="noopener noreferrer">
-                <div class="university-card">
-                    <%= image_tag("landing/kit.png", alt: "university logo", class: "rounded-3xl") %>
-                    <h3 class="text-xl font-bold mt-4 text-white">KIT</h3>
-                    <div class="mt-2 flex flex-col items-center">
-                        <p class="text-white mt-2 text-lg font-semibold">Master's student of Computer Science</p>
-                    </div>
-                </div>
-            </a>
-        </div>
+        <% end %>
     </div>
 
     <div id="scroll-down-button" class="absolute bottom-8">
@@ -93,7 +90,7 @@
 </section>
 
 <section id="landing-bottom">
-    <h2 class="text-3xl font-bold mb-6 text-white text-center">Most recent posts</h2>
+    <h2 class="text-3xl font-bold mb-6 text-white text-center">Latest notes</h2>
 
     <div class="landing-writeup-cards">
         <% @most_recent_posts.each do |post| %>

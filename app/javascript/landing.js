@@ -14,20 +14,27 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!el) return;
 
     const phrases = [
-        'Discover here my CTF writeups & projects',
-        'Web and occasionally PWN player',
+        'Some people collect stamps. I collect stack traces.',
+        'My favorite input is the one nobody validated.',
+        'Politely asking software uncomfortable questions.',
         'CTF enthusiast',
+        'I like puzzles that crash systems.',
+        'Turning weird behavior into writeups.',
+        'Teaching machines to misbehave.',
+        'CTF flags, real bugs, questionable sleep schedule.',
+        'Web and PWN player',
         'Your browser knows everything - XSLeaks just politely ask',
-        'I love breaking stuff so others can fix it',
-        'I write to deepen my understanding, and maybe it actually helps others along the way',
-        'If it runs, I poke it',
-        'I like puzzles that crash systems',
-        'Teaching machines to misbehave'
+        'Source code tells jokes in edge cases.',
+        'I love breaking stuff so others can fix it.',
+        'Making impossible states feel very possible.',
+        'The best exploit starts with: wait, that is weird.',
+        'If it runs, I poke it.',
+        'If it parses, I probably want to test it.',
     ];
 
     new RandomTyped(el, {
         strings: phrases,
-        typeSpeed: 100,
+        typeSpeed: 50,
         backSpeed: 50,
         backDelay: 2000,
         startDelay: 600,

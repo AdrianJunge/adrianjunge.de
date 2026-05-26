@@ -28,6 +28,24 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".taskbar-link[href=?]", about_path, text: /About me/
   end
 
+  test "landing page exposes about section counters" do
+    get root_path
+
+    cves = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
+    bug_bounties = JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
+    certificates = JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH))
+    achievements = JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
+
+    assert_response :success
+    assert_select "h1", text: "Welcome to my bug collection 🐛"
+    assert_select ".landing-action[href=?]", "/posts-timeline", text: /Posts timeline/
+    assert_select ".landing-action[href=?]", about_path, text: /About me/
+    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
+    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#bug-bounties", text: bug_bounties.length.to_s
+    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#certificates", text: certificates.length.to_s
+    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#achievements", text: achievements.length.to_s
+  end
+
   test "about me content files have expected shape" do
     cves = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
     bug_bounties = JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
