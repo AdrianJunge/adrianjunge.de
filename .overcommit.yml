@@ -42,6 +42,10 @@ PreCommit:
     enabled: true
     command: [ "bin/brakeman", "--no-pager" ]
 
+  FileSize:
+    enabled: true
+    size_limit_bytes: 100_000_000
+
   TrailingWhitespace:
     enabled: true
     exclude:
