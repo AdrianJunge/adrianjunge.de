@@ -166,6 +166,46 @@ class SitePagesTest < ApplicationSystemTestCase
     assert first_link[:href].match?(%r{/((ctf/.+/.+)|(blog/.+))\z})
   end
 
+  test "ctf markdown preserves anchors and external links while resolving local images" do
+    visit "/ctf/umdctf/A%20Minecraft%20Movie"
+
+    assert_text "A Minecraft Movie"
+    assert_selector ".markdown-content a[href='#exploitation%20variant%201']"
+    assert_selector ".markdown-content a[href='https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions#none']"
+    assert_selector ".markdown-content img[src*='/assets/ctf/writeups/umdctf/aminecraftmovie/landingoverview']"
+  end
+
+  test "table of contents indents nested headings by depth" do
+    page.current_window.resize_to(1440, 1200)
+    visit "/ctf/umdctf/A%20Minecraft%20Movie"
+
+    assert_selector "#toc-body .toc-depth-0", text: "4. Exploitation"
+    assert_selector "#toc-body .toc-depth-1", text: "4.1. Exploitation Variant 1"
+
+    metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const links = [...document.querySelectorAll("#toc-body .toc-anchor")];
+        const top = links.find((link) => link.innerText.trim() === "4. Exploitation");
+        const nested = links.find((link) => link.innerText.includes("4.1. Exploitation Variant 1"));
+
+        return {
+          topLeft: Math.round(top.getBoundingClientRect().left),
+          nestedLeft: Math.round(nested.getBoundingClientRect().left),
+          topClass: top.closest("li").className,
+          nestedClass: nested.closest("li").className,
+          topMarker: !!top.querySelector(".toc-indent-marker"),
+          nestedMarker: !!nested.querySelector(".toc-indent-marker")
+        };
+      })()
+    JS
+
+    assert_includes metrics["topClass"], "toc-depth-0"
+    assert_includes metrics["nestedClass"], "toc-depth-1"
+    assert_equal false, metrics["topMarker"]
+    assert_equal true, metrics["nestedMarker"]
+    assert_operator metrics["nestedLeft"], :>, metrics["topLeft"] + 8
+  end
+
   test "ctf overview cards link directly to writeup overviews" do
     visit "/ctf"
 
@@ -246,5 +286,45 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_in_delta metrics["containerCenter"], metrics["blockCenter"], 2
     assert_equal "pre-wrap", metrics["whiteSpace"]
     assert_equal "anywhere", metrics["overflowWrap"]
+  end
+
+  test "article markdown keeps readable heading typography" do
+    {
+      "/ctf/gpnctf/Smile%20at%20me" => "TL;DR",
+      "/blog/htb-cpts" => "1. My Background"
+    }.each do |path, heading_text|
+      page.current_window.resize_to(1280, 1200)
+      visit path
+
+      assert_selector ".markdown-content"
+      assert_no_selector ".markdown-content > span", visible: :all
+      assert_selector ".markdown-content h1", text: heading_text
+
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const heading = [...document.querySelectorAll(".markdown-content h1")]
+            .find((node) => node.innerText.trim() === #{heading_text.to_json});
+          const paragraph = document.querySelector(".markdown-content p");
+          const headingStyle = window.getComputedStyle(heading);
+          const paragraphStyle = window.getComputedStyle(paragraph);
+          const titleStyle = window.getComputedStyle(document.querySelector(".writeup-title"));
+
+          return {
+            headingFontSize: parseFloat(headingStyle.fontSize),
+            paragraphFontSize: parseFloat(paragraphStyle.fontSize),
+            headingFontWeight: parseInt(headingStyle.fontWeight, 10),
+            headingMarginTop: parseFloat(headingStyle.marginTop),
+            headingMarginBottom: parseFloat(headingStyle.marginBottom),
+            titleTextAlign: titleStyle.textAlign
+          };
+        })()
+      JS
+
+      assert_operator metrics["headingFontSize"], :>, metrics["paragraphFontSize"] * 1.5
+      assert_operator metrics["headingFontWeight"], :>=, 700
+      assert_operator metrics["headingMarginBottom"], :>, 8
+      assert_operator metrics["headingMarginTop"], :>=, 0
+      assert_equal "center", metrics["titleTextAlign"]
+    end
   end
 end

@@ -1,52 +1,29 @@
 # TODOs
-- on the very top of each page is some space used for the "taskbar-item" and thus shifting everything down, this is weird
-- Add to aboutme a “My Challenges” Section and write which ctf this was published for, short description and the redirect to the writeup - in this case its only the "smile at me" challenge from gpnctf
-
-- Scrape https://dimasc.tf/ for features and make suggestions on what to be added to my website
-
 - Fix the scaling of the terminal for high resolution displays
 - Search functionality for ctfs and writeups and blogs
     - make ctf tags for each writeup clickable so you can filter for those writeups containing this tag
     - search filter/option for year/date
-- Writeup
-    - add a hints section in the metadata of the markdown files and template
-    - for the writeup overview list the authors and link their blog/website if they got one
+- For the writeup overview list the authors and link their blog/website if they got one
 
 - If pages got the same styling, layout etc they should all share the same files and thus reducing redundancy
-- Landing page anpassen für kleine Bildschirme
-- Fehler pages custom machen
-- Redundantes bzw alles an CSS wie zB für die ganzen Buttons das Hoverzeug custom tailwindcss classes anlegen
-    - alle Tailwind classes durchgehen und Redundanzen/Inkonsistenzen entfernen zB abgerundete Ecken immer 3xl bzw custom class anlegen
-- single truth of color pattern für tailwindcss vs variables.scss
-- SEO (search engine optimization)
-- xterm + flowbite css über CDN fetchen anstatt eigene file im repo
+- Make landing page suited for small displays like smartphones
+- Make the error pages custom instead of just using ruby on rails default
+
+- For Redundant CSS create custom tailwindcss classes e.g. for all the button hover stuff etc - thus go through all the available Tailwind css classes and remove redundancies/inconsistencies e.g. for rounded edges it should always be 3xl or create custom classes
+- there should only be one single truth of color pattern for tailwindcss vs variables.scss - remove the variable.scss one and fix everything
+
+- Make the page suiting SEO (search engine optimization)
+- xterm css should be fetched via CDN instead of having the xterm.css file in the repo
 
 - Add for the writeups shiny Contest win labels for the following writeups and apply the links behind these labels so you are able to see the proof
     - [ ] Davor aber die PDF Urkunde downloaden und in public folder stellen
     - UMDCTF: https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959
     - CSCG: PDF Urkunde mit attachen wie bei https://morrisbe.de/ctf/supercluster
 
-# Content
-- Aboutme adds
-    - Firedancer Bug Bounty
-    - Firedancer Audit Competition
-    - Wordpress Bug Bounty + CVE
-    - SuiteCRM CVEs
-- Blog
-    - Java Strings
-    - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln
-- Talks held
-    - KITCTF web intro
-- Upcoming
-    - Real World Exploitation (Bug Bounty/CVE)
-    - Custom Tools
-- Writeups
-    - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
-        => https://github.com/felixfbecker/dom-to-svg
+- Scrape https://dimasc.tf/ for features and make suggestions on what to be added to my website
 
-# Content Management
-- Writeups/Blogs erstellen/editieren/löschen
-    - live Rendering des Markdowns
+- remove mathjax from `application.html.erb` into JS file
+- review all the boiler plate code from ruby on Rails and remove what is not needed/necessary
 
 # Nochmal testen
 - tailwindcss flowbite plugin fixen
@@ -56,10 +33,27 @@
     - writeups overview die Boxen nicht verkleinert werden, aber die Fonts
     - "Table of content" Überschrift zu klein ist/unproportional zum Rest
 
+# Content
+- Blog
+    - Java Strings
+    - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln aka CTF Writeup schreiben für Deadsecctf 2025
+- Aboutme adds
+    - Firedancer Bug Bounty
+    - Firedancer Audit Competition
+    - Wordpress Bug Bounty + CVE
+    - SuiteCRM CVEs
+- Talks held
+    - KITCTF web intro
+- Writeups
+    - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
+        => https://github.com/felixfbecker/dom-to-svg
+
+# Content Management
+- Writeups/Blogs erstellen/editieren/löschen
+    - live Rendering des Markdowns
+
 # Misc
-- mathjax aus `application.html.erb` moven in JS file
 - `vurlo.de` sichern und DNS einrichten sodass sowohl `adrianjunge.de` als auch `vurlo.de` auf dieselbe IP zeigen
-- kompletten boiler plate Code von Rails durchgehen und das rauswerfen was ich nicht brauche
 - Email einrichten für Domaine
     - Forwarding
     - als contact angeben in Terminal + Footer
@@ -71,3 +65,17 @@
     => keine Probleme mehr mit upper/lowercasing um bestimmte writeups zu finden etc
 - Pipeline aufsetzen, welche automatisch neue oder edited Markdown Writeups zu HTML parsed, sodass nicht bei jedem Request unnötig neu geparsed wird
 - Heroku Warnings durchgehen und evtl fixen
+
+# Latex to Markdown find and replace
+## regex
+`\\textit\{([^}]+)\}`
+`**$1**`
+## regex
+`\\command\{([^}]+)\}`
+`$1`
+## regex
+`\\href\{([^}]+)\}\{([^}]+)\}`
+`[$2]($1)`
+## normal
+`\`
+``

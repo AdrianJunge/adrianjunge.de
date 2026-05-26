@@ -9,6 +9,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".taskbar-link[href=?]", about_path, text: /About me/
     assert_select ".aboutme-section-title", text: "CVEs"
     assert_select ".aboutme-section-title", text: "Bug bounties"
+    assert_select ".aboutme-section-title", text: "Created CTF Challenges"
     assert_select ".aboutme-section-title", text: "Certificates"
     assert_select ".aboutme-section-title", text: "Relevant achievements"
     assert_select ".aboutme-finding-card", minimum: 1
@@ -49,11 +50,13 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
   test "about me content files have expected shape" do
     cves = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
     bug_bounties = JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
+    challenges = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
     certificates = JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH))
     achievements = JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
 
     assert_kind_of Array, cves
     assert_kind_of Array, bug_bounties
+    assert_kind_of Array, challenges
     assert_kind_of Array, certificates
     assert_kind_of Array, achievements
     assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-39327" }
@@ -72,6 +75,11 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_equal 2, cves.count { |entry| entry["project"] == "SuiteCRM" && entry["cve_id"].blank? }
     assert bug_bounties.any? { |entry| entry["project"] == "Firedancer" && entry["title"].include?("TBA") }
     assert bug_bounties.any? { |entry| entry["project"] == "Firedancer" && entry["cve_id"].blank? }
+    assert_equal 1, challenges.length
+    assert_equal [ "smile-at-me" ], challenges.map { |entry| entry["id"] }
+    assert_equal "Smile at me", challenges.first["title"]
+    assert_equal "GPNCTF 2025", challenges.first["category"]
+    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.first["title_url"]
     assert_equal %w[
       firedancer-v1-audit-competition-tba
       dhm
@@ -111,7 +119,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
       assert entry.fetch("references", []).any? { |link| link["url"] == "https://www.cve.org/CVERecord?id=#{entry["cve_id"]}" }
     end
 
-    (certificates + achievements).each do |entry|
+    (challenges + certificates + achievements).each do |entry|
       assert entry["title"].present?
       assert entry["category"].present?
     end

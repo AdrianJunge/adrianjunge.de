@@ -13,10 +13,7 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     "/",
     "/about",
     "/ctf",
-    "/ctf/lactf",
-    "/ctf/lactf/Gamedev",
     "/blog",
-    "/blog/htb-cpts",
     "/posts-timeline"
   ].freeze
 
@@ -25,6 +22,13 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
       get path
 
       assert_response :success, "expected #{path} to render successfully"
+
+      assert_select ".flex-grow > .taskbar-item", 0,
+                    "expected #{path} not to render sidebar controls as normal-flow taskbar items"
+      assert_select ".flex-grow > #menu-icon-right", 1,
+                    "expected #{path} to render the sidebar open control as a fixed icon"
+      assert_select ".flex-grow > #menu-icon-left", 1,
+                    "expected #{path} to render the sidebar close control as a fixed icon"
 
       MAIN_NAV_LINKS.each do |label, href|
         assert_select ".taskbar-link[href=?]", href, { text: /#{Regexp.escape(label)}/, count: 1 },

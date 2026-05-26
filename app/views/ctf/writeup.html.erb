@@ -36,7 +36,7 @@
     </button>
 
     <h4 class="writeup-year text-white text-center"><%= @which.upcase %>-<%= @ctf_info["year"] %></h4>
-    <h1 class="writeup-title text-white"><%= @ctf_info["title"] %></h1>
+    <h1 class="writeup-title text-white text-center"><%= @ctf_info["title"] %></h1>
 
     <% basename = File.basename("#{@ctf_info['challengefiles']}.zip")  %>
 
@@ -143,12 +143,12 @@
     </div>
     <ul id="toc-body" class="text-slate-100">
       <% @headings.each do |heading| %>
-        <% indent_level = heading[:text].count(".") - 1 %>
-        <li class="ml-<%= indent_level * 6 %>">
+        <% toc_depth = [[ heading[:depth].to_i, 0 ].max, 4].min %>
+        <li class="toc-item toc-depth-<%= toc_depth %>" style="margin-left: <%= toc_depth * 0.85 %>rem;">
           <a href="#<%= heading[:anchor] %>" class="toc-anchor group flex items-start py-1">
-            <% if indent_level > 0 %>
+            <% if toc_depth.positive? %>
               <svg width="3" height="24" viewBox="0 -9 3 24"
-                class="mr-2 text-slate-400 overflow-visible group-hover:text-slate-600 dark:text-slate-600 dark:group-hover:text-slate-500">
+                class="toc-indent-marker mr-2 text-slate-400 overflow-visible group-hover:text-slate-600 dark:text-slate-600 dark:group-hover:text-slate-500">
                 <path d="M0 0L3 3L0 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
                 </path>
               </svg>

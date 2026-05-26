@@ -1,6 +1,6 @@
 # About me content
 
-CVEs live in `cves.json`, disclosed bounty entries live in `bug_bounties.json`, certificates live in `certificates.json`, and achievements live in `achievements.json`.
+CVEs live in `cves.json`, disclosed bounty entries live in `bug_bounties.json`, authored challenges live in `challenges.json`, certificates live in `certificates.json`, and achievements live in `achievements.json`.
 
 Finding entries support these fields:
 
@@ -31,7 +31,7 @@ Finding entries support these fields:
 `cve_id` is optional. Use `TBA` for pending CVEs, and omit the field for findings where no CVE is expected.
 Finding cards are only collapsible when they contain real detail fields such as `summary`, `tested_version`, `impact`, `github_advisories`, or `timeline`.
 
-Certificate and achievement entries support these fields:
+Challenge, certificate, and achievement entries support these fields:
 
 ```json
 {

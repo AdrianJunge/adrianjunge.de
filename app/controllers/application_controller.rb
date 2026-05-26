@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
   ABOUTME_TEXT_PATH = ABOUTME_BASE_PATH.join("about.md")
   ABOUTME_CVES_PATH = ABOUTME_BASE_PATH.join("cves.json")
   ABOUTME_BUG_BOUNTIES_PATH = ABOUTME_BASE_PATH.join("bug_bounties.json")
+  ABOUTME_CHALLENGES_PATH = ABOUTME_BASE_PATH.join("challenges.json")
   ABOUTME_CERTIFICATES_PATH = ABOUTME_BASE_PATH.join("certificates.json")
   ABOUTME_ACHIEVEMENTS_PATH = ABOUTME_BASE_PATH.join("achievements.json")
 
@@ -22,8 +23,15 @@ class ApplicationController < ActionController::Base
 
   def get_headings_from_content(content)
     headings = []
-    content.scan(/^#+\s*(.+)<a id="(.+)"><\/a>/) do |heading_text, anchor_name|
-      headings << { text: heading_text.strip, anchor: anchor_name.strip }
+    content.scan(/^(#+)\s*(.+?)\s*<a id="(.+)"><\/a>/) do |heading_marks, heading_text, anchor_name|
+      markdown_depth = heading_marks.length - 1
+      numbered_depth = heading_text.strip[/\A\d+(?:\.\d+)+\./].to_s.count(".") - 1
+
+      headings << {
+        text: heading_text.strip,
+        anchor: anchor_name.strip,
+        depth: [ markdown_depth, numbered_depth, 0 ].max
+      }
     end
     headings
   end

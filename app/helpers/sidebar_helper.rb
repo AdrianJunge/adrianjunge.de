@@ -31,12 +31,8 @@ module SidebarHelper
     taskbar_icon_class = base_class + " taskbar-icon"
     taskbar_label_class = "taskbar-label"
 
-    concat(content_tag(:div, class: "taskbar-item") do
-      image_tag("task-bar/arrow-right.svg", alt: "Menu Icon", class: base_class + " menu-icon", id: "menu-icon-right")
-    end)
-    concat(content_tag(:div, class: "taskbar-item") do
-      image_tag("task-bar/arrow-left.svg", alt: "Menu Icon", class: base_class + " menu-icon", id: "menu-icon-left")
-    end)
+    concat(image_tag("task-bar/arrow-right.svg", alt: "Menu Icon", class: base_class + " menu-icon", id: "menu-icon-right"))
+    concat(image_tag("task-bar/arrow-left.svg", alt: "Menu Icon", class: base_class + " menu-icon", id: "menu-icon-left"))
 
     content_tag(:div, id: "taskbar-left", class: "bg-primary collapsed") do
       rendered_links = []

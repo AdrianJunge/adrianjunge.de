@@ -8,6 +8,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector ".taskbar-link[href='/about']", text: "About me", visible: :all
     assert_text "CVEs"
     assert_text "Bug bounties"
+    assert_text "Created CTF Challenges"
     assert_text "Certificates"
     assert_text "Relevant achievements"
     assert_text "CVE-2026-39327"
@@ -20,6 +21,10 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_text "SuiteCRM advisory #1 (TBA)"
     assert_text "SuiteCRM advisory #2 (TBA)"
     assert_text "Firedancer bug bounty finding (TBA)"
+    assert_text "Smile at me"
+    assert_text "GPNCTF 2025"
+    assert_text "Web challenge about URL parser differentials"
+    assert_selector "#my-challenges a[href='/ctf/gpnctf/Smile%20at%20me']", text: "Read writeup"
     assert_no_text "Public advisories"
     assert_no_text "Responsible disclosure"
     assert_no_text "Credentials"
@@ -50,6 +55,7 @@ class AboutmeTest < ApplicationSystemTestCase
       assert_selector "main.aboutme-page"
       assert_text "About me"
       assert_text "Certificates"
+      assert_text "Created CTF Challenges"
       assert_text "Relevant achievements"
     end
   end
@@ -71,6 +77,20 @@ class AboutmeTest < ApplicationSystemTestCase
 
     assert_operator cve_card_positions.second, :>, cve_card_positions.first
     assert_operator achievement_card_positions.second, :>, achievement_card_positions.first
+  end
+
+  test "my challenges link to their writeups" do
+    visit about_path
+
+    within "#my-challenges" do
+      assert_text "Smile at me"
+      assert_text "CTF challenge published for GPNCTF 2025."
+      click_link "Read writeup"
+    end
+
+    assert_current_path "/ctf/gpnctf/Smile%20at%20me"
+    assert_text "Smile at me"
+    assert_text "I'm the author of this challenge"
   end
 
   test "about me entries are ordered newest first" do

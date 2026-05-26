@@ -4,7 +4,7 @@ module MarkdownHelper
   require "rouge/plugins/redcarpet"
 
   def render_markdown(text)
-    sanitized_text = text.gsub(/---([\S\s]*)---/, "").strip
+    sanitized_text = text.to_s.sub(/\A---\s*\n.*?\n---\s*\n/m, "").strip
 
     render_options = {
       no_links: false,
@@ -29,9 +29,7 @@ module MarkdownHelper
     renderer = HtmlWithCopy.new(render_options)
 
     html_content = "<div class='markdown-content'>
-      <span style='color:white'>
-        #{Redcarpet::Markdown.new(renderer, extensions).render(sanitized_text)}
-      </span>
+      #{Redcarpet::Markdown.new(renderer, extensions).render(sanitized_text)}
     </div>"
 
     replace_asset_paths(html_content)
@@ -43,8 +41,15 @@ module MarkdownHelper
     html_content.gsub!(/(src|href)="([^"]*)"/) do
       attr = Regexp.last_match(1)
       path = Regexp.last_match(2)
-      new_path = ActionController::Base.helpers.asset_path(path)
+      new_path = local_asset_reference?(path) ? ActionController::Base.helpers.asset_path(path) : path
       "#{attr}=\"#{new_path}\""
     end
+  end
+
+  def local_asset_reference?(path)
+    path.present? &&
+      !path.start_with?("#", "/", "//") &&
+      !path.match?(/\A[a-z][a-z0-9+\-.]*:/i) &&
+      path.match?(/\A(?:blog|ctf)\//)
   end
 end
