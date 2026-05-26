@@ -1,8 +1,4 @@
 # TODOs
-- http://127.0.0.1:3000/about => make just like on the landing page the row with the counters each clickable to scroll to that section
-- For Redundant CSS create custom tailwindcss classes e.g. for all the button hover stuff etc - thus go through all the available Tailwind css classes and remove redundancies/inconsistencies e.g. for rounded edges it should always be 3xl or create custom classes
-- there should only be one single truth of color pattern for tailwindcss vs variables.scss - remove the variable.scss one and fix everything
-
 - Make the page suiting SEO (search engine optimization)
 - xterm css should be fetched via CDN instead of having the xterm.css file in the repo
 
@@ -15,6 +11,8 @@
 
 - remove mathjax from `application.html.erb` into JS file
 - review all the boiler plate code from ruby on Rails and remove what is not needed/necessary
+
+- thoroughly test every single feature and page
 
 - Tim um Feedback bitten
 

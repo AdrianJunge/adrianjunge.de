@@ -3,6 +3,7 @@ require "test_helper"
 class AboutmeControllerTest < ActionDispatch::IntegrationTest
   test "shows about me page with security sections" do
     get about_path
+    cves = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
 
     assert_response :success
     assert_select "main.aboutme-page"
@@ -14,6 +15,11 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".aboutme-section-title", text: "Relevant achievements"
     assert_select ".aboutme-finding-card", minimum: 1
     assert_select ".aboutme-achievement-card", minimum: 1
+    assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#cves", text: cves.length.to_s
+    assert_select ".aboutme-stat[href=?]", "#bug-bounties", text: /Bug bounties/
+    assert_select ".aboutme-stat[href=?]", "#my-challenges", text: /Challenges/
+    assert_select ".aboutme-stat[href=?]", "#certificates", text: /Certificates/
+    assert_select ".aboutme-stat[href=?]", "#achievements", text: /Achievements/
   end
 
   test "aboutme redirects to canonical about route" do

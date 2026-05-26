@@ -14,7 +14,7 @@ module ApplicationHelper
     [
       {
         href: feed_url,
-        class: "#{scope}-rss-feed",
+        class: "#{scope}-rss-feed ui-hover-lift",
         icon_path: "task-bar/rss.svg",
         icon_class: "#{scope}-rss-icon",
         label: "#{label} RSS feed",
@@ -22,7 +22,7 @@ module ApplicationHelper
       },
       {
         href: atom_url,
-        class: "#{scope}-atom-feed",
+        class: "#{scope}-atom-feed ui-hover-lift",
         icon_path: "task-bar/atom.svg",
         icon_class: "#{scope}-atom-icon",
         label: "#{label} Atom feed",

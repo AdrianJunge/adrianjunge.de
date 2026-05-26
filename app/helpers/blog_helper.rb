@@ -13,7 +13,7 @@ module BlogHelper
 
     content_tag(
       :article,
-      class: "blog-post-card",
+      class: "blog-post-card ui-hover-lift",
       data: {
         filter_card: "blogs",
         filter_text: filter_text,
@@ -46,7 +46,7 @@ module BlogHelper
                   :button,
                   category,
                   type: "button",
-                  class: "filter-chip",
+                  class: "filter-chip ui-hover-lift",
                   data: { filter_scope: "blogs", filter_tag: category },
                   aria: { pressed: "false", label: "Filter blog posts by #{category}" }
                 )

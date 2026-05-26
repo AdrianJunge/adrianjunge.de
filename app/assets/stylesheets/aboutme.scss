@@ -1,11 +1,9 @@
-@import "variables";
-
 .aboutme-page {
     min-height: 100dvh;
     color: #f8fafc;
     background:
         linear-gradient(180deg, rgba(85, 170, 255, 0.08) 0%, rgba(10, 16, 26, 0) 24rem),
-        $color-default;
+        var(--color-default);
 }
 
 .aboutme-page * {
@@ -38,7 +36,7 @@
     height: 5rem;
     flex: 0 0 auto;
     border: var(--default-border);
-    border-radius: 8px;
+    border-radius: var(--radius-ui);
     background: rgba(24, 36, 58, 0.86);
 }
 
@@ -86,16 +84,39 @@
     margin-top: 2.25rem;
     overflow: hidden;
     border: 1px solid rgba(93, 116, 158, 0.65);
-    border-radius: 8px;
+    border-radius: var(--radius-ui);
     background: rgba(93, 116, 158, 0.65);
 }
 
 .aboutme-stat {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
     padding: 1.1rem;
+    color: inherit;
     background: rgba(24, 36, 58, 0.84);
+    text-decoration: none;
+}
+
+.aboutme-stat + .aboutme-stat::before {
+    position: absolute;
+    top: 0.85rem;
+    bottom: 0.85rem;
+    left: -1px;
+    width: 1px;
+    background: rgba(125, 211, 252, 0.18);
+    content: "";
+}
+
+.aboutme-stat:hover,
+.aboutme-stat:focus-visible {
+    background: rgba(8, 145, 178, 0.22);
+}
+
+.aboutme-stat:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: -4px;
 }
 
 .aboutme-stat-value {
@@ -131,7 +152,7 @@
     width: 3.5rem;
     height: 2px;
     margin-top: 0.55rem;
-    border-radius: 999px;
+    border-radius: var(--radius-ui-pill);
     background: linear-gradient(90deg, #7dd3fc, #fef3c7);
 }
 
@@ -153,7 +174,7 @@
 .aboutme-achievement-card,
 .aboutme-empty-state {
     border: 1px solid rgba(93, 116, 158, 0.7);
-    border-radius: 8px;
+    border-radius: var(--radius-ui);
     background: rgba(24, 36, 58, 0.82);
     box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.18);
     transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
@@ -253,7 +274,7 @@
     align-items: center;
     min-height: 1.8rem;
     padding: 0.25rem 0.65rem;
-    border-radius: 999px;
+    border-radius: var(--radius-ui-pill);
     font-size: 0.78rem;
     font-weight: 800;
     overflow-wrap: anywhere;
@@ -309,7 +330,7 @@
 .aboutme-finding-facts div {
     padding: 0.85rem;
     border: 1px solid rgba(93, 116, 158, 0.45);
-    border-radius: 8px;
+    border-radius: var(--radius-ui);
     background: rgba(10, 16, 26, 0.38);
 }
 
@@ -359,7 +380,7 @@
     min-height: 2.2rem;
     padding: 0.45rem 0.75rem;
     border: 1px solid rgba(125, 211, 252, 0.45);
-    border-radius: 8px;
+    border-radius: var(--radius-ui);
     color: #cffafe;
     background: rgba(8, 145, 178, 0.18);
     font-size: 0.9rem;

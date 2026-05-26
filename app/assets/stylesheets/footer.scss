@@ -1,17 +1,15 @@
-@import "variables";
-
 .footer-icon {
     width: clamp(2rem, calc(var(--taskbar-icon-size) * 0.62), 2.75rem);
     height: clamp(2rem, calc(var(--taskbar-icon-size) * 0.62), 2.75rem);
     cursor: pointer;
-    border-radius: 50%;
+    border-radius: var(--radius-ui-pill);
     border: var(--default-border);
     box-sizing: border-box;
 
     transition: transform 0.2s ease-in-out, background-color 1s ease;
     &:hover {
         transform: scale(1.1);
-        background-color: $color-accent;
+        background-color: var(--color-accent);
     }
 }
 

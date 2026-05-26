@@ -101,7 +101,7 @@ class SitePagesTest < ApplicationSystemTestCase
         })()
       JS
 
-      assert_equal "none", styles["buttonTransform"]
+      assert_not_equal "none", styles["buttonTransform"]
       assert_equal "none", styles["iconTransform"]
       assert_equal "none", styles["boxShadow"]
 
@@ -284,6 +284,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-action[href='/posts-timeline']", text: "Posts timeline"
     assert_selector ".landing-action[href='/about']", text: "About me"
     assert_selector ".landing-metric", count: 6
+    page.execute_script("document.querySelector('.landing-metrics').scrollIntoView({ block: 'center' })")
 
     [
       [ "/about#cves", "CVEs", JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH)).length ],
@@ -364,6 +365,8 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_text "Website"
     assert_no_text "Writeups"
     assert_selector "a.ctf-card[href^='/ctf/']", minimum: 1
+    assert_selector "a.ctf-card.ui-hover-lift", minimum: 1
+    assert_no_selector "a.ctf-card.ui-hover-scale"
 
     first_card = find("a.ctf-card", match: :first)
     target_path = URI.parse(first_card[:href]).path

@@ -40,6 +40,21 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#bug-bounties article.aboutme-finding-card-static"
     assert_no_selector "#bug-bounties details"
     assert_selector ".aboutme-achievement-card", minimum: 1
+    assert_selector ".aboutme-stat[href='#cves']", text: "CVEs"
+    assert_selector ".aboutme-stat[href='#bug-bounties']", text: "Bug bounties"
+    assert_selector ".aboutme-stat[href='#my-challenges']", text: "Challenges"
+    assert_selector ".aboutme-stat[href='#certificates']", text: "Certificates"
+    assert_selector ".aboutme-stat[href='#achievements']", text: "Achievements"
+  end
+
+  test "about counters scroll to their sections" do
+    visit about_path
+
+    find(".aboutme-stat[href='#my-challenges']").click
+
+    assert_current_path "/about"
+    assert_equal "#my-challenges", page.evaluate_script("window.location.hash")
+    assert_selector "#my-challenges", text: "Created CTF Challenges"
   end
 
   test "about me page stays within narrow mobile viewports" do

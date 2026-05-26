@@ -8,6 +8,13 @@
 
 <%= render_taskbar_items %>
 <%= render_terminal([], true) %>
+<% about_stats = [
+  { label: "CVEs", value: @cve_entry_count, anchor: "cves" },
+  { label: "Bug bounties", value: @bug_bounties.length, anchor: "bug-bounties" },
+  { label: "Challenges", value: @challenges.length, anchor: "my-challenges" },
+  { label: "Certificates", value: @certificates.length, anchor: "certificates" },
+  { label: "Achievements", value: @achievements.length, anchor: "achievements" }
+] %>
 
 <main class="aboutme-page">
   <section class="aboutme-hero">
@@ -26,26 +33,12 @@
       </div>
 
       <div class="aboutme-stats" aria-label="Public security work summary">
-        <div class="aboutme-stat">
-          <span class="aboutme-stat-value"><%= @cve_entry_count %></span>
-          <span class="aboutme-stat-label">CVEs</span>
-        </div>
-        <div class="aboutme-stat">
-          <span class="aboutme-stat-value"><%= @bug_bounties.length %></span>
-          <span class="aboutme-stat-label">Bug bounties</span>
-        </div>
-        <div class="aboutme-stat">
-          <span class="aboutme-stat-value"><%= @challenges.length %></span>
-          <span class="aboutme-stat-label">Challenges</span>
-        </div>
-        <div class="aboutme-stat">
-          <span class="aboutme-stat-value"><%= @certificates.length %></span>
-          <span class="aboutme-stat-label">Certificates</span>
-        </div>
-        <div class="aboutme-stat">
-          <span class="aboutme-stat-value"><%= @achievements.length %></span>
-          <span class="aboutme-stat-label">Achievements</span>
-        </div>
+        <% about_stats.each do |stat| %>
+          <a href="#<%= stat[:anchor] %>" class="aboutme-stat ui-hover-lift" aria-label="Jump to <%= stat[:label] %>">
+            <span class="aboutme-stat-value"><%= stat[:value] %></span>
+            <span class="aboutme-stat-label"><%= stat[:label] %></span>
+          </a>
+        <% end %>
       </div>
     </div>
   </section>

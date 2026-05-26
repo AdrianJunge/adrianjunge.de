@@ -1,11 +1,9 @@
-@import "variables";
-
 .timeline {
     --date-width: 8rem;
     --timeline-padding: 3rem;
     position: relative;
-    border: 1px solid rgba($color-secondary, 1);
-    border-radius: 0.75rem;
+    border: 1px solid var(--color-secondary);
+    border-radius: var(--radius-ui);
     margin: 2rem 0;
     padding: var(--timeline-padding);
 }
@@ -49,7 +47,7 @@
     top: 0.35rem;
     width: 12px;
     height: 12px;
-    border-radius: 9999px;
+    border-radius: var(--radius-ui-pill);
     background: #06b6d4;
     border: 3px solid #0b1220;
     box-sizing: content-box;
@@ -58,7 +56,7 @@
 .timeline-content {
     background: rgba(15, 23, 42, 0.5);
     padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-ui-control);
     transition: background-color .15s ease;
 }
 

@@ -1,10 +1,8 @@
-@import "variables";
-
 .ctf-search-input {
     padding: 1vmin 2vmin;
     font-size: 2vmin;
     border: var(--default-border);
-    border-radius: 1vmin;
+    border-radius: var(--radius-ui-control);
     width: 50vmin;
     max-width: 90%;
 }
@@ -61,17 +59,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 50%;
+    border-radius: var(--radius-ui-pill);
     overflow: hidden;
     width: 100%;
     aspect-ratio: 1 / 1;
     max-width: 50vmin;
     border: var(--default-border);
-    transform: translateZ(0);
     transition: transform 0.2s ease-in-out;
 
     &:not(.expanded):hover {
-        transform: scale(1.1);
         cursor: pointer;
     }
 }

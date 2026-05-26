@@ -2,20 +2,94 @@
 
 /* @config "./../../../tailwind.config.js"; */
 
-@theme {
+@theme static {
   --color-default: #0a101a;
   --color-primary: #18243a;
   --color-secondary: #334461;
   --color-tertiary: #55aaff;
   --color-accent: #ccffff;
+  --color-border: #5d749e;
+  --color-chrome: #4c566a;
 }
 
 @layer base {
+  :root {
+    --taskbar-icon-size: clamp(2.5rem, 7vmin, 4rem);
+    --taskbar-gutter: clamp(0.625rem, 1vmin, 0.9rem);
+    --taskbar-size: calc(var(--taskbar-icon-size) + (var(--taskbar-gutter) * 2));
+    --taskbar-expanded-width: clamp(11rem, calc(var(--taskbar-size) * 3), 16rem);
+    --default-border: 0.3dvh solid var(--color-border);
+    --radius-ui: var(--radius-3xl, 1.5rem);
+    --radius-ui-control: var(--radius-2xl, 1rem);
+    --radius-ui-pill: 9999px;
+    --motion-fast: 0.18s ease;
+    --motion-standard: 0.2s ease-in-out;
+  }
+
+  @media (min-width: 480px) {
+    :root {
+      --taskbar-icon-size: clamp(2.5rem, 9vmin, 4.5rem);
+    }
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --taskbar-icon-size: clamp(2.5rem, 8vmin, 4.5rem);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      --taskbar-icon-size: clamp(2.5rem, 7vmin, 4.25rem);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    :root {
+      --taskbar-icon-size: clamp(2.5rem, 6vmin, 4rem);
+    }
+  }
+
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+@layer components {
+  .ui-hover-lift {
+    transition: background-color var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast);
+  }
+
+  .ui-hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  .ui-hover-scale {
+    transition: background-color var(--motion-standard), transform var(--motion-standard);
+  }
+
+  .ui-hover-scale:hover {
+    transform: scale(1.1);
+  }
+
+  .ui-icon-button {
+    @apply inline-flex h-12 w-12 items-center justify-center rounded-3xl;
+  }
+
+  .ui-article-action {
+    @apply inline-flex items-center gap-2 rounded-3xl bg-tertiary px-4 py-2 font-semibold text-black;
+    box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, var(--color-tertiary) 24%, transparent);
+  }
+
+  .ui-pill {
+    @apply inline-flex items-center rounded-3xl px-3 py-1 text-sm font-medium;
+  }
+
+  .ui-tag-pill {
+    @apply inline-flex items-center rounded-3xl px-2 py-1 text-xs font-medium;
   }
 }

@@ -19,7 +19,7 @@ module CtfHelper
 
     content_tag(
       :article,
-      class: "blog-post-card writeup-post-card",
+      class: "blog-post-card writeup-post-card ui-hover-lift",
       data: {
         filter_card: "writeups",
         filter_text: filter_text,
@@ -44,7 +44,7 @@ module CtfHelper
                   :button,
                   category,
                   type: "button",
-                  class: "filter-chip",
+                  class: "filter-chip ui-hover-lift",
                   data: { filter_scope: "writeups", filter_tag: category },
                   aria: { pressed: "false", label: "Filter writeups by #{category}" }
                 )

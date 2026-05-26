@@ -22,7 +22,7 @@
       <li class="mb-6">
         <div class="flex items-baseline justify-between mb-4">
           <h2 class="text-2xl font-semibold text-white"><%= year %></h2>
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-800 text-slate-200">
+          <span class="ui-pill bg-slate-800 text-slate-200">
             <%= items.size %> posts
           </span>
         </div>
@@ -34,14 +34,14 @@
                 <time datetime="<%= item[:published].iso8601 %>">
                   <%= item[:published].strftime('%Y-%m-%d') %>
                 </time>
-                <div class="text-xs mt-1 text-gray-500"><span class="inline-block bg-slate-800 px-2 py-0.5 rounded text-xs font-medium text-slate-200"><%= item[:which].upcase %></span></div>
+                <div class="text-xs mt-1 text-gray-500"><span class="ui-tag-pill bg-slate-800 text-slate-200"><%= item[:which].upcase %></span></div>
               </div>
 
               <div class="timeline-connector">
                 <div class="dot"></div>
               </div>
 
-              <a href="<%= item[:link] %>" class="timeline-content" aria-label="Open <%= item[:title] %>">
+              <a href="<%= item[:link] %>" class="timeline-content ui-hover-lift" aria-label="Open <%= item[:title] %>">
                 <span class="timeline-title">
                   <%= item[:title] %>
                 </span>
