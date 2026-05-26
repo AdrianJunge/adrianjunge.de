@@ -1,8 +1,8 @@
 @import "variables";
 
 .footer-icon {
-    width: calc(var(--taskbar-icon-size) / 0.9);
-    height: calc(var(--taskbar-icon-size) / 0.9);
+    width: clamp(2rem, calc(var(--taskbar-icon-size) * 0.62), 2.75rem);
+    height: clamp(2rem, calc(var(--taskbar-icon-size) * 0.62), 2.75rem);
     cursor: pointer;
     border-radius: 50%;
     border: var(--default-border);
@@ -16,5 +16,6 @@
 }
 
 .footer-info {
-    font-size: 1.75vmin;
+    font-size: clamp(0.75rem, 1.25vmin, 0.9rem);
+    line-height: 1.35;
 }

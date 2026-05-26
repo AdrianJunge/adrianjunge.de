@@ -1,7 +1,9 @@
 # TODOs
-- In general the margin between writeup/blog buttons etc should be equal, e.g. on the landing page when having a small display, in the most recent posts section the "HTB CPTS" one will wrap taking more space and thus having less space to the next button but it got more space towards the upper xmalloc button. Moreover the scroll-down button should disappear when the display is too small, as its not immediately visible on the screen when the screen got too less width
-- Make the footer/icons etc a bit smaller
-- Add to landing page more counters like CVEs, Bug Bounties, Certificates, Achievements
+- on /ctf the different clickable ctf buttons should directly lead to the writeup overview instead of having the buttons "website" and "writeups" - thus the website link should be removed completely and the whole button leads to the writeups
+- The writeup overview when chosen a ctf, the clickable buttons to get to the writeup should have the same style as the ones on /blog
+- The collapse TOC button should scroll down aswell so make it sticky
+
+- Add to landing page more counters like CVEs, Bug Bounties, Certificates, Achievements but in their own clickable area
     - change title from "Welcome to my flag collection - CTF writeups & more" to something more fitting, this is not only about ctfs anymore
 - Adde Features und Info tables wie bei https://dimasc.tf/ zu meiner Website wie zB die Blog Übersicht und die Filter die man applyen kann
 - Nur die skallierung vom Terminal kommt nicht so gut auf hochauflösenden Display - wenn man die seite auf 200% skalliert gehts aber sehr gut.

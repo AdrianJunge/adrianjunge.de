@@ -30,6 +30,99 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
+  test "feed controls lift as complete buttons instead of moving only their icons" do
+    {
+      "/ctf" => [ ".ctf-rss-feed", ".ctf-rss-icon" ],
+      "/blog" => [ ".blog-rss-feed", ".blog-rss-icon" ]
+    }.each do |path, (button_selector, icon_selector)|
+      visit path
+
+      button = find(button_selector)
+      find(icon_selector)
+      page.driver.browser.action.move_to(button.native).perform
+
+      transforms = page.evaluate_script(<<~JS)
+        (() => {
+          const button = document.querySelector("#{button_selector}");
+          const icon = document.querySelector("#{icon_selector}");
+
+          return {
+            button: window.getComputedStyle(button).transform,
+            icon: window.getComputedStyle(icon).transform
+          };
+        })()
+      JS
+
+      assert_not_equal "none", transforms["button"]
+      assert_equal "none", transforms["icon"]
+    end
+  end
+
+  test "compact landing keeps recent post spacing even and hides scroll affordance" do
+    page.current_window.resize_to(390, 700)
+    visit "/"
+
+    assert_no_selector "#scroll-down-button", visible: :visible
+    assert_selector ".landing-writeup-cards .blog-post-entry", count: 3
+
+    metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const container = document.querySelector(".landing-writeup-cards");
+        const scrollButton = document.querySelector("#scroll-down-button");
+        const cards = [...document.querySelectorAll(".landing-writeup-cards .blog-post-entry")];
+        const rects = cards.map((card) => card.getBoundingClientRect());
+
+        return {
+          display: window.getComputedStyle(container).display,
+          scrollButtonDisplay: window.getComputedStyle(scrollButton).display,
+          gaps: [
+            Math.round(rects[1].top - rects[0].bottom),
+            Math.round(rects[2].top - rects[1].bottom)
+          ]
+        };
+      })()
+    JS
+
+    assert_equal "grid", metrics["display"]
+    assert_equal "none", metrics["scrollButtonDisplay"]
+    assert_operator metrics["gaps"].min, :>=, 15
+    assert_in_delta metrics["gaps"].first, metrics["gaps"].last, 1
+  end
+
+  test "landing recent posts render as evenly spaced full-width rows" do
+    page.current_window.resize_to(1280, 1400)
+    visit "/"
+
+    assert_selector ".landing-writeup-cards .blog-post-entry", count: 3
+
+    metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const container = document.querySelector(".landing-writeup-cards");
+        const cards = [...document.querySelectorAll(".landing-writeup-cards .blog-post-entry")];
+        const containerRect = container.getBoundingClientRect();
+        const rects = cards.map((card) => card.getBoundingClientRect());
+
+        return {
+          gridColumns: window.getComputedStyle(container).gridTemplateColumns.split(" ").length,
+          leftEdges: rects.map((rect) => Math.round(rect.left)),
+          widths: rects.map((rect) => Math.round(rect.width)),
+          containerWidth: Math.round(containerRect.width),
+          gaps: [
+            Math.round(rects[1].top - rects[0].bottom),
+            Math.round(rects[2].top - rects[1].bottom)
+          ]
+        };
+      })()
+    JS
+
+    assert_equal 1, metrics["gridColumns"]
+    assert_equal 1, metrics["leftEdges"].uniq.length
+    metrics["widths"].each do |width|
+      assert_in_delta metrics["containerWidth"], width, 1
+    end
+    assert_in_delta metrics["gaps"].first, metrics["gaps"].last, 1
+  end
+
   test "TBA findings render as static cards while disclosed findings stay collapsible" do
     visit "/about"
 
