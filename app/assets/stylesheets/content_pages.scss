@@ -54,6 +54,7 @@
     display: flex;
     align-items: center;
     gap: 1.25rem;
+    min-width: 0;
 }
 
 .content-hero-icon-wrap {
@@ -423,9 +424,13 @@
 }
 
 .content-page .writeup-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
     width: calc(100% - 12rem);
     max-width: 88rem;
     margin: 0 auto;
+    margin-bottom: 1.5rem;
 }
 
 .content-page .writeup-container {
@@ -456,6 +461,16 @@
     line-height: 1.35;
     text-align: center;
     white-space: normal;
+    transform: scale(1);
+    transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+.content-page .download-btn:hover,
+.content-page .open-pdf-btn:hover,
+.content-page .previous-writeup-btn:hover,
+.content-page .next-writeup-btn:hover {
+    transform: translateY(-1px) scale(1.03);
+    background-color: $color-accent;
 }
 
 .content-page .writeup-year {
@@ -476,6 +491,8 @@
     color: rgba(248, 250, 252, 0.92);
     font-size: 1rem;
     line-height: 1.75;
+    overflow-wrap: anywhere;
+    word-break: normal;
 }
 
 .content-page .markdown-content h1,
@@ -490,6 +507,8 @@
 .content-page .markdown-content p,
 .content-page .markdown-content li {
     color: rgba(226, 232, 240, 0.9);
+    overflow-wrap: anywhere;
+    word-break: normal;
 }
 
 .content-page .markdown-content pre,
@@ -540,9 +559,16 @@
     white-space: inherit;
 }
 
+.content-page .markdown-content img {
+    margin: 1.5rem auto;
+    border-radius: 8px;
+}
+
 .content-page .copy-btn {
+    position: absolute;
     top: 0.45rem;
     right: 0.55rem;
+    z-index: 100;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -552,7 +578,10 @@
     border-radius: 6px;
     background: transparent;
     color: rgba(226, 232, 240, 0.72);
+    cursor: pointer;
     line-height: 1;
+    padding: 0;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .content-page .copy-btn:hover,
@@ -568,8 +597,11 @@
 }
 
 .content-page .table-of-content {
+    position: sticky;
+    top: 1.5rem;
     flex: 0 0 20rem;
     max-width: 20rem;
+    height: fit-content;
     padding: 1.25rem;
     border-radius: 8px;
     background: rgba(24, 36, 58, 0.82);
@@ -649,6 +681,23 @@
 .content-page .toc-anchor:hover {
     color: #7dd3fc;
     text-decoration: none;
+}
+
+.content-page .active-anchor {
+    position: relative;
+    color: #ccffff !important;
+    text-decoration: underline;
+}
+
+.content-page .active-anchor::before {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background-color: #ccffff;
+    content: "";
+    transform: translateY(-50%);
 }
 
 .timeline-shell {
@@ -852,6 +901,14 @@
         padding: 1rem;
     }
 
+    .content-page #toc,
+    .content-page .table-of-content,
+    .content-page #toc-toggle,
+    .content-page .toc-toggle-button,
+    .content-page .writeup-toc-restore-button {
+        display: none !important;
+    }
+
     .content-page .writeup-title {
         font-size: 2rem;
     }
@@ -869,10 +926,39 @@
 
 @media (min-width: 721px) and (max-width: 1400px) {
     .content-page .writeup-wrapper {
+        flex-direction: column;
+        align-items: center;
         width: calc(100% - 6rem);
         max-width: none;
         margin-right: 1rem;
         margin-left: 5rem;
+    }
+
+    .content-page .writeup-container {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .content-page #toc,
+    .content-page .table-of-content,
+    .content-page #toc-toggle,
+    .content-page .toc-toggle-button,
+    .content-page .writeup-toc-restore-button {
+        display: none !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .content-page .next-previous-writeups,
+    .content-page .writeup-challengefiles {
+        align-items: center;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .content-page .previous-writeup-btn,
+    .content-page .next-writeup-btn {
+        justify-content: center;
     }
 }
 
@@ -895,6 +981,25 @@
     .content-hero h1,
     .landing-page h1 {
         font-size: 2rem;
+    }
+
+    .content-hero h1 {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .content-hero-title-row {
+        gap: 0.75rem;
+    }
+
+    .content-hero-icon-wrap {
+        width: 3.5rem;
+        height: 3.5rem;
+    }
+
+    .content-hero-icon {
+        width: 2.25rem;
+        height: 2.25rem;
     }
 
     .landing-page .profile-card > .mt-6 {

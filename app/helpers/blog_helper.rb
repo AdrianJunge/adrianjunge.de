@@ -1,22 +1,11 @@
 module BlogHelper
-  def render_blog_post_card(post_slug, post_info, blogs_metadata)
+  def render_blog_post_card(post_slug, post_info)
     max_description_length = 200
     title = post_info["title"].presence || post_slug.humanize
     description = post_info["description"] || "No description available"
     published = post_info["published"] || "Unknown date"
     categories = Array(post_info["categories"]).presence || []
-    category_text = categories.join(", ").presence || "Post"
-
     logo_url = post_info["logo"]
-
-    if !logo_url.present?
-      blogs_metadata.each do |slug, blog|
-        if slug.downcase == post_slug.downcase
-          logo_url = blog["logo"]
-          break
-        end
-      end
-    end
 
     post_path = blog_post_path(post_slug)
 

@@ -6,7 +6,7 @@ module CtfHelper
     svg.gsub("<svg", '<svg style="width: 6vh; height: 6vh;" ')
   end
 
-  def render_writeup_card(writeup, writeup_path, which, info)
+  def render_writeup_card(writeup, writeup_path, info)
     max_description_length = 200
     categories = info["categories"] || [ "Unknown category" ]
     first_category = categories&.first || "unknown"

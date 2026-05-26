@@ -1,2 +1,0 @@
-class ToolsController < ApplicationController
-end

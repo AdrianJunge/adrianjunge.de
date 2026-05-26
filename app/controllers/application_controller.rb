@@ -166,9 +166,8 @@ class ApplicationController < ActionController::Base
     ctf_infos
   end
 
-  def get_ctf_infos(which, writeups)
-    posts_metadata = get_posts_metadata(BASE_PATH, which)
-    posts_metadata
+  def get_ctf_infos(which)
+    get_posts_metadata(BASE_PATH, which)
   end
 
   def get_ctf_info(writeup_content)

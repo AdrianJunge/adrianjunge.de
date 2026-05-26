@@ -55,7 +55,7 @@
           "published" => post[:published].strftime("%Y-%m-%d"),
           "logo" => blog_data["logo"]
         }) %>
-        <%= render_blog_post_card(post[:slug], blog_data_with_meta, @blogs) %>
+        <%= render_blog_post_card(post[:slug], blog_data_with_meta) %>
       </div>
     <% end %>
   </div>

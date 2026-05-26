@@ -1,2 +1,0 @@
-class ResumeController < ApplicationController
-end

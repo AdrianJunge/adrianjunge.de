@@ -19,6 +19,3 @@
     border-color: var(--color-gray-200, currentColor);
   }
 }
-
-/* @source '../../../node_modules/flowbite';
-@plugin "flowbite/plugin"; */

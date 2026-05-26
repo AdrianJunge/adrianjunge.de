@@ -1,5 +1,5 @@
 # TODOs
-- Amazing now remove everything that is not needed/used anymore
+- In general the margin between writeup/blog buttons etc should be equal, e.g. on the landing page when having a small display, in the most recent posts section the "HTB CPTS" one will wrap taking more space and thus having less space to the next button but it got more space towards the upper xmalloc button. Moreover the scroll-down button should disappear when the display is too small, as its not immediately visible on the screen when the screen got too less width
 - Make the footer/icons etc a bit smaller
 - Add to landing page more counters like CVEs, Bug Bounties, Certificates, Achievements
     - change title from "Welcome to my flag collection - CTF writeups & more" to something more fitting, this is not only about ctfs anymore

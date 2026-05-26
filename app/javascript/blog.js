@@ -1,4 +1,3 @@
-// Blog search functionality
 function initBlogSearch() {
   const blogSearchInput = document.getElementById('blog-search-input');
   if (!blogSearchInput) return;
@@ -19,13 +18,13 @@ function initBlogSearch() {
     blogPostCards.forEach(card => {
       const titleEl = card.querySelector('.blog-post-title');
       const descEl = card.querySelector('.blog-post-description');
-      const topicEl = card.querySelector('.blog-post-topic');
+      const metaEl = card.querySelector('.blog-post-meta');
 
       const title = titleEl ? titleEl.textContent.toLowerCase() : '';
       const desc = descEl ? descEl.textContent.toLowerCase() : '';
-      const topic = topicEl ? topicEl.textContent.toLowerCase() : '';
+      const meta = metaEl ? metaEl.textContent.toLowerCase() : '';
 
-      const matched = title.includes(query) || desc.includes(query) || topic.includes(query);
+      const matched = title.includes(query) || desc.includes(query) || meta.includes(query);
 
       if (matched) {
         card.style.display = '';
@@ -39,7 +38,6 @@ function initBlogSearch() {
 
   blogSearchInput.addEventListener('input', filterBlogPosts);
 
-  // Clear button functionality
   const clearBtn = document.getElementById('blog-search-clear');
   if (clearBtn) {
     clearBtn.addEventListener('click', function() {
@@ -49,7 +47,6 @@ function initBlogSearch() {
   }
 }
 
-// Table of contents functionality for blog posts
 function initBlogTOC() {
   const tocLinks = document.querySelectorAll(".toc-anchor");
   const headings = document.querySelectorAll(".markdown-content h1, .markdown-content h2, .markdown-content h3");
@@ -113,7 +110,6 @@ function initBlogTOC() {
   });
 }
 
-// Copy code functionality
 function initCodeCopy() {
   document.addEventListener('click', event => {
     const btn = event.target.closest('.copy-btn');
@@ -131,7 +127,6 @@ function initCodeCopy() {
   });
 }
 
-// Initialize all blog functionality when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initBlogSearch();

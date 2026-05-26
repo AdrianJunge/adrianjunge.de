@@ -22,8 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
         'I write to deepen my understanding, and maybe it actually helps others along the way',
         'If it runs, I poke it',
         'I like puzzles that crash systems',
-        'Teaching machines to misbehave',
-        // 'Currently learning: <TODO>'
+        'Teaching machines to misbehave'
     ];
 
     new RandomTyped(el, {

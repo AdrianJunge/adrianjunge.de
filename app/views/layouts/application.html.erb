@@ -3,10 +3,9 @@
   <head>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbo-track': 'reload' %>
-    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag "flowbite", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag "xterm", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag 'application', media: 'all' %>
+    <%= stylesheet_link_tag "tailwind" %>
+    <%= stylesheet_link_tag "xterm" %>
 
     <link rel="alternate" type="application/rss+xml" title="CTF Writeups (RSS)" href="<%= ctf_feed_url %>">
     <link rel="alternate" type="application/atom+xml" title="CTF Writeups (Atom)" href="<%= ctf_feed_url(format: :atom) %>">

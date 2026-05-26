@@ -14,10 +14,7 @@ class CtfController < ApplicationController
     @which = params[:which].gsub("..", "").gsub("/", "")
     return unless sanitize_which(@which)
 
-    @writeups = Dir.entries(BASE_PATH.join(@which))
-                   .select { |file| file.end_with?(".md") }
-                   .map { |file| file.sub(".md", "") }
-    @ctf_info = sort_writeups_by_published(get_ctf_infos(@which, @writeups))
+    @ctf_info = sort_writeups_by_published(get_ctf_infos(@which))
     @writeups = @ctf_info.keys
   end
 

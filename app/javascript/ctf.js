@@ -99,25 +99,6 @@ document.addEventListener('click', function(event) {
   }
 });
 
-
-
-document.addEventListener('click', event => {
-  const btn = event.target.closest('.copy-btn');
-  if (!btn) return;
-
-  const code = btn.getAttribute('data-code');
-  navigator.clipboard.writeText(code)
-    .then(() => {
-      btn.textContent = '✅';
-      setTimeout(() => btn.textContent = '📋', 2000);
-    })
-    .catch(() => {
-      btn.textContent = 'Error';
-    });
-});
-
-
-
 const searchInput = document.getElementById('ctf-search-input');
 if (searchInput) {
   document.addEventListener('DOMContentLoaded', function () {
