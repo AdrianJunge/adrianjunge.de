@@ -74,9 +74,30 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert bug_bounties.any? { |entry| entry["project"] == "Firedancer" && entry["cve_id"].blank? }
     assert_equal %w[
       firedancer-v1-audit-competition-tba
-      dhm-2025
-      dhm-2024
+      dhm
+      cscg
+      kitctf
     ], achievements.map { |entry| entry["id"] }
+    dhm = achievements.find { |entry| entry["id"] == "dhm" }
+    cscg = achievements.find { |entry| entry["id"] == "cscg" }
+    assert_equal "2025, 2024", dhm["date"]
+    assert_equal [
+      "2025: Participated in the DHM finals after qualifying through CSCG.",
+      "2024: Placed #1 at the Deutsche Hacking Meisterschaft."
+    ], dhm["details"]
+    assert_equal "2025, 2024", cscg["date"]
+    assert_equal [
+      "2025: Qualified for DHM again and finished top 10 globally.",
+      "2024: Qualified for DHM through CSCG."
+    ], cscg["details"]
+    kitctf = achievements.find { |entry| entry["id"] == "kitctf" }
+    assert_equal "https://ctftime.org/team/7221/", kitctf["title_url"]
+    assert kitctf["details"].include?("2025: #3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team.")
+    assert kitctf["details"].include?("2025: #3 at SwampCTF.")
+    assert kitctf["details"].include?("2024: #3 at GlacierCTF.")
+    assert kitctf["details"].include?("2024: #1 at SwampCTF.")
+    assert kitctf["details"].include?("2024: Participated in the SnakeCTF finals in Italy.")
+    assert kitctf["details"].include?("2025: #6 at GoogleCTF as the FluxKITtens merger team (FluxFingers & KITCTF), and qualified for the finals in Mexico.")
 
     (cves + bug_bounties).each do |entry|
       assert entry["project"].present?

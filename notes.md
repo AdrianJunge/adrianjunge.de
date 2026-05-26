@@ -1,25 +1,17 @@
 # TODOs
-- replace DHM achievement with something like
-    - DHM section with 2024 #1 and participated 2025
-    - CSCG section with 2024 qualified for DHM and 2025 qualified and top 6
-remove #7th place DHM and replace it with top 10 cscg qualifiers or top 6 seniors idk?
-    => screenshot raussuchen
-- on the very top is some space used for the "taskbar-item" and thus shifting everything down, this is weird
-- Add Features and Info tables like on https://dimasc.tf/
-    - to do this, thoroughly scrape through the whole website
-    - add stuff like the Blog overview if its not already present on my website and the filters that can be applied
+- on the very top of each page is some space used for the "taskbar-item" and thus shifting everything down, this is weird
+- Add to aboutme a “My Challenges” Section and write which ctf this was published for, short description and the redirect to the writeup - in this case its only the "smile at me" challenge from gpnctf
+
+- Scrape https://dimasc.tf/ for features and make suggestions on what to be added to my website
 
 - Fix the scaling of the terminal for high resolution displays
 - Search functionality for ctfs and writeups and blogs
-    - ctf tags bei den einzelnen Writeups clickable machen sodass gefiltert wird nach dem tag unter den writeups
-    - Suchfilter und Filteroption nach Jahr/Datum
-- “My Challenges” Section adden zu CTF (unter Angabe bei welchem CTF das veröffentlicht wurde und Link zu meinem Writeup dazu)
-    => Übersicht über meine Challenges
-    => jeweils redirect zu bereits published Post
+    - make ctf tags for each writeup clickable so you can filter for those writeups containing this tag
+    - search filter/option for year/date
 - Writeup
-    - hints anzeigen über die Metadaten und Template erweitern
-    - Autoren auflisten evtl auch deren Blog verlinken
-    - Hintergrund Image des CTFs
+    - add a hints section in the metadata of the markdown files and template
+    - for the writeup overview list the authors and link their blog/website if they got one
+
 - If pages got the same styling, layout etc they should all share the same files and thus reducing redundancy
 - Landing page anpassen für kleine Bildschirme
 - Fehler pages custom machen

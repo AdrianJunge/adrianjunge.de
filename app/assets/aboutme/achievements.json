@@ -17,14 +17,15 @@
     ]
   },
   {
-    "id": "dhm-2025",
-    "title": "DHM 2025 - 7th place",
+    "id": "dhm",
+    "title": "DHM",
     "title_url": "https://hacking-meisterschaft.de/",
     "category": "CTF Competition",
-    "date": "2025",
-    "summary": "Placed #7 at the Deutsche Hacking-Meisterschaft 2025.",
+    "date": "2025, 2024",
+    "summary": "Deutsche Hacking Meisterschaft (CSCG finals)",
     "details": [
-      "Onsite CTF competition with CSCG as the individual qualifiers focused on practical security challenges across categories such as web, crypto, reversing, pwn, networking, and forensics."
+      "2025: Participated in the DHM finals after qualifying through CSCG.",
+      "2024: Placed #1 at the Deutsche Hacking Meisterschaft."
     ],
     "links": [
       {
@@ -34,19 +35,42 @@
     ]
   },
   {
-    "id": "dhm-2024",
-    "title": "DHM 2024 - 1st place",
-    "title_url": "https://hacking-meisterschaft.de/",
+    "id": "cscg",
+    "title": "CSCG",
+    "title_url": "https://cscg.de/",
     "category": "CTF Competition",
-    "date": "2024",
-    "summary": "Placed #1 at the Deutsche Hacking-Meisterschaft 2024.",
+    "date": "2025, 2024",
+    "summary": "Cyber Security Challenges Germany: Qualified for DHM in 2024 and 2025.",
     "details": [
-      "Onsite CTF competition with CSCG as the individual qualifiers focused on practical security challenges across categories such as web, crypto, reversing, pwn, networking, and forensics."
+      "2025: Qualified for DHM again and finished top 10 globally.",
+      "2024: Qualified for DHM through CSCG."
     ],
     "links": [
       {
-        "label": "DHM",
-        "url": "https://hacking-meisterschaft.de/"
+        "label": "CSCG",
+        "url": "https://cscg.de/"
+      }
+    ]
+  },
+  {
+    "id": "kitctf",
+    "title": "KITCTF",
+    "title_url": "https://ctftime.org/team/7221/",
+    "category": "CTF Team",
+    "date": "2024, 2025",
+    "summary": "Selected KITCTF team results across international CTFs and finals qualifiers.",
+    "details": [
+      "2025: #6 at GoogleCTF as the FluxKITtens merger team (FluxFingers & KITCTF), and qualified for the finals in Mexico.",
+      "2025: #3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team.",
+      "2025: #3 at SwampCTF.",
+      "2024: #3 at GlacierCTF.",
+      "2024: #1 at SwampCTF.",
+      "2024: Participated in the SnakeCTF finals in Italy."
+    ],
+    "links": [
+      {
+        "label": "KITCTF on CTFtime",
+        "url": "https://ctftime.org/team/7221/"
       }
     ]
   }

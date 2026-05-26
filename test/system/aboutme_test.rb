@@ -25,7 +25,6 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_no_text "Credentials"
     assert_no_text "Milestones"
     within "#achievements" do
-      assert_no_text "KITCTF"
       assert_no_text "Computer Science master's student at KIT"
     end
     assert_no_text "Placeholder"
@@ -84,12 +83,39 @@ class AboutmeTest < ApplicationSystemTestCase
       Array.from(document.querySelectorAll("#achievements .aboutme-achievement-card h3"))
         .map((heading) => heading.innerText.trim())
     JS
+    achievement_details = page.evaluate_script(<<~JS)
+      Object.fromEntries(
+        Array.from(document.querySelectorAll("#achievements .aboutme-achievement-card")).map((card) => [
+          card.querySelector("h3").innerText.trim(),
+          Array.from(card.querySelectorAll(".aboutme-achievement-details li")).map((detail) => detail.innerText.trim())
+        ])
+      )
+    JS
 
     assert_equal "Privilege escalation through com_users batch task", first_cve_title
     assert_equal [
       "Firedancer v1.0 audit competition (TBA)",
-      "DHM 2025 - 7th place",
-      "DHM 2024 - 1st place"
+      "DHM",
+      "CSCG",
+      "KITCTF"
     ], achievement_titles
+    assert_equal [
+      "2025: Participated in the DHM finals after qualifying through CSCG.",
+      "2024: Placed #1 at the Deutsche Hacking Meisterschaft."
+    ], achievement_details["DHM"]
+    assert_equal [
+      "2025: Qualified for DHM again and finished top 10 globally.",
+      "2024: Qualified for DHM through CSCG."
+    ], achievement_details["CSCG"]
+    assert_text "2024: Placed #1 at the Deutsche Hacking Meisterschaft."
+    assert_text "2025: Participated in the DHM finals after qualifying through CSCG."
+    assert_text "2024: Qualified for DHM through CSCG."
+    assert_text "2025: Qualified for DHM again and finished top 10 globally."
+    assert_text "2025: #3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team."
+    assert_text "2025: #3 at SwampCTF."
+    assert_text "2024: #3 at GlacierCTF."
+    assert_text "2024: #1 at SwampCTF."
+    assert_text "2024: Participated in the SnakeCTF finals in Italy."
+    assert_text "2025: #6 at GoogleCTF as the FluxKITtens merger team (FluxFingers & KITCTF), and qualified for the finals in Mexico."
   end
 end
