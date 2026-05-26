@@ -39,14 +39,18 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_kind_of Array, certificates
     assert_kind_of Array, achievements
     assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-39327" }
-    assert_equal 11, cves.length
+    assert_equal 12, cves.length
     assert_equal %w[
+      joomla-com-users-batch-task-privilege-escalation
+      joomla-com-tags-authenticated-blind-sqli
+      joomla-com-finder-authenticated-blind-sqli
       suitecrm-tba-2
       suitecrm-tba-1
-      joomla-tba-2
-      joomla-tba-1
-    ], cves.first(4).map { |entry| entry["id"] }
-    assert_equal 2, cves.count { |entry| entry["project"] == "Joomla CMS" && entry["cve_id"].blank? }
+    ], cves.first(5).map { |entry| entry["id"] }
+    assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-35221" }
+    assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-35222" }
+    assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-48898" }
+    assert_equal 0, cves.count { |entry| entry["project"] == "Joomla CMS" && entry["cve_id"].blank? }
     assert_equal 2, cves.count { |entry| entry["project"] == "SuiteCRM" && entry["cve_id"].blank? }
     assert bug_bounties.any? { |entry| entry["project"] == "Firedancer" && entry["title"].include?("TBA") }
     assert bug_bounties.any? { |entry| entry["project"] == "Firedancer" && entry["cve_id"].blank? }
@@ -65,6 +69,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
 
     cves.reject { |entry| entry["id"].include?("tba") }.each do |entry|
       assert entry["cve_id"].present?
+      assert entry.fetch("references", []).any? { |link| link["url"] == "https://www.cve.org/CVERecord?id=#{entry["cve_id"]}" }
     end
 
     (certificates + achievements).each do |entry|

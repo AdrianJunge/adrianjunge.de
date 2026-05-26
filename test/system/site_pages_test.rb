@@ -126,8 +126,8 @@ class SitePagesTest < ApplicationSystemTestCase
   test "TBA findings render as static cards while disclosed findings stay collapsible" do
     visit "/about"
 
-    assert_selector "#cves article.aboutme-finding-card-static", minimum: 4
-    assert_selector "#cves details.aboutme-finding-card-cve", minimum: 7
+    assert_selector "#cves article.aboutme-finding-card-static", minimum: 2
+    assert_selector "#cves details.aboutme-finding-card-cve", minimum: 10
     assert_selector "#bug-bounties article.aboutme-finding-card-static"
     assert_no_selector "#bug-bounties details"
   end
@@ -140,11 +140,29 @@ class SitePagesTest < ApplicationSystemTestCase
     assert first_link[:href].match?(%r{/((ctf/.+/.+)|(blog/.+))\z})
   end
 
+  test "ctf overview cards link directly to writeup overviews" do
+    visit "/ctf"
+
+    assert_no_selector ".ctf-button"
+    assert_no_text "Website"
+    assert_no_text "Writeups"
+    assert_selector "a.ctf-card[href^='/ctf/']", minimum: 1
+
+    first_card = find("a.ctf-card", match: :first)
+    target_path = URI.parse(first_card[:href]).path
+    first_card.click
+
+    assert_current_path target_path
+  end
+
   test "ctf writeups are ordered from latest to oldest" do
     visit "/ctf/ehax"
 
-    titles = all(".writeup-card h5").map(&:text)
-    assert_equal [ "Fantastic doom", "Cash memo" ], titles
+    assert_selector ".writeup-overview .blog-post-card", count: 2
+    assert_no_selector ".writeup-overview .writeup-card"
+
+    titles = all(".writeup-overview .blog-post-title").map(&:text)
+    assert_equal [ "Fantastic Doom", "Cash Memo" ], titles
   end
 
   test "article table of contents toggle collapses the toc column" do
@@ -161,6 +179,11 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".writeup-toc-restore-button", visible: :visible
     expanded_width = page.evaluate_script(width_script)
     assert_operator expanded_width, :>, original_width
+    assert_equal "sticky", page.evaluate_script("window.getComputedStyle(document.querySelector('.writeup-toc-restore-button')).position")
+
+    page.execute_script("window.scrollTo(0, 700)")
+    sticky_top = page.evaluate_script("Math.round(document.querySelector('.writeup-toc-restore-button').getBoundingClientRect().top)")
+    assert_in_delta 16, sticky_top, 4
 
     find(".writeup-toc-restore-button").click
     assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all

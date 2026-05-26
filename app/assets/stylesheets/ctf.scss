@@ -163,37 +163,6 @@
     display: flex;
 }
 
-.ctf-button-container {
-    display: flex;
-    justify-content: center;
-    gap: 1vmin;
-    width: 100%;
-}
-
-.ctf-button {
-    font-size: 2vmin;
-    display: inline-block;
-    margin: 0.5vmin;
-    padding: 0.7vmin 1.2vmin;
-    background-color: #f1f1f1;
-    justify-content: center;
-    color: #333;
-    border-radius: 1vmin;
-    border: 0.3dvh solid #4c566a;
-    box-sizing: border-box;
-    max-height: 5vh;
-    max-width: 20vw;
-
-    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
-}
-
-.ctf-button:hover {
-    transform: scale(1.2);
-    background-color: $color-tertiary;
-    color: #fff;
-    cursor: pointer;
-}
-
 .ctf-card img {
     width: 100%;
     height: 100%;

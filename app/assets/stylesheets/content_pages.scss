@@ -97,7 +97,6 @@
 }
 
 .content-link-button,
-.content-page .ctf-button,
 .content-page .about-feed-link {
     display: inline-flex;
     align-items: center;
@@ -115,7 +114,6 @@
 }
 
 .content-link-button:hover,
-.content-page .ctf-button:hover,
 .content-page .about-feed-link:hover {
     transform: translateY(-1px);
     color: #fff;
@@ -271,6 +269,8 @@
     overflow: hidden;
     aspect-ratio: auto;
     border-radius: 8px;
+    color: inherit;
+    text-decoration: none;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 
@@ -331,22 +331,6 @@
     -webkit-mask-image: none;
 }
 
-.content-page .ctf-button-container {
-    display: flex;
-    flex: 0 0 auto;
-    align-self: center;
-    justify-content: flex-start;
-    gap: 0.65rem;
-    width: auto;
-}
-
-.content-page .ctf-button {
-    max-width: none;
-    max-height: none;
-    margin: 0;
-    color: #cffafe;
-}
-
 .content-page .blog-post-entry {
     min-height: 0;
 }
@@ -365,6 +349,11 @@
 }
 
 .content-page .blog-logo {
+    max-width: 6.5rem;
+    max-height: 6.5rem;
+}
+
+.content-page .writeup-post-card-logo svg {
     max-width: 6.5rem;
     max-height: 6.5rem;
 }
@@ -659,11 +648,12 @@
 }
 
 .content-page .writeup-toc-restore-button {
-    position: absolute;
+    position: sticky;
     top: 1rem;
-    right: 1rem;
-    z-index: 2;
+    z-index: 20;
     display: none;
+    float: right;
+    margin: 0 0 0.75rem 0.75rem;
 }
 
 .content-page .writeup-wrapper.toc-collapsed .writeup-toc-restore-button {
@@ -895,11 +885,6 @@
 
     .content-page .ctf-details {
         flex-direction: column;
-    }
-
-    .content-page .ctf-button-container {
-        align-self: flex-start;
-        flex-wrap: wrap;
     }
 
     .content-page .ctf-card img {

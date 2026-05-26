@@ -26,7 +26,7 @@
     <div class="writeup-overview">
       <% @ctf_info.each do |writeup, info| %>
         <% writeup_path = "/ctf/#{@which}/#{writeup}" %>
-        <div class="writeup-card bg-primary">
+        <div class="blog-post-entry writeup-post-entry">
           <%= render_writeup_card(writeup, writeup_path, info) %>
         </div>
       <% end %>

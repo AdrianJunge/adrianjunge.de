@@ -5,7 +5,7 @@ module AboutmeHelper
       "aboutme-severity-critical"
     when "high"
       "aboutme-severity-high"
-    when "medium"
+    when "medium", "moderate"
       "aboutme-severity-medium"
     when "low"
       "aboutme-severity-low"

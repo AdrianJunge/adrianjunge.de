@@ -1,5 +1,139 @@
 [
   {
+    "id": "joomla-com-users-batch-task-privilege-escalation",
+    "project": "Joomla CMS",
+    "project_url": "https://github.com/joomla/joomla-cms",
+    "title": "Privilege escalation through com_users batch task",
+    "title_url": "https://developer.joomla.org/security-centre/1045-20260513-core-privilege-escalation-through-com-users-batch-task.html",
+    "cve_id": "CVE-2026-48898",
+    "severity": "High",
+    "short_summary": "Privilege escalation through the Joomla com_users batch task.",
+    "summary": "An improper access check in the Joomla com_users batch task could allow privilege escalation.",
+    "tested_version": "Joomla CMS 4.0.0-5.4.5 and 6.0.0-6.1.0 affected",
+    "impact": "Authenticated attackers could escalate privileges through the affected com_users batch task.",
+    "github_advisories": [],
+    "timeline": [
+      {
+        "date": "2026-04-03",
+        "event": "Reported to the Joomla Security Strike Team."
+      },
+      {
+        "date": "2026-04-18",
+        "event": "Confirmation of the issue and initial patch development."
+      },
+      {
+        "date": "2026-05-26",
+        "event": "Fixed in Joomla CMS 5.4.6 and 6.1.1 and CVE assigned."
+      }
+    ],
+    "references": [
+      {
+        "label": "Joomla security announcement",
+        "url": "https://developer.joomla.org/security-centre/1045-20260513-core-privilege-escalation-through-com-users-batch-task.html"
+      },
+      {
+        "label": "CVE-2026-48898",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-48898"
+      },
+      {
+        "label": "Joomla CMS repository",
+        "url": "https://github.com/joomla/joomla-cms"
+      }
+    ]
+  },
+  {
+    "id": "joomla-com-tags-authenticated-blind-sqli",
+    "project": "Joomla CMS",
+    "project_url": "https://github.com/joomla/joomla-cms",
+    "title": "Authenticated blind SQL injection in com_tags",
+    "title_url": "https://developer.joomla.org/security-centre/1039-20260507-core-authenticated-blind-sqli-in-com-tags.html",
+    "cve_id": "CVE-2026-35222",
+    "severity": "Moderate",
+    "short_summary": "Authenticated blind SQL injection in Joomla com_tags.",
+    "summary": "Improper validation of order clauses in Joomla com_tags could allow an authenticated attacker to trigger blind SQL injection behavior.",
+    "tested_version": "Joomla CMS 4.0.0-5.4.5 and 6.0.0-6.1.0 affected",
+    "impact": "High-impact authenticated blind SQL injection. Authenticated attackers could manipulate SQL queries and infer database contents.",
+    "github_advisories": [],
+    "timeline": [
+      {
+        "date": "2026-03-31",
+        "event": "Reported to the Joomla Security Strike Team."
+      },
+      {
+        "date": "2026-04-01",
+        "event": "First acknowledgment."
+      },
+      {
+        "date": "2026-04-11",
+        "event": "Confirmation of the issue and initial patch development."
+      },
+      {
+        "date": "2026-05-26",
+        "event": "Fixed in Joomla CMS 5.4.6 and 6.1.1 and CVE assigned."
+      }
+    ],
+    "references": [
+      {
+        "label": "Joomla security announcement",
+        "url": "https://developer.joomla.org/security-centre/1039-20260507-core-authenticated-blind-sqli-in-com-tags.html"
+      },
+      {
+        "label": "CVE-2026-35222",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-35222"
+      },
+      {
+        "label": "Joomla CMS repository",
+        "url": "https://github.com/joomla/joomla-cms"
+      }
+    ]
+  },
+  {
+    "id": "joomla-com-finder-authenticated-blind-sqli",
+    "project": "Joomla CMS",
+    "project_url": "https://github.com/joomla/joomla-cms",
+    "title": "Authenticated blind SQL injection in com_finder",
+    "title_url": "https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html",
+    "cve_id": "CVE-2026-35221",
+    "severity": "Moderate",
+    "short_summary": "Authenticated blind SQL injection in Joomla com_finder.",
+    "summary": "Improperly built filter clauses in the Joomla com_finder search query could allow authenticated blind SQL injection.",
+    "tested_version": "Joomla CMS 5.4.0-5.4.5 and 6.0.0-6.1.0 affected",
+    "impact": "High-impact authenticated blind SQL injection. Authenticated attackers could manipulate search-query SQL and infer database contents.",
+    "github_advisories": [],
+    "timeline": [
+      {
+        "date": "2026-03-31",
+        "event": "Reported to the Joomla Security Strike Team."
+      },
+      {
+        "date": "2026-04-01",
+        "event": "First acknowledgment."
+      },
+      {
+        "date": "2026-04-11",
+        "event": "Confirmation of the issue and initial patch development."
+      },
+      {
+        "date": "2026-05-26",
+        "event": "Fixed in Joomla CMS 5.4.6 and 6.1.1 and CVE assigned."
+      }
+    ],
+    "references": [
+      {
+        "label": "Joomla security announcement",
+        "url": "https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html"
+      },
+      {
+        "label": "CVE-2026-35221",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-35221"
+      },
+      {
+        "label": "Joomla CMS repository",
+        "url": "https://github.com/joomla/joomla-cms"
+      }
+    ]
+  },
+  {
     "id": "suitecrm-tba-2",
     "project": "SuiteCRM",
     "project_url": "https://github.com/salesagility/SuiteCRM",
@@ -62,68 +196,6 @@
     ]
   },
   {
-    "id": "joomla-tba-2",
-    "project": "Joomla CMS",
-    "project_url": "https://github.com/joomla/joomla-cms",
-    "title": "Joomla advisory #2 (TBA)",
-    "title_url": "https://github.com/joomla/joomla-cms",
-    "cve_id": "",
-    "severity": "",
-    "short_summary": "",
-    "summary": "",
-    "tested_version": "",
-    "impact": "",
-    "github_advisories": [
-      {
-        "label": "",
-        "url": ""
-      }
-    ],
-    "timeline": [
-      {
-        "date": "",
-        "event": ""
-      }
-    ],
-    "references": [
-      {
-        "label": "Joomla CMS repository",
-        "url": "https://github.com/joomla/joomla-cms"
-      }
-    ]
-  },
-  {
-    "id": "joomla-tba-1",
-    "project": "Joomla CMS",
-    "project_url": "https://github.com/joomla/joomla-cms",
-    "title": "Joomla advisory #1 (TBA)",
-    "title_url": "https://github.com/joomla/joomla-cms",
-    "cve_id": "",
-    "severity": "",
-    "short_summary": "",
-    "summary": "",
-    "tested_version": "",
-    "impact": "",
-    "github_advisories": [
-      {
-        "label": "",
-        "url": ""
-      }
-    ],
-    "timeline": [
-      {
-        "date": "",
-        "event": ""
-      }
-    ],
-    "references": [
-      {
-        "label": "Joomla CMS repository",
-        "url": "https://github.com/joomla/joomla-cms"
-      }
-    ]
-  },
-  {
     "id": "churchcrm-settingsindividual-blind-sqli",
     "project": "ChurchCRM",
     "project_url": "https://github.com/ChurchCRM/CRM",
@@ -142,6 +214,10 @@
       }
     ],
     "references": [
+      {
+        "label": "CVE-2026-39334",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-39334"
+      },
       {
         "label": "ChurchCRM repository",
         "url": "https://github.com/ChurchCRM/CRM"
@@ -178,6 +254,10 @@
     ],
     "references": [
       {
+        "label": "CVE-2026-39330",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-39330"
+      },
+      {
         "label": "ChurchCRM repository",
         "url": "https://github.com/ChurchCRM/CRM"
       }
@@ -212,6 +292,10 @@
       }
     ],
     "references": [
+      {
+        "label": "CVE-2026-39329",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-39329"
+      },
       {
         "label": "ChurchCRM repository",
         "url": "https://github.com/ChurchCRM/CRM"
@@ -248,6 +332,10 @@
     ],
     "references": [
       {
+        "label": "CVE-2026-39327",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-39327"
+      },
+      {
         "label": "ChurchCRM repository",
         "url": "https://github.com/ChurchCRM/CRM"
       }
@@ -282,6 +370,10 @@
       }
     ],
     "references": [
+      {
+        "label": "CVE-2026-39326",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-39326"
+      },
       {
         "label": "ChurchCRM repository",
         "url": "https://github.com/ChurchCRM/CRM"
@@ -318,6 +410,10 @@
     ],
     "references": [
       {
+        "label": "CVE-2026-39325",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-39325"
+      },
+      {
         "label": "ChurchCRM repository",
         "url": "https://github.com/ChurchCRM/CRM"
       }
@@ -352,6 +448,10 @@
       }
     ],
     "references": [
+      {
+        "label": "CVE-2026-39319",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-39319"
+      },
       {
         "label": "ChurchCRM repository",
         "url": "https://github.com/ChurchCRM/CRM"

@@ -1,8 +1,8 @@
 <% content_for :head do %>
   <title>CTF organizations</title>
-  <meta name="description" content="Overview of CTF competitions including links to websites and writeups.">
+  <meta name="description" content="Overview of CTF competitions including links to writeups.">
   <meta property="og:title" content="CTF Overview">
-  <meta property="og:description" content="Overview of CTF competitions including links to websites and writeups.">
+  <meta property="og:description" content="Overview of CTF competitions including links to writeups.">
   <meta property="og:type" content="website">
 <% end %>
 
@@ -45,19 +45,15 @@
 
   <div class="ctf-cards-container">
     <% @ctfs.each do |name, ctf| %>
-      <div class="ctf-card" data-expandable="false">
+      <%= link_to ctf["writeups"], class: "ctf-card", data: { expandable: false }, aria: { label: "Open #{name} writeups" } do %>
         <%= image_tag(ctf["logo"], alt: "#{name} Logo", class: "ctf-logo") %>
         <div class="ctf-details">
           <div class="ctf-text">
             <h3 class="ctf-name font-bold"><%= name %></h3>
             <p class="ctf-description"><%= ctf["description"] %></p>
           </div>
-          <div class="ctf-button-container">
-            <a href="<%= ctf["website"] %>" target="_blank" class="ctf-button website-button">Website</a>
-            <a href="<%= ctf["writeups"] %>" class="ctf-button writeups-button">Writeups</a>
-          </div>
         </div>
-      </div>
+      <% end %>
     <% end %>
   </div>
 </main>

@@ -80,12 +80,6 @@ document.querySelectorAll('.ctf-card:not([data-expandable="false"])').forEach(ca
       }, 500);
     }
   });
-
-  card.querySelectorAll('.ctf-button').forEach(button => {
-    button.addEventListener('click', function (event) {
-      event.stopPropagation();
-    });
-  });
 });
 
 document.addEventListener('click', function(event) {

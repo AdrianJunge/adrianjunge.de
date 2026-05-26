@@ -1,8 +1,4 @@
 # TODOs
-- on /ctf the different clickable ctf buttons should directly lead to the writeup overview instead of having the buttons "website" and "writeups" - thus the website link should be removed completely and the whole button leads to the writeups
-- The writeup overview when chosen a ctf, the clickable buttons to get to the writeup should have the same style as the ones on /blog
-- The collapse TOC button should scroll down aswell so make it sticky
-
 - Add to landing page more counters like CVEs, Bug Bounties, Certificates, Achievements but in their own clickable area
     - change title from "Welcome to my flag collection - CTF writeups & more" to something more fitting, this is not only about ctfs anymore
 - Adde Features und Info tables wie bei https://dimasc.tf/ zu meiner Website wie zB die Blog Übersicht und die Filter die man applyen kann

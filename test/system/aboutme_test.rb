@@ -11,8 +11,12 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_text "Certificates"
     assert_text "Relevant achievements"
     assert_text "CVE-2026-39327"
-    assert_text "Joomla advisory #1 (TBA)"
-    assert_text "Joomla advisory #2 (TBA)"
+    assert_text "CVE-2026-35221"
+    assert_text "CVE-2026-35222"
+    assert_text "CVE-2026-48898"
+    assert_text "Privilege escalation through com_users batch task"
+    assert_text "Authenticated blind SQL injection in com_finder"
+    assert_text "Authenticated blind SQL injection in com_tags"
     assert_text "SuiteCRM advisory #1 (TBA)"
     assert_text "SuiteCRM advisory #2 (TBA)"
     assert_text "Firedancer bug bounty finding (TBA)"
@@ -81,7 +85,7 @@ class AboutmeTest < ApplicationSystemTestCase
         .map((heading) => heading.innerText.trim())
     JS
 
-    assert_equal "SuiteCRM advisory #2 (TBA)", first_cve_title
+    assert_equal "Privilege escalation through com_users batch task", first_cve_title
     assert_equal [
       "Firedancer v1.0 audit competition (TBA)",
       "DHM 2025 - 7th place",
