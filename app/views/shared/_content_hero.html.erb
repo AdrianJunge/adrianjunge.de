@@ -4,28 +4,48 @@
 <% icon_classes << local_assigns[:icon_class] if local_assigns[:icon_class].present? %>
 <% link_target = local_assigns[:external] ? "_blank" : nil %>
 <% link_rel = local_assigns[:external] ? "noopener noreferrer" : nil %>
+<% actions = Array(local_assigns.fetch(:actions, [])) %>
 
 <section class="content-hero">
   <div class="content-hero-inner">
-    <% title_row = capture do %>
+    <% title_cluster = capture do %>
       <span class="content-hero-icon-wrap">
         <%= image_tag(icon_path, alt: icon_alt, class: icon_classes.join(" ")) %>
       </span>
       <h1><%= title %></h1>
     <% end %>
 
-    <% if local_assigns[:url].present? %>
-      <%= link_to local_assigns[:url],
-                  class: "content-hero-title-row content-hero-title-link",
-                  target: link_target,
-                  rel: link_rel do %>
-        <%= title_row %>
+    <div class="content-hero-title-row">
+      <% if local_assigns[:url].present? %>
+        <%= link_to local_assigns[:url],
+                    class: "content-hero-title-cluster content-hero-title-link",
+                    target: link_target,
+                    rel: link_rel do %>
+          <%= title_cluster %>
+        <% end %>
+      <% else %>
+        <div class="content-hero-title-cluster">
+          <%= title_cluster %>
+        </div>
       <% end %>
-    <% else %>
-      <div class="content-hero-title-row">
-        <%= title_row %>
-      </div>
-    <% end %>
+
+      <% if actions.any? %>
+        <div class="content-hero-actions content-hero-feed-actions">
+          <% actions.each do |action| %>
+            <% href = action[:href] || action["href"] %>
+            <% link_class = action[:class] || action["class"] %>
+            <% icon_path = action[:icon_path] || action["icon_path"] %>
+            <% icon_class = action[:icon_class] || action["icon_class"] %>
+            <% label = action[:label] || action["label"] %>
+            <% alt = action[:alt] || action["alt"] || label %>
+
+            <a href="<%= href %>" class="content-hero-feed-link <%= link_class %>" aria-label="<%= label %>" title="<%= label %>">
+              <%= image_tag(icon_path, alt: alt, class: icon_class) %>
+            </a>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
 
     <% if description.present? %>
       <p><%= description %></p>

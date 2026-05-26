@@ -3,8 +3,9 @@
 - Search functionality for ctfs and writeups and blogs
     - make ctf tags for each writeup clickable so you can filter for those writeups containing this tag
     - search filter/option for year/date
-- For the writeup overview list the authors and link their blog/website if they got one
+- For the writeup overview list for every single writeup the authors of that challenge (they should be in the metadata of the markdown file) and link their blog/website if they got one
 
+- fix terminal paths: this is not the same as for the sidebar, in the terminal there should only be the subpaths available from the route
 - If pages got the same styling, layout etc they should all share the same files and thus reducing redundancy
 - Make landing page suited for small displays like smartphones
 - Make the error pages custom instead of just using ruby on rails default

@@ -1,7 +1,9 @@
 ---
 ctf: LACTF
 title: Gamedev
-author: bliutech
+authors:
+    - name: bliutech
+      url:
 description: You've heard of rogue-likes, but have you heard of heap-likes?
 categories:
     - PWN

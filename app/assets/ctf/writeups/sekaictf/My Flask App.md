@@ -1,7 +1,9 @@
 ---
 ctf: SekaiCTF
 title: My Flask App
-author: belugagemink
+authors:
+    - name: belugagemink
+      url:
 description: I created a Web application in Flask, what could be wrong?
 categories:
     - web

@@ -17,35 +17,35 @@
              icon_path: "task-bar/flag.svg",
              icon_alt: "CTF",
              title: "CTF writeups",
-             description: "Competition notes, challenge writeups, and security research practice grouped by event." %>
+             description: "Competition notes, challenge writeups, and security research practice grouped by event.",
+             actions: [
+               { href: "/ctf/feed", class: "ctf-rss-feed", icon_path: "task-bar/rss.svg", icon_class: "ctf-rss-icon", label: "CTF RSS feed", alt: "RSS Feed Icon" },
+               { href: "/ctf/feed.atom", class: "ctf-atom-feed", icon_path: "task-bar/atom.svg", icon_class: "ctf-atom-icon", label: "CTF Atom feed", alt: "Atom Feed Icon" }
+             ] %>
 
-  <div class="ctf-header-section">
-    <div class="ctf-header-center">
-      <div class="search-wrapper relative">
-        <input type="text" id="ctf-search-input" placeholder="Search CTFs..." class="ctf-search-input">
-        <button type="button" class="search-clear-btn" id="ctf-search-clear" aria-label="Clear search">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="ctf-header-right">
-      <a href="/ctf/feed" class="ctf-rss-feed">
-        <%= image_tag("task-bar/rss.svg", alt: "RSS Feed Icon", class: "ctf-rss-icon") %>
-      </a>
-
-      <a href="/ctf/feed.atom" class="ctf-atom-feed">
-        <%= image_tag("task-bar/atom.svg", alt: "Atom Feed Icon", class: "ctf-atom-icon") %>
-      </a>
-    </div>
-  </div>
+  <%= render "shared/content_filters",
+             scope: "ctfs",
+             search_id: "ctf-search-input",
+             clear_id: "ctf-search-clear",
+             placeholder: "Search CTFs...",
+             years: @filter_years,
+             tags: @filter_tags,
+             total: @ctfs.length,
+             input_class: "ctf-search-input" %>
 
   <div class="ctf-cards-container">
     <% @ctfs.each do |name, ctf| %>
-      <%= link_to ctf["writeups"], class: "ctf-card", data: { expandable: false }, aria: { label: "Open #{name} writeups" } do %>
+      <% filter_text = [name, ctf["description"], ctf["terminal_path"]].compact.join(" ") %>
+      <%= link_to ctf["writeups"],
+                  class: "ctf-card",
+                  data: {
+                    expandable: false,
+                    filter_card: "ctfs",
+                    filter_text: filter_text,
+                    filter_tags: Array(@ctf_tags[name]).join("|"),
+                    filter_years: Array(@ctf_years[name]).join("|")
+                  },
+                  aria: { label: "Open #{name} writeups" } do %>
         <%= image_tag(ctf["logo"], alt: "#{name} Logo", class: "ctf-logo") %>
         <div class="ctf-details">
           <div class="ctf-text">
@@ -56,4 +56,5 @@
       <% end %>
     <% end %>
   </div>
+  <p class="content-filter-empty" data-filter-empty="ctfs" hidden>No CTFs match the current filters.</p>
 </main>

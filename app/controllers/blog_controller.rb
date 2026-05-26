@@ -8,6 +8,8 @@ class BlogController < ApplicationController
 
     @blog_posts = get_blog_posts_for_feed
     @blog_posts.sort_by! { |post| post[:published] }.reverse!
+    @filter_years = @blog_posts.map { |post| post[:published].year }.uniq.sort.reverse
+    @filter_tags = sorted_filter_values(@blog_posts.flat_map { |post| post[:categories] })
   end
 
   def show

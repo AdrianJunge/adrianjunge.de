@@ -1,7 +1,9 @@
 ---
 ctf: EHAX
 title: Cash Memo
-author: the_moon_guy
+authors:
+    - name: the_moon_guy
+      url:
 description: I have a really hard time managing my cash, am afraid someone might steal my memos...
 categories:
     - PWN

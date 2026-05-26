@@ -1,7 +1,11 @@
 ---
 ctf: EHAX
 title: Fantastic Doom
-author: nrg, the_moon_guy
+authors:
+    - name: nrg
+      url:
+    - name: the_moon_guy
+      url:
 description: Doctor Doom, the monarch of Latveria has made many doombots. You working with the Fantastic 4 have to access doombot machine and foil his plans of releasing doombots.
 categories:
     - Pwn

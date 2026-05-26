@@ -5,6 +5,19 @@ class CtfController < ApplicationController
   def index
     file = File.read(CTF_INFO_PATH)
     @ctfs = JSON.parse(file)
+    @ctf_filters = @ctfs.to_h do |name, ctf|
+      directory = ctf["terminal_path"].presence || name.downcase
+      metadata = get_posts_metadata(BASE_PATH, directory).values
+
+      [ name, {
+        years: metadata.filter_map { |entry| metadata_year(entry) }.uniq.sort.reverse,
+        tags: sorted_filter_values(metadata.flat_map { |entry| metadata_tags(entry) })
+      } ]
+    end
+    @ctf_years = @ctf_filters.transform_values { |filters| filters[:years] }
+    @ctf_tags = @ctf_filters.transform_values { |filters| filters[:tags] }
+    @filter_years = @ctf_years.values.flatten.uniq.sort.reverse
+    @filter_tags = sorted_filter_values(@ctf_tags.values.flatten)
   end
 
   def which
@@ -16,6 +29,8 @@ class CtfController < ApplicationController
 
     @ctf_info = sort_writeups_by_published(get_ctf_infos(@which))
     @writeups = @ctf_info.keys
+    @filter_years = @ctf_info.values.filter_map { |metadata| metadata_year(metadata) }.uniq.sort.reverse
+    @filter_tags = sorted_filter_values(@ctf_info.values.flat_map { |metadata| metadata_tags(metadata) })
   end
 
   def writeup

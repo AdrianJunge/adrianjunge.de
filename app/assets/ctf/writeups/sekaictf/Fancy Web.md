@@ -1,7 +1,9 @@
 ---
 ctf: SekaiCTF
 title: Fancy Web
-author: Dimas Maulana
+authors:
+    - name: Dimas Maulana
+      url: https://dimasc.tf/
 description: The Ministry of Information and Communications Technology of Konoha has recently launched their new official website. While it appears to be a standard government portal showcasing public services and announcements, our intelligence sources have indicated that this WordPress-based website contains hidden information that could expose corruption and human rights violations. The website features a unique table processing system that displays various government data, but our analysts suspect that the developers have hidden sensitive information within the table structures themselves. The site's administrators are known for their sophisticated obfuscation techniques, making it difficult to distinguish between legitimate public data and concealed evidence. Your mission is to investigate this website and uncover the hidden information by looking beyond the surface-level content and examining how the tables are processed and displayed - the truth might be hidden, waiting for someone with the right skills to reveal it.
 categories:
     - web

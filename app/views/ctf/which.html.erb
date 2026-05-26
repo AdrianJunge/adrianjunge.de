@@ -22,6 +22,15 @@
              url: @ctf["website"],
              external: true %>
 
+  <%= render "shared/content_filters",
+             scope: "writeups",
+             search_id: "writeup-search-input",
+             clear_id: "writeup-search-clear",
+             placeholder: "Search writeups, tags, or authors...",
+             years: @filter_years,
+             tags: @filter_tags,
+             total: @ctf_info.length %>
+
   <div class="writeup-content">
     <div class="writeup-overview">
       <% @ctf_info.each do |writeup, info| %>
@@ -32,4 +41,5 @@
       <% end %>
     </div>
   </div>
+  <p class="content-filter-empty" data-filter-empty="writeups" hidden>No writeups match the current filters.</p>
 </main>

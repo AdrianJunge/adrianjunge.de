@@ -30,7 +30,7 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
-  test "feed controls lift as complete buttons instead of moving only their icons" do
+  test "feed controls render as flat hero actions outside the filters" do
     {
       "/ctf" => [ ".ctf-rss-feed", ".ctf-rss-icon" ],
       "/blog" => [ ".blog-rss-feed", ".blog-rss-icon" ]
@@ -39,22 +39,76 @@ class SitePagesTest < ApplicationSystemTestCase
 
       button = find(button_selector)
       find(icon_selector)
+      assert_selector ".content-hero-actions #{button_selector}"
+      assert_selector ".content-hero-title-row .content-hero-actions #{button_selector}"
+      assert_no_selector ".content-filter-panel #{button_selector}"
+      assert_no_selector ".ctf-header-section #{button_selector}" if path == "/ctf"
+      assert_no_selector ".blog-header-section #{button_selector}" if path == "/blog"
       page.driver.browser.action.move_to(button.native).perform
 
-      transforms = page.evaluate_script(<<~JS)
+      styles = page.evaluate_script(<<~JS)
         (() => {
           const button = document.querySelector("#{button_selector}");
           const icon = document.querySelector("#{icon_selector}");
 
           return {
-            button: window.getComputedStyle(button).transform,
-            icon: window.getComputedStyle(icon).transform
+            buttonTransform: window.getComputedStyle(button).transform,
+            iconTransform: window.getComputedStyle(icon).transform,
+            boxShadow: window.getComputedStyle(button).boxShadow
           };
         })()
       JS
 
-      assert_not_equal "none", transforms["button"]
-      assert_equal "none", transforms["icon"]
+      assert_equal "none", styles["buttonTransform"]
+      assert_equal "none", styles["iconTransform"]
+      assert_equal "none", styles["boxShadow"]
+
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const row = document.querySelector(".content-hero-title-row");
+          const actions = document.querySelector(".content-hero-actions");
+          const rowRect = row.getBoundingClientRect();
+          const actionsRect = actions.getBoundingClientRect();
+
+          return {
+            rowRight: Math.round(rowRect.right),
+            rowTop: Math.round(rowRect.top),
+            rowBottom: Math.round(rowRect.bottom),
+            actionsRight: Math.round(actionsRect.right),
+            actionsTop: Math.round(actionsRect.top),
+            actionsBottom: Math.round(actionsRect.bottom)
+          };
+        })()
+      JS
+
+      assert_in_delta metrics["rowRight"], metrics["actionsRight"], 2
+      assert_operator metrics["actionsTop"], :>=, metrics["rowTop"]
+      assert_operator metrics["actionsBottom"], :<=, metrics["rowBottom"]
+    end
+  end
+
+  test "year filter select uses flat styling" do
+    [ "/ctf", "/blog" ].each do |path|
+      visit path
+
+      assert_selector ".content-filter-select"
+
+      styles = page.evaluate_script(<<~JS)
+        (() => {
+          const select = document.querySelector(".content-filter-select");
+          const style = window.getComputedStyle(select);
+
+          return {
+            appearance: style.appearance,
+            backgroundImage: style.backgroundImage,
+            boxShadow: style.boxShadow
+          };
+        })()
+      JS
+
+      assert_equal "none", styles["appearance"]
+      assert_equal "none", styles["backgroundImage"]
+      assert_equal "none", styles["boxShadow"]
     end
   end
 
@@ -219,6 +273,124 @@ class SitePagesTest < ApplicationSystemTestCase
     first_card.click
 
     assert_current_path target_path
+  end
+
+  test "content filters search by text tags and year" do
+    visit "/ctf"
+
+    assert_selector ".content-filter-panel .filter-chip", text: /^pwn$/i
+    find(".content-filter-panel .filter-chip", text: /^pwn$/i).click
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: /^pwn$/i
+    assert_selector ".ctf-card", text: "KITCTF"
+    assert_not_includes all(".ctf-card .ctf-name").map(&:text), "GPNCTF"
+
+    find("[data-filter-reset='ctfs']").click
+    assert_selector "[data-filter-count='ctfs']", text: "10 / 10 items"
+    fill_in "ctf-search-input", with: "gpn"
+    assert_selector "[data-filter-count='ctfs']", text: "2 / 10 items"
+    assert_selector ".ctf-card", text: "GPNCTF"
+    assert_no_selector ".ctf-card", text: "CSCG"
+
+    find("[data-filter-reset='ctfs']").click
+    assert_selector "[data-filter-count='ctfs']", text: "10 / 10 items"
+    find("[data-filter-year='ctfs']").find("option", text: "2026").select_option
+    assert_selector "[data-filter-count='ctfs']", text: "1 / 10 items"
+    assert_selector ".ctf-card", text: "KITCTF"
+    assert_equal [ "KITCTF" ], all(".ctf-card .ctf-name").map(&:text)
+
+    visit "/ctf/cscg"
+    assert_selector ".blog-post-authors", text: "Challenge by"
+    assert_selector ".blog-post-author-link[href='https://popax21.dev/']", text: "Popax21"
+    assert_selector ".content-filter-tags-label", text: "TAGS"
+    assert_selector ".content-filter-panel .filter-chip", text: "Crypto"
+
+    within ".content-filter-panel" do
+      find(".filter-chip", text: "Crypto").click
+      assert_selector ".filter-chip.is-active", text: "Crypto"
+    end
+    assert_selector "[data-filter-count='writeups']", text: "1 / 6 items"
+    assert_selector ".writeup-overview .blog-post-card", text: "KDF dream"
+    assert_no_selector ".writeup-overview .blog-post-card", text: "Hoster"
+
+    find("[data-filter-reset='writeups']").click
+    assert_selector "[data-filter-count='writeups']", text: "6 / 6 items"
+    find("[data-filter-year='writeups']").find("option", text: "2024").select_option
+    assert_selector "[data-filter-count='writeups']", text: "2 / 6 items"
+    assert_selector ".writeup-overview .blog-post-card", text: "Hoster"
+    assert_selector ".writeup-overview .blog-post-card", text: "Photoeditor"
+    assert_no_selector ".writeup-overview .blog-post-card", text: "KDF dream"
+
+    visit "/ctf/gpnctf"
+    assert_selector ".blog-post-author-link[href='/about']", text: "vurlo"
+  end
+
+  test "blog filters search text and publish year" do
+    visit "/blog"
+
+    assert_selector ".content-filter-panel .filter-chip", text: "Active Directory"
+
+    fill_in "blog-search-input", with: "CPTS"
+    assert_selector "[data-filter-count='blogs']", text: "1 / 1 item"
+    assert_selector ".blog-post-card", text: "HTB CPTS"
+
+    find("[data-filter-reset='blogs']").click
+    find("[data-filter-year='blogs']").find("option", text: "2026").select_option
+    assert_selector "[data-filter-count='blogs']", text: "1 / 1 item"
+    assert_selector ".blog-post-card", text: "HTB CPTS"
+
+    find("[data-filter-reset='blogs']").click
+    fill_in "blog-search-input", with: "definitely-not-a-post"
+    assert_selector "[data-filter-count='blogs']", text: "0 / 1 item"
+    assert_selector ".content-filter-empty", text: "No blog posts match the current filters."
+    assert_no_selector ".blog-post-card", text: "HTB CPTS"
+  end
+
+  test "blog and writeup cards keep full-card navigation" do
+    visit "/blog"
+
+    find(".blog-post-card", text: "HTB CPTS").find(".blog-post-card-hitbox", visible: :all).click
+    assert_current_path "/blog/htb-cpts"
+    assert_selector ".writeup-title", text: "HTB CPTS"
+
+    visit "/ctf/cscg"
+    find(".blog-post-card", text: "KDF dream").find(".blog-post-card-hitbox", visible: :all).click
+    assert_text "KDF dream"
+    assert_selector ".writeup-title", text: "KDF dream"
+  end
+
+  test "terminal stays bounded on high resolution displays" do
+    page.current_window.resize_to(2560, 1440)
+    visit "/"
+
+    page.execute_script("localStorage.removeItem('terminal-open')")
+    page.execute_script("document.getElementById('terminal-taskbar-button').click()")
+    assert_selector ".xterm", visible: :all
+
+    metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const terminal = document.querySelector("#terminal-container");
+        const button = document.querySelector(".terminal-button");
+        const xterm = terminal.querySelector(".xterm");
+        const terminalRect = terminal.getBoundingClientRect();
+        const buttonRect = button.getBoundingClientRect();
+        const terminalStyle = window.getComputedStyle(terminal);
+        const xtermStyle = window.getComputedStyle(xterm);
+
+        return {
+          width: Math.round(terminalRect.width),
+          height: Math.round(terminalRect.height),
+          maxWidth: terminalStyle.width,
+          buttonWidth: Math.round(buttonRect.width),
+          fontSize: parseFloat(xtermStyle.fontSize)
+        };
+      })()
+    JS
+
+    assert_operator metrics["width"], :<=, 1320
+    assert_operator metrics["height"], :<=, 750
+    assert_operator metrics["buttonWidth"], :<=, 48
+    assert_operator metrics["fontSize"], :>=, 13
+    assert_operator metrics["fontSize"], :<=, 18
   end
 
   test "ctf writeups are ordered from latest to oldest" do

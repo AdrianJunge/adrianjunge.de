@@ -1,7 +1,9 @@
 ---
 ctf: CSCG
 title: Everyone loves canteen food
-author: Poory
+authors:
+    - name: Poory
+      url:
 description: Welcome to the canteen's online menu, where you can check out the daily specials and their prices. But is everything as appetizing as it seems?
 categories:
     - Web

@@ -1,0 +1,63 @@
+<% years = Array(local_assigns.fetch(:years, [])).compact.map(&:to_s).reject(&:blank?).uniq.sort.reverse %>
+<% tags = Array(local_assigns.fetch(:tags, [])).compact.map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by(&:downcase) %>
+<% total = local_assigns.fetch(:total, 0).to_i %>
+<% scope = local_assigns.fetch(:scope) %>
+<% search_id = local_assigns.fetch(:search_id, "#{scope}-search-input") %>
+<% clear_id = local_assigns.fetch(:clear_id, "#{scope}-search-clear") %>
+
+<div class="content-filter-panel" data-filter-scope="<%= scope %>">
+  <div class="content-filter-row">
+    <div class="content-filter-search search-wrapper">
+      <input
+        type="text"
+        id="<%= search_id %>"
+        placeholder="<%= local_assigns.fetch(:placeholder, "Search...") %>"
+        class="content-filter-input <%= local_assigns.fetch(:input_class, "") %>"
+        data-filter-search="<%= scope %>"
+      >
+      <button type="button" class="search-clear-btn" id="<%= clear_id %>" data-filter-clear="<%= scope %>" aria-label="Clear search">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <% if years.any? %>
+      <label class="content-filter-select-wrap">
+        <span><%= local_assigns.fetch(:year_label, "Year") %></span>
+        <span class="content-filter-select-control">
+          <select class="content-filter-select" data-filter-year="<%= scope %>">
+            <option value="">All years</option>
+            <% years.each do |year| %>
+              <option value="<%= year %>"><%= year %></option>
+            <% end %>
+          </select>
+        </span>
+      </label>
+    <% end %>
+  </div>
+
+  <% if tags.any? %>
+    <div class="content-filter-tags" aria-label="<%= local_assigns.fetch(:tag_label, "Tags") %>">
+      <span class="content-filter-tags-label"><%= local_assigns.fetch(:tag_label, "Tags") %></span>
+      <div class="content-filter-tag-list">
+        <% tags.each do |tag| %>
+          <button
+            type="button"
+            class="filter-chip content-filter-tag-chip"
+            data-filter-scope="<%= scope %>"
+            data-filter-tag="<%= tag %>"
+            aria-pressed="false"
+            aria-label="Filter by <%= tag %>"
+          ><%= tag %></button>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="content-filter-state">
+    <span data-filter-count="<%= scope %>"><%= total %> / <%= total %> <%= total == 1 ? "item" : "items" %></span>
+    <button type="button" class="content-filter-reset" data-filter-reset="<%= scope %>" hidden>Clear filters</button>
+  </div>
+</div>

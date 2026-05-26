@@ -1,7 +1,9 @@
 ---
 ctf: CSCG
 title: Hoster
-author: Adrian Junge
+authors:
+    - name:
+      url:
 description: You gained access to a Linux server. Can you also gain privileges?
 categories:
     - PrivEsc

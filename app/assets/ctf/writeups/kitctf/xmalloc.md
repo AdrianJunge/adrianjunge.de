@@ -1,7 +1,9 @@
 ---
 ctf: KITCTF Intro CTF
 title: xmalloc
-author: ju256
+authors:
+    - name: ju256
+      url: https://ju256.rip/
 description: All of our slot machines switched from using the very insecure libc heap implementation to something much more secure internally. Surely this new heap implementation is unbreakable :D
 categories:
     - pwn

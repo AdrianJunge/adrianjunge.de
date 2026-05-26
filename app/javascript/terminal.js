@@ -18,10 +18,16 @@ const firstHelp = `\tNavigation via sidebar, 'cd' command or listed hyperlinks
 \tType 'help' for more...
 `
 
-const fontSize = window.innerWidth / 60;
+function getTerminalFontSize() {
+    const viewportSize = Math.min(window.innerWidth / 96, window.innerHeight / 48);
+    return Math.round(Math.min(18, Math.max(13, viewportSize)));
+}
+
 const term = new Terminal({
     convertEol: true,
-    fontSize: fontSize,
+    cursorBlink: true,
+    fontSize: getTerminalFontSize(),
+    lineHeight: 1.25,
 });
 const fitAddon = new FitAddon.FitAddon();
 term.loadAddon(fitAddon);
@@ -33,6 +39,7 @@ let linkTooltip = document.getElementById('terminal-link-tooltip');
 let inputBuffer = '';
 let terminalOpened = false;
 const terminalOpenKey = 'terminal-open';
+let pendingFit = null;
 
 const COLORS = {
     reset: '\x1B[0m',
@@ -214,10 +221,7 @@ function initializeTerminal() {
     term.open(terminalElement);
     term.options.linkHandler = customLinkHandler;
 
-    fitAddon.fit();
-    term.onResize((_) => {
-        fitAddon.fit();
-    });
+    fitTerminal();
 
     if (window.location.pathname === '/') {
         printMultiLineString(fastFetchInfo, COLORS.brightBlue);
@@ -257,6 +261,17 @@ function initializeTerminal() {
         }
     });
 };
+
+function fitTerminal() {
+    if (!terminalOpened || terminalElement.classList.contains('terminal-minimized')) return;
+
+    if (pendingFit) window.cancelAnimationFrame(pendingFit);
+    pendingFit = window.requestAnimationFrame(() => {
+        term.options.fontSize = getTerminalFontSize();
+        fitAddon.fit();
+        pendingFit = null;
+    });
+}
 
 function getFormattedDate() {
     const now = new Date();
@@ -301,6 +316,7 @@ function openTerminal(terminal) {
         if (terminalOpened) term.blur();
     } else {
         if (!terminalOpened) initializeTerminal();
+        fitTerminal();
         term.focus();
     }
 }
@@ -366,6 +382,7 @@ function minimizeTerminal() {
 
 document.addEventListener('DOMContentLoaded', function() {
     minimizeTerminal();
+    window.addEventListener('resize', fitTerminal);
     try {
         const shouldBeOpen = localStorage.getItem('terminal-open') === 'true';
         const terminal = document.getElementById('terminal-container');

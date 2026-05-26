@@ -1,7 +1,9 @@
 ---
 ctf: CSCG
 title: vidplow
-author: Popax21
+authors:
+    - name: Popax21
+      url: https://popax21.dev/
 description: We recently stumbled upon an exposed SVN server of a large multimedia corporation, containing some of their backend application and internal tooling code. However, the access keys seem to not be the ones used in production - the real ones should fetch us quite a high price though, if we manage to get our hands on them that is. Just one problem - the tech stack seems to be really obscure, and no one on our team seems to have any clue what the heck is going on. Can you take a look, and maybe find some vulnerabilities in this thing?
 categories:
     - Web

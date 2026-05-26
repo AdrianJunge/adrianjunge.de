@@ -10,7 +10,9 @@
 ---
 ctf:
 title:
-author:
+authors:
+    - name:
+      url:
 description:
 categories:
     -

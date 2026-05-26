@@ -6,10 +6,23 @@ module BlogHelper
     published = post_info["published"] || "Unknown date"
     categories = Array(post_info["categories"]).presence || []
     logo_url = post_info["logo"]
+    published_year = blog_post_year(post_info)
+    filter_text = ([ title, description, published, published_year, post_info["topic"] ] + categories).compact.join(" ")
 
     post_path = blog_post_path(post_slug)
 
-    content_tag(:a, href: post_path, class: "blog-post-card") do
+    content_tag(
+      :article,
+      class: "blog-post-card",
+      data: {
+        filter_card: "blogs",
+        filter_text: filter_text,
+        filter_tags: categories.join("|"),
+        filter_years: published_year
+      }
+    ) do
+      hitbox_html = link_to("", post_path, class: "blog-post-card-hitbox", aria: { label: "Open #{title} blog post" })
+
       content_tag(:div, class: "blog-post-card-content") do
         logo_html = content_tag(:div, class: "blog-post-card-logo") do
           if logo_url.present?
@@ -27,10 +40,17 @@ module BlogHelper
           end
 
           meta_html = content_tag(:div, class: "blog-post-meta") do
-            content_tag(:div, class: "flex flex-wrap gap-2") do
-              categories.map do |category|
-                content_tag(:span, category, class: "inline-block px-2 py-1 text-xs font-medium text-white bg-slate-700 rounded")
-              end.join.html_safe
+            content_tag(:div, class: "blog-post-meta-row") do
+              safe_join(categories.map do |category|
+                content_tag(
+                  :button,
+                  category,
+                  type: "button",
+                  class: "filter-chip",
+                  data: { filter_scope: "blogs", filter_tag: category },
+                  aria: { pressed: "false", label: "Filter blog posts by #{category}" }
+                )
+              end)
             end
           end
 
@@ -47,7 +67,17 @@ module BlogHelper
         end
 
         logo_html + content_html
-      end
+      end + hitbox_html
     end
+  end
+
+  private
+
+  def blog_post_year(post_info)
+    return Time.parse(post_info["published"].to_s).year if post_info["published"].present?
+
+    post_info["year"].presence
+  rescue StandardError
+    post_info["year"].presence
   end
 end

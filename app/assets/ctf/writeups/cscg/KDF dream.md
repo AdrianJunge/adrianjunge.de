@@ -1,7 +1,9 @@
 ---
 ctf: CSCG
 title: KDF dream
-author: KillerDog
+authors:
+    - name: KillerDog
+      url:
 description: We've managed to insert ourselves into a secure channel between two covert agents, however we overplayed our hand and they have become suspicious that their channel is compromised. Realising that there is no way to restablish trust over the compromised network, Alice called for them to carry out a NIST Certified KDF protocol to generate a symmetric OTP, and then for them to use this to encrypt a physical message at a dead drop location. We want to control the message she leaves, can you influence their conversation to control what Bob reads at the dead drop?
 categories:
     - Crypto

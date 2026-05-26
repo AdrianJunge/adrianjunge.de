@@ -105,6 +105,23 @@ class ApplicationController < ActionController::Base
     posts_info
   end
 
+  def metadata_year(metadata)
+    published = metadata["published"].presence
+    return Time.parse(published.to_s).year if published
+
+    metadata["year"].presence&.to_i
+  rescue StandardError
+    metadata["year"].presence&.to_i
+  end
+
+  def metadata_tags(metadata)
+    Array(metadata["categories"]).map(&:to_s).reject(&:blank?)
+  end
+
+  def sorted_filter_values(values)
+    values.map(&:to_s).reject(&:blank?).uniq { |value| value.downcase }.sort_by(&:downcase)
+  end
+
   def get_all_posts_for_feed(base_path, info_path, link_prefix)
     items = []
 
