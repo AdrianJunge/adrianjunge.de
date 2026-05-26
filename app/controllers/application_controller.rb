@@ -12,6 +12,39 @@ class ApplicationController < ActionController::Base
   ABOUTME_CHALLENGES_PATH = ABOUTME_BASE_PATH.join("challenges.json")
   ABOUTME_CERTIFICATES_PATH = ABOUTME_BASE_PATH.join("certificates.json")
   ABOUTME_ACHIEVEMENTS_PATH = ABOUTME_BASE_PATH.join("achievements.json")
+  ERROR_CONTENT = {
+    bad_request: {
+      status: :bad_request,
+      title: "Bad request",
+      summary: "That request arrived wearing a fake moustache, and the router noticed.",
+      detail: "Double-check the URL; only well-behaved paths get past this particular bouncer."
+    },
+    not_found: {
+      status: :not_found,
+      title: "Page not found",
+      summary: "This page went looking for bugs and forgot to come back.",
+      detail: "Either the content moved, or this route is an urban legend with suspiciously good SEO."
+    },
+    unprocessable_entity: {
+      status: :unprocessable_content,
+      title: "Unprocessable request",
+      summary: "The server understood the assignment and still handed it back.",
+      detail: "Try a cleaner request; this one is doing interpretive dance in the parser."
+    },
+    internal_server_error: {
+      status: :internal_server_error,
+      title: "Internal server error",
+      summary: "The server tripped over its own stack trace and is pretending that was planned.",
+      detail: "Head home while it recovers, stretches, and denies everything."
+    }
+  }.freeze
+
+  def render_error_page(key)
+    @error_content = ERROR_CONTENT.fetch(key)
+    @status_code = Rack::Utils.status_code(@error_content[:status])
+
+    render "errors/show", status: @error_content[:status]
+  end
 
   def parse_markdown_content(content)
     begin
@@ -42,27 +75,35 @@ class ApplicationController < ActionController::Base
 
   def sanitize_item(item_name, base_path, render_error = true)
     unless sanitize_path(item_name)
-      render(plain: "Invalid path", status: :bad_request) if render_error
+      render_error_page(:bad_request) if render_error
       return false
     end
 
     begin
+      candidate_path = File.join(base_path, item_name)
+      unless File.directory?(candidate_path)
+        render_error_page(:not_found) if render_error
+        return false
+      end
+
       folder_path = File.realpath(File.join(base_path, item_name))
       unless folder_path.to_s.start_with?(base_path.to_s)
-        render(plain: "Path Traversal detected", status: :bad_request) if render_error
+        render_error_page(:bad_request) if render_error
         return false
       end
       available_items = Dir.entries(base_path).select { |entry| File.directory?(File.join(base_path, entry)) && !entry.start_with?(".") }
-      available_items.include?(item_name)
+      item_exists = available_items.include?(item_name)
+      render_error_page(:not_found) if render_error && !item_exists
+      item_exists
     rescue StandardError
-      render(plain: "Invalid path", status: :bad_request) if render_error
+      render_error_page(:bad_request) if render_error
       false
     end
   end
 
   def sanitize_post(item_name, post_name, base_path, render_error = true)
     unless sanitize_path(post_name)
-      render(plain: "Invalid post", status: :bad_request) if render_error
+      render_error_page(:bad_request) if render_error
       return false
     end
 
@@ -71,18 +112,18 @@ class ApplicationController < ActionController::Base
     begin
       file_path = File.realpath(base_path.join(item_name, "#{post_name}.md"))
       unless file_path.to_s.start_with?(directory.to_s)
-        render(plain: "Path Traversal detected", status: :bad_request) if render_error
+        render_error_page(:bad_request) if render_error
         return false
       end
     rescue StandardError
-      render(plain: "Invalid post", status: :bad_request) if render_error
+      render_error_page(:not_found) if render_error
       return false
     end
 
     if File.exist?(file_path)
       true
     else
-      render(plain: "Post not found", status: :not_found) if render_error
+      render_error_page(:not_found) if render_error
       false
     end
   end

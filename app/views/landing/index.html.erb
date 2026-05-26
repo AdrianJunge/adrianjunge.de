@@ -6,11 +6,13 @@
   <meta property="og:type" content="website">
 <% end %>
 
-<%= render_taskbar_items([
-    { image_path: 'task-bar/flag.svg', alt_text: "CTF Icon", label: "CTF", link: ctf_path },
-    { image_path: 'task-bar/blog.svg', alt_text: "Blog Icon", label: "Blog", link: blog_path },
-]) %>
-<%= render_terminal([ 'about', 'ctf', 'blog' ], true) %>
+<%= render_taskbar_items %>
+<%= render_terminal([
+  { label: "about", url: about_path },
+  { label: "ctf", url: ctf_path },
+  { label: "blog", url: blog_path },
+  { label: "posts-timeline", url: posts_path }
+], true) %>
 <% posts_link = "/posts-timeline" %>
 <% about_link = about_path %>
 <% kit_link = "https://www.kit.edu" %>

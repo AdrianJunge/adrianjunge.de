@@ -7,4 +7,27 @@ module ApplicationHelper
     parent = "/" if parent == "."
     parent
   end
+
+  def feed_actions_for(scope, feed_url:, atom_url:, label:)
+    scope = scope.to_s
+
+    [
+      {
+        href: feed_url,
+        class: "#{scope}-rss-feed",
+        icon_path: "task-bar/rss.svg",
+        icon_class: "#{scope}-rss-icon",
+        label: "#{label} RSS feed",
+        alt: "RSS Feed Icon"
+      },
+      {
+        href: atom_url,
+        class: "#{scope}-atom-feed",
+        icon_path: "task-bar/atom.svg",
+        icon_class: "#{scope}-atom-icon",
+        label: "#{label} Atom feed",
+        alt: "Atom Feed Icon"
+      }
+    ]
+  end
 end

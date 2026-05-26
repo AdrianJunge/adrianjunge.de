@@ -6,11 +6,8 @@
   <meta property="og:type" content="profile">
 <% end %>
 
-<%= render_taskbar_items([
-  { image_path: "task-bar/flag.svg", alt_text: "CTF Icon", label: "CTF", link: ctf_path },
-  { image_path: "task-bar/blog.svg", alt_text: "Blog Icon", label: "Blog", link: blog_path },
-]) %>
-<%= render_terminal([ "ctf", "blog" ], true) %>
+<%= render_taskbar_items %>
+<%= render_terminal([], true) %>
 
 <main class="aboutme-page">
   <section class="aboutme-hero">

@@ -1,0 +1,25 @@
+<% content_for :head do %>
+  <title><%= @status_code %> <%= @error_content[:title] %></title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="<%= @error_content[:summary] %>">
+<% end %>
+
+<%= render_taskbar_items %>
+<%= render_terminal([], true) %>
+
+<main class="content-page error-page">
+  <%= render "shared/content_hero",
+             icon_path: "task-bar/error.svg",
+             icon_alt: "Error",
+             title: "#{@status_code} #{@error_content[:title]}",
+             description: @error_content[:summary] %>
+
+  <section class="error-panel" aria-label="Error details">
+    <p><%= @error_content[:detail] %></p>
+
+    <div class="error-actions">
+      <%= link_to "Home", root_path, class: "content-link-button" %>
+      <%= link_to "Posts timeline", posts_path, class: "content-link-button" %>
+    </div>
+  </section>
+</main>

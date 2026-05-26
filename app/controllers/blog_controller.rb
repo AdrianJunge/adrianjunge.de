@@ -19,7 +19,7 @@ class BlogController < ApplicationController
     @blogs = JSON.parse(file)
 
     unless File.exist?(BLOG_BASE_PATH.join("#{@post_slug}.md"))
-      render plain: "Blog post not found", status: :not_found
+      render_error_page(:not_found)
       return
     end
 

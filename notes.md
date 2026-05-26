@@ -1,15 +1,5 @@
 # TODOs
-- Fix the scaling of the terminal for high resolution displays
-- Search functionality for ctfs and writeups and blogs
-    - make ctf tags for each writeup clickable so you can filter for those writeups containing this tag
-    - search filter/option for year/date
-- For the writeup overview list for every single writeup the authors of that challenge (they should be in the metadata of the markdown file) and link their blog/website if they got one
-
-- fix terminal paths: this is not the same as for the sidebar, in the terminal there should only be the subpaths available from the route
-- If pages got the same styling, layout etc they should all share the same files and thus reducing redundancy
-- Make landing page suited for small displays like smartphones
-- Make the error pages custom instead of just using ruby on rails default
-
+- http://127.0.0.1:3000/about => make just like on the landing page the row with the counters each clickable to scroll to that section
 - For Redundant CSS create custom tailwindcss classes e.g. for all the button hover stuff etc - thus go through all the available Tailwind css classes and remove redundancies/inconsistencies e.g. for rounded edges it should always be 3xl or create custom classes
 - there should only be one single truth of color pattern for tailwindcss vs variables.scss - remove the variable.scss one and fix everything
 
@@ -25,6 +15,8 @@
 
 - remove mathjax from `application.html.erb` into JS file
 - review all the boiler plate code from ruby on Rails and remove what is not needed/necessary
+
+- Tim um Feedback bitten
 
 # Nochmal testen
 - tailwindcss flowbite plugin fixen

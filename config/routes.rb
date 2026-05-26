@@ -20,4 +20,10 @@ Rails.application.routes.draw do
 
   get "/blog", to: "blog#index", as: :blog
   get "/blog/:which", to: "blog#show", as: :blog_post
+
+  match "/400", to: "errors#bad_request", via: :all
+  match "/404", to: "errors#not_found", via: :all
+  match "/422", to: "errors#unprocessable_entity", via: :all
+  match "/500", to: "errors#internal_server_error", via: :all
+  match "*unmatched", to: "errors#not_found", via: :all, constraints: ->(request) { !request.path.start_with?("/rails/") }
 end

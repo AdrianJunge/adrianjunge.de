@@ -39,23 +39,57 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "terminal exposes absolute top level navigation on every public page" do
-    PUBLIC_PAGES_WITH_SIDEBAR.each do |path|
+  test "terminal exposes only route scoped child navigation" do
+    expected_labels = {
+      "/" => %w[~ . .. about ctf blog posts-timeline],
+      "/about" => %w[~ . ..],
+      "/posts-timeline" => %w[~ . ..]
+    }
+
+    expected_labels.each do |path, labels|
       get path
 
       assert_response :success
-
-      terminal = css_select("#terminal-container").first
-      assert terminal, "expected #{path} to include terminal data"
-
-      terminal_paths = JSON.parse(terminal["data-terminal-text"])
-      by_label = terminal_paths.index_by { |entry| entry["label"] }
-
-      assert_equal "/", by_label.fetch("~").fetch("url")
-      assert_equal "/about", by_label.fetch("about").fetch("url")
-      assert_equal "/ctf", by_label.fetch("ctf").fetch("url")
-      assert_equal "/blog", by_label.fetch("blog").fetch("url")
-      assert_equal "/posts-timeline", by_label.fetch("posts").fetch("url")
+      assert_equal labels, terminal_labels_for_response, "unexpected terminal entries for #{path}"
     end
+
+    get "/ctf"
+    assert_response :success
+    ctf_labels = terminal_labels_for_response
+    assert_includes ctf_labels, "cscg"
+    assert_includes ctf_labels, "gpnctf"
+    assert_not_includes ctf_labels, "about"
+    assert_not_includes ctf_labels, "blog"
+
+    get "/blog"
+    assert_response :success
+    blog_labels = terminal_labels_for_response
+    assert_includes blog_labels, "htb-cpts"
+    assert_not_includes blog_labels, "about"
+    assert_not_includes blog_labels, "ctf"
+
+    get "/ctf/cscg"
+    assert_response :success
+    writeup_labels = terminal_labels_for_response
+    assert_includes writeup_labels, "KDF dream"
+    assert_not_includes writeup_labels, "blog"
+    assert_not_includes writeup_labels, "about"
+
+    get "/ctf/cscg/KDF%20dream"
+    assert_response :success
+    assert_equal %w[~ . ..], terminal_labels_for_response
+
+    get "/blog/htb-cpts"
+    assert_response :success
+    assert_equal %w[~ . ..], terminal_labels_for_response
+  end
+
+  private
+
+  def terminal_labels_for_response
+    terminal = css_select("#terminal-container").first
+    assert terminal, "expected response to include terminal data"
+
+    JSON.parse(terminal["data-terminal-text"]).map { |entry| entry["label"] }
   end
 end

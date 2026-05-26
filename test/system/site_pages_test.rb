@@ -216,6 +216,30 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
+  test "landing hero keeps clear of the fixed sidebar toggle on compact displays" do
+    [ 320, 390, 721, 760, 860 ].each do |width|
+      page.current_window.resize_to(width, 900)
+      visit "/"
+
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const menu = document.getElementById("menu-icon-right").getBoundingClientRect();
+          const hero = document.querySelector(".landing-hero-shell").getBoundingClientRect();
+          const top = document.getElementById("landing-top").getBoundingClientRect();
+
+          return {
+            menuRight: Math.round(menu.right),
+            heroLeft: Math.round(hero.left),
+            topLeft: Math.round(top.left)
+          };
+        })()
+      JS
+
+      assert_operator metrics["heroLeft"], :>, metrics["menuRight"], "landing hero overlapped sidebar toggle at #{width}px"
+      assert_operator metrics["topLeft"], :>, metrics["menuRight"], "landing section overlapped sidebar toggle at #{width}px"
+    end
+  end
+
   test "landing recent posts render as evenly spaced full-width rows" do
     page.current_window.resize_to(1280, 1400)
     visit "/"

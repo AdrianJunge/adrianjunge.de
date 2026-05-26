@@ -27,18 +27,8 @@ module TerminalHelper
 
   def normalized_terminal_paths(paths)
     ([ terminal_path("~", root_path, "home"), terminal_path(".", nil, "current"), terminal_path("..", nil, "parent") ] +
-      default_terminal_paths +
       Array(paths).map { |path| normalize_terminal_path(path) })
       .uniq { |path| path[:label] }
-  end
-
-  def default_terminal_paths
-    [
-      terminal_path("about", about_path),
-      terminal_path("ctf", ctf_path),
-      terminal_path("blog", blog_path),
-      terminal_path("posts", posts_path)
-    ]
   end
 
   def terminal_path(label, url = nil, description = nil)

@@ -6,9 +6,7 @@
   <meta property="og:type" content="website">
 <% end %>
 
-<%= render_taskbar_items([
-    { image_path: 'task-bar/flag.svg', alt_text: "Blog Icon", label: "Blog", link: blog_path },
-]) %>
+<%= render_taskbar_items %>
 <% terminal_paths = @blog_posts.map { |post| post[:slug] } %>
 <%= render_terminal(terminal_paths, true) %>
 
@@ -18,10 +16,7 @@
              icon_alt: "Blog",
              title: "Blog",
              description: "Longer notes on security work, learning, and practical writeups outside the CTF archive.",
-             actions: [
-               { href: "/blog/feed", class: "blog-rss-feed", icon_path: "task-bar/rss.svg", icon_class: "blog-rss-icon", label: "Blog RSS feed", alt: "RSS Feed Icon" },
-               { href: "/blog/feed.atom", class: "blog-atom-feed", icon_path: "task-bar/atom.svg", icon_class: "blog-atom-icon", label: "Blog Atom feed", alt: "Atom Feed Icon" }
-             ] %>
+             actions: feed_actions_for(:blog, feed_url: blog_feed_path, atom_url: blog_feed_path(format: :atom), label: "Blog") %>
 
   <%= render "shared/content_filters",
              scope: "blogs",
