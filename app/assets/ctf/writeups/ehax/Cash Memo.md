@@ -3,7 +3,7 @@ ctf: EHAX
 title: Cash Memo
 authors:
     - name: the_moon_guy
-      url:
+      url: https://github.com/mayank-jangid-moon
 description: I have a really hard time managing my cash, am afraid someone might steal my memos...
 categories:
     - PWN

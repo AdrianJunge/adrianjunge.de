@@ -3,7 +3,7 @@ ctf: SekaiCTF
 title: My Flask App
 authors:
     - name: belugagemink
-      url:
+      url: https://lordrukie.com
 description: I created a Web application in Flask, what could be wrong?
 categories:
     - web

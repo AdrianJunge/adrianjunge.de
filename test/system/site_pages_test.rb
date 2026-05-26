@@ -30,6 +30,48 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
+  test "sidebar keeps a usable fixed inset on narrow displays" do
+    [ 320, 390 ].each do |width|
+      page.current_window.resize_to(width, 900)
+      visit "/"
+
+      page.execute_script(<<~JS)
+        document.querySelectorAll("#taskbar-left, .menu-icon").forEach((element) => {
+          element.style.transition = "none";
+        });
+        document.getElementById("menu-icon-right").click();
+      JS
+
+      assert_selector "#taskbar-left.expanded", visible: :all
+
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const taskbar = document.getElementById("taskbar-left");
+          const icon = taskbar.querySelector(".taskbar-icon");
+          const shiftedMenu = document.getElementById("menu-icon-left");
+          const taskbarRect = taskbar.getBoundingClientRect();
+          const iconRect = icon.getBoundingClientRect();
+          const menuRect = shiftedMenu.getBoundingClientRect();
+          const taskbarStyle = window.getComputedStyle(taskbar);
+
+          return {
+            taskbarWidth: Math.round(taskbarRect.width),
+            paddingLeft: parseFloat(taskbarStyle.paddingLeft),
+            iconLeft: Math.round(iconRect.left),
+            iconWidth: Math.round(iconRect.width),
+            shiftedMenuLeft: Math.round(menuRect.left)
+          };
+        })()
+      JS
+
+      assert_operator metrics["paddingLeft"], :>=, 9, "sidebar padding collapsed at #{width}px"
+      assert_operator metrics["iconLeft"], :>=, 9, "sidebar icon touched the viewport edge at #{width}px"
+      assert_operator metrics["iconWidth"], :>=, 38, "sidebar icon became too small at #{width}px"
+      assert_operator metrics["taskbarWidth"], :>=, 176, "expanded sidebar became too narrow at #{width}px"
+      assert_in_delta metrics["taskbarWidth"], metrics["shiftedMenuLeft"], 1
+    end
+  end
+
   test "feed controls render as flat hero actions outside the filters" do
     {
       "/ctf" => [ ".ctf-rss-feed", ".ctf-rss-icon" ],
@@ -141,6 +183,37 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal "none", metrics["scrollButtonDisplay"]
     assert_operator metrics["gaps"].min, :>=, 15
     assert_in_delta metrics["gaps"].first, metrics["gaps"].last, 1
+  end
+
+  test "landing title emoji does not overlap profile panel on small screens" do
+    [ 320, 340, 390, 721, 760, 820, 860 ].each do |width|
+      page.current_window.resize_to(width, 900)
+      visit "/"
+
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const emoji = document.querySelector(".landing-title-emoji").getBoundingClientRect();
+          const panel = document.querySelector(".landing-profile-panel").getBoundingClientRect();
+          const image = document.querySelector(".landing-profile-image").getBoundingClientRect();
+          const links = document.querySelector(".landing-affiliation-links").getBoundingClientRect();
+          const h1 = document.querySelector(".landing-page h1").getBoundingClientRect();
+          const shell = document.querySelector(".landing-hero-shell").getBoundingClientRect();
+          const overlaps = (a, b) => !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+
+          return {
+            emojiOverlapsPanel: overlaps(emoji, panel),
+            emojiOverlapsImage: overlaps(emoji, image),
+            emojiOverlapsLinks: overlaps(emoji, links),
+            titleOverflowsShell: h1.right > shell.right + 1 || h1.left < shell.left - 1
+          };
+        })()
+      JS
+
+      assert_equal false, metrics["emojiOverlapsPanel"], "emoji overlapped profile panel at #{width}px"
+      assert_equal false, metrics["emojiOverlapsImage"], "emoji overlapped profile image at #{width}px"
+      assert_equal false, metrics["emojiOverlapsLinks"], "emoji overlapped affiliation links at #{width}px"
+      assert_equal false, metrics["titleOverflowsShell"], "landing title overflowed hero shell at #{width}px"
+    end
   end
 
   test "landing recent posts render as evenly spaced full-width rows" do

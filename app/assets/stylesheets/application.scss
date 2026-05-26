@@ -54,8 +54,8 @@
     z-index: 1000;
     align-items: flex-start;
     transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    padding-left: calc((var(--taskbar-size) - var(--taskbar-icon-size)) / 2.0);
-    padding-top: 1vmin;
+    padding-left: var(--taskbar-gutter);
+    padding-top: var(--taskbar-gutter);
     border-right: 0.2dvh solid #4c566a;
     -webkit-user-select: none;
     -ms-user-select: none;
@@ -65,7 +65,7 @@
 }
 
 #taskbar-left.expanded {
-    width: calc(var(--taskbar-size) * 3);
+    width: var(--taskbar-expanded-width);
     opacity: 1;
     pointer-events: auto;
 }
@@ -76,7 +76,7 @@
 
 .taskbar-item {
     width: 100%;
-    margin-bottom: 1.5dvh;
+    margin-bottom: clamp(0.6rem, 1.5dvh, 0.95rem);
 }
 
 .taskbar-link, .taskbar-button-container {
@@ -90,9 +90,9 @@
 
 .taskbar-label {
     opacity: 0;
-    margin: 1dvh;
+    margin: clamp(0.35rem, 1vmin, 0.65rem);
     color: white;
-    font-size: 2vmin;
+    font-size: clamp(0.85rem, 2vmin, 1.05rem);
 }
 
 .taskbar-link:hover .taskbar-icon,
@@ -117,7 +117,7 @@
 }
 
 .menu-icon {
-    padding: 1vmin;
+    padding: clamp(0.35rem, 1vmin, 0.65rem);
     position: fixed;
     width: calc(var(--taskbar-icon-size) * 0.8);
     height: calc(var(--taskbar-icon-size) * 1.7);
@@ -147,13 +147,13 @@
 }
 
 #menu-icon-right.shift {
-    left: calc(var(--taskbar-size) * 3);
+    left: var(--taskbar-expanded-width);
     opacity: 0;
     z-index: -1;
 }
 
 #menu-icon-left.shift {
-    left: calc(var(--taskbar-size) * 3);
+    left: var(--taskbar-expanded-width);
     opacity: 1;
     z-index: 2000;
 }

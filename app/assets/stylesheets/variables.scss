@@ -16,8 +16,10 @@ $colors: (
   @each $name, $value in $colors {
     --color-#{$name}: #{$value};
   }
-  --taskbar-icon-size: 7vmin;
-  --taskbar-size: 9vmin;
+  --taskbar-icon-size: clamp(2.5rem, 7vmin, 4rem);
+  --taskbar-gutter: clamp(0.625rem, 1vmin, 0.9rem);
+  --taskbar-size: calc(var(--taskbar-icon-size) + (var(--taskbar-gutter) * 2));
+  --taskbar-expanded-width: clamp(11rem, calc(var(--taskbar-size) * 3), 16rem);
   --default-border: 0.3dvh solid #5d749e;
 }
 
@@ -29,10 +31,10 @@ $breakpoints: (
 );
 
 $icon-sizes: (
-  sm: 9vmin,
-  md: 8vmin,
-  lg: 7vmin,
-  xl: 6vmin
+  sm: clamp(2.5rem, 9vmin, 4.5rem),
+  md: clamp(2.5rem, 8vmin, 4.5rem),
+  lg: clamp(2.5rem, 7vmin, 4.25rem),
+  xl: clamp(2.5rem, 6vmin, 4rem)
 );
 
 @each $name, $bp in $breakpoints {

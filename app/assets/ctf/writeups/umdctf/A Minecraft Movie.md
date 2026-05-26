@@ -3,7 +3,7 @@ ctf: UMDCTF
 title: A Minecraft Movie
 authors:
     - name: tahmid-23
-      url:
+      url: https://tzaman.dev
 description: I...AM STEVE!
 categories:
     - Web

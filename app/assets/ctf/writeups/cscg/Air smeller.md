@@ -3,7 +3,7 @@ ctf: CSCG
 title: Air smeller
 authors:
     - name: D_K
-      url:
+      url: https://github.com/kilimnik
 description: I found this website where you can rate the smell of the air, after purification. Do you know a good purifier, maybe you can recommend some purifier to the people.
 categories:
     - Web
