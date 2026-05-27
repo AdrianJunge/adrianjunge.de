@@ -6,7 +6,7 @@ module CtfHelper
     svg.gsub("<svg", '<svg style="width: 6vh; height: 6vh;" ')
   end
 
-  def render_writeup_card(writeup, writeup_path, info)
+  def render_writeup_card(writeup, writeup_path, info, logo: nil)
     max_description_length = 200
     categories = Array(info["categories"]).presence || [ "Unknown category" ]
     first_category = categories&.first || "unknown"
@@ -35,7 +35,11 @@ module CtfHelper
 
       content_tag(:div, class: "blog-post-card-content") do
         logo_html = content_tag(:div, class: "blog-post-card-logo writeup-post-card-logo") do
-          get_category_svg(first_category).html_safe
+          if logo.present?
+            image_tag(logo, alt: "#{title} Logo", class: "blog-logo")
+          else
+            get_category_svg(first_category).html_safe
+          end
         end
 
         details_html = content_tag(:div, class: "blog-post-card-details") do

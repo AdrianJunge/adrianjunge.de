@@ -132,50 +132,23 @@
         <% @most_recent_posts.each do |post| %>
             <% if post[:type] == "blog" %>
                 <% blog_config = @blogs[post[:slug]] || {} %>
-                <% post_title = blog_config["title"].presence || post[:title] %>
-                <% post_link = blog_post_path(post[:slug]) %>
-                <% post_logo = blog_config["logo"] %>
-                <% post_categories = post[:categories] %>
+                <% blog_data_with_meta = blog_config.merge({
+                    "title" => post[:title],
+                    "description" => post[:description],
+                    "topic" => post[:topic],
+                    "categories" => post[:categories],
+                    "published" => post[:published].strftime("%Y-%m-%d"),
+                    "logo" => blog_config["logo"]
+                }) %>
+
+                <div class="blog-post-entry">
+                    <%= render_blog_post_card(post[:slug], blog_data_with_meta) %>
+                </div>
             <% elsif post[:type] == "ctf" %>
-                <% post_title = post[:title] %>
-                <% post_link = post[:link] %>
-                <% post_logo = post[:logo] %>
-                <% post_categories = post[:categories] %>
+                <div class="blog-post-entry writeup-post-entry">
+                    <%= render_writeup_card(post[:slug], post[:link], post[:metadata] || {}, logo: post[:logo]) %>
+                </div>
             <% end %>
-
-            <div class="blog-post-entry">
-                <a href="<%= post_link %>" class="blog-post-card ui-hover-lift">
-                    <div class="blog-post-card-content">
-                        <div class="blog-post-card-logo">
-                            <% if post_logo.present? %>
-                                <%= image_tag(post_logo, alt: "#{post_title} Logo", class: "blog-logo") %>
-                            <% else %>
-                                <div style="font-size: 3rem;">📝</div>
-                            <% end %>
-                        </div>
-
-                        <div class="blog-post-card-details">
-                            <h3 class="blog-post-title"><%= post_title %></h3>
-
-                            <div class="blog-post-meta">
-                                <div class="flex flex-wrap gap-2">
-                                    <% if post_categories.present? %>
-                                        <% post_categories.each do |category| %>
-                                            <span class="ui-tag-pill text-white bg-slate-700"><%= category %></span>
-                                        <% end %>
-                                    <% end %>
-                                </div>
-                            </div>
-
-                            <p class="blog-post-description"><%= truncate(post[:description], length: 200) %></p>
-
-                            <div class="blog-post-date">
-                                <span class="blog-post-date-text"><%= post[:published].strftime("%Y-%m-%d") %></span>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            </div>
         <% end %>
     </div>
 

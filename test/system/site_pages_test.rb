@@ -328,6 +328,32 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_in_delta metrics["gaps"].first, metrics["gaps"].last, 1
   end
 
+  test "landing latest notes use the shared post card styling" do
+    page.current_window.resize_to(1280, 1400)
+
+    visit "/"
+    assert_selector ".landing-writeup-cards .blog-post-card", count: 3
+    assert_selector ".landing-writeup-cards .blog-post-card-hitbox[href]", count: 3, visible: :all
+    assert_selector ".landing-writeup-cards .filter-chip", minimum: 1
+    assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='writeups']", minimum: 1
+    assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='blogs']", minimum: 1
+    assert_selector ".landing-writeup-cards .writeup-post-card .blog-post-authors", minimum: 1
+    assert_selector ".landing-writeup-cards .blog-logo", count: 3
+    assert_selector ".landing-writeup-cards .writeup-post-card .blog-logo[src*='/assets/ctf/']", minimum: 1
+    assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/']", minimum: 1
+    assert_no_selector ".landing-writeup-cards .blog-post-static-chip", visible: :all
+    assert_no_selector ".landing-writeup-cards .blog-logo-placeholder", visible: :all
+    assert_no_selector ".landing-writeup-cards .blog-post-card-logo svg", visible: :all
+
+    landing_styles = post_card_styles(".landing-writeup-cards .blog-post-card")
+
+    visit "/blog"
+    assert_selector ".blog-posts-container .blog-post-card"
+    blog_styles = post_card_styles(".blog-posts-container .blog-post-card")
+
+    assert_equal blog_styles, landing_styles
+  end
+
   test "landing page exposes about section counters as direct links" do
     visit "/"
 
@@ -385,6 +411,40 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_text "Blog post"
     first_link = find(".timeline-content .timeline-card-hitbox", match: :first, visible: :all)
     assert first_link[:href].match?(%r{/((ctf/.+/.+)|(blog/.+)|(about#.+))\z})
+
+    htb_title = find(".timeline-title", text: "HTB CPTS", exact_text: true)
+    page.driver.browser.action.move_to(htb_title.native).click.perform
+    assert_current_path "/blog/htb-cpts"
+
+    visit "/timeline"
+    empty_tag_row_target = page.evaluate_script(<<~JS)
+      (() => {
+        const title = [...document.querySelectorAll(".timeline-title")]
+          .find((node) => node.innerText.trim() === "HTB CPTS");
+        const card = title.closest(".timeline-content");
+        const tags = card.querySelector(".timeline-tags");
+        card.scrollIntoView({ block: "center", inline: "nearest" });
+        const rect = tags.getBoundingClientRect();
+        const target = document.elementFromPoint(rect.right - 4, rect.top + (rect.height / 2));
+
+        target.click();
+
+        return {
+          className: target.className,
+          href: target.getAttribute("href")
+        };
+      })()
+    JS
+
+    assert_includes empty_tag_row_target["className"], "timeline-card-hitbox"
+    assert_match %r{/blog/htb-cpts\z}, empty_tag_row_target["href"]
+    assert_current_path "/blog/htb-cpts"
+
+    visit "/timeline"
+    find(".timeline-tags .timeline-tag-pill", text: "Crypto", match: :first).click
+    assert_current_path "/timeline"
+    assert_selector ".timeline-tags .timeline-tag-pill.is-active", text: "Crypto"
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: "Crypto"
   end
 
   test "timeline filters all indexed content" do
@@ -392,6 +452,21 @@ class SitePagesTest < ApplicationSystemTestCase
 
     assert_selector ".timeline-content", minimum: 30
     assert_timeline_year_counts_match_visible_cards
+    timeline_tag_positions = page.evaluate_script(<<~JS)
+      (() => {
+        const card = [...document.querySelectorAll(".timeline-content")].find((entry) => entry.querySelector(".timeline-tags"));
+        const title = card.querySelector(".timeline-title").getBoundingClientRect();
+        const tags = card.querySelector(".timeline-tags").getBoundingClientRect();
+        const nextContent = card.querySelector(".timeline-meta, .timeline-source").getBoundingClientRect();
+
+        return {
+          tagsBelowTitle: tags.top >= title.bottom - 1,
+          nextContentBelowTags: nextContent.top >= tags.bottom - 1
+        };
+      })()
+    JS
+    assert_equal true, timeline_tag_positions["tagsBelowTitle"]
+    assert_equal true, timeline_tag_positions["nextContentBelowTags"]
     assert_text "Timeline"
     assert_selector ".content-filter-tag-group-label", text: "CONTENT TYPE"
     assert_selector ".content-filter-tag-group-label", text: "TOPICS, PROJECTS, AND SOURCES"
@@ -820,5 +895,33 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
 
     assert_equal [], mismatches
+  end
+
+  def post_card_styles(selector)
+    page.evaluate_script(<<~JS)
+      (() => {
+        const card = document.querySelector(#{selector.to_json});
+        const logo = card.querySelector(".blog-post-card-logo");
+        const title = card.querySelector(".blog-post-title");
+        const chip = card.querySelector(".filter-chip");
+        const cardStyle = window.getComputedStyle(card);
+        const logoStyle = window.getComputedStyle(logo);
+        const titleStyle = window.getComputedStyle(title);
+        const chipStyle = chip ? window.getComputedStyle(chip) : null;
+
+        return {
+          borderRadius: cardStyle.borderTopLeftRadius,
+          borderColor: cardStyle.borderTopColor,
+          backgroundColor: cardStyle.backgroundColor,
+          boxShadow: cardStyle.boxShadow,
+          logoBackground: logoStyle.backgroundColor,
+          logoBorderRight: logoStyle.borderRightColor,
+          titleFontSize: titleStyle.fontSize,
+          titleFontWeight: titleStyle.fontWeight,
+          chipBorderRadius: chipStyle?.borderTopLeftRadius || null,
+          chipBackground: chipStyle?.backgroundColor || null
+        };
+      })()
+    JS
   end
 end

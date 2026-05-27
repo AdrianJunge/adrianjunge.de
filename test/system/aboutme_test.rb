@@ -94,6 +94,51 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_operator achievement_card_positions.second, :>, achievement_card_positions.first
   end
 
+  test "about me card tags sit below titles and links read as larger actions" do
+    page.current_window.resize_to(1280, 1400)
+    visit about_path
+
+    metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const finding = document.querySelector("#cves .aboutme-finding-card");
+        const findingTitle = finding.querySelector(".aboutme-finding-project").getBoundingClientRect();
+        const findingTags = finding.querySelector(".aboutme-finding-badges").getBoundingClientRect();
+        const cveTagStyle = window.getComputedStyle(finding.querySelector(".aboutme-cve-id"));
+
+        const achievement = document.querySelector("#achievements .aboutme-achievement-card");
+        const achievementTitle = achievement.querySelector("h3").getBoundingClientRect();
+        const achievementTags = achievement.querySelector(".aboutme-achievement-meta").getBoundingClientRect();
+        const achievementTagStyle = window.getComputedStyle(achievement.querySelector(".aboutme-achievement-meta span"));
+
+        const action = document.querySelector(".aboutme-link-row a");
+        const actionRect = action.getBoundingClientRect();
+        const actionStyle = window.getComputedStyle(action);
+
+        return {
+          findingTagsBelowTitle: findingTags.top >= findingTitle.bottom,
+          achievementTagsBelowTitle: achievementTags.top >= achievementTitle.bottom,
+          cveTagBackground: cveTagStyle.backgroundColor,
+          cveTagBorder: cveTagStyle.borderTopColor,
+          achievementTagBackground: achievementTagStyle.backgroundColor,
+          achievementTagBorder: achievementTagStyle.borderTopColor,
+          actionHeight: Math.round(actionRect.height),
+          actionWidth: Math.round(actionRect.width),
+          actionBackground: actionStyle.backgroundColor
+        };
+      })()
+    JS
+
+    assert metrics["findingTagsBelowTitle"]
+    assert metrics["achievementTagsBelowTitle"]
+    assert_equal "rgba(8, 145, 178, 0.16)", metrics["cveTagBackground"]
+    assert_equal "rgba(125, 211, 252, 0.32)", metrics["cveTagBorder"]
+    assert_equal metrics["cveTagBackground"], metrics["achievementTagBackground"]
+    assert_equal metrics["cveTagBorder"], metrics["achievementTagBorder"]
+    assert_operator metrics["actionHeight"], :>=, 44
+    assert_operator metrics["actionWidth"], :>=, 120
+    assert_equal "rgba(24, 36, 58, 0.82)", metrics["actionBackground"]
+  end
+
   test "my challenges link to their writeups" do
     visit about_path
 

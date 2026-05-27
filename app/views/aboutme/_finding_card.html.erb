@@ -19,12 +19,12 @@
 <% end %>
 <% header_content = capture do %>
   <span class="aboutme-finding-main">
-    <%= badges_content %>
     <% if entry["project"].present? %>
       <span class="aboutme-finding-project">
         <%= aboutme_optional_link(entry["project"], entry["project_url"], class_name: "aboutme-finding-project-link") %>
       </span>
     <% end %>
+    <%= badges_content %>
     <% if title_label.present? %>
       <span class="aboutme-finding-summary">
         <%= aboutme_optional_link(title_label, entry["title_url"], class_name: "aboutme-finding-summary-link") %>

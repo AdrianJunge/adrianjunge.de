@@ -3,6 +3,10 @@
 <% events = aboutme_visible_events(entry["events"]) %>
 
 <article class="aboutme-achievement-card" id="<%= entry["id"].presence %>">
+  <% if entry["title"].present? %>
+    <h3><%= aboutme_optional_link(entry["title"], entry["title_url"], class_name: "aboutme-title-link") %></h3>
+  <% end %>
+
   <% if entry["category"].present? || (entry["date"].present? && events.empty?) %>
     <div class="aboutme-achievement-meta">
       <% if entry["category"].present? %>
@@ -14,9 +18,6 @@
     </div>
   <% end %>
 
-  <% if entry["title"].present? %>
-    <h3><%= aboutme_optional_link(entry["title"], entry["title_url"], class_name: "aboutme-title-link") %></h3>
-  <% end %>
   <% if entry["summary"].present? %>
     <p><%= entry["summary"] %></p>
   <% end %>

@@ -26,8 +26,8 @@ class AboutmeFindingCardTest < ActionView::TestCase
 
     assert_select "details.aboutme-finding-card-cve"
     assert_select "summary", text: /Example Project/
-    assert_select "summary .aboutme-finding-main > .aboutme-finding-badges:first-child"
-    assert_select "summary .aboutme-finding-badges + .aboutme-finding-project"
+    assert_select "summary .aboutme-finding-main > .aboutme-finding-project:first-child"
+    assert_select "summary .aboutme-finding-project + .aboutme-finding-badges"
     assert_select "summary a[href=?][target=?][rel=?]", "https://github.com/example/project", "_blank", "noopener noreferrer"
     assert_select "summary a[href=?][target=?][rel=?]", "https://github.com/example/project/security/advisories/GHSA-example", "_blank", "noopener noreferrer", text: "Example advisory title"
     assert_select ".aboutme-cve-id", text: "CVE-2026-0001"

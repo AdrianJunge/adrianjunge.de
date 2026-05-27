@@ -77,16 +77,6 @@
                     <%= item[:title] %>
                   </span>
 
-                  <% if item[:description].present? %>
-                    <span class="timeline-meta">
-                      <%= item[:description] %>
-                    </span>
-                  <% end %>
-
-                  <span class="timeline-source">
-                    <%= item[:source] %>
-                  </span>
-
                   <% if item[:writeup_winner].present? || visible_tags.any? %>
                     <span class="timeline-tags">
                       <% if item[:writeup_winner].present? %>
@@ -124,6 +114,16 @@
                       <% end %>
                     </span>
                   <% end %>
+
+                  <% if item[:description].present? %>
+                    <span class="timeline-meta">
+                      <%= item[:description] %>
+                    </span>
+                  <% end %>
+
+                  <span class="timeline-source">
+                    <%= item[:source] %>
+                  </span>
                 </article>
               </li>
             <% end %>

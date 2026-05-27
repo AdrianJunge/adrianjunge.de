@@ -29,6 +29,7 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
 
     assert_select "article.aboutme-achievement-card"
     assert_select "h3 a[href=?][target=?][rel=?]", "https://example.com/milestone", "_blank", "noopener noreferrer", text: "Example milestone"
+    assert_select "h3 + .aboutme-achievement-meta"
     assert_select ".aboutme-achievement-meta time", 0
     assert_select ".aboutme-achievement-event#example-2026"
     assert_select ".aboutme-achievement-event h4 a[href=?][target=?][rel=?]", "https://example.com/event", "_blank", "noopener noreferrer", text: "Example 2026 #1"

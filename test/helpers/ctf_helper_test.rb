@@ -40,4 +40,18 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-card[data-filter-tags*='Writeup winner']"
     assert_select ".blog-post-card[data-filter-tags*='Contest win']", false
   end
+
+  test "writeup cards can render ctf organizer logos" do
+    render inline: "<%= render_writeup_card('Logo', '/ctf/demo/Logo', info, logo: 'ctf/cscg.png') %>", locals: {
+      info: {
+        "title" => "Logo",
+        "description" => "A writeup with a CTF logo.",
+        "categories" => [ "Web" ],
+        "published" => "2026-01-01"
+      }
+    }
+
+    assert_select ".writeup-post-card-logo img.blog-logo[alt='Logo Logo']"
+    assert_select ".writeup-post-card-logo svg", false
+  end
 end
