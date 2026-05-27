@@ -1,20 +1,31 @@
 <% content_for :head do %>
-  <% writeup_title = "#{@ctf_info["title"]} - #{@ctf_info["ctf"]} writeup" %>
+  <% writeup_section = @ctf_info["ctf"].presence || @ctf_name %>
+  <% writeup_title = "#{@ctf_info["title"]} - #{writeup_section} writeup" %>
   <% writeup_description = @ctf_info["description"].presence || "Writeup for #{@ctf_info["title"]} from #{@ctf_info["year"]} CTF." %>
-  <% writeup_tags = Array(@ctf_info["categories"]) %>
+  <% writeup_tags = (Array(@ctf_info["categories"]) + [ @ctf_name ]).map(&:to_s).reject(&:blank?).uniq %>
+  <% writeup_modified = @ctf_info["updated"].presence || @ctf_info["modified"].presence %>
+  <% writeup_authors = writeup_authors(@ctf_info) %>
   <%= seo_meta_tags(
         title: writeup_title,
         description: writeup_description,
         type: "article",
         canonical_path: request.path,
+        image: @ctf["logo"],
         published_time: @ctf_info["published"],
+        modified_time: writeup_modified,
         tags: writeup_tags,
+        section: writeup_section,
+        authors: writeup_authors,
         json_ld: seo_article_schema(
           title: writeup_title,
           description: writeup_description,
           canonical_path: request.path,
           published: @ctf_info["published"],
-          tags: writeup_tags
+          modified: writeup_modified,
+          tags: writeup_tags,
+          image: @ctf["logo"],
+          section: writeup_section,
+          authors: writeup_authors
         )
       ) %>
 <% end %>

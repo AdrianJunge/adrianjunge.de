@@ -1,6 +1,4 @@
 # TODOs
-- Add some SEO automation script? If we want to publish some new post/writeup what has to be done?
-
 - Add minutes of reading approximation via the wordcount
 
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster

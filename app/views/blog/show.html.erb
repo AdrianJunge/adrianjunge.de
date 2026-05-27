@@ -1,7 +1,9 @@
 <% content_for :head do %>
-  <% blog_description = @blog_info["description"].presence || @post_slug.humanize %>
-  <% blog_tags = Array(@blog_info["categories"]) %>
-  <% blog_image = (@blogs[@post_slug] || {})["logo"].presence || "blog/htb-cpts.png" %>
+  <% blog_config = @blogs[@post_slug] || {} %>
+  <% blog_description = @blog_info["description"].presence || blog_config["description"].presence || @post_slug.humanize %>
+  <% blog_tags = (Array(@blog_info["categories"]) + [ @blog_category ]).map(&:to_s).reject(&:blank?).uniq %>
+  <% blog_image = blog_config["logo"].presence || "blog/htb-cpts.png" %>
+  <% blog_modified = @blog_info["updated"].presence || @blog_info["modified"].presence %>
   <%= seo_meta_tags(
         title: "#{@blog_title} - Blog",
         description: blog_description,
@@ -9,14 +11,18 @@
         canonical_path: blog_post_path(@post_slug),
         image: blog_image,
         published_time: @blog_info["published"],
+        modified_time: blog_modified,
         tags: blog_tags,
+        section: @blog_category,
         json_ld: seo_article_schema(
           title: @blog_title,
           description: blog_description,
           canonical_path: blog_post_path(@post_slug),
           published: @blog_info["published"],
+          modified: blog_modified,
           tags: blog_tags,
-          image: blog_image
+          image: blog_image,
+          section: @blog_category
         )
       ) %>
 <% end %>

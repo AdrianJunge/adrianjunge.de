@@ -7,12 +7,13 @@ module SeoHelper
 
   def seo_meta_tags(title: nil, description: DEFAULT_DESCRIPTION, type: "website", canonical_path: nil,
                     image: DEFAULT_IMAGE, noindex: false, published_time: nil, modified_time: nil, tags: [],
-                    json_ld: nil)
+                    section: nil, authors: [], json_ld: nil)
     page_title = seo_title(title)
     page_description = seo_description(description)
     canonical = canonical_url(canonical_path)
     image_url = seo_image_url(image)
     tag_values = Array(tags).map(&:to_s).reject(&:blank?)
+    author_values = seo_author_names(authors)
 
     meta_tags = [
       content_tag(:title, page_title),
@@ -42,6 +43,8 @@ module SeoHelper
     if type == "article"
       meta_tags << tag.meta(property: "article:published_time", content: seo_time(published_time)) if published_time.present?
       meta_tags << tag.meta(property: "article:modified_time", content: seo_time(modified_time)) if modified_time.present?
+      meta_tags << tag.meta(property: "article:section", content: seo_plain_text(section)) if section.present?
+      author_values.each { |author_name| meta_tags << tag.meta(property: "article:author", content: author_name) }
       tag_values.each { |tag_name| meta_tags << tag.meta(property: "article:tag", content: tag_name) }
     end
 
@@ -58,7 +61,15 @@ module SeoHelper
       "alternateName" => SITE_AUTHOR,
       "url" => canonical_url(root_path),
       "description" => seo_description(description),
-      "author" => seo_person_reference
+      "author" => seo_person_reference,
+      "potentialAction" => {
+        "@type" => "SearchAction",
+        "target" => {
+          "@type" => "EntryPoint",
+          "urlTemplate" => canonical_url("#{timeline_path}?q={search_term_string}")
+        },
+        "query-input" => "required name=search_term_string"
+      }
     }
   end
 
@@ -84,8 +95,8 @@ module SeoHelper
     }
   end
 
-  def seo_collection_schema(title:, description:, canonical_path:)
-    {
+  def seo_collection_schema(title:, description:, canonical_path:, items: [])
+    schema = {
       "@context" => "https://schema.org",
       "@type" => "CollectionPage",
       "name" => seo_plain_text(title),
@@ -97,9 +108,15 @@ module SeoHelper
         "url" => canonical_url(root_path)
       }
     }
+
+    item_list = seo_item_list_schema(items)
+    schema["mainEntity"] = item_list if item_list.present?
+    schema
   end
 
-  def seo_article_schema(title:, description:, canonical_path:, published: nil, modified: nil, tags: [], image: DEFAULT_IMAGE)
+  def seo_article_schema(title:, description:, canonical_path:, published: nil, modified: nil, tags: [],
+                         image: DEFAULT_IMAGE, section: nil, authors: [])
+    author_refs = seo_author_references(authors)
     schema = {
       "@context" => "https://schema.org",
       "@type" => "TechArticle",
@@ -107,13 +124,14 @@ module SeoHelper
       "description" => seo_description(description),
       "url" => canonical_url(canonical_path),
       "image" => seo_image_url(image),
-      "author" => seo_person_reference,
+      "author" => author_refs.length == 1 ? author_refs.first : author_refs,
       "publisher" => seo_person_reference
     }
 
     schema["datePublished"] = seo_time(published) if published.present?
     schema["dateModified"] = seo_time(modified) if modified.present?
     schema["keywords"] = Array(tags).map(&:to_s).reject(&:blank?).join(", ") if tags.present?
+    schema["articleSection"] = seo_plain_text(section) if section.present?
     schema
   end
 
@@ -165,6 +183,80 @@ module SeoHelper
       "name" => SITE_AUTHOR,
       "url" => canonical_url(about_path)
     }
+  end
+
+  def seo_item_list_schema(items)
+    item_elements = Array(items).filter_map do |item|
+      title = seo_item_title(item)
+      url = seo_item_url(item)
+      next if title.blank? || url.blank?
+
+      {
+        "@type" => "ListItem",
+        "name" => title,
+        "url" => url
+      }
+    end
+
+    return nil if item_elements.empty?
+
+    {
+      "@type" => "ItemList",
+      "itemListElement" => item_elements.each_with_index.map { |item, index| item.merge("position" => index + 1) }
+    }
+  end
+
+  def seo_item_title(item)
+    if item.respond_to?(:[])
+      seo_plain_text(item[:title].presence || item["title"].presence || item[:name].presence || item["name"].presence)
+    else
+      seo_plain_text(item)
+    end
+  end
+
+  def seo_item_url(item)
+    return nil unless item.respond_to?(:[])
+
+    raw_url = item[:link].presence || item["link"].presence || item[:url].presence || item["url"].presence
+    canonical_url(raw_url) if raw_url.present?
+  end
+
+  def seo_author_references(authors)
+    normalized_authors = authors.is_a?(Hash) ? [ authors ] : Array(authors)
+
+    references = normalized_authors.filter_map do |author|
+      name = seo_author_name(author)
+      next if name.blank?
+
+      reference = {
+        "@type" => "Person",
+        "name" => name
+      }
+      url = seo_author_url(author)
+      reference["url"] = canonical_url(url) if url.present?
+      reference
+    end
+
+    references.presence || [ seo_person_reference ]
+  end
+
+  def seo_author_names(authors)
+    seo_author_references(authors).filter_map { |author| author["name"].presence }
+  end
+
+  def seo_author_name(author)
+    if author.is_a?(Hash)
+      seo_plain_text(author["name"].presence || author[:name].presence)
+    else
+      seo_plain_text(author)
+    end
+  end
+
+  def seo_author_url(author)
+    return nil unless author.is_a?(Hash)
+
+    urls = author["urls"].presence || author[:urls].presence || author["url"].presence || author[:url].presence
+    Array(urls).map(&:to_s).find(&:present?)
   end
 
   def json_ld_tag(data)

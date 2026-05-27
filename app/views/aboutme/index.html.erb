@@ -1,12 +1,27 @@
 <% content_for :head do %>
   <% about_description = @about_info["description"].presence || "About Adrian Junge, security research, CVEs, bug bounties, certificates, and achievements." %>
+  <% about_seo_items = [
+       { title: "CVEs", link: about_path(anchor: "cves") },
+       { title: "Bug bounties", link: about_path(anchor: "bug-bounties") },
+       { title: "Created CTF challenges", link: about_path(anchor: "my-challenges") },
+       { title: "Certificates", link: about_path(anchor: "certificates") },
+       { title: "Relevant achievements", link: about_path(anchor: "achievements") }
+     ] %>
   <%= seo_meta_tags(
         title: "About Adrian Junge",
         description: about_description,
         type: "profile",
         canonical_path: about_path,
         image: "landing/profile.png",
-        json_ld: seo_person_schema(description: about_description)
+        json_ld: [
+          seo_person_schema(description: about_description),
+          seo_collection_schema(
+            title: "About Adrian Junge",
+            description: about_description,
+            canonical_path: about_path,
+            items: about_seo_items
+          )
+        ]
       ) %>
 <% end %>
 

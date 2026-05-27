@@ -22,10 +22,10 @@ class CtfController < ApplicationController
 
   def which
     @ctfs = content_repository.ctf_metadata
-    @ctf = @ctfs[params[:which].upcase] if @ctfs.key?(params[:which].upcase)
     @which = params[:which].gsub("..", "").gsub("/", "")
     return unless sanitize_which(@which)
 
+    @ctf_name, @ctf = ctf_metadata_for(@which, @ctfs)
     @ctf_info = sort_writeups_by_published(content_repository.post_metadata(BASE_PATH, @which))
     @writeups = @ctf_info.keys
     @filter_years = @ctf_info.values.filter_map { |metadata| content_repository.metadata_year(metadata) }.uniq.sort.reverse
@@ -36,6 +36,8 @@ class CtfController < ApplicationController
   def writeup
     @which = params[:which].gsub("..", "").gsub("/", "")
     @writeup = params[:writeup].gsub("..", "").gsub("/", "")
+    @ctfs = content_repository.ctf_metadata
+    @ctf_name, @ctf = ctf_metadata_for(@which, @ctfs)
     @markdown_content = safe_markdown_content(BASE_PATH, @which, @writeup, render_error: true)
     return unless @markdown_content
 
@@ -84,6 +86,24 @@ class CtfController < ApplicationController
   end
 
   private
+
+  def ctf_metadata_for(which, ctfs = content_repository.ctf_metadata)
+    match = ctfs.find do |name, ctf|
+      name.to_s.casecmp?(which.to_s) || ctf["terminal_path"].to_s.casecmp?(which.to_s)
+    end
+
+    return [ match.first, match.last ] if match
+
+    [
+      which.to_s.upcase,
+      {
+        "terminal_path" => which,
+        "logo" => nil,
+        "website" => nil,
+        "writeups" => "/ctf/#{which}"
+      }
+    ]
+  end
 
   def writeup_public_asset(public_dir, extension)
     year = @ctf_info["year"].to_s

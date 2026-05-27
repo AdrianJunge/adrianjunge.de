@@ -5,7 +5,12 @@
         title: "Timeline",
         description: timeline_description,
         canonical_path: timeline_path,
-        json_ld: seo_collection_schema(title: "Timeline", description: timeline_description, canonical_path: timeline_path)
+        json_ld: seo_collection_schema(
+          title: "Timeline",
+          description: timeline_description,
+          canonical_path: timeline_path,
+          items: @timeline_items
+        )
       ) %>
 <% end %>
 

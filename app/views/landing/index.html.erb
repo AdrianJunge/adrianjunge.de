@@ -1,10 +1,20 @@
 <% content_for :head do %>
+  <% landing_description = SeoHelper::DEFAULT_DESCRIPTION %>
+  <% landing_latest_items = Array(@most_recent_posts).map { |post| { title: post[:title], link: post[:link] } } %>
   <%= seo_meta_tags(
         title: "Welcome to my bug collection 🐛",
-        description: SeoHelper::DEFAULT_DESCRIPTION,
+        description: landing_description,
         canonical_path: root_path,
         image: "landing/profile.png",
-        json_ld: seo_website_schema
+        json_ld: [
+          seo_website_schema(description: landing_description),
+          seo_collection_schema(
+            title: "Latest notes",
+            description: landing_description,
+            canonical_path: root_path,
+            items: landing_latest_items
+          )
+        ]
       ) %>
 <% end %>
 

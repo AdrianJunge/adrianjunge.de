@@ -1,11 +1,17 @@
 <% content_for :head do %>
   <% ctf_description = "Competition notes, challenge writeups, and security research practice grouped by event." %>
+  <% ctf_items = @ctfs.map { |name, ctf| { title: name, link: ctf["writeups"] } } %>
   <%= seo_meta_tags(
         title: "CTF writeups",
         description: ctf_description,
         canonical_path: ctf_path,
         image: "ctf/kitctf.png",
-        json_ld: seo_collection_schema(title: "CTF writeups", description: ctf_description, canonical_path: ctf_path)
+        json_ld: seo_collection_schema(
+          title: "CTF writeups",
+          description: ctf_description,
+          canonical_path: ctf_path,
+          items: ctf_items
+        )
       ) %>
 <% end %>
 
