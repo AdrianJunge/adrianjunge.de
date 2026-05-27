@@ -10,6 +10,9 @@ categories:
 year: 2025
 challengefiles: air-smeller
 published: "2025-05-01"
+writeup_winner:
+    label: Best challenge writeup
+    proof_url: /ctf/certifications/cscg25-best-writeup-airsmeller.pdf
 ---
 
 # TL;DR<a id="TL;DR"></a>

@@ -10,6 +10,9 @@ categories:
 year: 2025
 challengefiles: a-minecraft-movie
 published: "2025-02-04"
+writeup_winner:
+    label: Best web writeup 2025
+    proof_url: https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959
 ---
 
 # TL;DR<a id="TL;DR"></a>

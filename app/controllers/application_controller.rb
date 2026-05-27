@@ -156,11 +156,21 @@ class ApplicationController < ActionController::Base
   end
 
   def metadata_tags(metadata)
-    Array(metadata["categories"]).map(&:to_s).reject(&:blank?)
+    (Array(metadata["categories"]) + [ metadata_writeup_winner_label(metadata) ])
+      .map(&:to_s)
+      .reject(&:blank?)
+  end
+
+  def metadata_writeup_winner_label(metadata)
+    WriteupWinner.filter_label_for(metadata)
   end
 
   def sorted_filter_values(values)
-    values.map(&:to_s).reject(&:blank?).uniq { |value| value.downcase }.sort_by(&:downcase)
+    values
+      .map(&:to_s)
+      .reject(&:blank?)
+      .uniq { |value| value.downcase }
+      .sort_by { |value| WriteupWinner.filter_sort_key(value) }
   end
 
   def get_all_posts_for_feed(base_path, info_path, link_prefix)

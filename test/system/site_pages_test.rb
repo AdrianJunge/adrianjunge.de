@@ -390,6 +390,12 @@ class SitePagesTest < ApplicationSystemTestCase
   test "content filters search by text tags and year" do
     visit "/ctf"
 
+    ctf_filter_tags = all(".content-filter-panel .content-filter-tag-list [data-filter-tag]").map do |chip|
+      chip["data-filter-tag"]
+    end
+    assert_equal "Writeup winner", ctf_filter_tags.first
+    assert_equal 1, ctf_filter_tags.count("Writeup winner")
+    assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
     assert_selector ".content-filter-panel .filter-chip", text: /^pwn$/i
     find(".content-filter-panel .filter-chip", text: /^pwn$/i).click
     assert_selector ".content-filter-panel .filter-chip.is-active", text: /^pwn$/i
@@ -465,9 +471,41 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".writeup-title", text: "HTB CPTS"
 
     visit "/ctf/cscg"
-    find(".blog-post-card", text: "KDF dream").find(".blog-post-card-hitbox", visible: :all).click
-    assert_text "KDF dream"
-    assert_selector ".writeup-title", text: "KDF dream"
+    find(".blog-post-card", text: "Hoster").find(".blog-post-card-hitbox", visible: :all).click
+    assert_text "Hoster"
+    assert_selector ".writeup-title", text: "Hoster"
+  end
+
+  test "winning writeups show proof badges on overview cards and articles" do
+    visit "/ctf/cscg"
+
+    within find(".blog-post-card", text: "KDF dream") do
+      assert_selector ".blog-post-meta-row > .writeup-winner-badge:first-child[href='/ctf/certifications/cscg25-best-writeup-kdfdream.pdf']", text: "Best challenge writeup"
+    end
+
+    within find(".blog-post-card", text: "Air smeller") do
+      assert_selector ".blog-post-meta-row > .writeup-winner-badge:first-child[href='/ctf/certifications/cscg25-best-writeup-airsmeller.pdf']", text: "Best challenge writeup"
+    end
+
+    filter_tags = all(".content-filter-panel .content-filter-tag-list [data-filter-tag]").map do |chip|
+      chip["data-filter-tag"]
+    end
+    assert_equal "Writeup winner", filter_tags.first
+    assert_equal 1, filter_tags.count("Writeup winner")
+    assert_no_selector ".content-filter-panel [data-filter-tag='Best challenge writeup']"
+    assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
+    find(".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner").click
+    assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter.is-active", text: "Writeup winner"
+    assert_selector "[data-filter-count='writeups']", text: "2 / 6 items"
+    assert_selector ".writeup-overview .blog-post-card", text: "KDF dream"
+    assert_selector ".writeup-overview .blog-post-card", text: "Air smeller"
+    assert_no_selector ".writeup-overview .blog-post-card", text: "Hoster"
+
+    visit "/ctf/cscg/KDF%20dream"
+    assert_selector ".writeup-winner-article .writeup-winner-badge[href='/ctf/certifications/cscg25-best-writeup-kdfdream.pdf']", text: "Best challenge writeup"
+
+    visit "/ctf/umdctf/A%20Minecraft%20Movie"
+    assert_selector ".writeup-winner-article .writeup-winner-badge[href='https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959']", text: "Best web writeup 2025"
   end
 
   test "terminal stays bounded on high resolution displays" do

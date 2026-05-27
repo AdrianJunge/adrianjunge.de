@@ -19,6 +19,9 @@ categories:
 year:
 challengefiles:
 published: "2025-08-25"
+writeup_winner:
+    label:
+    proof_url:
 ---
 
 # TL;DR<a id="TL;DR"></a>

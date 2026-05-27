@@ -600,10 +600,97 @@
 }
 
 .content-page .filter-chip,
-.content-page .blog-post-author-link {
+.content-page .blog-post-author-link,
+.content-page .writeup-winner-badge {
     position: relative;
     z-index: 3;
     pointer-events: auto;
+}
+
+.content-page .writeup-winner-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    gap: 0.42rem;
+    overflow: hidden;
+    border: 1px solid rgba(252, 211, 77, 0.82);
+    border-radius: var(--radius-ui-pill);
+    color: #fff7ed;
+    background:
+        linear-gradient(135deg, rgba(120, 53, 15, 0.92), rgba(217, 119, 6, 0.72) 48%, rgba(250, 204, 21, 0.44)),
+        rgba(24, 36, 58, 0.82);
+    box-shadow: 0 0.55rem 1.5rem rgba(250, 204, 21, 0.16);
+    font-weight: 900;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    isolation: isolate;
+    cursor: pointer;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.content-page .writeup-winner-badge::after {
+    position: absolute;
+    inset: -30% auto -30% -45%;
+    z-index: -1;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.44), transparent);
+    content: "";
+    transform: translateX(-130%) skewX(-18deg);
+    transition: transform 0.52s ease;
+}
+
+.content-page .writeup-winner-badge:hover,
+.content-page .writeup-winner-badge:focus-visible,
+.content-page .writeup-winner-badge.is-active {
+    border-color: rgba(254, 243, 199, 0.96);
+    box-shadow: 0 0.8rem 2rem rgba(250, 204, 21, 0.22);
+    color: #fff;
+    outline: none;
+}
+
+.content-page .writeup-winner-badge:hover,
+.content-page .writeup-winner-badge:focus-visible {
+    transform: translateY(-1px);
+}
+
+.content-page .writeup-winner-badge:hover::after,
+.content-page .writeup-winner-badge:focus-visible::after {
+    transform: translateX(420%) skewX(-18deg);
+}
+
+.content-page .writeup-winner-badge-article {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+}
+
+.content-page .writeup-winner-badge-card {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .writeup-winner-badge-filter {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .writeup-winner-icon {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 0 0.35rem rgba(254, 243, 199, 0.55));
+}
+
+.content-page .writeup-winner-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .content-page .filter-chip {
@@ -628,6 +715,22 @@
     border-color: rgba(125, 211, 252, 0.85);
     color: #fff;
     background: rgba(8, 145, 178, 0.36);
+}
+
+.content-page .filter-chip.writeup-winner-badge-filter {
+    border-color: rgba(252, 211, 77, 0.82);
+    color: #fff7ed;
+    background:
+        linear-gradient(135deg, rgba(120, 53, 15, 0.92), rgba(217, 119, 6, 0.72) 48%, rgba(250, 204, 21, 0.44)),
+        rgba(24, 36, 58, 0.82);
+}
+
+.content-page .filter-chip.writeup-winner-badge-filter:hover,
+.content-page .filter-chip.writeup-winner-badge-filter:focus-visible,
+.content-page .filter-chip.writeup-winner-badge-filter.is-active {
+    border-color: rgba(254, 243, 199, 0.96);
+    box-shadow: 0 0.8rem 2rem rgba(250, 204, 21, 0.22);
+    color: #fff;
 }
 
 .content-page .blog-post-authors {
@@ -767,6 +870,12 @@
     font-size: 3rem;
     line-height: 1.1;
     text-align: center;
+}
+
+.content-page .writeup-winner-article {
+    display: flex;
+    justify-content: center;
+    margin: -1rem 0 1.4rem;
 }
 
 .content-page .markdown-content {

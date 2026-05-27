@@ -49,6 +49,12 @@
     <h4 class="writeup-year text-white text-center"><%= @which.upcase %>-<%= @ctf_info["year"] %></h4>
     <h1 class="writeup-title text-white text-center"><%= @ctf_info["title"] %></h1>
 
+    <% if (winner_badge = render_writeup_winner_badge(@ctf_info, context: :article)) %>
+      <div class="writeup-winner-article">
+        <%= winner_badge %>
+      </div>
+    <% end %>
+
     <% basename = File.basename("#{@ctf_info['challengefiles']}.zip")  %>
 
     <% file_rel = "#{@which}/#{@ctf_info['year']}/#{@ctf_info['challengefiles']}.zip".to_s %>

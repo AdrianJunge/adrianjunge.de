@@ -15,7 +15,11 @@ module CtfHelper
     published = info["published"] || "Unknown date"
     authors = writeup_authors(info)
     published_year = writeup_year(info)
-    filter_text = ([ title, description, published, published_year ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
+    winner = writeup_winner(info)
+    winner_label = winner&.fetch(:label, nil)
+    winner_filter_label = winner ? WriteupWinner::FILTER_LABEL : nil
+    filter_tags = ([ winner_filter_label ] + categories).compact
+    filter_text = ([ title, description, published, published_year, winner_label, winner_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
 
     content_tag(
       :article,
@@ -23,7 +27,7 @@ module CtfHelper
       data: {
         filter_card: "writeups",
         filter_text: filter_text,
-        filter_tags: categories.join("|"),
+        filter_tags: filter_tags.join("|"),
         filter_years: published_year
       }
     ) do
@@ -39,7 +43,7 @@ module CtfHelper
 
           meta_html = content_tag(:div, class: "blog-post-meta") do
             content_tag(:div, class: "blog-post-meta-row") do
-              safe_join(categories.map do |category|
+              category_chips = categories.map do |category|
                 content_tag(
                   :button,
                   category,
@@ -48,7 +52,9 @@ module CtfHelper
                   data: { filter_scope: "writeups", filter_tag: category },
                   aria: { pressed: "false", label: "Filter writeups by #{category}" }
                 )
-              end)
+              end
+
+              safe_join([ render_writeup_winner_badge(info, context: :card) ] + category_chips)
             end
           end
 
@@ -66,7 +72,7 @@ module CtfHelper
             content_tag(:span, published, class: "blog-post-date-text")
           end
 
-          title_html + meta_html + authors_html + description_html + date_html
+          safe_join([ title_html, meta_html, authors_html, description_html, date_html ].compact)
         end
 
         logo_html + details_html
@@ -74,7 +80,52 @@ module CtfHelper
     end
   end
 
+  def render_writeup_winner_badge(info, context: :card)
+    winner = writeup_winner(info)
+    return nil unless winner
+
+    link_to(
+      winner[:proof_url],
+      writeup_winner_link_options(winner[:proof_url], context)
+    ) do
+      safe_join([
+        writeup_winner_icon,
+        content_tag(:span, winner[:label], class: "writeup-winner-label")
+      ])
+    end
+  end
+
   private
+
+  def writeup_winner(info)
+    WriteupWinner.from_metadata(info)
+  end
+
+  def writeup_winner_icon
+    content_tag(
+      :svg,
+      tag.path(
+        d: "M12 2.75l2.12 5.78 6.13.23-4.82 3.8 1.68 5.9L12 15.05 6.89 18.46l1.68-5.9-4.82-3.8 6.13-.23L12 2.75z",
+        fill: "currentColor"
+      ),
+      class: "writeup-winner-icon",
+      viewBox: "0 0 24 24",
+      aria: { hidden: true }
+    )
+  end
+
+  def writeup_winner_link_options(url, context)
+    options = {
+      class: "writeup-winner-badge writeup-winner-badge-#{context}",
+      target: "_blank",
+      rel: "noopener noreferrer",
+      aria: { label: "Open contest win proof" }
+    }
+
+    return options unless url.to_s.start_with?("/")
+
+    options.merge(rel: "noopener")
+  end
 
   def writeup_year(info)
     return Time.parse(info["published"].to_s).year if info["published"].present?

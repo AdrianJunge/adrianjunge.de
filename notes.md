@@ -1,9 +1,4 @@
 # TODOs
-- Add to the templates for the writeups an option to set "writeup-winner" or something like this
-    - this should be visually shown by some shiny Contest win label in the writeup overview and in the writeup itself - when clicking on it you are redirected to the proof
-        - UMDCTF "a minecraft movie": https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959
-        - CSCG "Airsmeller" and "kdfdream": /home/vurlo/stuff/adrianjunge.de/public/ctf/certifications
-
 - remove mathjax from `application.html.erb` into JS file
 - review all the boiler plate code from ruby on Rails and remove what is not needed/necessary
 

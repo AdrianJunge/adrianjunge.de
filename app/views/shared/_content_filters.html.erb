@@ -1,5 +1,6 @@
 <% years = Array(local_assigns.fetch(:years, [])).compact.map(&:to_s).reject(&:blank?).uniq.sort.reverse %>
-<% tags = Array(local_assigns.fetch(:tags, [])).compact.map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by(&:downcase) %>
+<% winner_filter_tag = WriteupWinner::FILTER_LABEL %>
+<% tags = Array(local_assigns.fetch(:tags, [])).compact.map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| WriteupWinner.filter_sort_key(tag) } %>
 <% total = local_assigns.fetch(:total, 0).to_i %>
 <% scope = local_assigns.fetch(:scope) %>
 <% search_id = local_assigns.fetch(:search_id, "#{scope}-search-input") %>
@@ -82,15 +83,26 @@
     <div class="content-filter-tags" aria-label="<%= local_assigns.fetch(:tag_label, "Tags") %>">
       <span class="content-filter-tags-label"><%= local_assigns.fetch(:tag_label, "Tags") %></span>
       <div class="content-filter-tag-list">
-        <% tags.each do |tag| %>
+        <% tags.each do |filter_tag| %>
+          <% winner_filter = filter_tag == winner_filter_tag %>
           <button
             type="button"
-            class="filter-chip content-filter-tag-chip ui-hover-lift"
+            class="filter-chip content-filter-tag-chip <%= winner_filter ? "writeup-winner-badge writeup-winner-badge-filter" : "ui-hover-lift" %>"
             data-filter-scope="<%= scope %>"
-            data-filter-tag="<%= tag %>"
+            data-filter-tag="<%= filter_tag %>"
             aria-pressed="false"
-            aria-label="Filter by <%= tag %>"
-          ><%= tag %></button>
+            aria-label="Filter by <%= filter_tag %>"
+          >
+            <% if winner_filter %>
+              <%= tag.path(
+                    d: "M12 2.75l2.12 5.78 6.13.23-4.82 3.8 1.68 5.9L12 15.05 6.89 18.46l1.68-5.9-4.82-3.8 6.13-.23L12 2.75z",
+                    fill: "currentColor"
+                  ).then { |path| content_tag(:svg, path, class: "writeup-winner-icon", viewBox: "0 0 24 24", aria: { hidden: true }) } %>
+              <span class="writeup-winner-label"><%= filter_tag %></span>
+            <% else %>
+              <%= filter_tag %>
+            <% end %>
+          </button>
         <% end %>
       </div>
     </div>
