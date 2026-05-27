@@ -13,6 +13,7 @@ published: "2024-09-07"
 ---
 
 # TL;DR<a id="TL;DR"></a>
+
     **- Challenge Setup:** **Node.js** server with **nginx** allows setting arbitrary response headers
     **- Key Discoveries:** **Nginx** processes `X-Accel-Redirect` header to gain arbitrary file read in workdir e.g. of `.env`
     **- Check Bypass:** Bypassed X- header restriction using case insensitivity (x-Accel-Redirect)
@@ -20,6 +21,7 @@ published: "2024-09-07"
     **- Check Bypass:** Bypassed filename `/` check by sending the filename as an array: `filename[]=/flag.txt`
 
 # 1. Introduction<a id="introduction"></a>
+
 The description might be a bit misleading at the beginning:
 
 ```
@@ -33,6 +35,7 @@ Dive in and clarify your CORS concepts!
 Although **CORS** is both contained in the title and the description, this challenge is nothing about exploitation of **CORS** misconfigurations.
 
 # 2. Reconnaissance<a id="reconnaissance"></a>
+
 The challenge is about a **node.js** server being deployed together with **nginx**. By starting playing around with the application we are able to add any kinds of CORS-headers to the server response via the `/cors` endpoint appending the headers as url parameters:
 
 ![overview](ctf/writeups/fcsc/corsplayground/corsplayground.png "overview")
@@ -73,9 +76,11 @@ CMD ["/bin/sh", "/start.sh"]
 Anyone is allowed to read the `/flag.txt` because of the `444` rights. But how can we even get a cookie? The server secrets for generating cookies via the `cookie-session` seem to be random, so to forge any cookies we would have to forge a valid signature and thus break the underlying cryptography.
 
 # 3. Vulnerability Description<a id="vulnerability description"></a>
+
 Setting arbitrary headers in the server responses already seems very phishy. At first this seems kina useless. The headers are not processed any further but only appended to the server response. But we still got **nginx** sitting between client and server, so maybe some headers are still processed by **nginx**? There is an interesting header called `X-Accel-Redirect`. Usually this header is used to indicate that a response should be redirected. But in our case we can abuse this header to serve arbitrary files via **nginx**.
 
 # 4. Exploitation<a id="exploitation"></a>
+
 The working directory of **nginx** is `/usr/app`. But before using the `X-Accel-Redirect` header we need to bypass the `key.includes("X-")` check preventing us from using custom headers. Luckily nginx is not case sensitive. Unfortunately **nginx** won't serve us any files that are not contained in `/use/app/*`. So we can't simply request the `../../flag.txt` via e.g. a path traversal. By requesting `GET /cors?x-Accel-Redirect=.env` we get access to the server secrets:
 
 ```http
@@ -154,7 +159,9 @@ FCSC{692ee58458f81decea191104293b2cd00e7d96f287c0f693f9737fbb2bcf5f46}
 So interesting enough the `res.sendfile` in the server code also accepts arrays.
 
 # 5. Mitigation<a id="mitigation"></a>
+
 The vulnerability is inherent to the design. The client should never be able to set arbitray response headers for the server. Moreover the checks trying to prevent exploitation are too lazy. In general using `includes` in security check is almost never a good idea because the match is too broad leading to bypasses.
 
 # 6. Flag<a id="flag"></a>
+
 FCSC{692ee58458f81decea191104293b2cd00e7d96f287c0f693f9737fbb2bcf5f46}

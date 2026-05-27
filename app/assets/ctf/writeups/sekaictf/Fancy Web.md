@@ -16,12 +16,14 @@ hints:
 ---
 
 # TL;DR<a id="TL;DR"></a>
+
     **- Challenge Setup:** **Wordpress** website with custom plugin
     **- Key Discoveries:** custom table generation by making use of **PHP** `unserialize` and a bunch of tries to sanitize the user input
     **- Vulnerability:** insecure deserialization due to insufficient input validation and sanitization
     **- Exploitation:** triggering the **PHP** `unserialize` and exploiting a POP chain in the **Wordpress** core
 
 # 1. Introduction<a id="introduction"></a>
+
 Starting the web application, we are greeted by a simple page that allows us to input arbitrary base-64 strings of serialized data:
 
 ![landing-page](ctf/writeups/sekaictf/fancyweb/landing.png "landing-page")
@@ -37,6 +39,7 @@ Inserting the test payload leads to the generation of our own table:
 Also hinting the `__wakeup` method already secured the input strongly indicates that this is a **PHP** `unserialize` challenge.
 
 # 2. Reconnaissance<a id="reconnaissance"></a>
+
 Having a look into the challenge setup it becomes clear this is a **Wordpress** website running the latest version `6.8.2`. **Wordpress** is a very popular CMS (content management system) based on **PHP**, which allows you to build websites without requiring deeper knowledge in **PHP**. **Wordpress** comes by default with its core code and allows you to add several plugins and themes to improve the functionality and visuals of your website. The challenge has a plugin named `fancy`, which might be custom-written as its directory suggests. Having a look at the code of the `fancy.php` it seems like there is a lot going on with almost 800 lines of **PHP** code. Funny enough on top of the `SecureTableGenerator` class is a comment hinting that most of the code is written with AI models like **ChatGPT** or **ClaudeAI**:
 
 ```php
@@ -76,12 +79,15 @@ if ($userSerializedData === false) {
 ```
 
 # 3. Vulnerability Description<a id="vulnerability description"></a>
+
 The website intends that users are only allowed to input serialized `SecureTableGenerator` objects. But the security validations to ensure this are very bad. As we already saw, the `unserialize` function is called on any user input without previous validations and sanitizations. Although just right after the `unserialize`, there is a check trying to make sure only `SecureTableGenerator` was deserialized. But at this point, any malicious `unserialize` payload was already executed, so there is no point in making these checks just afterwards. When `unserialize` is called, internally **PHP** will automatically call the `__wakeup` method of the dedicated object that is deserialized, if defined. Besides objects, it is also possible to deserialize a bunch of other stuff like arrays, strings, and integers. If you are interested in reading further information about **PHP** serialization I recommend reading [PHP serialization](https://www.phpinternalsbook.com/php5/classes_objects/serialization.html).
 
 # 4. Exploitation<a id="exploitation"></a>
+
 An attacker could now create a malicious payload with a serialized object. To achieve RCE we need a special sink that e.g. allows us to execute arbitrary **PHP** functions. To reach these sinks, we can start, for example, with the `__wakeup` method that is automatically called via `unserialize`. But not only is `__wakeup` automatically called, there are a lot of other methods like `__destruct` and  `__toString` that are called at a specific point and might be interesting as an entry point. To eventually reach our RCE sink, we have to create a chain of different objects with carefully set properties. This could influencing the control flow of, for example, the `__wakeup` method and all the called functionality by triggering only specific branches. This is called a POP chain (Property Oriented Programming). So to exploit the `unserialize` vulnerability we have to find such a POP chain either in the `fancy` plugin itself or in the **Wordpress** core.
 
 # 4.1. The POP Entry<a id="the pop entry"></a>
+
 Having a look at the plugin code itself, most of the functionality is about some weird **XSS** sanitizations which are not interesting at all to us. However an interesting sanitization is the removal of specific malicious **PHP** keywords like `eval`, `exec` and `system`. If we want to make use of `SecureTableGenerator` for our malicious payload, we need to be aware of this. During the competition, two hints were released as a lot of people got stuck:
 
 ```
@@ -112,6 +118,7 @@ In the plugin code itself, we can find the following part, which matches the des
 When `in_array` is being called, to check wether an array consisting of strings contains a specific string, **PHP** will internally call `__toString` if objects are used for the comparison. For our POP chain, we can make use of this as the `resetSecurityProperties` method is called via the `__wakeup` method of the `SecureTableGenerator` class. We fully control the `allowedTags` array property, so we can set an element as an object for which the `__toString` method will be called for the comparison. So the `SecureTableGenerator` might be our best entry for this POP chain, followed by a class that implements an exploitable `__toString` method.
 
 # 4.2. The Source And The Sink<a id="the source and the sink"></a>
+
 Now it becomes exponentially difficult to create the POP chain. There could be a lot of different ways to reach an RCE sink, and we have to figure this out. Fortunately there is already an interesting [article](https://wpscan.com/blog/finding-a-rce-gadget-chain-in-wordpress-core/) about finding POP chains in the **Wordpress** core which will also help us building up the POP chain. Reading through this article and searching in the source code of **Wordpress** we can find out that neither the source nor the sink is usable anymore. However, the middle part of the POP chain is still usable.
 
 For the source, the article uses a class called [WP_Theme](https://github.com/WordPress/WordPress/blob/6.8.2/wp-includes/class-wp-theme.php#L550). This POP chain entry was fixed by **Wordpress** by implementing some checks in its `__wakeup` method. However there are still some interesting classes around in the **Wordpress** core one of them being [WP_HTML_Tag_Processor](https://github.com/WordPress/WordPress/blob/6.8.2/wp-includes/html-api/class-wp-html-tag-processor.php#L4125) implementing an interesting `__toString` method as we will see soon.
@@ -132,6 +139,7 @@ We have full control over the `$patterns` as we can set them ourselves as an att
 So now that we have our source, `WP_HTML_Tag_Processor` with the `__toString` method, which we can trigger via the `SecureTableGenerator` due to the `in_array` operations, and our sink, `WP_Block_Patterns_Registry`, obtaining RCE due to the controlled **PHP** `include` call, we can now connect both ends to get a full POP chain.
 
 # 4.3. Chain Assembly<a id="chain assembly"></a>
+
 The [article](https://wpscan.com/blog/finding-a-rce-gadget-chain-in-wordpress-core/) describes an interesting technique to pivot from one class to another by leveraging classes that implement the `ArrayAccess` class. If a class implements it, it will behave similarly to a normal array but by implementing its own functionality, e.g., for index accesses. The [blog](https://wpscan.com/blog/finding-a-rce-gadget-chain-in-wordpress-core/) uses the `WP_Block_List` class, and this is the same we are also looking for. Starting with our source `WP_HTML_Tag_Processor` within the `__toString` method, we go over to the `get_updated_html` method, which will eventually call `class_name_updates_to_attributes_updates`. This method got an interesting case handling `$this->attributes` as an array, which is exactly what we are looking for:
 
 ```php
@@ -173,9 +181,11 @@ public function __construct( $block, $available_context = array(), $registry = n
 Eventually, the `get_registered` method is called on the `$registry` attribute of the `WP_Block` instance. So, setting the `$registry` to an instance of `WP_Block_Patterns_Registry`, we will finally reach our sink with the `include` being called and achieve RCE.
 
 # 5. Mitigation<a id="mitigation"></a>
+
 Rule number one is always escape, validate, and sanitize any external input. The use of `unserialize` always comes with its risks, as presented with this challenge. Although the custom **Wordpress** plugin `fancy` doesn't have an exploitable POP chain itself, you should always be aware that the underlying code like the **Wordpress** core also might have some flaws. So don't use `unserialize` if not really necessary. If you really need to use `unserialize` make sure to only use it on very restricted input sources and use whitelists and other methods vor sanitization. Although the developers of the `fancy` plugin tried to implement simple whitelists, it has been done very poorly. As soon as the `unserialize` is called, it doesn't make any sense to do some kind of filtering afterwards, as the payload has already been executed.
 
 # 6. Solve script<a id="solve script"></a>
+
 As unfortunately, I wasn't able to solve the challenge in time during the competition (nor did anyone else), the following are the public solve scripts of the [author](https://github.com/dimasma0305) which can also be found among the other challenge files in [this repository](https://github.com/project-sekai-ctf/sekaictf-2025/tree/main/web/fancy-web/solution):
 
 ```php
@@ -431,4 +441,5 @@ if __name__ == "__main__":
 ```
 
 # 7. Flag<a id="flag"></a>
+
 SEKAI{wordpress_new_gadget}

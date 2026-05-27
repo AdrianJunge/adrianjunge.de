@@ -1,8 +1,6 @@
 # TODOs
 - Add some SEO automation script? If we want to publish some new post/writeup what has to be done?
 
-- Add to the other blog post and the ctf challenge writeups newlines where it fits - don't change the content
-
 - Add minutes of reading approximation via the wordcount
 
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster

@@ -16,17 +16,20 @@ writeup_winner:
 ---
 
 # TL;DR<a id="TL;DR"></a>
+
     **- Challenge Setup:** This challenge is about a **DOMPurify** bypass
     **- Key Discoveries:** **DOMPurify** is used server-side
     **- Vulnerability:** The used **JSDOM** library to offer a DOM parser for **DOMPurify** is outdated
     **- Exploitation:** By abusing an implementation but in the old **JSDOM** version, we can bypass **DOMPurify**
 
 # 1. Introduction<a id="introduction"></a>
+
 This web challenge aimed to identify and exploit a bypass in **DOMPurify** to achieve Cross-Site Scripting (XSS) and ultimately steal the admin's cookie. The challenge description already hints at the role of a sanitizer in the exploitation process.
 <span>
 In the following sections, we walk through the entire process, from the initial analysis to the final exploitation.
 
 # 2. Reconnaissance<a id="reconnaissance"></a>
+
 Fortunately, the source code for the website is provided in this challenge. It is a small website built with **Next.js** using **React** and written in **TypeScript**. An admin bot, using **Chromium**, checks the website every 60 seconds and carries the flag in its cookie. Moreover, the attribute `httpOnly: false` allows us to access the cookie via JavaScript, so there is a high probability that this is an XSS challenge.
 <span>
 On the landing page, where we can submit our ratings, the input is reflected in both input fields:
@@ -46,6 +49,7 @@ Why? Because older versions of jsdom are known to be buggy in ways that result i
 ```
 
 # 3. Bypassing DOMPurify - Finding Differentials<a id="bypassing DOMPurify - finding differentials"></a>
+
 Bypassing **DOMPurify** is challenging when it is used correctly. Typically, you would use the latest version of **DOMPurify** client-side so that the sanitizer uses the same DOM parser as the browser rendering the website. When using a sanitizer like **DOMPurify**, the untrusted payload is parsed at least two times:
 <span>
 The first time, by the DOM parser used by **DOMPurify**, and the second time by the DOM parser of the browser, the website is being rendered on. Using the **DOMPurify** client-side avoids parser differentials that originate from **DOMPurify** using a different parser in the backend than the client. Nevertheless, bypassing even the latest version of **DOMPurify** running client-side is not impossible. If you are interested in the whole topic around mutation XSS (mXSS), I can highly recommend [this article](https://mizu.re/post/exploring-the-dompurify-library-bypasses-and-fixes).
@@ -127,6 +131,7 @@ while **Chromium**'s **DOMParser** serializes it as:
 It is worth noting that all of this code search in GitHub was not necessary to uncover the parser differentials and even a working payload for the challenge. For more insights into parsing differentials used to bypass HTML sanitizers like **DOMPurify**, I refer to [this research paper](https://www.ias.cs.tu-bs.de/publications/parsing_differentials.pdf).
 
 # 4. Exploitation<a id="exploitation"></a>
+
 The final payload is straightforward once you understood the serializer bug in **parse5**:
 
 ```html
@@ -136,7 +141,9 @@ The final payload is straightforward once you understood the serializer bug in *
 By using the encoded opening tag `&lt;`, we can inject an image tag with an `onerror` event past the **DOMPurify** sanitizer. This event triggers a redirect to our webhook, effectively exfiltrating the cookie that contains the flag `CSCG{0ld_A1r_Smeels_B4d}`.
 
 # 5. Mitigation<a id="mitigation"></a>
+
 The vulnerability is about using **DOMPurify** with an outdated version of **jsdom** (and consequently an outdated **parse5** version). Updating these dependencies would resolve the issue. So always precisely read the documentation on how to use security-relevant libraries like **DOMPurify**. Additionally, shifting **DOMPurify** from a server-side to a client-side implementation would prevent parser and serializer differentials, as the same DOM parser would be used throughout. Implementing a robust Content Security Policy (CSP) further restricts JavaScript execution, adding another layer of defense against XSS. Morover, try to use `httpOnly` cookies on your website if none of your javascript needs to access cookies. Finally, if not absolutely necessary, avoid using `innerHTML` (or in this case `dangerouslySetInnerHTML`) with untrusted input.
 
 # 6. Flag<a id="flag"></a>
+
 CSCG{0ld_A1r_Smeels_B4d}
