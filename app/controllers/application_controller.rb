@@ -12,6 +12,15 @@ class ApplicationController < ActionController::Base
   ABOUTME_CHALLENGES_PATH = ABOUTME_BASE_PATH.join("challenges.json")
   ABOUTME_CERTIFICATES_PATH = ABOUTME_BASE_PATH.join("certificates.json")
   ABOUTME_ACHIEVEMENTS_PATH = ABOUTME_BASE_PATH.join("achievements.json")
+  CONTENT_FILTER_KIND_LABELS = [
+    "CTF writeup",
+    "Blog post",
+    "CVE",
+    "Bug bounty",
+    "Created challenge",
+    "Certificate",
+    "Achievement"
+  ].freeze
   ERROR_CONTENT = {
     bad_request: {
       status: :bad_request,
@@ -171,6 +180,30 @@ class ApplicationController < ActionController::Base
       .reject(&:blank?)
       .uniq { |value| value.downcase }
       .sort_by { |value| WriteupWinner.filter_sort_key(value) }
+  end
+
+  def filter_tag_groups(values, content_labels: [], topic_label: "Topics")
+    tags = sorted_filter_values(values)
+    grouped = []
+
+    winner_tags, tags = tags.partition { |value| value == WriteupWinner::FILTER_LABEL }
+    grouped << { label: "Recognition", tags: winner_tags } if winner_tags.any?
+
+    content_lookup = Array(content_labels).index_by(&:downcase)
+    if content_lookup.any?
+      content_tags, tags = tags.partition { |value| content_lookup.key?(value.downcase) }
+      grouped << { label: "Content type", tags: content_tags } if content_tags.any?
+    end
+
+    grouped << { label: topic_label, tags: tags } if tags.any?
+    grouped
+  end
+
+  def achievement_event_count(entries)
+    Array(entries).sum do |entry|
+      events = Array(entry["events"]).select { |event| event.is_a?(Hash) && event["title"].present? }
+      events.any? ? events.length : 1
+    end
   end
 
   def get_all_posts_for_feed(base_path, info_path, link_prefix)

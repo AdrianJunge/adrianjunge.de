@@ -12,6 +12,15 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
         "details" => [
           "Solved practical web and pwn tasks."
         ],
+        "events" => [
+          {
+            "id" => "example-2026",
+            "title" => "Example 2026 #1",
+            "date" => "2026-01-02",
+            "summary" => "Won the example event.",
+            "url" => "https://example.com/event"
+          }
+        ],
         "links" => [
           { "label" => "Reference", "url" => "https://example.com/reference" }
         ]
@@ -20,7 +29,10 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
 
     assert_select "article.aboutme-achievement-card"
     assert_select "h3 a[href=?][target=?][rel=?]", "https://example.com/milestone", "_blank", "noopener noreferrer", text: "Example milestone"
-    assert_select ".aboutme-achievement-meta time[datetime=?]", "2026"
+    assert_select ".aboutme-achievement-meta time", 0
+    assert_select ".aboutme-achievement-event#example-2026"
+    assert_select ".aboutme-achievement-event h4 a[href=?][target=?][rel=?]", "https://example.com/event", "_blank", "noopener noreferrer", text: "Example 2026 #1"
+    assert_select ".aboutme-achievement-event time[datetime=?]", "2026-01-02"
     assert_select ".aboutme-link-row a[href=?]", "https://example.com/reference"
   end
 

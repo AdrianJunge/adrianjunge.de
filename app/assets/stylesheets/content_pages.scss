@@ -308,6 +308,23 @@
     text-transform: uppercase;
 }
 
+.content-page .content-filter-tag-groups {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.content-page .content-filter-tag-group {
+    display: grid;
+    gap: 0.42rem;
+}
+
+.content-page .content-filter-tag-group-label {
+    color: rgba(148, 163, 184, 0.9);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
 .content-page .content-filter-tag-list {
     display: flex;
     flex-wrap: wrap;
@@ -1244,6 +1261,107 @@
     font-weight: 800;
 }
 
+.timeline-page .timeline-source {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+    color: rgba(226, 232, 240, 0.7);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.search-page .search-results-container {
+    display: grid;
+    width: calc(100% - 2rem);
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.5rem 0 4rem;
+    gap: 1rem;
+}
+
+.search-page .search-result-entry {
+    min-width: 0;
+}
+
+.search-page .search-result-card {
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.26fr) minmax(0, 1fr);
+    gap: 0.9rem 1.25rem;
+    min-width: 0;
+    padding: 1.25rem;
+    border: 1px solid rgba(93, 116, 158, 0.7);
+    border-radius: var(--radius-ui);
+    background: rgba(24, 36, 58, 0.82);
+    color: inherit;
+    text-decoration: none;
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.18);
+    transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.search-page .search-result-card:hover {
+    border-color: rgba(125, 211, 252, 0.85);
+    background: rgba(24, 36, 58, 0.94);
+    box-shadow: 0 1.25rem 2.5rem rgba(0, 0, 0, 0.24);
+}
+
+.search-page .search-result-kind {
+    align-self: start;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid rgba(125, 211, 252, 0.32);
+    border-radius: var(--radius-ui-pill);
+    color: #cffafe;
+    background: rgba(8, 145, 178, 0.16);
+    font-size: 0.78rem;
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+.search-page .search-result-main {
+    display: grid;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.search-page .search-result-title {
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.search-page .search-result-description {
+    color: rgba(226, 232, 240, 0.84);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.search-page .search-result-footer {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 2;
+    gap: 0.5rem;
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.search-page .search-result-source {
+    color: #7dd3fc;
+}
+
+.search-page .search-result-tags {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 2;
+    gap: 0.45rem;
+}
+
 .landing-page {
     padding: 0 1rem 4rem;
 }
@@ -1327,6 +1445,85 @@
 
 .landing-page .landing-writeup-cards .blog-post-card-details {
     gap: 0.75rem;
+}
+
+.landing-page .landing-featured-section {
+    width: 100%;
+    margin-bottom: 3rem;
+}
+
+.landing-page .landing-featured-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+}
+
+.landing-page .landing-featured-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+    min-height: 15rem;
+    padding: 1.25rem;
+    border: 1px solid rgba(93, 116, 158, 0.7);
+    border-radius: var(--radius-ui);
+    background:
+        linear-gradient(180deg, rgba(8, 145, 178, 0.12), rgba(24, 36, 58, 0) 45%),
+        rgba(24, 36, 58, 0.82);
+    color: inherit;
+    text-decoration: none;
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.18);
+    transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.landing-page .landing-featured-card:hover {
+    border-color: rgba(125, 211, 252, 0.85);
+    background:
+        linear-gradient(180deg, rgba(8, 145, 178, 0.2), rgba(24, 36, 58, 0) 45%),
+        rgba(24, 36, 58, 0.94);
+    box-shadow: 0 1.25rem 2.5rem rgba(0, 0, 0, 0.24);
+}
+
+.landing-page .landing-featured-topline,
+.landing-page .landing-featured-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.landing-page .landing-featured-kind {
+    padding: 0.25rem 0.55rem;
+    border: 1px solid rgba(125, 211, 252, 0.35);
+    border-radius: var(--radius-ui-pill);
+    color: #cffafe;
+    background: rgba(8, 145, 178, 0.16);
+}
+
+.landing-page .landing-featured-title {
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 900;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.landing-page .landing-featured-description {
+    color: rgba(226, 232, 240, 0.84);
+    font-size: 0.94rem;
+    line-height: 1.6;
+}
+
+.landing-page .landing-featured-meta {
+    margin-top: auto;
+    color: #7dd3fc;
 }
 
 .landing-page .landing-hero-shell {
@@ -1588,6 +1785,10 @@
     .landing-page .landing-actions {
         justify-content: center;
     }
+
+    .landing-page .landing-featured-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 720px) {
@@ -1677,6 +1878,21 @@
 
     .timeline-page .timeline-item {
         padding-left: 1.25rem;
+    }
+
+    .search-page .search-results-container {
+        width: calc(100% - 4.5rem);
+        margin-right: 1rem;
+        margin-left: 3.5rem;
+    }
+
+    .search-page .search-result-card {
+        grid-template-columns: 1fr;
+    }
+
+    .search-page .search-result-footer,
+    .search-page .search-result-tags {
+        grid-column: 1;
     }
 
     .content-page .writeup-wrapper {
@@ -1772,6 +1988,7 @@
 @media (max-width: 380px) {
     .content-hero-inner,
     .timeline-shell,
+    .search-page .search-results-container,
     .content-page .ctf-cards-container,
     .content-page .blog-posts-container,
     .content-page .writeup-content,

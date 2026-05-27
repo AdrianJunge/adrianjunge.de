@@ -4,7 +4,8 @@ module SidebarHelper
       { image_path: "task-bar/home.svg", alt_text: "Home Icon", label: "Home", link: root_path },
       { image_path: "task-bar/about.svg", alt_text: "About Icon", label: "About me", link: about_path },
       { image_path: "task-bar/flag.svg", alt_text: "CTF Icon", label: "CTF", link: ctf_path },
-      { image_path: "task-bar/blog.svg", alt_text: "Blog Icon", label: "Blog", link: blog_path }
+      { image_path: "task-bar/blog.svg", alt_text: "Blog Icon", label: "Blog", link: blog_path },
+      { image_path: "task-bar/search.svg", alt_text: "Global Search Icon", label: "Global Search", link: search_path }
     ]
   end
 
@@ -55,9 +56,9 @@ module SidebarHelper
 
       concat(taskbar_icon_item(
         image_path: "task-bar/post.svg",
-        alt_text: "Posts Icon",
-        label: "Posts",
-        link: posts_path,
+        alt_text: "Timeline Icon",
+        label: "Timeline",
+        link: timeline_path,
         icon_class: taskbar_icon_class,
         label_class: taskbar_label_class,
       ))

@@ -1,10 +1,11 @@
+<% timeline_description = "Security research, CVEs, bug bounties, certificates, achievements, blog posts, and CTF writeups ordered by date." %>
+
 <% content_for :head do %>
-  <% timeline_description = "All blog posts and CTF writeups ordered by publication year." %>
   <%= seo_meta_tags(
-        title: "Posts timeline",
+        title: "Timeline",
         description: timeline_description,
-        canonical_path: posts_path,
-        json_ld: seo_collection_schema(title: "Posts timeline", description: timeline_description, canonical_path: posts_path)
+        canonical_path: timeline_path,
+        json_ld: seo_collection_schema(title: "Timeline", description: timeline_description, canonical_path: timeline_path)
       ) %>
 <% end %>
 
@@ -14,9 +15,9 @@
 <main class="content-page timeline-page">
 <%= render "shared/content_hero",
            icon_path: "task-bar/post.svg",
-           icon_alt: "Posts timeline",
-           title: "Posts timeline",
-           description: "All blog posts and CTF writeups ordered by publication year." %>
+           icon_alt: "Timeline",
+           title: "Timeline",
+           description: timeline_description %>
 
 <div class="timeline-shell">
   <ul class="timeline">
@@ -25,7 +26,7 @@
         <div class="flex items-baseline justify-between mb-4">
           <h2 class="text-2xl font-semibold text-white"><%= year %></h2>
           <span class="ui-pill bg-slate-800 text-slate-200">
-            <%= items.size %> posts
+            <%= items.size %> <%= items.size == 1 ? "item" : "items" %>
           </span>
         </div>
 
@@ -34,9 +35,9 @@
             <li class="timeline-item">
               <div class="timeline-date">
                 <time datetime="<%= item[:published].iso8601 %>">
-                  <%= item[:published].strftime('%Y-%m-%d') %>
+                  <%= item[:display_date] %>
                 </time>
-                <div class="text-xs mt-1 text-gray-500"><span class="ui-tag-pill bg-slate-800 text-slate-200"><%= item[:which].upcase %></span></div>
+                <div class="text-xs mt-1 text-gray-500"><span class="ui-tag-pill bg-slate-800 text-slate-200"><%= item[:label] %></span></div>
               </div>
 
               <div class="timeline-connector">
@@ -48,9 +49,18 @@
                   <%= item[:title] %>
                 </span>
 
-                <div class="timeline-meta mt-1">
-                    <%= item[:description] %>
-                </div>
+                <% if item[:description].present? %>
+                  <div class="timeline-meta mt-1">
+                      <%= item[:description] %>
+                  </div>
+                <% end %>
+
+                <span class="timeline-source">
+                  <%= item[:source] %>
+                  <% if item[:tags].any? %>
+                    <span><%= item[:tags].first(3).join(" · ") %></span>
+                  <% end %>
+                </span>
 
               </a>
             </li>

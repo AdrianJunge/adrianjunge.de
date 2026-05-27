@@ -18,6 +18,7 @@ class CtfController < ApplicationController
     @ctf_tags = @ctf_filters.transform_values { |filters| filters[:tags] }
     @filter_years = @ctf_years.values.flatten.uniq.sort.reverse
     @filter_tags = sorted_filter_values(@ctf_tags.values.flatten)
+    @filter_tag_groups = filter_tag_groups(@filter_tags, topic_label: "Challenge tags")
   end
 
   def which
@@ -31,6 +32,7 @@ class CtfController < ApplicationController
     @writeups = @ctf_info.keys
     @filter_years = @ctf_info.values.filter_map { |metadata| metadata_year(metadata) }.uniq.sort.reverse
     @filter_tags = sorted_filter_values(@ctf_info.values.flat_map { |metadata| metadata_tags(metadata) })
+    @filter_tag_groups = filter_tag_groups(@filter_tags, topic_label: "Challenge tags")
   end
 
   def writeup

@@ -50,3 +50,28 @@ Challenge, certificate, and achievement entries support these fields:
 ```
 
 `summary` and `details` are optional for TBA milestone cards.
+
+Achievement entries can group dated events so every event becomes its own search and timeline item:
+
+```json
+{
+  "title": "Competition series",
+  "title_url": "https://example.com",
+  "category": "CTF Competition",
+  "summary": "Optional section summary.",
+  "links": [
+    { "label": "Reference", "url": "https://example.com" }
+  ],
+  "events": [
+    {
+      "id": "competition-2026",
+      "title": "Competition 2026 #1",
+      "date": "2026-01-01",
+      "summary": "Placed first.",
+      "url": "https://example.com/event"
+    }
+  ]
+}
+```
+
+Use event-level `id`, `title`, and `date` for timeline entries. Event `summary`, `details`, `links`, and `url` are optional.

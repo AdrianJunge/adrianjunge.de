@@ -6,7 +6,8 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     "About me" => "/about",
     "CTF" => "/ctf",
     "Blog" => "/blog",
-    "Posts" => "/posts-timeline"
+    "Global Search" => "/search",
+    "Timeline" => "/timeline"
   }.freeze
 
   PUBLIC_PAGES_WITH_SIDEBAR = [
@@ -14,7 +15,8 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     "/about",
     "/ctf",
     "/blog",
-    "/posts-timeline"
+    "/search",
+    "/timeline"
   ].freeze
 
   test "main sidebar navigation is present on every public page with sidebar" do
@@ -41,9 +43,10 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
 
   test "terminal exposes only route scoped child navigation" do
     expected_labels = {
-      "/" => %w[~ . .. about ctf blog posts-timeline],
+      "/" => %w[~ . .. about ctf blog search timeline],
       "/about" => %w[~ . ..],
-      "/posts-timeline" => %w[~ . ..]
+      "/search" => %w[~ . ..],
+      "/timeline" => %w[~ . ..]
     }
 
     expected_labels.each do |path, labels|

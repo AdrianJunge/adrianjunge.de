@@ -1,10 +1,23 @@
 <% years = Array(local_assigns.fetch(:years, [])).compact.map(&:to_s).reject(&:blank?).uniq.sort.reverse %>
 <% winner_filter_tag = WriteupWinner::FILTER_LABEL %>
 <% tags = Array(local_assigns.fetch(:tags, [])).compact.map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| WriteupWinner.filter_sort_key(tag) } %>
+<% tag_groups = Array(local_assigns.fetch(:tag_groups, [])).filter_map do |group|
+     next unless group.is_a?(Hash)
+
+     group_tags = Array(group[:tags] || group["tags"]).compact.map(&:to_s).reject(&:blank?)
+     next if group_tags.empty?
+
+     {
+       label: (group[:label] || group["label"]).to_s,
+       tags: group_tags.uniq { |tag| tag.downcase }.sort_by { |tag| WriteupWinner.filter_sort_key(tag) }
+     }
+   end %>
+<% tag_groups = [ { label: "", tags: tags } ] if tag_groups.empty? && tags.any? %>
 <% total = local_assigns.fetch(:total, 0).to_i %>
 <% scope = local_assigns.fetch(:scope) %>
 <% search_id = local_assigns.fetch(:search_id, "#{scope}-search-input") %>
 <% clear_id = local_assigns.fetch(:clear_id, "#{scope}-search-clear") %>
+<% search_value = local_assigns.fetch(:search_value, nil) %>
 
 <div class="content-filter-panel" data-filter-scope="<%= scope %>">
   <div class="content-filter-row">
@@ -13,6 +26,7 @@
         type="text"
         id="<%= search_id %>"
         placeholder="<%= local_assigns.fetch(:placeholder, "Search...") %>"
+        value="<%= search_value %>"
         class="content-filter-input <%= local_assigns.fetch(:input_class, "") %>"
         data-filter-search="<%= scope %>"
       >
@@ -79,30 +93,39 @@
     <% end %>
   </div>
 
-  <% if tags.any? %>
+  <% if tag_groups.any? %>
     <div class="content-filter-tags" aria-label="<%= local_assigns.fetch(:tag_label, "Tags") %>">
       <span class="content-filter-tags-label"><%= local_assigns.fetch(:tag_label, "Tags") %></span>
-      <div class="content-filter-tag-list">
-        <% tags.each do |filter_tag| %>
-          <% winner_filter = filter_tag == winner_filter_tag %>
-          <button
-            type="button"
-            class="filter-chip content-filter-tag-chip <%= winner_filter ? "writeup-winner-badge writeup-winner-badge-filter" : "ui-hover-lift" %>"
-            data-filter-scope="<%= scope %>"
-            data-filter-tag="<%= filter_tag %>"
-            aria-pressed="false"
-            aria-label="Filter by <%= filter_tag %>"
-          >
-            <% if winner_filter %>
-              <%= tag.path(
-                    d: "M12 2.75l2.12 5.78 6.13.23-4.82 3.8 1.68 5.9L12 15.05 6.89 18.46l1.68-5.9-4.82-3.8 6.13-.23L12 2.75z",
-                    fill: "currentColor"
-                  ).then { |path| content_tag(:svg, path, class: "writeup-winner-icon", viewBox: "0 0 24 24", aria: { hidden: true }) } %>
-              <span class="writeup-winner-label"><%= filter_tag %></span>
-            <% else %>
-              <%= filter_tag %>
+      <div class="content-filter-tag-groups">
+        <% tag_groups.each do |group| %>
+          <div class="content-filter-tag-group">
+            <% if group[:label].present? %>
+              <span class="content-filter-tag-group-label"><%= group[:label] %></span>
             <% end %>
-          </button>
+            <div class="content-filter-tag-list">
+              <% group[:tags].each do |filter_tag| %>
+                <% winner_filter = filter_tag == winner_filter_tag %>
+                <button
+                  type="button"
+                  class="filter-chip content-filter-tag-chip <%= winner_filter ? "writeup-winner-badge writeup-winner-badge-filter" : "ui-hover-lift" %>"
+                  data-filter-scope="<%= scope %>"
+                  data-filter-tag="<%= filter_tag %>"
+                  aria-pressed="false"
+                  aria-label="Filter by <%= filter_tag %>"
+                >
+                  <% if winner_filter %>
+                    <%= tag.path(
+                          d: "M12 2.75l2.12 5.78 6.13.23-4.82 3.8 1.68 5.9L12 15.05 6.89 18.46l1.68-5.9-4.82-3.8 6.13-.23L12 2.75z",
+                          fill: "currentColor"
+                        ).then { |path| content_tag(:svg, path, class: "writeup-winner-icon", viewBox: "0 0 24 24", aria: { hidden: true }) } %>
+                    <span class="writeup-winner-label"><%= filter_tag %></span>
+                  <% else %>
+                    <%= filter_tag %>
+                  <% end %>
+                </button>
+              <% end %>
+            </div>
+          </div>
         <% end %>
       </div>
     </div>

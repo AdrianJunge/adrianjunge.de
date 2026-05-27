@@ -11,9 +11,10 @@ class SeoController < ApplicationController
     entries = [
       sitemap_entry(root_path, newest_mtime(site_content_paths)),
       sitemap_entry(about_path, newest_mtime(about_content_paths)),
+      sitemap_entry(search_path, newest_mtime(site_content_paths)),
       sitemap_entry(ctf_path, newest_mtime(ctf_content_paths)),
       sitemap_entry(blog_path, newest_mtime(blog_content_paths)),
-      sitemap_entry(posts_path, newest_mtime(site_content_paths))
+      sitemap_entry(timeline_path, newest_mtime(site_content_paths))
     ]
 
     entries.concat(ctf_sitemap_entries)

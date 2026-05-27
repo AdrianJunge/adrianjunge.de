@@ -1,11 +1,13 @@
 class LandingController < ApplicationController
   def index
     @most_recent_posts = most_recent_all_posts(3)
-    @amount_posts, @amount_ctfs = get_amounts()
+    @featured_items = ContentIndex.new.featured_items(3)
+    @amount_posts = get_post_amount
     @amount_cves = read_aboutme_count(ABOUTME_CVES_PATH)
     @amount_bug_bounties = read_aboutme_count(ABOUTME_BUG_BOUNTIES_PATH)
+    @amount_challenges = read_aboutme_count(ABOUTME_CHALLENGES_PATH)
     @amount_certificates = read_aboutme_count(ABOUTME_CERTIFICATES_PATH)
-    @amount_achievements = read_aboutme_count(ABOUTME_ACHIEVEMENTS_PATH)
+    @amount_achievements = achievement_event_count(read_aboutme_json(ABOUTME_ACHIEVEMENTS_PATH))
 
     begin
       @blogs = JSON.parse(File.read(BLOG_INFO_PATH))
@@ -16,13 +18,9 @@ class LandingController < ApplicationController
 
   private
 
-  def get_amounts
+  def get_post_amount
     ctf_infos = get_all_ctf_infos()
-    post_amount = 0
-    ctf_infos.each do |ctf_info|
-      post_amount += ctf_info.length
-    end
-    [ post_amount, ctf_infos.length ]
+    ctf_infos.sum(&:length) + get_blog_posts_for_feed.length
   end
 
   def most_recent_all_posts(limit = 3)
@@ -35,10 +33,14 @@ class LandingController < ApplicationController
   end
 
   def read_aboutme_count(path)
-    return 0 unless File.exist?(path)
+    read_aboutme_json(path).length
+  end
 
-    JSON.parse(File.read(path)).length
+  def read_aboutme_json(path)
+    return [] unless File.exist?(path)
+
+    JSON.parse(File.read(path))
   rescue JSON::ParserError
-    0
+    []
   end
 end

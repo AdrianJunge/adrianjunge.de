@@ -1,10 +1,9 @@
 [
   {
-    "id": "firedancer-v1-audit-competition-tba",
-    "title": "Firedancer v1.0 audit competition (TBA)",
+    "id": "firedancer-v1-audit-competition",
+    "title": "Firedancer v1.0 audit competition",
     "title_url": "https://immunefi.com/audit-competition/firedancer-v1-audit-comp/information/",
     "category": "Audit Competition",
-    "date": "2026",
     "links": [
       {
         "label": "Audit competition",
@@ -14,6 +13,13 @@
         "label": "Firedancer repository",
         "url": "https://github.com/firedancer-io/firedancer"
       }
+    ],
+    "events": [
+      {
+        "id": "firedancer-v1-audit-competition-tba",
+        "title": "Firedancer v1.0 audit competition (TBA)",
+        "date": "2026"
+      }
     ]
   },
   {
@@ -21,16 +27,25 @@
     "title": "DHM",
     "title_url": "https://hacking-meisterschaft.de/",
     "category": "CTF Competition",
-    "date": "2025, 2024",
     "summary": "Deutsche Hacking Meisterschaft (CSCG finals)",
-    "details": [
-      "2025: Participated in the DHM finals after qualifying through CSCG.",
-      "2024: Placed #1 at the Deutsche Hacking Meisterschaft."
-    ],
     "links": [
       {
         "label": "DHM",
         "url": "https://hacking-meisterschaft.de/"
+      }
+    ],
+    "events": [
+      {
+        "id": "dhm-2025",
+        "title": "DHM 2025 participation",
+        "date": "2025-06-20",
+        "summary": "Participated in the DHM finals after qualifying through CSCG."
+      },
+      {
+        "id": "dhm-2024",
+        "title": "DHM 2024 #1",
+        "date": "2024-07-12",
+        "summary": "Placed #1 at the Deutsche Hacking Meisterschaft."
       }
     ]
   },
@@ -39,16 +54,25 @@
     "title": "CSCG",
     "title_url": "https://cscg.de/",
     "category": "CTF Competition",
-    "date": "2025, 2024",
     "summary": "Cyber Security Challenges Germany: Qualified for DHM in 2024 and 2025.",
-    "details": [
-      "2025: Qualified for DHM again and finished top 10 globally.",
-      "2024: Qualified for DHM through CSCG."
-    ],
     "links": [
       {
         "label": "CSCG",
         "url": "https://cscg.de/"
+      }
+    ],
+    "events": [
+      {
+        "id": "cscg-2025",
+        "title": "CSCG 2025 top 10 global",
+        "date": "2025-05-01",
+        "summary": "Qualified for DHM again and finished top 10 globally."
+      },
+      {
+        "id": "cscg-2024",
+        "title": "CSCG 2024 DHM qualification",
+        "date": "2024-05-01",
+        "summary": "Qualified for DHM through CSCG."
       }
     ]
   },
@@ -57,20 +81,62 @@
     "title": "KITCTF",
     "title_url": "https://ctftime.org/team/7221/",
     "category": "CTF Team",
-    "date": "2024, 2025",
     "summary": "Selected KITCTF team results across international CTFs and finals qualifiers.",
-    "details": [
-      "2025: #6 at GoogleCTF as the FluxKITtens merger team (FluxFingers & KITCTF), and qualified for the finals in Mexico.",
-      "2025: #3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team.",
-      "2025: #3 at SwampCTF.",
-      "2024: #3 at GlacierCTF.",
-      "2024: #1 at SwampCTF.",
-      "2024: Participated in the SnakeCTF finals in Italy."
-    ],
     "links": [
       {
         "label": "KITCTF on CTFtime",
         "url": "https://ctftime.org/team/7221/"
+      }
+    ],
+    "events": [
+      {
+        "id": "kitctf-glacierctf-2025",
+        "title": "KITCTF #3 at GlacierCTF 2025",
+        "date": "2025-11-23",
+        "summary": "#3 at GlacierCTF.",
+        "url": "https://ctftime.org/event/2714"
+      },
+      {
+        "id": "kitctf-hackceler8-2025",
+        "title": "FluxKITtens at Hackceler8 2025",
+        "date": "2025-10-05",
+        "summary": "Participated in Hackceler8 as the FluxKITtens merger team (FluxFingers and KITCTF).",
+        "url": "https://capturetheflag.withgoogle.com/hackceler8"
+      },
+      {
+        "id": "kitctf-googlectf-2025",
+        "title": "FluxKITtens #6 at Google CTF 2025",
+        "date": "2025-06-29",
+        "summary": "#6 at Google CTF as the FluxKITtens merger team (FluxFingers and KITCTF), qualifying for the finals in Mexico.",
+        "url": "https://ctftime.org/event/2718"
+      },
+      {
+        "id": "kitctf-swampctf-2025",
+        "title": "KITCTF #3 at SwampCTF 2025",
+        "date": "2025-03-30",
+        "summary": "#3 at SwampCTF.",
+        "url": "https://ctftime.org/event/2573"
+      },
+      {
+        "id": "kitctf-snakectf-finals-2024",
+        "title": "KITCTF at SnakeCTF 2024 finals",
+        "date": "2024-12-08",
+        "summary": "Participated in the SnakeCTF finals in Italy.",
+        "url": "https://ctftime.org/event/2419"
+      },
+      {
+        "id": "kitctf-glacierctf-2024",
+        "title": "KITCTF #3 at GlacierCTF 2024",
+        "date": "2024-11-23",
+        "summary": "#3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team.",
+        "url": "https://ctftime.org/event/2402"
+      },
+      {
+        "id": "kitctf-swampctf-2024",
+        "title": "KITCTF #1 at SwampCTF 2024",
+        "date": "2024-04-07",
+        "summary": "#1 at SwampCTF.",
+        "url": "https://ctftime.org/event/2138"
       }
     ]
   }

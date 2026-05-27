@@ -17,7 +17,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".aboutme-achievement-card", minimum: 1
     assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#cves", text: cves.length.to_s
     assert_select ".aboutme-stat[href=?]", "#bug-bounties", text: /Bug bounties/
-    assert_select ".aboutme-stat[href=?]", "#my-challenges", text: /Challenges/
+    assert_select ".aboutme-stat[href=?]", "#my-challenges", text: /Created Challenges/
     assert_select ".aboutme-stat[href=?]", "#certificates", text: /Certificates/
     assert_select ".aboutme-stat[href=?]", "#achievements", text: /Achievements/
   end
@@ -40,17 +40,29 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
 
     cves = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
     bug_bounties = JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
+    challenges = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
     certificates = JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH))
     achievements = JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
+    achievement_events = achievements.sum { |entry| Array(entry["events"]).length }
+    ctf_posts = JSON.parse(File.read(ApplicationController::CTF_INFO_PATH)).sum do |name, metadata|
+      directory = metadata["terminal_path"].presence || name.downcase
+      Dir.glob(ApplicationController::BASE_PATH.join(directory, "*.md")).length
+    end
+    post_count = ctf_posts + Dir.glob(ApplicationController::BLOG_BASE_PATH.join("*.md")).length
 
     assert_response :success
     assert_select "h1", text: "Welcome to my bug collection 🐛"
-    assert_select ".landing-action[href=?]", "/posts-timeline", text: /Posts timeline/
+    assert_select ".landing-action[href=?]", timeline_path, text: /Timeline/
+    assert_select ".landing-action[href=?]", search_path, text: /Global Search/
     assert_select ".landing-action[href=?]", about_path, text: /About me/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#bug-bounties", text: bug_bounties.length.to_s
+    assert_select ".landing-metric[href=?]", "#{about_path}#my-challenges", text: /Created Challenges/
+    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#my-challenges", text: challenges.length.to_s
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#certificates", text: certificates.length.to_s
-    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#achievements", text: achievements.length.to_s
+    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#achievements", text: achievement_events.to_s
+    assert_select ".landing-metric[href=?] .landing-metric-value", timeline_path, text: post_count.to_s
+    assert_select ".landing-featured-card", 3
   end
 
   test "about me content files have expected shape" do
@@ -87,31 +99,40 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_equal "GPNCTF 2025", challenges.first["category"]
     assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.first["title_url"]
     assert_equal %w[
-      firedancer-v1-audit-competition-tba
+      firedancer-v1-audit-competition
       dhm
       cscg
       kitctf
     ], achievements.map { |entry| entry["id"] }
     dhm = achievements.find { |entry| entry["id"] == "dhm" }
     cscg = achievements.find { |entry| entry["id"] == "cscg" }
-    assert_equal "2025, 2024", dhm["date"]
+    assert_equal %w[dhm-2025 dhm-2024], dhm["events"].map { |event| event["id"] }
     assert_equal [
-      "2025: Participated in the DHM finals after qualifying through CSCG.",
-      "2024: Placed #1 at the Deutsche Hacking Meisterschaft."
-    ], dhm["details"]
-    assert_equal "2025, 2024", cscg["date"]
+      "Participated in the DHM finals after qualifying through CSCG.",
+      "Placed #1 at the Deutsche Hacking Meisterschaft."
+    ], dhm["events"].map { |event| event["summary"] }
+    assert_equal %w[cscg-2025 cscg-2024], cscg["events"].map { |event| event["id"] }
     assert_equal [
-      "2025: Qualified for DHM again and finished top 10 globally.",
-      "2024: Qualified for DHM through CSCG."
-    ], cscg["details"]
+      "Qualified for DHM again and finished top 10 globally.",
+      "Qualified for DHM through CSCG."
+    ], cscg["events"].map { |event| event["summary"] }
     kitctf = achievements.find { |entry| entry["id"] == "kitctf" }
     assert_equal "https://ctftime.org/team/7221/", kitctf["title_url"]
-    assert kitctf["details"].include?("2025: #3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team.")
-    assert kitctf["details"].include?("2025: #3 at SwampCTF.")
-    assert kitctf["details"].include?("2024: #3 at GlacierCTF.")
-    assert kitctf["details"].include?("2024: #1 at SwampCTF.")
-    assert kitctf["details"].include?("2024: Participated in the SnakeCTF finals in Italy.")
-    assert kitctf["details"].include?("2025: #6 at GoogleCTF as the FluxKITtens merger team (FluxFingers & KITCTF), and qualified for the finals in Mexico.")
+    assert_equal %w[
+      kitctf-glacierctf-2025
+      kitctf-hackceler8-2025
+      kitctf-googlectf-2025
+      kitctf-swampctf-2025
+      kitctf-snakectf-finals-2024
+      kitctf-glacierctf-2024
+      kitctf-swampctf-2024
+    ], kitctf["events"].map { |event| event["id"] }
+    assert kitctf["events"].any? { |event| event["summary"] == "#3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team." }
+    assert kitctf["events"].any? { |event| event["summary"] == "Participated in Hackceler8 as the FluxKITtens merger team (FluxFingers and KITCTF)." }
+    assert kitctf["events"].any? { |event| event["summary"] == "#3 at SwampCTF." }
+    assert kitctf["events"].any? { |event| event["summary"] == "#1 at SwampCTF." }
+    assert kitctf["events"].any? { |event| event["summary"] == "Participated in the SnakeCTF finals in Italy." }
+    assert kitctf["events"].any? { |event| event["summary"] == "#6 at Google CTF as the FluxKITtens merger team (FluxFingers and KITCTF), qualifying for the finals in Mexico." }
 
     (cves + bug_bounties).each do |entry|
       assert entry["project"].present?

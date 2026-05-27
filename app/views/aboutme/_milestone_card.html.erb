@@ -1,13 +1,14 @@
 <% details = aboutme_visible_details(entry["details"]) %>
 <% links = aboutme_visible_links(entry["links"]) %>
+<% events = aboutme_visible_events(entry["events"]) %>
 
-<article class="aboutme-achievement-card">
-  <% if entry["category"].present? || entry["date"].present? %>
+<article class="aboutme-achievement-card" id="<%= entry["id"].presence %>">
+  <% if entry["category"].present? || (entry["date"].present? && events.empty?) %>
     <div class="aboutme-achievement-meta">
       <% if entry["category"].present? %>
         <span><%= entry["category"] %></span>
       <% end %>
-      <% if entry["date"].present? %>
+      <% if entry["date"].present? && events.empty? %>
         <time datetime="<%= entry["date"] %>"><%= entry["date"] %></time>
       <% end %>
     </div>
@@ -26,6 +27,43 @@
         <li><%= detail %></li>
       <% end %>
     </ul>
+  <% end %>
+
+  <% if events.any? %>
+    <ol class="aboutme-achievement-events">
+      <% events.each do |event| %>
+        <% event_links = aboutme_visible_links(event["links"]) %>
+        <% event_details = aboutme_visible_details(event["details"]) %>
+        <% event_id = event["id"].presence || [ entry["id"].presence || entry["title"], event["date"], event["title"] ].compact.join("-").parameterize %>
+        <li class="aboutme-achievement-event" id="<%= event_id %>">
+          <div class="aboutme-achievement-event-header">
+            <% if event["title"].present? %>
+              <h4><%= aboutme_optional_link(event["title"], event["url"], class_name: "aboutme-title-link") %></h4>
+            <% end %>
+            <% if event["date"].present? %>
+              <time datetime="<%= event["date"] %>"><%= event["date"] %></time>
+            <% end %>
+          </div>
+          <% if event["summary"].present? %>
+            <p><%= event["summary"] %></p>
+          <% end %>
+          <% if event_details.any? %>
+            <ul class="aboutme-achievement-event-details">
+              <% event_details.each do |detail| %>
+                <li><%= detail %></li>
+              <% end %>
+            </ul>
+          <% end %>
+          <% if event_links.any? %>
+            <div class="aboutme-link-row aboutme-achievement-event-links">
+              <% event_links.each do |link| %>
+                <%= aboutme_external_link(link) %>
+              <% end %>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
+    </ol>
   <% end %>
 
   <% if links.any? %>

@@ -11,6 +11,7 @@ class AboutmeController < ApplicationController
     @certificates = read_aboutme_json(ABOUTME_CERTIFICATES_PATH)
     @achievements = read_aboutme_json(ABOUTME_ACHIEVEMENTS_PATH)
     @cve_entry_count = @cves.length
+    @achievement_event_count = achievement_event_count(@achievements)
   end
 
   private

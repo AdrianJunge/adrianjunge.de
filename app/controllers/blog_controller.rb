@@ -10,6 +10,7 @@ class BlogController < ApplicationController
     @blog_posts.sort_by! { |post| post[:published] }.reverse!
     @filter_years = @blog_posts.map { |post| post[:published].year }.uniq.sort.reverse
     @filter_tags = sorted_filter_values(@blog_posts.flat_map { |post| post[:categories] })
+    @filter_tag_groups = filter_tag_groups(@filter_tags, topic_label: "Blog topics")
   end
 
   def show

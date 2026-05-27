@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   get "/about", to: "aboutme#index", as: :about
   get "/aboutme", to: redirect("/about")
+  get "/search", to: "search#index", as: :search
   get "/sitemap.xml", to: "seo#sitemap", defaults: { format: :xml }
 
   get "/ctf/files/*file_path", to: "ctf_files#download", as: :ctf_file_download
@@ -14,7 +15,8 @@ Rails.application.routes.draw do
   get "/ctf/:which", to: "ctf#which"
   get "/ctf/:which/:writeup", to: "ctf#writeup"
 
-  get "/posts-timeline", to: "posts#timeline", as: :posts
+  get "/timeline", to: "posts#timeline", as: :timeline
+  get "/posts-timeline", to: redirect("/timeline")
 
   get "/blog/feed", to: "blog#feed", as: :blog_feed, defaults: { format: :rss }
   get "/blog/feed.atom", to: "blog#feed", defaults: { format: :atom }

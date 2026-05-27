@@ -13,19 +13,20 @@
   { label: "about", url: about_path },
   { label: "ctf", url: ctf_path },
   { label: "blog", url: blog_path },
-  { label: "posts-timeline", url: posts_path }
+  { label: "search", url: search_path },
+  { label: "timeline", url: timeline_path }
 ], true) %>
-<% posts_link = "/posts-timeline" %>
+<% timeline_link = timeline_path %>
 <% about_link = about_path %>
 <% kit_link = "https://www.kit.edu" %>
 <% kitctf_link = "https://kitctf.de" %>
 <% landing_metrics = [
   { label: "CVEs", value: @amount_cves, link: about_path(anchor: "cves") },
   { label: "Bug bounties", value: @amount_bug_bounties, link: about_path(anchor: "bug-bounties") },
+  { label: "Created Challenges", value: @amount_challenges, link: about_path(anchor: "my-challenges") },
   { label: "Certificates", value: @amount_certificates, link: about_path(anchor: "certificates") },
   { label: "Achievements", value: @amount_achievements, link: about_path(anchor: "achievements") },
-  { label: "Posts", value: @amount_posts, link: posts_link },
-  { label: "CTFs", value: @amount_ctfs, link: ctf_path }
+  { label: "Posts", value: @amount_posts, link: timeline_link }
 ] %>
 
 <main class="landing-page">
@@ -43,13 +44,17 @@
             </div>
 
             <div class="landing-actions" aria-label="Primary links">
-                <a href="<%= posts_link %>" class="landing-action landing-action-primary ui-hover-lift">
+                <a href="<%= timeline_link %>" class="landing-action landing-action-primary ui-hover-lift">
                     <%= image_tag("task-bar/post.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
-                    <span>Posts timeline</span>
+                    <span>Timeline</span>
                 </a>
                 <a href="<%= about_link %>" class="landing-action landing-action-secondary ui-hover-lift">
                     <%= image_tag("task-bar/about.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
                     <span>About me</span>
+                </a>
+                <a href="<%= search_path %>" class="landing-action landing-action-secondary ui-hover-lift">
+                    <%= image_tag("task-bar/search.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
+                    <span>Global Search</span>
                 </a>
             </div>
         </div>
@@ -94,6 +99,38 @@
 </section>
 
 <section id="landing-bottom">
+    <% if @featured_items.any? %>
+        <section class="landing-featured-section" aria-labelledby="landing-featured-title">
+            <h2 id="landing-featured-title" class="text-3xl font-bold mb-6 text-white text-center">Featured work</h2>
+
+            <div class="landing-featured-grid">
+                <% @featured_items.each do |item| %>
+                    <a href="<%= item[:link] %>" class="landing-featured-card ui-hover-lift">
+                        <span class="landing-featured-topline">
+                            <span class="landing-featured-kind"><%= item[:label] %></span>
+                            <time datetime="<%= item[:published].iso8601 %>"><%= item[:display_date] %></time>
+                        </span>
+
+                        <span class="landing-featured-title"><%= item[:title] %></span>
+
+                        <% if item[:description].present? %>
+                            <span class="landing-featured-description"><%= truncate(item[:description], length: 180) %></span>
+                        <% end %>
+
+                        <span class="landing-featured-meta">
+                            <span><%= item[:source] %></span>
+                            <% if item[:cve_id].present? %>
+                                <span><%= item[:cve_id] %></span>
+                            <% elsif item[:writeup_winner].present? %>
+                                <span><%= item[:writeup_winner][:label] %></span>
+                            <% end %>
+                        </span>
+                    </a>
+                <% end %>
+            </div>
+        </section>
+    <% end %>
+
     <h2 class="text-3xl font-bold mb-6 text-white text-center">Latest notes</h2>
 
     <div class="landing-writeup-cards">

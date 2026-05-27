@@ -1,5 +1,6 @@
 <% collapsible = aboutme_finding_collapsible?(entry) %>
 <% card_classes = [ "aboutme-finding-card", "aboutme-finding-card-#{kind}", ("aboutme-finding-card-static" unless collapsible) ].compact.join(" ") %>
+<% card_id = entry["id"].presence %>
 <% title_label = entry["title"].presence || entry["short_summary"].presence || entry["summary"].presence %>
 <% github_advisories = aboutme_visible_links(entry["github_advisories"]) %>
 <% references = aboutme_visible_links(entry["references"]) %>
@@ -31,7 +32,7 @@
 <% end %>
 
 <% if collapsible %>
-  <details class="<%= card_classes %>">
+  <details class="<%= card_classes %>" id="<%= card_id %>">
     <summary>
       <%= header_content %>
     </summary>
@@ -113,7 +114,7 @@
     </div>
   </details>
 <% else %>
-  <article class="<%= card_classes %>">
+  <article class="<%= card_classes %>" id="<%= card_id %>">
     <div class="aboutme-finding-static">
       <%= header_content %>
     </div>

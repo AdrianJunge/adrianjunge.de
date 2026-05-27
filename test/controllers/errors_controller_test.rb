@@ -10,7 +10,7 @@ class ErrorsControllerTest < ActionDispatch::IntegrationTest
     assert_select "main.error-page img.content-hero-icon[src*='task-bar/error']"
     assert_select "#terminal-container"
     assert_select ".taskbar-link[href=?]", "/"
-    assert_select "a[href=?]", "/posts-timeline"
+    assert_select "a[href=?]", "/timeline"
   end
 
   test "renders custom static status routes" do

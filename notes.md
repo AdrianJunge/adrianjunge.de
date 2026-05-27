@@ -1,7 +1,5 @@
 # TODOs
-- Scrape https://dimasc.tf/ for features and make suggestions on what to be added to my website
-
-- thoroughly review and test every single feature and page - is there anything that could be made much easier by using ruby or node packages? Moreover remove unnecessary redundancies and merge them. Remove any unnecessary or unused code.
+- thoroughly review and test every single feature and page - is there anything that could be made much easier by using ruby or node packages? Moreover remove unnecessary redundancies and merge them. Remove any unnecessary or unused code. Refactor code if it makes more sense to split something up e.g. because it is unrelated to each other
 
 - Tim um Feedback bitten
 
@@ -17,7 +15,7 @@
 - Blog
     - Java Strings
     - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln aka CTF Writeup schreiben für Deadsecctf 2025
-- Aboutme adds
+- Aboutme adds (with specific dates)
     - Firedancer Bug Bounty
     - Firedancer Audit Competition
     - Wordpress Bug Bounty + CVE

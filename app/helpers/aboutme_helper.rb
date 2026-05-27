@@ -76,4 +76,10 @@ module AboutmeHelper
   def aboutme_visible_details(details)
     Array(details).select(&:present?)
   end
+
+  def aboutme_visible_events(events)
+    Array(events).select do |event|
+      event.is_a?(Hash) && %w[title date summary details links url].any? { |field| event[field].present? }
+    end
+  end
 end

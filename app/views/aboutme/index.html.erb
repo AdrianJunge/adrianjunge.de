@@ -15,9 +15,9 @@
 <% about_stats = [
   { label: "CVEs", value: @cve_entry_count, anchor: "cves" },
   { label: "Bug bounties", value: @bug_bounties.length, anchor: "bug-bounties" },
-  { label: "Challenges", value: @challenges.length, anchor: "my-challenges" },
+  { label: "Created Challenges", value: @challenges.length, anchor: "my-challenges" },
   { label: "Certificates", value: @certificates.length, anchor: "certificates" },
-  { label: "Achievements", value: @achievements.length, anchor: "achievements" }
+  { label: "Achievements", value: @achievement_event_count, anchor: "achievements" }
 ] %>
 
 <main class="aboutme-page">

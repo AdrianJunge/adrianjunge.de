@@ -8,7 +8,8 @@ class SitePagesTest < ApplicationSystemTestCase
     "/ctf/lactf/Gamedev" => "Gamedev",
     "/blog" => "Blog",
     "/blog/htb-cpts" => "HTB CPTS",
-    "/posts-timeline" => "Posts timeline"
+    "/timeline" => "Timeline",
+    "/search" => "Global Search"
   }.freeze
 
   test "main pages use the refreshed visual shells without horizontal overflow" do
@@ -335,24 +336,38 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_text "occasionally convince software to confess"
     assert_no_text "Security researcher and computer science student focused on web security"
     assert_no_text "Welcome to my flag collection"
-    assert_selector ".landing-action[href='/posts-timeline']", text: "Posts timeline"
+    assert_selector ".landing-action[href='/timeline']", text: "Timeline"
     assert_selector ".landing-action[href='/about']", text: "About me"
+    assert_selector ".landing-action[href='/search']", text: "Global Search"
     assert_selector ".landing-metric", count: 6
     page.execute_script("document.querySelector('.landing-metrics').scrollIntoView({ block: 'center' })")
 
     [
       [ "/about#cves", "CVEs", JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH)).length ],
       [ "/about#bug-bounties", "Bug bounties", JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)).length ],
+      [ "/about#my-challenges", "Created Challenges", JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH)).length ],
       [ "/about#certificates", "Certificates", JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH)).length ],
-      [ "/about#achievements", "Achievements", JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH)).length ]
+      [
+        "/about#achievements",
+        "Achievements",
+        JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH)).sum { |entry| Array(entry["events"]).length }
+      ]
     ].each do |href, label, count|
       assert_selector ".landing-metric[href='#{href}']", text: label
       assert_selector ".landing-metric[href='#{href}'] .landing-metric-value", text: count.to_s
     end
 
-    assert_selector ".landing-metric[href='/posts-timeline']", text: "Posts"
-    assert_selector ".landing-metric[href='/ctf']", text: "CTFs"
+    assert_selector ".landing-metric[href='/timeline']", text: "Posts"
+    post_count = JSON.parse(File.read(ApplicationController::CTF_INFO_PATH)).sum do |name, metadata|
+      directory = metadata["terminal_path"].presence || name.downcase
+      Dir.glob(ApplicationController::BASE_PATH.join(directory, "*.md")).length
+    end + Dir.glob(ApplicationController::BLOG_BASE_PATH.join("*.md")).length
+    assert_selector ".landing-metric[href='/timeline'] .landing-metric-value", text: post_count.to_s
+    assert_no_selector ".landing-metric[href='/ctf']", text: "CTFs"
     assert_no_selector ".landing-metric", text: "Tags"
+    assert_selector ".landing-featured-card", count: 3
+    assert_selector ".landing-featured-card", text: "CVE"
+    assert_selector ".landing-featured-card", text: /Certificate/i
   end
 
   test "TBA findings render as static cards while disclosed findings stay collapsible" do
@@ -365,11 +380,34 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "timeline entries are full-card links" do
-    visit "/posts-timeline"
+    visit "/timeline"
 
     assert_selector "a.timeline-content[href]", minimum: 1
+    assert_text "CVE"
+    assert_text "Blog post"
     first_link = find("a.timeline-content", match: :first)
-    assert first_link[:href].match?(%r{/((ctf/.+/.+)|(blog/.+))\z})
+    assert first_link[:href].match?(%r{/((ctf/.+/.+)|(blog/.+)|(about#.+))\z})
+  end
+
+  test "global search filters all indexed content" do
+    visit "/search"
+
+    assert_selector ".search-result-card", minimum: 30
+    assert_text "Global Search"
+    assert_selector ".content-filter-tag-group-label", text: "CONTENT TYPE"
+    assert_selector ".content-filter-tag-group-label", text: "TOPICS, PROJECTS, AND SOURCES"
+    assert_selector ".content-filter-panel .filter-chip", text: "CVE"
+    assert_selector ".content-filter-panel .filter-chip", text: "CTF writeup"
+
+    fill_in "global-search-input", with: "Firedancer"
+    assert_selector ".search-result-card", text: "Firedancer"
+    assert_no_selector ".search-result-card", text: "HTB CPTS"
+
+    find("[data-filter-reset='global-search']").click
+    find(".content-filter-panel .filter-chip", text: "Certificate").click
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: "Certificate"
+    assert_selector ".search-result-card", text: "Hack The Box Certified Penetration Testing Specialist"
+    assert_no_selector ".search-result-card", text: "xmalloc"
   end
 
   test "ctf markdown preserves anchors and external links while resolving local images" do
