@@ -1,77 +1,48 @@
 <% details = aboutme_visible_details(entry["details"]) %>
-<% links = aboutme_visible_links(entry["links"]) %>
 <% events = aboutme_visible_events(entry["events"]) %>
+<% body_blocks = [] %>
+<% if details.any? %>
+  <% body_blocks << { items: details } %>
+<% end %>
+<% tags = [] %>
+<% if entry["category"].present? %>
+  <% tags << { label: entry["category"], url: entry["category_url"], class_name: "aboutme-tag-#{entry["category"].parameterize}" } %>
+<% end %>
+<% if entry["date"].present? && events.empty? %>
+  <% tags << { label: entry["date"], datetime: entry["date"], class_name: "aboutme-tag-date" } %>
+<% end %>
+<% child_cards = events.map do |event| %>
+  <% event_details = aboutme_visible_details(event["details"]) %>
+  <% event_id = event["id"].presence || [ entry["id"].presence || entry["title"], event["date"], event["title"] ].compact.join("-").parameterize %>
+  <% event_body_blocks = [] %>
+  <% event_body_blocks << { items: event_details } if event_details.any? %>
+  <% event_tags = [] %>
+  <% event_tags << { label: event["date"], datetime: event["date"], class_name: "aboutme-tag-date" } if event["date"].present? %>
+  <% {
+       id: event_id,
+       class_name: "aboutme-achievement-event",
+       title: event["title"],
+       description: event["summary"],
+       tags: event_tags,
+       body_blocks: event_body_blocks,
+       collapsible: false,
+       card_url: event["card_url"].presence || event["url"].presence || entry["card_url"].presence || entry["title_url"].presence,
+       aria_label: "Open #{event["title"].presence || entry["title"]}"
+     } %>
+<% end %>
 
-<article class="aboutme-achievement-card" id="<%= entry["id"].presence %>">
-  <% if entry["title"].present? %>
-    <h3><%= aboutme_optional_link(entry["title"], entry["title_url"], class_name: "aboutme-title-link") %></h3>
-  <% end %>
-
-  <% if entry["category"].present? || (entry["date"].present? && events.empty?) %>
-    <div class="aboutme-achievement-meta">
-      <% if entry["category"].present? %>
-        <span><%= entry["category"] %></span>
-      <% end %>
-      <% if entry["date"].present? && events.empty? %>
-        <time datetime="<%= entry["date"] %>"><%= entry["date"] %></time>
-      <% end %>
-    </div>
-  <% end %>
-
-  <% if entry["summary"].present? %>
-    <p><%= entry["summary"] %></p>
-  <% end %>
-
-  <% if details.any? %>
-    <ul class="aboutme-achievement-details">
-      <% details.each do |detail| %>
-        <li><%= detail %></li>
-      <% end %>
-    </ul>
-  <% end %>
-
-  <% if events.any? %>
-    <ol class="aboutme-achievement-events">
-      <% events.each do |event| %>
-        <% event_links = aboutme_visible_links(event["links"]) %>
-        <% event_details = aboutme_visible_details(event["details"]) %>
-        <% event_id = event["id"].presence || [ entry["id"].presence || entry["title"], event["date"], event["title"] ].compact.join("-").parameterize %>
-        <li class="aboutme-achievement-event" id="<%= event_id %>">
-          <div class="aboutme-achievement-event-header">
-            <% if event["title"].present? %>
-              <h4><%= aboutme_optional_link(event["title"], event["url"], class_name: "aboutme-title-link") %></h4>
-            <% end %>
-            <% if event["date"].present? %>
-              <time datetime="<%= event["date"] %>"><%= event["date"] %></time>
-            <% end %>
-          </div>
-          <% if event["summary"].present? %>
-            <p><%= event["summary"] %></p>
-          <% end %>
-          <% if event_details.any? %>
-            <ul class="aboutme-achievement-event-details">
-              <% event_details.each do |detail| %>
-                <li><%= detail %></li>
-              <% end %>
-            </ul>
-          <% end %>
-          <% if event_links.any? %>
-            <div class="aboutme-link-row aboutme-achievement-event-links">
-              <% event_links.each do |link| %>
-                <%= aboutme_external_link(link) %>
-              <% end %>
-            </div>
-          <% end %>
-        </li>
-      <% end %>
-    </ol>
-  <% end %>
-
-  <% if links.any? %>
-    <div class="aboutme-link-row">
-      <% links.each do |link| %>
-        <%= aboutme_external_link(link) %>
-      <% end %>
-    </div>
-  <% end %>
-</article>
+<%= render "aboutme/profile_card",
+           card: {
+             id: entry["id"],
+             class_name: "aboutme-achievement-card",
+             tags_class: "aboutme-achievement-meta",
+             title: entry["title"],
+             title_link: false,
+             description: entry["summary"],
+             tags: tags,
+             body_blocks: body_blocks,
+             children: child_cards,
+             collapsible: false,
+             card_url: entry["card_url"].presence || entry["title_url"].presence,
+             aria_label: "Open #{entry["title"]}"
+           } %>

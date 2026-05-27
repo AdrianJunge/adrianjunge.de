@@ -10,16 +10,17 @@ class AboutmeFindingCardTest < ActionView::TestCase
         "title" => "Example advisory title",
         "title_url" => "https://github.com/example/project/security/advisories/GHSA-example",
         "cve_id" => "CVE-2026-0001",
+        "cwe_id" => "CWE-79",
         "severity" => "High",
         "short_summary" => "Stored cross-site scripting in report titles.",
-        "summary" => "An authenticated user could inject script into a report title rendered to other users.",
-        "tested_version" => "1.2.3",
-        "impact" => "Session actions in affected user contexts.",
-        "github_advisories" => [
-          { "label" => "GHSA-example", "url" => "https://github.com/advisories/GHSA-example" }
-        ],
+        "summary" => "An authenticated user could inject script into a report title rendered to other users, allowing session actions in affected user contexts.",
         "timeline" => [
           { "date" => "2026-01-01", "event" => "Reported to maintainer" }
+        ],
+        "references" => [
+          { "label" => "Duplicate CVE reference", "url" => "https://www.cve.org/CVERecord?id=CVE-2026-0001" },
+          { "label" => "Duplicate project reference", "url" => "https://github.com/example/project" },
+          { "label" => "External analysis", "url" => "https://example.com/advisory-notes" }
         ]
       }
     }
@@ -30,10 +31,15 @@ class AboutmeFindingCardTest < ActionView::TestCase
     assert_select "summary .aboutme-finding-project + .aboutme-finding-badges"
     assert_select "summary a[href=?][target=?][rel=?]", "https://github.com/example/project", "_blank", "noopener noreferrer"
     assert_select "summary a[href=?][target=?][rel=?]", "https://github.com/example/project/security/advisories/GHSA-example", "_blank", "noopener noreferrer", text: "Example advisory title"
-    assert_select ".aboutme-cve-id", text: "CVE-2026-0001"
-    assert_select "dt", text: "Tested version"
-    assert_select "dd", text: "1.2.3"
-    assert_select "dt", text: "Status", count: 0
+    assert_select ".aboutme-cve-id[href=?]", "https://www.cve.org/CVERecord?id=CVE-2026-0001", text: "CVE-2026-0001"
+    assert_select ".aboutme-cwe-id[href=?]", "https://cwe.mitre.org/data/definitions/79.html", text: "CWE-79"
+    assert_select ".aboutme-detail-block", text: /allowing session actions/
+    assert_select "dt", 0
+    assert_no_match(/Status/, rendered)
+    assert_no_match(/Duplicate CVE reference/, rendered)
+    assert_no_match(/Duplicate project reference/, rendered)
+    assert_no_match(/External analysis/, rendered)
+    assert_select ".aboutme-link-row", 0
     assert_select ".aboutme-detail-block h3", text: "Disclosure timeline"
     assert_select ".aboutme-timeline li", 1
   end
@@ -53,6 +59,7 @@ class AboutmeFindingCardTest < ActionView::TestCase
     assert_select "details.aboutme-finding-card-bug-bounty", 0
     assert_select "article.aboutme-finding-card-static.aboutme-finding-card-bug-bounty"
     assert_select ".aboutme-cve-id", 0
+    assert_select ".aboutme-cwe-id", 0
     assert_no_match(/CVE ID/, rendered)
     assert_no_match(/No CVE assigned/, rendered)
   end
@@ -68,11 +75,6 @@ class AboutmeFindingCardTest < ActionView::TestCase
         "severity" => "TBA",
         "cve_id" => "TBA",
         "summary" => "TBA",
-        "tested_version" => "TBA",
-        "impact" => "TBA",
-        "github_advisories" => [
-          { "label" => "GHSA-xxxx-xxxx-xxxx", "url" => "" }
-        ],
         "timeline" => [
           { "date" => "2026-", "event" => "" }
         ],
@@ -87,7 +89,6 @@ class AboutmeFindingCardTest < ActionView::TestCase
     assert_select ".aboutme-severity", text: "TBA"
     assert_select ".aboutme-cve-id", text: "TBA"
     assert_no_match(/GHSA-xxxx-xxxx-xxxx/, rendered)
-    assert_no_match(/Tested version/, rendered)
     assert_no_match(/Disclosure timeline/, rendered)
   end
 
@@ -102,11 +103,6 @@ class AboutmeFindingCardTest < ActionView::TestCase
         "severity" => "",
         "cve_id" => "",
         "summary" => "",
-        "tested_version" => "",
-        "impact" => "",
-        "github_advisories" => [
-          { "label" => "", "url" => "" }
-        ],
         "timeline" => [
           { "date" => "", "event" => "" }
         ],

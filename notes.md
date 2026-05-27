@@ -3,9 +3,15 @@
     => https://github.com/felixfbecker/dom-to-svg
 
 # Content
+- Writeup
+    - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln aka CTF Writeup schreiben für Deadsecctf 2025
 - Blog
     - Java Strings
-    - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln aka CTF Writeup schreiben für Deadsecctf 2025
+    - Post zu meinen Erfahrungen mit CVE und Bug Bounty Hunting in 2026
+        - Projekte die fully vibe coded sind (ChurchCRM)
+        - lange triage Zeit zB wordpress 8.5 Monate - suitecrm und joomla auch sehr lange
+        - Joomla dafür ziemlich sorgfältig, haben auch interessantes severity system (kein CVSS score sondern was custom) und duplicates zählen vermutlich auch solange der bug noch nicht triaged wurde
+            - hatte andere SQLI reported, die aber abgelehnt wurde wegen duplicate aber trotzdem stehen bei 2 meiner 3 CVEs noch weitere Leute mit dabei
 - Aboutme adds (with specific dates)
     - Firedancer Bug Bounty
     - Firedancer Audit Competition

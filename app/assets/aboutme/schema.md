@@ -10,15 +10,12 @@ Finding entries support these fields:
   "project_url": "https://github.com/org/project",
   "title": "Linked card title",
   "title_url": "https://example.com/advisory",
+  "card_url": "https://example.com/overview",
   "cve_id": "CVE-YYYY-NNNN",
+  "cwe_id": "CWE-NNN",
   "severity": "High",
   "short_summary": "One-line vulnerability summary.",
   "summary": "Longer vulnerability summary.",
-  "tested_version": "1.2.3",
-  "impact": "Practical impact.",
-  "github_advisories": [
-    { "label": "GHSA-...", "url": "https://github.com/advisories/GHSA-..." }
-  ],
   "references": [
     { "label": "Report", "url": "https://example.com/report" }
   ],
@@ -28,8 +25,8 @@ Finding entries support these fields:
 }
 ```
 
-`cve_id` is optional. Use `TBA` for pending CVEs, and omit the field for findings where no CVE is expected.
-Finding cards are only collapsible when they contain real detail fields such as `summary`, `tested_version`, `impact`, `github_advisories`, or `timeline`.
+`cve_id` and `cwe_id` render as clickable chips when they contain real IDs. Leave them empty for pending or non-CVE findings.
+Finding cards are only collapsible when they contain real detail fields such as `summary` or `timeline`.
 
 Challenge, certificate, and achievement entries support these fields:
 
@@ -37,7 +34,9 @@ Challenge, certificate, and achievement entries support these fields:
 {
   "title": "Achievement title",
   "title_url": "https://example.com",
+  "card_url": "https://example.com",
   "category": "Competition",
+  "category_url": "https://example.com/category",
   "date": "2026",
   "summary": "One-line summary.",
   "details": [
@@ -57,7 +56,9 @@ Achievement entries can group dated events so every event becomes its own search
 {
   "title": "Competition series",
   "title_url": "https://example.com",
+  "card_url": "https://example.com",
   "category": "CTF Competition",
+  "category_url": "https://example.com/category",
   "summary": "Optional section summary.",
   "links": [
     { "label": "Reference", "url": "https://example.com" }

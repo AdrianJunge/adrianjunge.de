@@ -4,6 +4,70 @@
 @import "content_pages";
 @import "footer";
 
+.ui-card-surface,
+.content-page .ui-card-surface,
+.landing-page .ui-card-surface,
+.landing-page .landing-writeup-cards .ui-card-surface,
+.aboutme-page .ui-card-surface {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(93, 116, 158, 0.7);
+    border-radius: var(--radius-ui);
+    background-color: rgba(24, 36, 58, 0.82);
+    background-image: linear-gradient(180deg, rgba(8, 145, 178, 0.12), rgba(24, 36, 58, 0) 45%);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.18);
+    isolation: isolate;
+    transition: background-color var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast);
+}
+
+.ui-card-surface::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(180deg, rgba(8, 145, 178, 0.2), rgba(24, 36, 58, 0) 45%);
+    content: "";
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--motion-fast);
+}
+
+.ui-card-surface > * {
+    position: relative;
+    z-index: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .ui-card-surface:hover,
+    .content-page .ui-card-surface:hover,
+    .landing-page .ui-card-surface:hover,
+    .landing-page .landing-writeup-cards .ui-card-surface:hover,
+    .aboutme-page .ui-card-surface:hover {
+        border-color: rgba(125, 211, 252, 0.85);
+        background-color: rgba(24, 36, 58, 0.94);
+        box-shadow: 0 1.25rem 2.5rem rgba(0, 0, 0, 0.24);
+        transform: translateY(-2px);
+    }
+
+    .ui-card-surface:hover::before {
+        opacity: 1;
+    }
+}
+
+.landing-page .landing-writeup-cards .blog-post-static-chip {
+    cursor: default;
+    pointer-events: none;
+    transition: none;
+}
+
+.landing-page .landing-writeup-cards .blog-post-static-chip:hover,
+.landing-page .landing-writeup-cards .blog-post-static-chip:focus-visible,
+.landing-page .landing-writeup-cards .blog-post-static-chip.is-active {
+    border-color: rgba(125, 211, 252, 0.32);
+    color: #cffafe;
+    background: rgba(8, 145, 178, 0.16);
+    transform: none;
+}
+
 html {
     min-height: 100%;
     background: var(--color-page-end);

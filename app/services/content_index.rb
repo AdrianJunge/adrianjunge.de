@@ -215,7 +215,6 @@ class ContentIndex
   def about_description(entry)
     entry["short_summary"].presence ||
       entry["summary"].presence ||
-      entry["impact"].presence ||
       Array(entry["details"]).map(&:to_s).find(&:present?) ||
       ""
   end
@@ -226,7 +225,8 @@ class ContentIndex
       entry["project"],
       entry["category"],
       entry["severity"],
-      entry["cve_id"]
+      entry["cve_id"],
+      entry["cwe_id"]
     ].map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }
   end
 

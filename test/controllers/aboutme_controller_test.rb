@@ -54,6 +54,9 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "Welcome to my bug collection 🐛"
     assert_select ".landing-action[href=?]", timeline_path, text: /Timeline/
     assert_select ".landing-action[href=?]", about_path, text: /About me/
+    assert_select ".landing-metrics.aboutme-stats"
+    assert_select ".landing-metric.aboutme-stat", 6
+    assert_select ".landing-metric:first-child[href=?]", timeline_path, text: /Posts/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#bug-bounties", text: bug_bounties.length.to_s
     assert_select ".landing-metric[href=?]", "#{about_path}#my-challenges", text: /Created Challenges/
@@ -97,6 +100,10 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Smile at me", challenges.first["title"]
     assert_equal "GPNCTF 2025", challenges.first["category"]
     assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.first["title_url"]
+    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.first["card_url"]
+    assert_equal "https://ctftime.org/ctf/854/", challenges.first["category_url"]
+    assert_equal "/blog/htb-cpts", certificates.first["card_url"]
+    assert_equal "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url", certificates.first["category_url"]
     assert_equal %w[
       firedancer-v1-audit-competition
       dhm
@@ -119,7 +126,6 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_equal "https://ctftime.org/team/7221/", kitctf["title_url"]
     assert_equal %w[
       kitctf-glacierctf-2025
-      kitctf-hackceler8-2025
       kitctf-googlectf-2025
       kitctf-swampctf-2025
       kitctf-snakectf-finals-2024
@@ -127,11 +133,10 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
       kitctf-swampctf-2024
     ], kitctf["events"].map { |event| event["id"] }
     assert kitctf["events"].any? { |event| event["summary"] == "#3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team." }
-    assert kitctf["events"].any? { |event| event["summary"] == "Participated in Hackceler8 as the FluxKITtens merger team (FluxFingers and KITCTF)." }
     assert kitctf["events"].any? { |event| event["summary"] == "#3 at SwampCTF." }
     assert kitctf["events"].any? { |event| event["summary"] == "#1 at SwampCTF." }
-    assert kitctf["events"].any? { |event| event["summary"] == "Participated in the SnakeCTF finals in Italy." }
-    assert kitctf["events"].any? { |event| event["summary"] == "#6 at Google CTF as the FluxKITtens merger team (FluxFingers and KITCTF), qualifying for the finals in Mexico." }
+    assert kitctf["events"].any? { |event| event["summary"] == "Qualified for and participated in the SnakeCTF finals in Italy." }
+    assert kitctf["events"].any? { |event| event["summary"] == "#6 at Google CTF as the FluxKITtens merger team (FluxFingers and KITCTF), qualifying for the Hackceler8 finals in Mexico." }
 
     (cves + bug_bounties).each do |entry|
       assert entry["project"].present?
@@ -142,6 +147,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
 
     cves.reject { |entry| entry["id"].include?("tba") }.each do |entry|
       assert entry["cve_id"].present?
+      assert entry["cwe_id"].present?
       assert entry.fetch("references", []).any? { |link| link["url"] == "https://www.cve.org/CVERecord?id=#{entry["cve_id"]}" }
     end
 

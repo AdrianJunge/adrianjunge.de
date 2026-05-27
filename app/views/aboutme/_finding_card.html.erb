@@ -1,124 +1,42 @@
-<% collapsible = aboutme_finding_collapsible?(entry) %>
-<% card_classes = [ "aboutme-finding-card", "aboutme-finding-card-#{kind}", ("aboutme-finding-card-static" unless collapsible) ].compact.join(" ") %>
-<% card_id = entry["id"].presence %>
 <% title_label = entry["title"].presence || entry["short_summary"].presence || entry["summary"].presence %>
-<% github_advisories = aboutme_visible_links(entry["github_advisories"]) %>
-<% references = aboutme_visible_links(entry["references"]) %>
+<% summary_text = aboutme_finding_summary(entry) %>
 <% timeline_items = aboutme_timeline_items(entry["timeline"]) %>
-<% badges_content = capture do %>
-  <% if entry["severity"].present? || entry["cve_id"].present? %>
-    <span class="aboutme-finding-badges">
-      <% if entry["severity"].present? %>
-        <span class="aboutme-severity <%= aboutme_severity_class(entry["severity"]) %>"><%= entry["severity"] %></span>
-      <% end %>
-      <% if entry["cve_id"].present? %>
-        <span class="aboutme-cve-id"><%= entry["cve_id"] %></span>
-      <% end %>
-    </span>
-  <% end %>
+<% body_blocks = [] %>
+<% if aboutme_visible_detail?(summary_text) %>
+  <% body_blocks << { title: "Summary", text: summary_text } %>
 <% end %>
-<% header_content = capture do %>
-  <span class="aboutme-finding-main">
-    <% if entry["project"].present? %>
-      <span class="aboutme-finding-project">
-        <%= aboutme_optional_link(entry["project"], entry["project_url"], class_name: "aboutme-finding-project-link") %>
-      </span>
-    <% end %>
-    <%= badges_content %>
-    <% if title_label.present? %>
-      <span class="aboutme-finding-summary">
-        <%= aboutme_optional_link(title_label, entry["title_url"], class_name: "aboutme-finding-summary-link") %>
-      </span>
-    <% end %>
-  </span>
+<% card_url = entry["card_url"].presence || (aboutme_finding_collapsible?(entry) ? nil : entry["title_url"].presence) %>
+<% card_classes = [ "aboutme-finding-card", "aboutme-finding-card-#{kind}", ("aboutme-finding-card-static" unless aboutme_finding_collapsible?(entry)) ].compact.join(" ") %>
+<% tags = [] %>
+<% if entry["severity"].present? %>
+  <% tags << { label: entry["severity"], class_name: "aboutme-severity #{aboutme_severity_class(entry["severity"])}" } %>
+<% end %>
+<% if entry["cve_id"].present? %>
+  <% tags << { label: entry["cve_id"], url: aboutme_cve_url(entry["cve_id"]), class_name: "aboutme-cve-id" } %>
+<% end %>
+<% if entry["cwe_id"].present? %>
+  <% tags << { label: entry["cwe_id"], url: aboutme_cwe_url(entry["cwe_id"]), class_name: "aboutme-cwe-id" } %>
 <% end %>
 
-<% if collapsible %>
-  <details class="<%= card_classes %>" id="<%= card_id %>">
-    <summary>
-      <%= header_content %>
-    </summary>
-
-    <div class="aboutme-finding-body">
-      <% if entry["project"].present? || entry["cve_id"].present? || aboutme_visible_detail?(entry["tested_version"]) || aboutme_visible_detail?(entry["impact"]) %>
-        <dl class="aboutme-finding-facts">
-          <% if entry["project"].present? %>
-            <div>
-              <dt>Project</dt>
-              <dd><%= aboutme_optional_link(entry["project"], entry["project_url"]) %></dd>
-            </div>
-          <% end %>
-        <% if entry["cve_id"].present? %>
-          <div>
-            <dt>CVE ID</dt>
-            <dd><%= entry["cve_id"] %></dd>
-          </div>
-        <% end %>
-        <% if aboutme_visible_detail?(entry["tested_version"]) %>
-          <div>
-            <dt>Tested version</dt>
-            <dd><%= entry["tested_version"] %></dd>
-          </div>
-        <% end %>
-        <% if aboutme_visible_detail?(entry["impact"]) %>
-          <div>
-            <dt>Impact</dt>
-            <dd><%= entry["impact"] %></dd>
-          </div>
-        <% end %>
-        </dl>
-      <% end %>
-
-      <% if aboutme_visible_detail?(entry["summary"]) %>
-        <div class="aboutme-detail-block">
-          <h3>Summary</h3>
-          <p><%= entry["summary"] %></p>
-        </div>
-      <% end %>
-
-      <% if github_advisories.any? %>
-        <div class="aboutme-detail-block">
-          <h3>GitHub advisories</h3>
-          <div class="aboutme-link-row">
-            <% github_advisories.each do |link| %>
-              <%= aboutme_external_link(link) %>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
-
-      <% if references.any? %>
-        <div class="aboutme-detail-block">
-          <h3>References</h3>
-          <div class="aboutme-link-row">
-            <% references.each do |link| %>
-              <%= aboutme_external_link(link) %>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
-
-      <% if timeline_items.any? %>
-        <div class="aboutme-detail-block">
-          <h3>Disclosure timeline</h3>
-          <ol class="aboutme-timeline">
-            <% timeline_items.each do |item| %>
-              <li>
-                <% if item["date"].present? %>
-                  <time datetime="<%= item["date"] %>"><%= item["date"] %></time>
-                <% end %>
-                <span><%= item["event"] %></span>
-              </li>
-            <% end %>
-          </ol>
-        </div>
-      <% end %>
-    </div>
-  </details>
-<% else %>
-  <article class="<%= card_classes %>" id="<%= card_id %>">
-    <div class="aboutme-finding-static">
-      <%= header_content %>
-    </div>
-  </article>
-<% end %>
+<%= render "aboutme/profile_card",
+           card: {
+             id: entry["id"],
+             class_name: card_classes,
+             main_class: "aboutme-finding-main",
+             title_class: "aboutme-finding-project",
+             tags_class: "aboutme-finding-badges",
+             description_class: "aboutme-finding-summary",
+             title: entry["project"],
+             title_url: entry["project_url"],
+             title_link: aboutme_finding_collapsible?(entry),
+             title_link_class: "aboutme-finding-project-link",
+             description: title_label,
+             description_url: aboutme_finding_collapsible?(entry) ? entry["title_url"] : nil,
+             description_link_class: "aboutme-finding-summary-link",
+             tags: tags,
+             body_blocks: body_blocks,
+             timeline: timeline_items,
+             collapsible: aboutme_finding_collapsible?(entry),
+             card_url: card_url,
+             aria_label: "Open #{entry["project"].presence || title_label}"
+           } %>

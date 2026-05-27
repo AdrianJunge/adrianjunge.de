@@ -54,4 +54,18 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".writeup-post-card-logo img.blog-logo[alt='Logo Logo']"
     assert_select ".writeup-post-card-logo svg", false
   end
+
+  test "category icons are selected by basename and alphabetic filename" do
+    png_path = CtfHelper::CATEGORY_ICON_DIRECTORY.join("temporary-category-icon.png")
+    svg_path = CtfHelper::CATEGORY_ICON_DIRECTORY.join("temporary-category-icon.svg")
+    File.binwrite(png_path, "placeholder")
+    File.write(svg_path, "<svg></svg>")
+
+    html = get_category_svg("Temporary-Category-Icon")
+
+    assert_includes html, "categories/temporary-category-icon.png"
+    assert_no_match(/<svg/, html)
+  ensure
+    FileUtils.rm_f([ png_path, svg_path ])
+  end
 end

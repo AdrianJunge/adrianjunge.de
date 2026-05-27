@@ -97,17 +97,10 @@
         "url": "https://ctftime.org/event/2714"
       },
       {
-        "id": "kitctf-hackceler8-2025",
-        "title": "FluxKITtens at Hackceler8 2025",
-        "date": "2025-10-05",
-        "summary": "Participated in Hackceler8 as the FluxKITtens merger team (FluxFingers and KITCTF).",
-        "url": "https://capturetheflag.withgoogle.com/hackceler8"
-      },
-      {
         "id": "kitctf-googlectf-2025",
         "title": "FluxKITtens #6 at Google CTF 2025",
         "date": "2025-06-29",
-        "summary": "#6 at Google CTF as the FluxKITtens merger team (FluxFingers and KITCTF), qualifying for the finals in Mexico.",
+        "summary": "#6 at Google CTF as the FluxKITtens merger team (FluxFingers and KITCTF), qualifying for the Hackceler8 finals in Mexico.",
         "url": "https://ctftime.org/event/2718"
       },
       {
@@ -121,7 +114,7 @@
         "id": "kitctf-snakectf-finals-2024",
         "title": "KITCTF at SnakeCTF 2024 finals",
         "date": "2024-12-08",
-        "summary": "Participated in the SnakeCTF finals in Italy.",
+        "summary": "Qualified for and participated in the SnakeCTF finals in Italy.",
         "url": "https://ctftime.org/event/2419"
       },
       {

@@ -1,5 +1,5 @@
 module BlogHelper
-  def render_blog_post_card(post_slug, post_info)
+  def render_blog_post_card(post_slug, post_info, interactive_tags: true)
     max_description_length = 200
     title = post_info["title"].presence || post_slug.humanize
     description = post_info["description"] || "No description available"
@@ -13,7 +13,7 @@ module BlogHelper
 
     content_tag(
       :article,
-      class: "blog-post-card ui-hover-lift",
+      class: "blog-post-card ui-card-surface ui-hover-lift",
       data: {
         filter_card: "blogs",
         filter_text: filter_text,
@@ -41,16 +41,7 @@ module BlogHelper
 
           meta_html = content_tag(:div, class: "blog-post-meta") do
             content_tag(:div, class: "blog-post-meta-row") do
-              safe_join(categories.map do |category|
-                content_tag(
-                  :button,
-                  category,
-                  type: "button",
-                  class: "filter-chip ui-hover-lift",
-                  data: { filter_scope: "blogs", filter_tag: category },
-                  aria: { pressed: "false", label: "Filter blog posts by #{category}" }
-                )
-              end)
+              safe_join(categories.map { |category| blog_category_chip(category, interactive_tags: interactive_tags) })
             end
           end
 
@@ -72,6 +63,19 @@ module BlogHelper
   end
 
   private
+
+  def blog_category_chip(category, interactive_tags:)
+    return content_tag(:span, category, class: "filter-chip blog-post-static-chip") unless interactive_tags
+
+    content_tag(
+      :button,
+      category,
+      type: "button",
+      class: "filter-chip ui-hover-lift",
+      data: { filter_scope: "blogs", filter_tag: category },
+      aria: { pressed: "false", label: "Filter blog posts by #{category}" }
+    )
+  end
 
   def blog_post_year(post_info)
     return Time.parse(post_info["published"].to_s).year if post_info["published"].present?

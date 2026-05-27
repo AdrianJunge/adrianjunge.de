@@ -1,12 +1,14 @@
 require "test_helper"
 
 class AboutmeMilestoneCardTest < ActionView::TestCase
-  test "milestone card links title and renders references" do
+  test "milestone card uses shared linked-card template" do
     render partial: "aboutme/milestone_card", locals: {
       entry: {
         "title" => "Example milestone",
         "title_url" => "https://example.com/milestone",
+        "card_url" => "https://example.com/milestone",
         "category" => "Competition",
+        "category_url" => "https://example.com/competition",
         "date" => "2026",
         "summary" => "Placed well in an example event.",
         "details" => [
@@ -28,13 +30,17 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
     }
 
     assert_select "article.aboutme-achievement-card"
-    assert_select "h3 a[href=?][target=?][rel=?]", "https://example.com/milestone", "_blank", "noopener noreferrer", text: "Example milestone"
-    assert_select "h3 + .aboutme-achievement-meta"
+    assert_select ".aboutme-card-link-overlay[href=?][target=?][rel=?]", "https://example.com/milestone", "_blank", "noopener noreferrer"
+    assert_select "h3", text: "Example milestone"
+    assert_select "h3 a", 0
+    assert_select "h3 + .aboutme-achievement-meta a[href=?]", "https://example.com/competition", text: "Competition"
     assert_select ".aboutme-achievement-meta time", 0
     assert_select ".aboutme-achievement-event#example-2026"
-    assert_select ".aboutme-achievement-event h4 a[href=?][target=?][rel=?]", "https://example.com/event", "_blank", "noopener noreferrer", text: "Example 2026 #1"
+    assert_select ".aboutme-achievement-event .aboutme-card-link-overlay[href=?][target=?][rel=?]", "https://example.com/event", "_blank", "noopener noreferrer"
+    assert_select ".aboutme-achievement-event h4", text: "Example 2026 #1"
+    assert_select ".aboutme-achievement-event h4 a", 0
     assert_select ".aboutme-achievement-event time[datetime=?]", "2026-01-02"
-    assert_select ".aboutme-link-row a[href=?]", "https://example.com/reference"
+    assert_select ".aboutme-link-row", 0
   end
 
   test "milestone card omits empty fields and links" do

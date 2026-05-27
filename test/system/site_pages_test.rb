@@ -335,15 +335,32 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-writeup-cards .blog-post-card", count: 3
     assert_selector ".landing-writeup-cards .blog-post-card-hitbox[href]", count: 3, visible: :all
     assert_selector ".landing-writeup-cards .filter-chip", minimum: 1
+    assert_selector ".landing-writeup-cards .blog-post-static-chip", minimum: 1
     assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='writeups']", minimum: 1
     assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='blogs']", minimum: 1
     assert_selector ".landing-writeup-cards .writeup-post-card .blog-post-authors", minimum: 1
     assert_selector ".landing-writeup-cards .blog-logo", count: 3
     assert_selector ".landing-writeup-cards .writeup-post-card .blog-logo[src*='/assets/ctf/']", minimum: 1
     assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/']", minimum: 1
-    assert_no_selector ".landing-writeup-cards .blog-post-static-chip", visible: :all
+    assert_no_selector ".landing-writeup-cards .filter-chip[data-filter-tag]", visible: :all
+    assert_no_selector ".landing-writeup-cards .filter-chip.ui-hover-lift", visible: :all
     assert_no_selector ".landing-writeup-cards .blog-logo-placeholder", visible: :all
     assert_no_selector ".landing-writeup-cards .blog-post-card-logo svg", visible: :all
+    static_chip_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const chip = document.querySelector(".landing-writeup-cards .blog-post-static-chip");
+        const style = window.getComputedStyle(chip);
+
+        return {
+          cursor: style.cursor,
+          pointerEvents: style.pointerEvents,
+          transform: style.transform
+        };
+      })()
+    JS
+    assert_equal "default", static_chip_styles["cursor"]
+    assert_equal "none", static_chip_styles["pointerEvents"]
+    assert_equal "none", static_chip_styles["transform"]
 
     landing_styles = post_card_styles(".landing-writeup-cards .blog-post-card")
 
@@ -352,6 +369,52 @@ class SitePagesTest < ApplicationSystemTestCase
     blog_styles = post_card_styles(".blog-posts-container .blog-post-card")
 
     assert_equal blog_styles, landing_styles
+  end
+
+  test "post card author links stay clickable above full card hitboxes" do
+    page.current_window.resize_to(1280, 1400)
+
+    visit "/"
+    assert_selector ".landing-writeup-cards .blog-post-author-link[href='https://ju256.rip/']", text: "ju256"
+    landing_hit = link_hit_target(".landing-writeup-cards .blog-post-author-link[href='https://ju256.rip/']")
+    assert_equal "https://ju256.rip/", landing_hit["href"]
+    assert_includes landing_hit["className"], "blog-post-author-link"
+
+    visit "/ctf/cscg"
+    assert_selector ".writeup-overview .blog-post-author-link[href='https://popax21.dev/']", text: "Popax21"
+    overview_hit = link_hit_target(".writeup-overview .blog-post-author-link[href='https://popax21.dev/']")
+    assert_equal "https://popax21.dev/", overview_hit["href"]
+    assert_includes overview_hit["className"], "blog-post-author-link"
+  end
+
+  test "main content cards share the blue surface treatment" do
+    visit "/"
+    assert_selector ".landing-featured-card.ui-card-surface", minimum: 1
+    assert_selector ".landing-writeup-cards .blog-post-card.ui-card-surface", count: 3
+    featured_styles = card_surface_styles(".landing-featured-card")
+    latest_styles = card_surface_styles(".landing-writeup-cards .blog-post-card")
+    assert_equal featured_styles, latest_styles
+
+    visit "/timeline"
+    assert_selector ".timeline-content.ui-card-surface", minimum: 1
+    assert_equal featured_styles, card_surface_styles(".timeline-content")
+
+    visit "/ctf"
+    assert_selector ".ctf-card.ui-card-surface", minimum: 1
+    assert_equal featured_styles, card_surface_styles(".ctf-card")
+
+    visit "/ctf/cscg"
+    assert_selector ".writeup-overview .blog-post-card.ui-card-surface", minimum: 1
+    assert_equal featured_styles, card_surface_styles(".writeup-overview .blog-post-card")
+
+    visit "/blog"
+    assert_selector ".blog-posts-container .blog-post-card.ui-card-surface", minimum: 1
+    assert_equal featured_styles, card_surface_styles(".blog-posts-container .blog-post-card")
+
+    visit "/about"
+    assert_selector ".aboutme-finding-card.ui-card-surface", minimum: 1
+    assert_selector ".aboutme-achievement-card.ui-card-surface", minimum: 1
+    assert_equal featured_styles, card_surface_styles(".aboutme-finding-card")
   end
 
   test "landing page exposes about section counters as direct links" do
@@ -363,7 +426,10 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_text "Welcome to my flag collection"
     assert_selector ".landing-action[href='/timeline']", text: "Timeline"
     assert_selector ".landing-action[href='/about']", text: "About me"
+    assert_selector ".landing-metrics.aboutme-stats"
     assert_selector ".landing-metric", count: 6
+    assert_selector ".landing-metric.aboutme-stat", count: 6
+    assert_selector ".landing-metric:first-child[href='/timeline']", text: "Posts"
     page.execute_script("document.querySelector('.landing-metrics').scrollIntoView({ block: 'center' })")
 
     [
@@ -389,7 +455,9 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-metric[href='/timeline'] .landing-metric-value", text: post_count.to_s
     assert_no_selector ".landing-metric[href='/ctf']", text: "CTFs"
     assert_no_selector ".landing-metric", text: "Tags"
-    assert_selector ".landing-featured-card", count: 3
+    assert_selector ".landing-featured-card.aboutme-card", count: 3
+    assert_selector ".landing-featured-card .aboutme-card-header", count: 3
+    assert_no_selector ".landing-featured-topline"
     assert_selector ".landing-featured-card", text: "CVE"
     assert_selector ".landing-featured-card", text: /Certificate/i
   end
@@ -551,6 +619,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_text "Writeups"
     assert_selector "a.ctf-card[href^='/ctf/']", minimum: 1
     assert_selector "a.ctf-card.ui-hover-lift", minimum: 1
+    assert_selector "a.ctf-card.ui-card-surface", minimum: 1
     assert_no_selector "a.ctf-card.ui-hover-scale"
 
     first_card = find("a.ctf-card", match: :first)
@@ -897,6 +966,25 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal [], mismatches
   end
 
+  def link_hit_target(selector)
+    page.evaluate_script(<<~JS)
+      (() => {
+        const link = document.querySelector(#{selector.to_json});
+        link.scrollIntoView({ block: "center", inline: "nearest" });
+
+        const rect = link.getBoundingClientRect();
+        const target = document.elementFromPoint(rect.left + (rect.width / 2), rect.top + (rect.height / 2));
+        const targetLink = target.closest("a");
+
+        return {
+          nodeName: target.nodeName,
+          className: targetLink ? targetLink.className : target.className,
+          href: targetLink ? targetLink.href : null
+        };
+      })()
+    JS
+  end
+
   def post_card_styles(selector)
     page.evaluate_script(<<~JS)
       (() => {
@@ -913,6 +1001,7 @@ class SitePagesTest < ApplicationSystemTestCase
           borderRadius: cardStyle.borderTopLeftRadius,
           borderColor: cardStyle.borderTopColor,
           backgroundColor: cardStyle.backgroundColor,
+          backgroundImage: cardStyle.backgroundImage,
           boxShadow: cardStyle.boxShadow,
           logoBackground: logoStyle.backgroundColor,
           logoBorderRight: logoStyle.borderRightColor,
@@ -920,6 +1009,23 @@ class SitePagesTest < ApplicationSystemTestCase
           titleFontWeight: titleStyle.fontWeight,
           chipBorderRadius: chipStyle?.borderTopLeftRadius || null,
           chipBackground: chipStyle?.backgroundColor || null
+        };
+      })()
+    JS
+  end
+
+  def card_surface_styles(selector)
+    page.evaluate_script(<<~JS)
+      (() => {
+        const card = document.querySelector(#{selector.to_json});
+        const style = window.getComputedStyle(card);
+
+        return {
+          borderRadius: style.borderTopLeftRadius,
+          borderColor: style.borderTopColor,
+          backgroundColor: style.backgroundColor,
+          backgroundImage: style.backgroundImage,
+          boxShadow: style.boxShadow
         };
       })()
     JS

@@ -37,8 +37,8 @@ class ContentJsonSchemas
   FINDING = {
     "type" => "object",
     "required" => %w[
-      id project project_url title title_url cve_id severity short_summary summary tested_version impact
-      github_advisories timeline references
+      id project project_url title title_url cve_id severity short_summary summary
+      timeline references
     ],
     "additionalProperties" => false,
     "properties" => {
@@ -47,13 +47,12 @@ class ContentJsonSchemas
       "project_url" => STRING,
       "title" => STRING,
       "title_url" => STRING,
+      "card_url" => STRING,
       "cve_id" => STRING,
+      "cwe_id" => STRING,
       "severity" => STRING,
       "short_summary" => STRING,
       "summary" => STRING,
-      "tested_version" => STRING,
-      "impact" => STRING,
-      "github_advisories" => { "type" => "array", "items" => LINK },
       "timeline" => {
         "type" => "array",
         "items" => {
@@ -78,7 +77,9 @@ class ContentJsonSchemas
       "id" => STRING,
       "title" => STRING,
       "title_url" => STRING,
+      "card_url" => STRING,
       "category" => STRING,
+      "category_url" => STRING,
       "date" => DATE,
       "summary" => STRING,
       "details" => { "type" => "array", "items" => STRING },
@@ -94,7 +95,9 @@ class ContentJsonSchemas
       "id" => STRING,
       "title" => STRING,
       "title_url" => STRING,
+      "card_url" => STRING,
       "category" => STRING,
+      "category_url" => STRING,
       "summary" => STRING,
       "links" => { "type" => "array", "items" => LINK },
       "events" => {
@@ -109,7 +112,8 @@ class ContentJsonSchemas
             "title" => STRING,
             "date" => DATE,
             "summary" => STRING,
-            "url" => STRING
+            "url" => STRING,
+            "card_url" => STRING
           }
         }
       }

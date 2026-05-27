@@ -3,7 +3,9 @@
     "id": "smile-at-me",
     "title": "Smile at me",
     "title_url": "/ctf/gpnctf/Smile%20at%20me",
+    "card_url": "/ctf/gpnctf/Smile%20at%20me",
     "category": "GPNCTF 2025",
+    "category_url": "https://ctftime.org/ctf/854/",
     "date": "2025-06-21",
     "summary": "Web challenge about URL parser differentials, strict CSP, and an XS-Leak using Scroll-to-Text Fragment behavior with lazy-loaded images.",
     "details": [

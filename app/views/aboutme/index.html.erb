@@ -19,6 +19,65 @@
   { label: "Certificates", value: @certificates.length, anchor: "certificates" },
   { label: "Achievements", value: @achievement_event_count, anchor: "achievements" }
 ] %>
+<% about_sections = [
+  {
+    id: "cves",
+    title: "CVEs",
+    entries: @cves,
+    count: @cve_entry_count,
+    singular: "entry",
+    plural: "entries",
+    grid_class: "aboutme-finding-grid",
+    partial: "aboutme/finding_card",
+    card_locals: { kind: "cve" },
+    empty_text: "No public CVEs are listed yet."
+  },
+  {
+    id: "bug-bounties",
+    title: "Bug bounties",
+    entries: @bug_bounties,
+    count: @bug_bounties.length,
+    singular: "finding",
+    plural: "findings",
+    grid_class: "aboutme-finding-grid",
+    partial: "aboutme/finding_card",
+    card_locals: { kind: "bug-bounty" },
+    empty_text: "No public bug bounty reports are listed yet."
+  },
+  {
+    id: "my-challenges",
+    title: "Created CTF Challenges",
+    entries: @challenges,
+    count: @challenges.length,
+    singular: "challenge",
+    plural: "challenges",
+    grid_class: "aboutme-achievement-grid",
+    partial: "aboutme/milestone_card",
+    empty_text: "No authored challenges are listed yet."
+  },
+  {
+    id: "certificates",
+    title: "Certificates",
+    entries: @certificates,
+    count: @certificates.length,
+    singular: "certificate",
+    plural: "certificates",
+    grid_class: "aboutme-achievement-grid",
+    partial: "aboutme/milestone_card",
+    empty_text: "No certificates are listed yet."
+  },
+  {
+    id: "achievements",
+    title: "Relevant achievements",
+    entries: @achievements,
+    count: @achievement_event_count,
+    singular: "event",
+    plural: "events",
+    grid_class: "aboutme-achievement-grid",
+    partial: "aboutme/milestone_card",
+    empty_text: "No achievements are listed yet."
+  }
+] %>
 
 <main class="aboutme-page">
   <section class="aboutme-hero">
@@ -47,93 +106,7 @@
     </div>
   </section>
 
-  <section class="aboutme-section" id="cves">
-    <div class="aboutme-section-header">
-      <h2 class="aboutme-section-title">CVEs</h2>
-    </div>
-
-    <% if @cves.any? %>
-      <div class="aboutme-finding-grid">
-        <% @cves.each do |entry| %>
-          <%= render "finding_card", entry: entry, kind: "cve" %>
-        <% end %>
-      </div>
-    <% else %>
-      <div class="aboutme-empty-state">
-        <p>No public CVEs are listed yet.</p>
-      </div>
-    <% end %>
-  </section>
-
-  <section class="aboutme-section" id="bug-bounties">
-    <div class="aboutme-section-header">
-      <h2 class="aboutme-section-title">Bug bounties</h2>
-    </div>
-
-    <% if @bug_bounties.any? %>
-      <div class="aboutme-finding-grid">
-        <% @bug_bounties.each do |entry| %>
-          <%= render "finding_card", entry: entry, kind: "bug-bounty" %>
-        <% end %>
-      </div>
-    <% else %>
-      <div class="aboutme-empty-state">
-        <p>No public bug bounty reports are listed yet.</p>
-      </div>
-    <% end %>
-  </section>
-
-  <section class="aboutme-section" id="my-challenges">
-    <div class="aboutme-section-header">
-      <h2 class="aboutme-section-title">Created CTF Challenges</h2>
-    </div>
-
-    <% if @challenges.any? %>
-      <div class="aboutme-achievement-grid">
-        <% @challenges.each do |challenge| %>
-          <%= render "milestone_card", entry: challenge %>
-        <% end %>
-      </div>
-    <% else %>
-      <div class="aboutme-empty-state">
-        <p>No authored challenges are listed yet.</p>
-      </div>
-    <% end %>
-  </section>
-
-  <section class="aboutme-section" id="certificates">
-    <div class="aboutme-section-header">
-      <h2 class="aboutme-section-title">Certificates</h2>
-    </div>
-
-    <% if @certificates.any? %>
-      <div class="aboutme-achievement-grid">
-        <% @certificates.each do |certificate| %>
-          <%= render "milestone_card", entry: certificate %>
-        <% end %>
-      </div>
-    <% else %>
-      <div class="aboutme-empty-state">
-        <p>No certificates are listed yet.</p>
-      </div>
-    <% end %>
-  </section>
-
-  <section class="aboutme-section" id="achievements">
-    <div class="aboutme-section-header">
-      <h2 class="aboutme-section-title">Relevant achievements</h2>
-    </div>
-
-    <% if @achievements.any? %>
-      <div class="aboutme-achievement-grid">
-        <% @achievements.each do |achievement| %>
-          <%= render "milestone_card", entry: achievement %>
-        <% end %>
-      </div>
-    <% else %>
-      <div class="aboutme-empty-state">
-        <p>No achievements are listed yet.</p>
-      </div>
-    <% end %>
-  </section>
+  <% about_sections.each do |section| %>
+    <%= render "section", section: section %>
+  <% end %>
 </main>

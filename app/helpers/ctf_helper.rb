@@ -1,12 +1,18 @@
 module CtfHelper
+  CATEGORY_ICON_ASSET_ROOT = Rails.root.join("app", "assets", "ctf")
+  CATEGORY_ICON_DIRECTORY = Rails.root.join("app", "assets", "ctf", "categories")
+  DEFAULT_CATEGORY_ICON = "default.svg"
+
   def get_category_svg(category)
-    svg_filename = Rails.root.join("app", "assets", "ctf", "categories", "#{category.downcase}.svg")
-    svg_path = File.exist?(svg_filename) ? svg_filename : Rails.root.join("app", "assets", "ctf", "categories", "default.svg")
-    svg = File.read(svg_path)
-    svg.gsub("<svg", '<svg style="width: 6vh; height: 6vh;" ')
+    icon_path = category_icon_path(category)
+    inline_svg = inline_category_svg(icon_path)
+
+    return inline_svg if inline_svg.present?
+
+    image_tag(category_icon_asset_name(icon_path), alt: "#{category} category", class: "blog-logo")
   end
 
-  def render_writeup_card(writeup, writeup_path, info, logo: nil)
+  def render_writeup_card(writeup, writeup_path, info, logo: nil, interactive_tags: true)
     max_description_length = 200
     categories = Array(info["categories"]).presence || [ "Unknown category" ]
     first_category = categories&.first || "unknown"
@@ -23,7 +29,7 @@ module CtfHelper
 
     content_tag(
       :article,
-      class: "blog-post-card writeup-post-card ui-hover-lift",
+      class: "blog-post-card writeup-post-card ui-card-surface ui-hover-lift",
       data: {
         filter_card: "writeups",
         filter_text: filter_text,
@@ -48,14 +54,7 @@ module CtfHelper
           meta_html = content_tag(:div, class: "blog-post-meta") do
             content_tag(:div, class: "blog-post-meta-row") do
               category_chips = categories.map do |category|
-                content_tag(
-                  :button,
-                  category,
-                  type: "button",
-                  class: "filter-chip ui-hover-lift",
-                  data: { filter_scope: "writeups", filter_tag: category },
-                  aria: { pressed: "false", label: "Filter writeups by #{category}" }
-                )
+                writeup_category_chip(category, interactive_tags: interactive_tags)
               end
 
               safe_join([ render_writeup_winner_badge(info, context: :card) ] + category_chips)
@@ -101,8 +100,43 @@ module CtfHelper
 
   private
 
+  def category_icon_path(category)
+    category_name = category.to_s.downcase
+    CATEGORY_ICON_DIRECTORY.children
+                           .select { |path| path.file? && path.basename(".*").to_s == category_name }
+                           .sort_by { |path| path.basename.to_s }
+                           .first ||
+      CATEGORY_ICON_DIRECTORY.join(DEFAULT_CATEGORY_ICON)
+  end
+
+  def inline_category_svg(icon_path)
+    return nil unless icon_path.extname.downcase == ".svg"
+
+    svg = File.read(icon_path, mode: "r:UTF-8")
+    return nil unless svg.valid_encoding? && svg.include?("<svg")
+
+    svg.sub("<svg", '<svg style="width: 6vh; height: 6vh;" ')
+  end
+
+  def category_icon_asset_name(icon_path)
+    icon_path.relative_path_from(CATEGORY_ICON_ASSET_ROOT).to_s
+  end
+
   def writeup_winner(info)
     WriteupWinner.from_metadata(info)
+  end
+
+  def writeup_category_chip(category, interactive_tags:)
+    return content_tag(:span, category, class: "filter-chip blog-post-static-chip") unless interactive_tags
+
+    content_tag(
+      :button,
+      category,
+      type: "button",
+      class: "filter-chip ui-hover-lift",
+      data: { filter_scope: "writeups", filter_tag: category },
+      aria: { pressed: "false", label: "Filter writeups by #{category}" }
+    )
   end
 
   def writeup_winner_icon

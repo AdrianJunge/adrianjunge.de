@@ -20,12 +20,12 @@
 <% kit_link = "https://www.kit.edu" %>
 <% kitctf_link = "https://kitctf.de" %>
 <% landing_metrics = [
+  { label: "Posts", value: @amount_posts, link: timeline_link },
   { label: "CVEs", value: @amount_cves, link: about_path(anchor: "cves") },
   { label: "Bug bounties", value: @amount_bug_bounties, link: about_path(anchor: "bug-bounties") },
   { label: "Created Challenges", value: @amount_challenges, link: about_path(anchor: "my-challenges") },
   { label: "Certificates", value: @amount_certificates, link: about_path(anchor: "certificates") },
-  { label: "Achievements", value: @amount_achievements, link: about_path(anchor: "achievements") },
-  { label: "Posts", value: @amount_posts, link: timeline_link }
+  { label: "Achievements", value: @amount_achievements, link: about_path(anchor: "achievements") }
 ] %>
 
 <main class="landing-page">
@@ -70,11 +70,11 @@
         </aside>
     </div>
 
-    <div class="landing-metrics" aria-label="Site and security profile counters">
+    <div class="landing-metrics aboutme-stats" aria-label="Site and security profile counters">
         <% landing_metrics.each do |metric| %>
-            <a href="<%= metric[:link] %>" class="landing-metric ui-hover-lift">
-                <span class="landing-metric-value"><%= metric[:value] %></span>
-                <span class="landing-metric-label"><%= metric[:label] %></span>
+            <a href="<%= metric[:link] %>" class="landing-metric aboutme-stat ui-hover-lift">
+                <span class="landing-metric-value aboutme-stat-value"><%= metric[:value] %></span>
+                <span class="landing-metric-label aboutme-stat-label"><%= metric[:label] %></span>
             </a>
         <% end %>
     </div>
@@ -100,27 +100,28 @@
 
             <div class="landing-featured-grid">
                 <% @featured_items.each do |item| %>
-                    <a href="<%= item[:link] %>" class="landing-featured-card ui-hover-lift">
-                        <span class="landing-featured-topline">
-                            <span class="landing-featured-kind"><%= item[:label] %></span>
-                            <time datetime="<%= item[:published].iso8601 %>"><%= item[:display_date] %></time>
-                        </span>
+                    <% tags = [
+                        { label: item[:label] },
+                        { label: item[:display_date], datetime: item[:published].iso8601, class_name: "aboutme-tag-date" },
+                        { label: item[:source] }
+                    ] %>
+                    <% if item[:cve_id].present? %>
+                        <% tags << { label: item[:cve_id], url: aboutme_cve_url(item[:cve_id]), class_name: "aboutme-cve-id" } %>
+                    <% elsif item[:writeup_winner].present? %>
+                        <% tags << { label: item[:writeup_winner][:label] } %>
+                    <% end %>
 
-                        <span class="landing-featured-title"><%= item[:title] %></span>
-
-                        <% if item[:description].present? %>
-                            <span class="landing-featured-description"><%= truncate(item[:description], length: 180) %></span>
-                        <% end %>
-
-                        <span class="landing-featured-meta">
-                            <span><%= item[:source] %></span>
-                            <% if item[:cve_id].present? %>
-                                <span><%= item[:cve_id] %></span>
-                            <% elsif item[:writeup_winner].present? %>
-                                <span><%= item[:writeup_winner][:label] %></span>
-                            <% end %>
-                        </span>
-                    </a>
+                    <%= render "aboutme/profile_card",
+                               card: {
+                                 id: item[:id],
+                                 class_name: "landing-featured-card",
+                                 title: item[:title],
+                                 description: (truncate(item[:description], length: 180) if item[:description].present?),
+                                 tags: tags,
+                                 collapsible: false,
+                                 card_url: item[:link],
+                                 aria_label: "Open #{item[:title]}"
+                               } %>
                 <% end %>
             </div>
         </section>
@@ -142,11 +143,11 @@
                 }) %>
 
                 <div class="blog-post-entry">
-                    <%= render_blog_post_card(post[:slug], blog_data_with_meta) %>
+                    <%= render_blog_post_card(post[:slug], blog_data_with_meta, interactive_tags: false) %>
                 </div>
             <% elsif post[:type] == "ctf" %>
                 <div class="blog-post-entry writeup-post-entry">
-                    <%= render_writeup_card(post[:slug], post[:link], post[:metadata] || {}, logo: post[:logo]) %>
+                    <%= render_writeup_card(post[:slug], post[:link], post[:metadata] || {}, logo: post[:logo], interactive_tags: false) %>
                 </div>
             <% end %>
         <% end %>

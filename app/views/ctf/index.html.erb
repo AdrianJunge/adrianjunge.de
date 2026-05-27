@@ -35,7 +35,7 @@
     <% @ctfs.each do |name, ctf| %>
       <% filter_text = [name, ctf["description"], ctf["terminal_path"]].compact.join(" ") %>
       <%= link_to ctf["writeups"],
-                  class: "ctf-card ui-hover-lift",
+                  class: "ctf-card ui-card-surface ui-hover-lift",
                   data: {
                     expandable: false,
                     filter_card: "ctfs",
