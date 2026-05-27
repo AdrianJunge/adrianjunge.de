@@ -56,7 +56,7 @@ You just need to be careful as the flag format `.;,;.{` and `}` were stripped ou
 # 5. Mitigation<a id="mitigation"></a>
 In general, preventing XSLeaks is a pretty tough challenge. But in the first place this exploit could have been completely prevented by not applying the **Jinja2** `safe` keyword to untrusted input.
 
-# 6. Solve script<a id="solve script"></a>
+# 6. Solve Script<a id="solve script"></a>
 ```python
 # .;,;.{d0ntul0v3th1sf34tur3}
 

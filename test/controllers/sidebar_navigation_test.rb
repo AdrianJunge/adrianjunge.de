@@ -65,6 +65,7 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     assert_response :success
     blog_labels = terminal_labels_for_response
     assert_includes blog_labels, "htb-cpts"
+    assert_includes blog_labels, "java-strings"
     assert_not_includes blog_labels, "about"
     assert_not_includes blog_labels, "ctf"
 

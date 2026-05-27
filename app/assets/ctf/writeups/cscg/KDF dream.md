@@ -27,7 +27,7 @@ We are given some **Python** files simulating a series of communication exchange
 # 2. Reconnaissance<a id="reconnaissance"></a>
 The communication starts with the popular **Diffie-Hellman Key Exchange** using a secure group. After both parties calculated the shared key **Alice** and **Bob** agree on one of the three **NIST** certified pseudo random functions (PRF) HMAC, CMAC and KMAC, for the KDF. Both parties randomly select a nonce and exchange these to have a common KDF context. After that, the shared key, the chosen PRF, the common context and some hardcoded string are used to derive a common key out of the KDF algorithm **SP800 108 Counter Mode**. **Alice** then sends **Bob** a message `wearecompromised` because she is already suspicious about the connection, as the description tells us. The only way to receive the flag is by somehow making sure **Bob** receives `allgoodprintflag` as a message.
 
-# 3. We are the man in the middle<a id="we are the man in the middle"></a>
+# 3. We Are The Man In The Middle<a id="we are the man in the middle"></a>
 At first, we want to make sure we get to know the shared secret being calculated via the **Diffie-Hellman Key Exchange**. Both parties calculate the same shared secret `\(K = g^{ab} \bmod P\)` through modular exponentiation with a prime `P`, which can then be used for symmetric encryption:
 
 ![casual diffie-hellman key exchange](ctf/writeups/cscg/kdfdream/casual_dh.png "casual diffie-hellman key exchange")
@@ -80,7 +80,7 @@ The probability of both parties choosing even exponents is:
 
 
 
-# 4. Deriving some flags<a id="deriving some flags"></a>
+# 4. Deriving Some Flags<a id="deriving some flags"></a>
 Now that we know the shared secret, we can decrypt every message **Alice** and **Bob** send each other via the KDF-derived OTPs, as we can calculate these ourselves. But this is not enough for the challenge, we need to influence the output and thus the derived OTPs.
 <span>
 There is a [NIST document](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-108r1-upd1.pdf) describing the algorithm for **SP 800 108** in detail. It is basically a loop like the following:

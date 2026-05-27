@@ -45,7 +45,7 @@ Running DOMPurify on the server requires a DOM to be present, which is probably 
 Why? Because older versions of jsdom are known to be buggy in ways that result in XSS even if DOMPurify does everything 100% correctly. There are known attack vectors in, e.g. jsdom v19.0.0 that are fixed in jsdom v20.0.0 - and we really recommend keeping jsdom up to date because of that.
 ```
 
-# 3. Bypassing DOMPurify - Finding differentials<a id="bypassing DOMPurify - finding differentials"></a>
+# 3. Bypassing DOMPurify - Finding Differentials<a id="bypassing DOMPurify - finding differentials"></a>
 Bypassing **DOMPurify** is challenging when it is used correctly. Typically, you would use the latest version of **DOMPurify** client-side so that the sanitizer uses the same DOM parser as the browser rendering the website. When using a sanitizer like **DOMPurify**, the untrusted payload is parsed at least two times:
 <span>
 The first time, by the DOM parser used by **DOMPurify**, and the second time by the DOM parser of the browser, the website is being rendered on. Using the **DOMPurify** client-side avoids parser differentials that originate from **DOMPurify** using a different parser in the backend than the client. Nevertheless, bypassing even the latest version of **DOMPurify** running client-side is not impossible. If you are interested in the whole topic around mutation XSS (mXSS), I can highly recommend [this article](https://mizu.re/post/exploring-the-dompurify-library-bypasses-and-fixes).

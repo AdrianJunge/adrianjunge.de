@@ -314,7 +314,7 @@ This calls `xmalloc`, which calls `verify_cookies@plt`, which now resolves to th
 # 5. Mitigation<a id="mitigation"></a>
 The primary bug is the fixed-size write in `edit`. The binary has to store the size of every allocation and only allow writes up to that size. A custom allocator with canaries can't compensate for arbitrary out-of-bounds writes into its metadata. Moreover, the allocator library should be linked with full **RELRO** so its **GOT** is not writable. Also, using a custom heap implementation for security is almost always risky. The normal **glibc** heap has had many years of hardening work. Reimplementing this correctly is much harder than it first looks.
 
-# 6. Solve script<a id="solve script"></a>
+# 6. Solve Script<a id="solve script"></a>
 ```python
 #!/usr/bin/env python3
 

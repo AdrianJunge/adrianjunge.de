@@ -67,7 +67,7 @@ function getProperty(name) {
 
 We control the `name` parameter for this function via the URL path. Due to `this[name]`, we can retrieve any property of the object `this` like `name` and `producer`. But more importantly, we can also get internal properties like `_id` or `__parent__`. The `accessKey` is part of the `Global` object, so effectively we need to traverse the properties of any `Video` object, reaching the `Global` object and its `accessKey` property to retrieve the flag.
 
-# 5. Setting up a local instance<a id="setting up a local instance"></a>
+# 5. Setting Up A Local Instance<a id="setting up a local instance"></a>
 Setting up a local instance is not quite necessary, but it makes debugging much easier. For this, we need to leak the used **Helma** version, which turns out pretty simple. We can trigger an error, for example, by checking out the `__created__` property, revealing it is **Helma** v1.5.2:
 
 ![error](ctf/writeups/cscg/vidplow/error.png "error")

@@ -1,4 +1,11 @@
 {
+  "java-strings": {
+    "terminal_path": "java-strings",
+    "logo": "blog/java.png",
+    "title": "Funny Java Strings?",
+    "category": "Security Research",
+    "description": "Java Strings are immutable, interned, optimized, and surprisingly easy to misunderstand when secrets are involved."
+  },
   "htb-cpts": {
     "terminal_path": "htb-cpts",
     "logo": "blog/htb-cpts.png",

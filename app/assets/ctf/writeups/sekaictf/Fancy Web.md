@@ -81,7 +81,7 @@ The website intends that users are only allowed to input serialized `SecureTable
 # 4. Exploitation<a id="exploitation"></a>
 An attacker could now create a malicious payload with a serialized object. To achieve RCE we need a special sink that e.g. allows us to execute arbitrary **PHP** functions. To reach these sinks, we can start, for example, with the `__wakeup` method that is automatically called via `unserialize`. But not only is `__wakeup` automatically called, there are a lot of other methods like `__destruct` and  `__toString` that are called at a specific point and might be interesting as an entry point. To eventually reach our RCE sink, we have to create a chain of different objects with carefully set properties. This could influencing the control flow of, for example, the `__wakeup` method and all the called functionality by triggering only specific branches. This is called a POP chain (Property Oriented Programming). So to exploit the `unserialize` vulnerability we have to find such a POP chain either in the `fancy` plugin itself or in the **Wordpress** core.
 
-# 4.1. The POP entry<a id="the pop entry"></a>
+# 4.1. The POP Entry<a id="the pop entry"></a>
 Having a look at the plugin code itself, most of the functionality is about some weird **XSS** sanitizations which are not interesting at all to us. However an interesting sanitization is the removal of specific malicious **PHP** keywords like `eval`, `exec` and `system`. If we want to make use of `SecureTableGenerator` for our malicious payload, we need to be aware of this. During the competition, two hints were released as a lot of people got stuck:
 
 ```
@@ -111,7 +111,7 @@ In the plugin code itself, we can find the following part, which matches the des
 
 When `in_array` is being called, to check wether an array consisting of strings contains a specific string, **PHP** will internally call `__toString` if objects are used for the comparison. For our POP chain, we can make use of this as the `resetSecurityProperties` method is called via the `__wakeup` method of the `SecureTableGenerator` class. We fully control the `allowedTags` array property, so we can set an element as an object for which the `__toString` method will be called for the comparison. So the `SecureTableGenerator` might be our best entry for this POP chain, followed by a class that implements an exploitable `__toString` method.
 
-# 4.2. The source and the sink<a id="the source and the sink"></a>
+# 4.2. The Source And The Sink<a id="the source and the sink"></a>
 Now it becomes exponentially difficult to create the POP chain. There could be a lot of different ways to reach an RCE sink, and we have to figure this out. Fortunately there is already an interesting [article](https://wpscan.com/blog/finding-a-rce-gadget-chain-in-wordpress-core/) about finding POP chains in the **Wordpress** core which will also help us building up the POP chain. Reading through this article and searching in the source code of **Wordpress** we can find out that neither the source nor the sink is usable anymore. However, the middle part of the POP chain is still usable.
 
 For the source, the article uses a class called [WP_Theme](https://github.com/WordPress/WordPress/blob/6.8.2/wp-includes/class-wp-theme.php#L550). This POP chain entry was fixed by **Wordpress** by implementing some checks in its `__wakeup` method. However there are still some interesting classes around in the **Wordpress** core one of them being [WP_HTML_Tag_Processor](https://github.com/WordPress/WordPress/blob/6.8.2/wp-includes/html-api/class-wp-html-tag-processor.php#L4125) implementing an interesting `__toString` method as we will see soon.
@@ -131,7 +131,7 @@ We have full control over the `$patterns` as we can set them ourselves as an att
 
 So now that we have our source, `WP_HTML_Tag_Processor` with the `__toString` method, which we can trigger via the `SecureTableGenerator` due to the `in_array` operations, and our sink, `WP_Block_Patterns_Registry`, obtaining RCE due to the controlled **PHP** `include` call, we can now connect both ends to get a full POP chain.
 
-# 4.3. Chain assembly<a id="chain assembly"></a>
+# 4.3. Chain Assembly<a id="chain assembly"></a>
 The [article](https://wpscan.com/blog/finding-a-rce-gadget-chain-in-wordpress-core/) describes an interesting technique to pivot from one class to another by leveraging classes that implement the `ArrayAccess` class. If a class implements it, it will behave similarly to a normal array but by implementing its own functionality, e.g., for index accesses. The [blog](https://wpscan.com/blog/finding-a-rce-gadget-chain-in-wordpress-core/) uses the `WP_Block_List` class, and this is the same we are also looking for. Starting with our source `WP_HTML_Tag_Processor` within the `__toString` method, we go over to the `get_updated_html` method, which will eventually call `class_name_updates_to_attributes_updates`. This method got an interesting case handling `$this->attributes` as an array, which is exactly what we are looking for:
 
 ```php

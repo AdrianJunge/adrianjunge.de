@@ -57,7 +57,7 @@ if($obj->oldvalue !== '') {
 
 Having these vulnerabilities, `filterFood` is the more interesting function, as we control the input parameter for this function.
 
-# 3. SQL injection<a id="SQL injection"></a>
+# 3. SQL Injection<a id="SQL injection"></a>
 At first, we should analyze how to exploit the **SQL** injection as the called `unserialize` function is dependent on the results of the **SQL** query. The `SELECT` query is ideal for a `UNION` attack with which we can append arbitrary data to the rows from the database matching the initial query. So, using an **SQL** injection payload like:
 
 ```sql
@@ -70,7 +70,7 @@ we get back the following confirming our successful **SQL** injection:
 
 This means if we add a legitimate value for `oldvalue`, our user input will be processed by `unserialize`.
 
-# 4. PHP unserialize<a id="php unserialize"></a>
+# 4. PHP Unserialize<a id="php unserialize"></a>
 Deserialization is a process where serialized data is converted back to actual data. The **PHP** `unserialize` will take a string and will create instantiated objects, arrays, integers, booleans and other stuff. Each of these data types has its own prefix. For example objects got the prefix `O:` followed by the length of the class name, the class name itself as a string and its attribute fields also written with the serialized notation like for example `O:1:"a":1:{s:5:"value";s:3:"100";}`. The **PHP** [documentation](https://www.php.net/manual/en/function.unserialize.php) describes some interesting internal behaviour:
 
 ```

@@ -43,7 +43,7 @@ I chose the pointer to `__libc_start_main`. So by overwriting the `next` pointer
 # 5. Mitigation<a id="mitigation"></a>
 Check the bounds of used buffers and use variables saving these bounds instead of hardcoding magic numbers one by one.
 
-# 6. Solve script<a id="solve script"></a>
+# 6. Solve Script<a id="solve script"></a>
 ```python
 #!/usr/bin/env python3
 from string import Template

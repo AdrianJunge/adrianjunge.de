@@ -53,7 +53,7 @@ So the `session number` is always submitted with our POST request when a post is
 So instead of some native **React** functionality to manage some kind of state, the developers of this website just used a global **JavaScript** object.
 
 # 4. Exploitation<a id="exploitation"></a>
-## 4.1. Exploitation Variant 1 - DOM clobbering<a id="exploitation variant 1"></a>
+## 4.1. Exploitation Variant 1 - DOM Clobbering<a id="exploitation variant 1"></a>
 In short, DOM clobbering is about changing the way **JavaScript** works on a website by injecting specific HTML content. By setting the `id` attribute of some HTML tag to a used `window` object property, we can overwrite the value of this global **JavaScript** object or variable. In this case, `sessionNumber` is a great target as we see in following code snippet to handle the dislike button:
 
 ```javascript
@@ -97,7 +97,7 @@ Returning to our account overview, we are greeted with the flag:
 
 ![flag](ctf/writeups/umdctf/aminecraftmovie/flag.png "flag")
 
-## 4.2. Exploitation Variant 2 - Submit form<a id="exploitation variant 2"></a>
+## 4.2. Exploitation Variant 2 - Submit Form<a id="exploitation variant 2"></a>
 The simplest method to get CSRF without any **JavaScript** but with a click is via submit forms. The only obstacle is that the admin will always click the button with the id `dislike-button`. But something interesting will happen if we just add another HTML element with the same ID. Technically, this is invalid HTML. But as browsers always try their best to fix invalid HTML, this rule is ignored and the document is still being rendered. However, DOM access via `window.document.getElementById('dislike-button')` will return the first element in the DOM with this specific id. This is just an assumption, but the probability is high that the admin is implemented with selenium/puppeteer to automate admin requests. As the admin bot just simulates a click on the button with id `dislike-button`, it will search the DOM and will receive the first one being ours. So we can just add a random post and a second one, like following:
 
 ```html
@@ -111,7 +111,7 @@ The simplest method to get CSRF without any **JavaScript** but with a click is v
 
 The admin will click our submit form and thus like our other post.
 
-## 4.3. Exploitation Variant 3 - iframe YouTube open redirect<a id="exploitation variant 3"></a>
+## 4.3. Exploitation Variant 3 - iframe YouTube Open Redirect<a id="exploitation variant 3"></a>
 There was another great idea to solve this challenge. As you have an HTML injection, we can try to redirect the admin to our website. As the web server has no CSRF protection, we can simply host an automated submit form, so the admin will like our post. Starting with the redirect, we have a little problem:
 
 ```javascript
@@ -156,7 +156,7 @@ fetch('https://a-minecraft-movie-api.challs.umdctf.io/legacy-social', {
 
 The iframe will be victim to the **open redirects**. The reason for this is the cookie attribute `sameSite=none`, you can read further in [this article](https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions#none) describing this attribute in depth. This means the browser will always send the cookie to the challenge website in all requests, no matter by whom they were issued. So when the iframe is redirected to our malicious website, the POST request will be submitted together with the admin cookie. The cool thing about this exploit is that we don't even need the click of the admin.
 
-## 4.4. Exploitation Variant 4 - CSS shenanigans<a id="exploitation variant 4"></a>
+## 4.4. Exploitation Variant 4 - CSS Shenanigans<a id="exploitation variant 4"></a>
 This one is a bit more special, but I like the idea. It is a clickjacking-like approach to solve this challenge. The main idea is to add another button with the id `dislike-button`, just like in the [submit-form-approach](#exploitation%20variant%202). But this time we will move our button behind the like button with CSS. The admin bot will just search for this button via the id attribute and then click on the element. You might think at first that, puppeteer will click the element even when it is overlapped by another element. But reading the documentation about puppeteer [click handler](https://pptr.dev/api/puppeteer.elementhandle.click), we will get the information that it simulates a real mouse click. So it will focus on the element given by a selector, but will still click the topmost element. So we just add a post with the following content:
 
 ```html
@@ -165,7 +165,7 @@ This one is a bit more special, but I like the idea. It is a clickjacking-like a
 
 The button will be covered by the like button and thus submitting this to the admin will lead to a like for our post.
 
-## 4.5. Exploitation Variant 5 - I…LIKE CHEESE!🧀<a id="exploitation variant 5"></a>
+## 4.5. Exploitation Variant 5 - I…LOVE CHEESE!🧀<a id="exploitation variant 5"></a>
 This is one of the oldest cheeses in CTF and also applies in the real world. In general, if you have a weak password policy, people will use bad username-password combinations. Especially when time is a factor, like in CTF challenges. So you can expect some bad credentials and try to guess them like for example `asdfasdf:asdfasdf`. Logging in will get you the flag without even exploiting the actual challenge.
 
 # 5. Mitigation<a id="mitigation"></a>

@@ -8,6 +8,7 @@ class SitePagesTest < ApplicationSystemTestCase
     "/ctf/lactf/Gamedev" => "Gamedev",
     "/blog" => "Blog",
     "/blog/htb-cpts" => "HTB CPTS",
+    "/blog/java-strings" => "Funny Java Strings",
     "/timeline" => "Timeline"
   }.freeze
 
@@ -726,21 +727,27 @@ class SitePagesTest < ApplicationSystemTestCase
     visit "/blog"
 
     assert_selector ".content-filter-panel .filter-chip", text: "Active Directory"
+    assert_selector ".content-filter-panel .filter-chip", text: "JVM Internals"
+    assert_selector ".blog-post-card", text: "Funny Java Strings"
+    assert_selector ".blog-post-card[data-filter-tags*='JVM Internals']"
+    assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/java']"
 
     fill_in "blog-search-input", with: "CPTS"
-    assert_selector "[data-filter-count='blogs']", text: "1 / 1 item"
+    assert_selector "[data-filter-count='blogs']", text: "1 / 2 items"
     assert_selector ".blog-post-card", text: "HTB CPTS"
 
     find("[data-filter-reset='blogs']").click
     select_filter_year("blogs", "2026")
-    assert_selector "[data-filter-count='blogs']", text: "1 / 1 item"
+    assert_selector "[data-filter-count='blogs']", text: "2 / 2 items"
     assert_selector ".blog-post-card", text: "HTB CPTS"
+    assert_selector ".blog-post-card", text: "Funny Java Strings"
 
     find("[data-filter-reset='blogs']").click
     fill_in "blog-search-input", with: "definitely-not-a-post"
-    assert_selector "[data-filter-count='blogs']", text: "0 / 1 item"
+    assert_selector "[data-filter-count='blogs']", text: "0 / 2 items"
     assert_selector ".content-filter-empty", text: "No blog posts match the current filters."
     assert_no_selector ".blog-post-card", text: "HTB CPTS"
+    assert_no_selector ".blog-post-card", text: "Funny Java Strings"
   end
 
   test "blog and writeup cards keep full-card navigation" do
@@ -938,7 +945,8 @@ class SitePagesTest < ApplicationSystemTestCase
   test "article markdown keeps readable heading typography" do
     {
       "/ctf/gpnctf/Smile%20at%20me" => "TL;DR",
-      "/blog/htb-cpts" => "1. My Background"
+      "/blog/htb-cpts" => "1. My Background",
+      "/blog/java-strings" => "1. The Tiny Problem With Strings"
     }.each do |path, heading_text|
       page.current_window.resize_to(1280, 1200)
       visit path

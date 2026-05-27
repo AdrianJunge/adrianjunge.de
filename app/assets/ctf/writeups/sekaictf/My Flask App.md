@@ -84,7 +84,7 @@ There was even a much simpler way to obtain the content of the flag file. By ret
 # 5. Mitigation<a id="mitigation"></a>
 As for every application, rule number one is that you should always filter, validate, and sanitize any user input that is processed further. In this challenge, there were no security checks at all, making it very easy for any attacker to carry out the attack. Moreover, when using **Python Flask**, you should never enable the `debug` mode in production. Although you might think the debugger PIN is generated securely so an attacker can't guess it, this challenge showed very well that it is still possible to retrieve the PIN via simple file reads, eventually resulting in RCE.
 
-# 6. Solve script<a id="solve script"></a>
+# 6. Solve Script<a id="solve script"></a>
 The following one-shot solve script is from the [official solution](https://github.com/project-sekai-ctf/sekaictf-2025/blob/main/web/my-flask-app/solution/solve.py):
 
 ```python

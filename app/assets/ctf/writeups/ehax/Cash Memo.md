@@ -80,8 +80,8 @@ To apply this technique to the current challenge we need to make sure we can wri
 # 5. Mitigation<a id="mitigation"></a>
 First of all there is absolutely no need for the heap overflow. Just make sure the buffer size and the input size are an exact match. Moreover you should always explicitly set pointers to null when they are not used anymore.
 
-# 6. Solve script<a id="solve script"></a>
-## 6.1. Solve script - Exploit 1<a id="solve script exploit 1"></a>
+# 6. Solve Script<a id="solve script"></a>
+## 6.1. Solve Script - Exploit 1<a id="solve script exploit 1"></a>
 Leak via UAF + tcache poisoning via UAF + free_hook
 ```python
 #!/usr/bin/env python3
@@ -242,7 +242,7 @@ if __name__ == "__main__":
 
 ```
 
-## 6.2. Solve script - Exploit 2<a id="solve script exploit 2"></a>
+## 6.2. Solve Script - Exploit 2<a id="solve script exploit 2"></a>
 Leak via UAF + tcache poisoning via heap overflow + setcontext
 ```python
 #!/usr/bin/env python3

@@ -70,7 +70,7 @@ As these onegadgets got some requirements to work, we can easily just try out ev
 # 5. Mitigation<a id="mitigation"></a>
 The vulnerabilities can be easily mitigated by not intentionally leaking some addresses and moreover using some safe alternatives for `gets` like `fgets`.
 
-# 6. Solve script<a id="solve script"></a>
+# 6. Solve Script<a id="solve script"></a>
 ```python
 #!/usr/bin/env python3
 from string import Template
