@@ -3,7 +3,6 @@ Rails.application.routes.draw do
 
   get "/about", to: "aboutme#index", as: :about
   get "/aboutme", to: redirect("/about")
-  get "/search", to: "search#index", as: :search
   get "/sitemap.xml", to: "seo#sitemap", defaults: { format: :xml }
 
   get "/ctf/files/*file_path", to: "ctf_files#download", as: :ctf_file_download

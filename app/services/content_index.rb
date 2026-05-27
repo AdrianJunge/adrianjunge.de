@@ -37,15 +37,12 @@ class ContentIndex
     }
   ].freeze
 
-  def all_items
-    @all_items ||= (post_items + about_items).sort_by { |item| -item[:published].to_i }
+  def initialize(repository: ContentRepository.new)
+    @repository = repository
   end
 
-  def timeline_groups
-    grouped = all_items.group_by { |item| item[:published].year }
-    grouped.keys.sort.reverse.map do |year|
-      [ year, grouped[year].sort_by { |item| -item[:published].to_i } ]
-    end
+  def all_items
+    @all_items ||= (post_items + about_items).sort_by { |item| -item[:published].to_i }
   end
 
   def featured_items(limit = 3)
@@ -67,78 +64,54 @@ class ContentIndex
   end
 
   def ctf_items
-    ctf_metadata = read_json_object(ApplicationController::CTF_INFO_PATH)
+    repository.ctf_posts.map do |post|
+      metadata = post[:metadata] || {}
+      winner = WriteupWinner.from_metadata(metadata)
+      filter_tags = Array(post[:categories]).map(&:to_s).reject(&:blank?)
+      filter_tags << WriteupWinner::FILTER_LABEL if winner
 
-    ctf_metadata.flat_map do |ctf_key, ctf_info|
-      directory = ctf_info["terminal_path"].presence || ctf_key.downcase
-
-      Dir.glob(ApplicationController::BASE_PATH.join(directory, "*.md")).filter_map do |file_path|
-        parsed = parse_markdown(File.read(file_path))
-        next unless parsed
-
-        metadata = parsed.front_matter || {}
-        slug = File.basename(file_path, ".md")
-        title = metadata["title"].presence || slug.humanize
-        published = parsed_time(metadata["published"], fallback: file_time(file_path, metadata["year"]))
-        categories = Array(metadata["categories"]).map(&:to_s).reject(&:blank?)
-        winner = WriteupWinner.from_metadata(metadata)
-        filter_tags = categories
-        filter_tags << WriteupWinner::FILTER_LABEL if winner
-
-        content_item(
-          id: "ctf-#{directory.parameterize}-#{slug.parameterize}",
-          kind: "writeup",
-          label: "CTF writeup",
-          source: ctf_key,
-          title: title,
-          description: metadata["description"].to_s,
-          published: published,
-          display_date: published.strftime("%Y-%m-%d"),
-          link: "/ctf/#{directory}/#{slug}",
-          tags: filter_tags,
-          search_parts: [ ctf_key, title, metadata, parsed.content ],
-          logo: ctf_info["logo"],
-          writeup_winner: winner
-        )
-      end
+      content_item(
+        id: "ctf-#{post[:directory].parameterize}-#{post[:slug].parameterize}",
+        kind: "writeup",
+        label: "CTF writeup",
+        source: post[:which],
+        title: post[:title],
+        description: post[:description],
+        published: post[:published],
+        display_date: post[:published].strftime("%Y-%m-%d"),
+        link: post[:link],
+        tags: filter_tags,
+        search_parts: [ post[:which], post[:title], metadata, post[:content] ],
+        logo: post[:logo],
+        writeup_winner: winner
+      )
     end
   end
 
   def blog_items
-    blog_metadata = read_json_object(ApplicationController::BLOG_INFO_PATH)
+    blog_metadata = repository.blog_metadata
 
-    Dir.glob(ApplicationController::BLOG_BASE_PATH.join("*.md")).filter_map do |file_path|
-      parsed = parse_markdown(File.read(file_path))
-      next unless parsed
-
-      metadata = parsed.front_matter || {}
-      slug = File.basename(file_path, ".md")
-      blog_info = blog_metadata[slug] || {}
-      title = blog_info["title"].presence || metadata["title"].presence || slug.humanize
-      category = blog_info["category"].presence || "Post"
-      published = parsed_time(metadata["published"], fallback: file_time(file_path, metadata["year"]))
-      categories = Array(metadata["categories"]).map(&:to_s).reject(&:blank?)
-
+    repository.blog_posts.map do |post|
       content_item(
-        id: "blog-#{slug.parameterize}",
+        id: "blog-#{post[:slug].parameterize}",
         kind: "blog",
         label: "Blog post",
-        source: category,
-        title: title,
-        description: metadata["description"].to_s,
-        published: published,
-        display_date: published.strftime("%Y-%m-%d"),
-        link: "/blog/#{slug}",
-        tags: categories,
-        search_parts: [ category, title, metadata, parsed.content ],
-        logo: blog_info["logo"]
+        source: post[:which],
+        title: post[:title],
+        description: post[:description],
+        published: post[:published],
+        display_date: post[:published].strftime("%Y-%m-%d"),
+        link: post[:link],
+        tags: post[:categories],
+        search_parts: [ post[:which], post[:title], post[:metadata], post[:content] ],
+        logo: blog_metadata.dig(post[:slug], "logo")
       )
     end
   end
 
   def about_items
     ABOUT_COLLECTIONS.flat_map do |collection|
-      entries = read_json_array(collection[:path])
+      entries = repository.about_entries(collection[:path])
 
       entries.flat_map do |entry|
         if collection[:kind] == "achievement"
@@ -192,7 +165,7 @@ class ContentIndex
       event_id = event["id"].presence || "#{parent_id}-#{event["date"]}-#{event["title"]}".parameterize
       next if event_id.blank?
 
-      published = parsed_time(event["date"], fallback: about_published_time(entry, collection[:path]))
+      published = repository.parsed_time(event["date"], fallback: about_published_time(entry, collection[:path]))
       description = event["summary"].presence || about_description(entry)
       title = event["title"].presence || entry["title"].presence || collection[:label]
       tags = about_tags(entry, collection[:label]) + [ entry["title"] ]
@@ -259,7 +232,7 @@ class ContentIndex
 
   def about_published_time(entry, path)
     latest_timeline_time(entry) ||
-      parsed_time(entry["date"], fallback: file_time(path))
+      repository.parsed_time(entry["date"], fallback: repository.file_time(path))
   end
 
   def about_display_date(entry, published)
@@ -275,50 +248,8 @@ class ContentIndex
 
   def latest_timeline_time(entry)
     Array(entry["timeline"]).filter_map do |item|
-      parsed_time(item["date"], fallback: nil)
+      repository.parsed_time(item["date"], fallback: nil)
     end.max
-  end
-
-  def file_time(path, year = nil)
-    year_value = year.to_s[/\d{4}/]
-    return Time.zone.local(year_value.to_i, 12, 31) if year_value
-
-    File.exist?(path) ? File.mtime(path) : Time.zone.now
-  end
-
-  def parsed_time(value, fallback:)
-    raw = value.to_s.strip
-    return fallback if raw.blank?
-
-    if raw.match?(/\A\d{4}\z/)
-      Time.zone.local(raw.to_i, 12, 31)
-    elsif (years = raw.scan(/\d{4}/)).any? && !raw.match?(/\A\d{4}-\d{2}-\d{2}\z/)
-      Time.zone.local(years.map(&:to_i).max, 12, 31)
-    else
-      Time.zone.parse(raw)
-    end
-  rescue StandardError
-    fallback
-  end
-
-  def parse_markdown(content)
-    FrontMatterParser::Parser.new(:md).call(content)
-  rescue StandardError
-    nil
-  end
-
-  def read_json_array(path)
-    data = JSON.parse(File.read(path))
-    data.is_a?(Array) ? data : []
-  rescue StandardError
-    []
-  end
-
-  def read_json_object(path)
-    data = JSON.parse(File.read(path))
-    data.is_a?(Hash) ? data : {}
-  rescue StandardError
-    {}
   end
 
   def search_text_for(values)
@@ -337,4 +268,6 @@ class ContentIndex
       value.to_s
     end
   end
+
+  attr_reader :repository
 end

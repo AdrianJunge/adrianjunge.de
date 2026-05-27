@@ -8,8 +8,7 @@ class SitePagesTest < ApplicationSystemTestCase
     "/ctf/lactf/Gamedev" => "Gamedev",
     "/blog" => "Blog",
     "/blog/htb-cpts" => "HTB CPTS",
-    "/timeline" => "Timeline",
-    "/search" => "Global Search"
+    "/timeline" => "Timeline"
   }.freeze
 
   test "main pages use the refreshed visual shells without horizontal overflow" do
@@ -338,7 +337,6 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_text "Welcome to my flag collection"
     assert_selector ".landing-action[href='/timeline']", text: "Timeline"
     assert_selector ".landing-action[href='/about']", text: "About me"
-    assert_selector ".landing-action[href='/search']", text: "Global Search"
     assert_selector ".landing-metric", count: 6
     page.execute_script("document.querySelector('.landing-metrics').scrollIntoView({ block: 'center' })")
 
@@ -382,32 +380,52 @@ class SitePagesTest < ApplicationSystemTestCase
   test "timeline entries are full-card links" do
     visit "/timeline"
 
-    assert_selector "a.timeline-content[href]", minimum: 1
+    assert_selector ".timeline-content .timeline-card-hitbox[href]", minimum: 1
     assert_text "CVE"
     assert_text "Blog post"
-    first_link = find("a.timeline-content", match: :first)
+    first_link = find(".timeline-content .timeline-card-hitbox", match: :first, visible: :all)
     assert first_link[:href].match?(%r{/((ctf/.+/.+)|(blog/.+)|(about#.+))\z})
   end
 
-  test "global search filters all indexed content" do
-    visit "/search"
+  test "timeline filters all indexed content" do
+    visit "/timeline"
 
-    assert_selector ".search-result-card", minimum: 30
-    assert_text "Global Search"
+    assert_selector ".timeline-content", minimum: 30
+    assert_timeline_year_counts_match_visible_cards
+    assert_text "Timeline"
     assert_selector ".content-filter-tag-group-label", text: "CONTENT TYPE"
     assert_selector ".content-filter-tag-group-label", text: "TOPICS, PROJECTS, AND SOURCES"
     assert_selector ".content-filter-panel .filter-chip", text: "CVE"
     assert_selector ".content-filter-panel .filter-chip", text: "CTF writeup"
+    assert_selector ".timeline-tags .writeup-winner-badge-timeline[data-filter-tag='Writeup winner']", text: "Best challenge writeup"
 
-    fill_in "global-search-input", with: "Firedancer"
-    assert_selector ".search-result-card", text: "Firedancer"
-    assert_no_selector ".search-result-card", text: "HTB CPTS"
+    fill_in "timeline-search-input", with: "Firedancer"
+    assert_selector ".timeline-content", text: "Firedancer"
+    assert_no_selector ".timeline-content", text: "HTB CPTS"
+    assert_timeline_year_counts_match_visible_cards
 
-    find("[data-filter-reset='global-search']").click
+    find("[data-filter-reset='timeline']").click
     find(".content-filter-panel .filter-chip", text: "Certificate").click
     assert_selector ".content-filter-panel .filter-chip.is-active", text: "Certificate"
-    assert_selector ".search-result-card", text: "Hack The Box Certified Penetration Testing Specialist"
-    assert_no_selector ".search-result-card", text: "xmalloc"
+    assert_selector ".timeline-content", text: "Hack The Box Certified Penetration Testing Specialist"
+    assert_no_selector ".timeline-content", text: "xmalloc"
+    assert_timeline_year_counts_match_visible_cards
+
+    find("[data-filter-reset='timeline']").click
+    find(".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner").click
+    assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter.is-active", text: "Writeup winner"
+    assert_selector ".timeline-content", text: "KDF dream"
+    assert_selector ".timeline-content", text: "A Minecraft Movie"
+    assert_no_selector ".timeline-content", text: "HTB CPTS"
+    assert_timeline_year_counts_match_visible_cards
+
+    find("[data-filter-reset='timeline']").click
+    find(".timeline-tags .timeline-tag-pill", text: "Crypto", match: :first).click
+    assert_selector ".timeline-tags .timeline-tag-pill.is-active", text: "Crypto"
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: "Crypto"
+    assert_selector ".timeline-content", text: "KDF dream"
+    assert_no_selector ".timeline-content", text: "HTB CPTS"
+    assert_timeline_year_counts_match_visible_cards
   end
 
   test "ctf markdown preserves anchors and external links while resolving local images" do
@@ -633,6 +651,51 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal [ "Fantastic Doom", "Cash Memo" ], titles
   end
 
+  test "filtered overviews keep spacing tag borders and shrink page height" do
+    page.current_window.resize_to(1280, 900)
+    visit "/ctf/cscg"
+
+    assert_selector ".writeup-overview .blog-post-entry", count: 6
+
+    initial_metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const entries = [...document.querySelectorAll(".writeup-overview .blog-post-entry")];
+        const rects = entries.slice(0, 2).map((entry) => entry.getBoundingClientRect());
+
+        return {
+          gap: Math.round(rects[1].top - rects[0].bottom),
+          pageHeight: document.documentElement.scrollHeight
+        };
+      })()
+    JS
+
+    assert_operator initial_metrics["gap"], :>=, 15
+
+    select_filter_year("writeups", "2024")
+    assert_selector "[data-filter-count='writeups']", text: "2 / 6 items"
+
+    filtered_height = page.evaluate_script(<<~JS)
+      (() => {
+        return new Promise((resolve) => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => resolve(document.documentElement.scrollHeight));
+          });
+        });
+      })()
+    JS
+
+    assert_operator filtered_height, :<, initial_metrics["pageHeight"] - 100
+
+    visit "/timeline"
+    assert_selector ".timeline-tag-pill", minimum: 1
+
+    border_width = page.evaluate_script(<<~JS)
+      parseFloat(window.getComputedStyle(document.querySelector(".timeline-tag-pill")).borderTopWidth)
+    JS
+
+    assert_operator border_width, :>=, 1
+  end
+
   test "article table of contents toggle collapses the toc column" do
     page.current_window.resize_to(1440, 1200)
     visit "/ctf/lactf/Gamedev"
@@ -735,5 +798,27 @@ class SitePagesTest < ApplicationSystemTestCase
   def select_filter_year(scope, year)
     find("[data-year-dropdown-button='#{scope}']").click
     find("[data-year-dropdown-option='#{scope}'][data-year-value='#{year}']").click
+  end
+
+  def assert_timeline_year_counts_match_visible_cards
+    mismatches = page.evaluate_script(<<~JS)
+      (() => {
+        return [...document.querySelectorAll('[data-filter-group="timeline"]')]
+          .filter((group) => !group.hidden)
+          .map((group) => {
+            const count = group.querySelector('[data-filter-group-count="timeline"]');
+            const year = group.querySelector('.timeline-year-header h2')?.innerText.trim();
+            const visibleCards = [...group.querySelectorAll('[data-filter-card="timeline"]')]
+              .filter((card) => card.getAttribute('aria-hidden') !== 'true' && !card.hidden)
+              .length;
+            const expected = `${visibleCards} ${visibleCards === 1 ? 'item' : 'items'}`;
+
+            return count && count.innerText.trim() === expected ? null : `${year}: expected ${expected}, got ${count?.innerText.trim()}`;
+          })
+          .filter(Boolean);
+      })()
+    JS
+
+    assert_equal [], mismatches
   end
 end

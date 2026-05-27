@@ -72,14 +72,6 @@
     transform: translateY(-2px);
   }
 
-  .ui-hover-scale {
-    transition: background-color var(--motion-standard), transform var(--motion-standard);
-  }
-
-  .ui-hover-scale:hover {
-    transform: scale(1.1);
-  }
-
   .ui-icon-button {
     @apply inline-flex h-12 w-12 items-center justify-center rounded-3xl;
   }
@@ -90,10 +82,10 @@
   }
 
   .ui-pill {
-    @apply inline-flex items-center rounded-3xl px-3 py-1 text-sm font-medium;
+    @apply inline-flex items-center rounded-3xl border border-cyan-300/30 px-3 py-1 text-sm font-medium;
   }
 
   .ui-tag-pill {
-    @apply inline-flex items-center rounded-3xl px-2 py-1 text-xs font-medium;
+    @apply inline-flex items-center rounded-3xl border border-cyan-300/30 px-2 py-1 text-xs font-medium;
   }
 }

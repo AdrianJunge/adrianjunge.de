@@ -55,36 +55,25 @@
       </div>
     <% end %>
 
-    <% basename = File.basename("#{@ctf_info['challengefiles']}.zip")  %>
-
-    <% file_rel = "#{@which}/#{@ctf_info['year']}/#{@ctf_info['challengefiles']}.zip".to_s %>
-    <% file_abs_path = Rails.root.join("public", "ctf", "files", file_rel) %>
-    <% file_exists = "#{@ctf_info['challengefiles']}.zip".present? && File.exist?(file_abs_path) %>
-
-    <% pdf_rel = "#{@which}/#{@ctf_info['year']}/#{@ctf_info['challengefiles']}.pdf".to_s %>
-    <% pdf_abs_path = Rails.root.join("public", "ctf", "writeups", pdf_rel) %>
-    <% pdf_exists = "#{@ctf_info['challengefiles']}.pdf".present? && File.exist?(pdf_abs_path) %>
-
     <div class="flex flex-col items-center gap-4">
       <div class="writeup-challengefiles flex items-center gap-4">
-        <% if file_exists %>
-          <% size = number_to_human_size(File.size(file_abs_path)) rescue nil %>
-          <%= link_to ctf_file_download_path(file_rel),
+        <% if @challenge_file %>
+          <%= link_to ctf_file_download_path(@challenge_file[:relative_path]),
                       class: "download-btn ui-article-action mt-3",
                       target: "_blank",
                       rel: "noopener",
-                      aria: { label: "Download #{basename}" } do %>
+                      aria: { label: "Download #{@challenge_file[:basename]}" } do %>
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 3v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M8 11l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M21 21H3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <%= basename %> - <%= size %>
+            <%= @challenge_file[:basename] %> - <%= number_to_human_size(@challenge_file[:size]) %>
           <% end %>
         <% end %>
 
-        <% if pdf_exists %>
-          <%= link_to "/ctf/writeups/#{pdf_rel}",
+        <% if @pdf_writeup %>
+          <%= link_to "/ctf/writeups/#{@pdf_writeup[:relative_path]}",
                       class: "open-pdf-btn ui-article-action mt-3",
                       target: "_blank",
                       rel: "noopener",

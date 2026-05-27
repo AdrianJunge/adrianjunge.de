@@ -53,7 +53,6 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: "Welcome to my bug collection 🐛"
     assert_select ".landing-action[href=?]", timeline_path, text: /Timeline/
-    assert_select ".landing-action[href=?]", search_path, text: /Global Search/
     assert_select ".landing-action[href=?]", about_path, text: /About me/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#bug-bounties", text: bug_bounties.length.to_s

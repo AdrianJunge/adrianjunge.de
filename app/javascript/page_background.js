@@ -14,6 +14,7 @@ function pageHeight() {
 }
 
 function setBackgroundHeight() {
+  document.documentElement.style.setProperty(BACKGROUND_HEIGHT_PROPERTY, "100dvh");
   document.documentElement.style.setProperty(BACKGROUND_HEIGHT_PROPERTY, `${pageHeight()}px`);
 }
 
@@ -34,6 +35,7 @@ function initPageBackground() {
   window.addEventListener("load", scheduleUpdate);
   window.addEventListener("resize", scheduleUpdate);
   window.addEventListener("orientationchange", scheduleUpdate);
+  document.addEventListener("content:filters-applied", scheduleUpdate);
 
   if ("ResizeObserver" in window && document.body) {
     const observer = new ResizeObserver(scheduleUpdate);

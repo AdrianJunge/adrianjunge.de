@@ -6,7 +6,6 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     "About me" => "/about",
     "CTF" => "/ctf",
     "Blog" => "/blog",
-    "Global Search" => "/search",
     "Timeline" => "/timeline"
   }.freeze
 
@@ -15,7 +14,6 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     "/about",
     "/ctf",
     "/blog",
-    "/search",
     "/timeline"
   ].freeze
 
@@ -43,9 +41,8 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
 
   test "terminal exposes only route scoped child navigation" do
     expected_labels = {
-      "/" => %w[~ . .. about ctf blog search timeline],
+      "/" => %w[~ . .. about ctf blog timeline],
       "/about" => %w[~ . ..],
-      "/search" => %w[~ . ..],
       "/timeline" => %w[~ . ..]
     }
 

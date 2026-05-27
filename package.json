@@ -3,10 +3,6 @@
   "engines": {
     "node": ">=20"
   },
-  "devDependencies": {
-    "stylelint": "^16.14.1",
-    "stylelint-config-standard": "^37.0.0"
-  },
   "dependencies": {
     "@tailwindcss/postcss": "^4.0.3",
     "postcss": "^8.5.1",

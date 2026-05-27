@@ -124,7 +124,7 @@ function initFilterPanel(panel) {
     let visible = 0;
 
     cards.forEach(card => {
-      const displayTarget = card.closest('.blog-post-entry') || card;
+      const displayTarget = card.closest('.blog-post-entry') || card.closest('.timeline-item') || card.closest('.search-result-entry') || card;
       const text = normalizeToken(card.dataset.filterText);
       const cardTags = tokensFrom(card.dataset.filterTags);
       const cardYears = tokensFrom(card.dataset.filterYears || card.dataset.filterYear);
@@ -140,6 +140,18 @@ function initFilterPanel(panel) {
       if (matched) visible += 1;
     });
 
+    document.querySelectorAll(`[data-filter-group="${scope}"]`).forEach(group => {
+      const groupCards = Array.from(group.querySelectorAll(`[data-filter-card="${scope}"]`));
+      const groupVisible = groupCards.filter(card => card.getAttribute('aria-hidden') !== 'true').length;
+      const groupCount = group.querySelector(`[data-filter-group-count="${scope}"]`);
+      group.hidden = groupCards.length > 0 && groupVisible === 0;
+      group.setAttribute('aria-hidden', group.hidden.toString());
+
+      if (groupCount) {
+        groupCount.textContent = `${groupVisible} ${groupVisible === 1 ? 'item' : 'items'}`;
+      }
+    });
+
     setChipState(scope, activeTags);
 
     if (count) {
@@ -150,6 +162,9 @@ function initFilterPanel(panel) {
     if (empty) empty.hidden = visible !== 0;
     if (reset) reset.hidden = query === '' && selectedYear === '' && activeTags.size === 0;
     if (yearDropdown) yearDropdown.sync();
+    document.dispatchEvent(new CustomEvent('content:filters-applied', {
+      detail: { scope, visible, total: cards.length }
+    }));
   }
 
   if (search) search.addEventListener('input', applyFilters);

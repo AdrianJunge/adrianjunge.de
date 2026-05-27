@@ -5,8 +5,21 @@
 <% github_advisories = aboutme_visible_links(entry["github_advisories"]) %>
 <% references = aboutme_visible_links(entry["references"]) %>
 <% timeline_items = aboutme_timeline_items(entry["timeline"]) %>
+<% badges_content = capture do %>
+  <% if entry["severity"].present? || entry["cve_id"].present? %>
+    <span class="aboutme-finding-badges">
+      <% if entry["severity"].present? %>
+        <span class="aboutme-severity <%= aboutme_severity_class(entry["severity"]) %>"><%= entry["severity"] %></span>
+      <% end %>
+      <% if entry["cve_id"].present? %>
+        <span class="aboutme-cve-id"><%= entry["cve_id"] %></span>
+      <% end %>
+    </span>
+  <% end %>
+<% end %>
 <% header_content = capture do %>
   <span class="aboutme-finding-main">
+    <%= badges_content %>
     <% if entry["project"].present? %>
       <span class="aboutme-finding-project">
         <%= aboutme_optional_link(entry["project"], entry["project_url"], class_name: "aboutme-finding-project-link") %>
@@ -18,17 +31,6 @@
       </span>
     <% end %>
   </span>
-
-  <% if entry["severity"].present? || entry["cve_id"].present? %>
-    <span class="aboutme-finding-badges">
-      <% if entry["severity"].present? %>
-        <span class="aboutme-severity <%= aboutme_severity_class(entry["severity"]) %>"><%= entry["severity"] %></span>
-      <% end %>
-    <% if entry["cve_id"].present? %>
-      <span class="aboutme-cve-id"><%= entry["cve_id"] %></span>
-    <% end %>
-    </span>
-  <% end %>
 <% end %>
 
 <% if collapsible %>

@@ -258,9 +258,8 @@
 
 .aboutme-finding-badges {
     display: flex;
-    align-items: flex-end;
-    flex: 0 0 auto;
-    flex-direction: column;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 0.45rem;
 }
 
@@ -668,7 +667,6 @@
 
     .aboutme-finding-badges {
         align-items: flex-start;
-        flex-direction: row;
         flex-wrap: wrap;
     }
 

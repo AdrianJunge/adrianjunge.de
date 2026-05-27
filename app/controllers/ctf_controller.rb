@@ -3,15 +3,14 @@ class CtfController < ApplicationController
   include MarkdownHelper
 
   def index
-    file = File.read(CTF_INFO_PATH)
-    @ctfs = JSON.parse(file)
+    @ctfs = content_repository.ctf_metadata
     @ctf_filters = @ctfs.to_h do |name, ctf|
       directory = ctf["terminal_path"].presence || name.downcase
-      metadata = get_posts_metadata(BASE_PATH, directory).values
+      metadata = content_repository.post_metadata(BASE_PATH, directory).values
 
       [ name, {
-        years: metadata.filter_map { |entry| metadata_year(entry) }.uniq.sort.reverse,
-        tags: sorted_filter_values(metadata.flat_map { |entry| metadata_tags(entry) })
+        years: metadata.filter_map { |entry| content_repository.metadata_year(entry) }.uniq.sort.reverse,
+        tags: sorted_filter_values(metadata.flat_map { |entry| content_repository.metadata_tags(entry) })
       } ]
     end
     @ctf_years = @ctf_filters.transform_values { |filters| filters[:years] }
@@ -22,75 +21,49 @@ class CtfController < ApplicationController
   end
 
   def which
-    file = File.read(CTF_INFO_PATH)
-    @ctfs = JSON.parse(file)
+    @ctfs = content_repository.ctf_metadata
     @ctf = @ctfs[params[:which].upcase] if @ctfs.key?(params[:which].upcase)
     @which = params[:which].gsub("..", "").gsub("/", "")
     return unless sanitize_which(@which)
 
-    @ctf_info = sort_writeups_by_published(get_ctf_infos(@which))
+    @ctf_info = sort_writeups_by_published(content_repository.post_metadata(BASE_PATH, @which))
     @writeups = @ctf_info.keys
-    @filter_years = @ctf_info.values.filter_map { |metadata| metadata_year(metadata) }.uniq.sort.reverse
-    @filter_tags = sorted_filter_values(@ctf_info.values.flat_map { |metadata| metadata_tags(metadata) })
+    @filter_years = @ctf_info.values.filter_map { |metadata| content_repository.metadata_year(metadata) }.uniq.sort.reverse
+    @filter_tags = sorted_filter_values(@ctf_info.values.flat_map { |metadata| content_repository.metadata_tags(metadata) })
     @filter_tag_groups = filter_tag_groups(@filter_tags, topic_label: "Challenge tags")
   end
 
   def writeup
     @which = params[:which].gsub("..", "").gsub("/", "")
     @writeup = params[:writeup].gsub("..", "").gsub("/", "")
-    return unless sanitize_writeup(@which, @writeup)
+    @markdown_content = safe_markdown_content(BASE_PATH, @which, @writeup, render_error: true)
+    return unless @markdown_content
 
-    file_path = BASE_PATH.join(@which, (@writeup + ".md"))
-
-    if file_path.exist? && file_path.file? && file_path.to_s.start_with?(BASE_PATH.to_s)
-      @markdown_content = File.read(file_path)
-    else
-      @markdown_content = "Markdown file not found"
-    end
-    @ctf_info = get_ctf_info(@markdown_content)
-    @headings = get_writeup_headings(@which, @writeup)
+    @ctf_info = parse_markdown_content(@markdown_content)&.front_matter || {}
+    @headings = get_headings_from_content(@markdown_content)
     @html_content = render_markdown(@markdown_content)
+    @challenge_file = writeup_public_asset("files", "zip")
+    @pdf_writeup = writeup_public_asset("writeups", "pdf")
 
     @previous_writeup, @next_writeup = get_previous_and_next_writeup(@writeup)
   end
 
   def feed
-    @items = []
+    @items = content_repository.ctf_posts.map do |item|
+      parsed = content_repository.parse_markdown(item[:content])
+      description = (item[:description].presence || parsed&.content.to_s[0, 800]).to_s
+      link = url_for(controller: "ctf", action: "writeup", which: item[:directory], writeup: item[:slug], only_path: false)
 
-    Dir.entries(BASE_PATH).select { |entry|
-      File.directory?(BASE_PATH.join(entry)) && !entry.start_with?(".")
-    }.each do |which_dir|
-      Dir.glob(BASE_PATH.join(which_dir, "*.md")).each do |file_path|
-        next unless File.file?(file_path)
-
-        content = File.read(file_path)
-        parsed = get_ctf_info(content)
-        next unless parsed
-
-        meta = parsed.front_matter || {}
-        title = meta["title"].presence || File.basename(file_path, ".md").humanize
-        description = (meta["description"].presence || parsed.content.to_s[0, 800]).to_s
-        pub_date = begin
-                     Time.parse(meta["published"].to_s)
-                   rescue StandardError
-                     File.ctime(file_path)
-                   end
-
-        writeup_slug = File.basename(file_path, ".md")
-        link = url_for(controller: "ctf", action: "writeup", which: which_dir, writeup: writeup_slug, only_path: false)
-
-        @items << {
-          ctf: which_dir,
-          title: sanitize(title),
-          description: sanitize(description, tags: %w[p br strong em a code pre img], attributes: %w[href src alt title]),
-          link: link,
-          pub_date: pub_date,
-          guid: link
-        }
-      end
+      {
+        ctf: item[:directory],
+        title: sanitize(item[:title]),
+        description: sanitize(description, tags: %w[p br strong em a code pre img], attributes: %w[href src alt title]),
+        link: link,
+        pub_date: item[:published],
+        guid: link
+      }
     end
 
-    @items.sort_by! { |i| -i[:pub_date].to_i }
     respond_to do |format|
       format.rss { render layout: false }
       format.atom { render layout: false }
@@ -99,7 +72,7 @@ class CtfController < ApplicationController
 
   def get_previous_and_next_writeup(writeup)
     slug  = writeup.to_s
-    items = get_timeline.flat_map { |_, year_items| year_items }
+    items = content_repository.ctf_posts
 
     index = items.index { |i| i[:slug].downcase == slug.downcase }
     return [ nil, nil ] unless index.present?
@@ -111,6 +84,34 @@ class CtfController < ApplicationController
   end
 
   private
+
+  def writeup_public_asset(public_dir, extension)
+    year = @ctf_info["year"].to_s
+    asset_name = @ctf_info["challengefiles"].to_s
+    return nil unless year.match?(/\A\d{4}\z/) && safe_public_asset_segment?(asset_name)
+
+    relative_path = File.join(@which, year, "#{asset_name}.#{extension}")
+    base_path = Rails.root.join("public", "ctf", public_dir)
+    absolute_path = base_path.join(@which, year, "#{asset_name}.#{extension}")
+    real_base = base_path.realpath.to_s
+    real_file = absolute_path.realpath.to_s
+
+    return nil unless real_file.start_with?(real_base + File::SEPARATOR)
+    return nil unless File.file?(real_file)
+
+    {
+      basename: File.basename(real_file),
+      relative_path: relative_path,
+      absolute_path: real_file,
+      size: File.size(real_file)
+    }
+  rescue Errno::ENOENT
+    nil
+  end
+
+  def safe_public_asset_segment?(value)
+    value.match?(/\A[\w.-]+\z/) && !%w[. ..].include?(value)
+  end
 
   def sort_writeups_by_published(writeups_info)
     writeups_info.sort_by do |_, info|

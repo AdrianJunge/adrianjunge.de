@@ -56,11 +56,7 @@ class ApplicationController < ActionController::Base
   end
 
   def parse_markdown_content(content)
-    begin
-      FrontMatterParser::Parser.new(:md).call(content)
-    rescue StandardError
-      nil
-    end
+    content_repository.parse_markdown(content)
   end
 
   def get_headings_from_content(content)
@@ -78,8 +74,14 @@ class ApplicationController < ActionController::Base
     headings
   end
 
+  private
+
+  def content_repository
+    @content_repository ||= ContentRepository.new
+  end
+
   def sanitize_path(param)
-    param.match?(/^[a-zA-Z0-9\s\-_]+$/)
+    param.to_s.match?(/\A[a-zA-Z0-9\s\-_]+\z/)
   end
 
   def sanitize_item(item_name, base_path, render_error = true)
@@ -95,8 +97,9 @@ class ApplicationController < ActionController::Base
         return false
       end
 
-      folder_path = File.realpath(File.join(base_path, item_name))
-      unless folder_path.to_s.start_with?(base_path.to_s)
+      real_base = File.realpath(base_path)
+      folder_path = File.realpath(candidate_path)
+      unless folder_path.to_s.start_with?(real_base + File::SEPARATOR)
         render_error_page(:bad_request) if render_error
         return false
       end
@@ -110,68 +113,45 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def sanitize_post(item_name, post_name, base_path, render_error = true)
-    unless sanitize_path(post_name)
+  def safe_markdown_file(base_path, *segments, render_error: true)
+    if segments.empty?
       render_error_page(:bad_request) if render_error
-      return false
+      return nil
     end
 
-    directory = File.join(base_path, item_name)
-
-    begin
-      file_path = File.realpath(base_path.join(item_name, "#{post_name}.md"))
-      unless file_path.to_s.start_with?(directory.to_s)
-        render_error_page(:bad_request) if render_error
-        return false
-      end
-    rescue StandardError
-      render_error_page(:not_found) if render_error
-      return false
+    unless segments.all? { |segment| sanitize_path(segment) }
+      render_error_page(:bad_request) if render_error
+      return nil
     end
 
-    if File.exist?(file_path)
-      true
-    else
-      render_error_page(:not_found) if render_error
-      false
-    end
-  end
+    directory_segments = segments[0...-1]
+    filename = "#{segments.last}.md"
+    candidate = base_path.join(*directory_segments, filename)
+    real_base = base_path.realpath.to_s
+    real_file = candidate.realpath.to_s
 
-  # Generic methods for getting content metadata
-  def get_posts_metadata(base_path, item)
-    posts_info = {}
-
-    Dir.glob(base_path.join(item, "*.md")).each do |file_path|
-      next unless File.file?(file_path)
-
-      post_header = File.read(file_path)
-      parsed = parse_markdown_content(post_header)
-      next unless parsed
-
-      post_name = File.basename(file_path, ".md")
-      posts_info[post_name] = parsed.front_matter || {}
+    unless real_file.start_with?(real_base + File::SEPARATOR)
+      render_error_page(:bad_request) if render_error
+      return nil
     end
 
-    posts_info
-  end
+    return Pathname.new(real_file) if File.file?(real_file)
 
-  def metadata_year(metadata)
-    published = metadata["published"].presence
-    return Time.parse(published.to_s).year if published
-
-    metadata["year"].presence&.to_i
+    render_error_page(:not_found) if render_error
+    nil
+  rescue Errno::ENOENT
+    render_error_page(:not_found) if render_error
+    nil
   rescue StandardError
-    metadata["year"].presence&.to_i
+    render_error_page(:bad_request) if render_error
+    nil
   end
 
-  def metadata_tags(metadata)
-    (Array(metadata["categories"]) + [ metadata_writeup_winner_label(metadata) ])
-      .map(&:to_s)
-      .reject(&:blank?)
-  end
+  def safe_markdown_content(base_path, *segments, render_error: true)
+    file_path = safe_markdown_file(base_path, *segments, render_error: render_error)
+    return nil unless file_path
 
-  def metadata_writeup_winner_label(metadata)
-    WriteupWinner.filter_label_for(metadata)
+    File.read(file_path)
   end
 
   def sorted_filter_values(values)
@@ -199,179 +179,7 @@ class ApplicationController < ActionController::Base
     grouped
   end
 
-  def achievement_event_count(entries)
-    Array(entries).sum do |entry|
-      events = Array(entry["events"]).select { |event| event.is_a?(Hash) && event["title"].present? }
-      events.any? ? events.length : 1
-    end
-  end
-
-  def get_all_posts_for_feed(base_path, info_path, link_prefix)
-    items = []
-
-    begin
-      file = File.read(info_path)
-      metadata = JSON.parse(file)
-    rescue StandardError
-      return items
-    end
-
-    metadata.each do |item_key, item_meta|
-      dir_name = item_meta["terminal_path"] || item_key.downcase
-      Dir.glob(base_path.join(dir_name, "*.md")).each do |file_path|
-        next unless File.file?(file_path)
-
-        content = File.read(file_path)
-        parsed = parse_markdown_content(content)
-        next unless parsed
-
-        meta = parsed.front_matter || {}
-        title = meta["title"].presence || File.basename(file_path, ".md").humanize
-        published = begin
-                      Time.parse(meta["published"].to_s)
-                    rescue StandardError
-                      File.ctime(file_path)
-                    end
-
-        slug = File.basename(file_path, ".md")
-        link = "#{link_prefix}/#{dir_name}/#{slug}"
-
-        items << {
-          type: "ctf",
-          which: item_key,
-          item: item_key,
-          slug: slug,
-          title: title,
-          published: published,
-          link: link,
-          description: meta["description"].to_s,
-          categories: Array(meta["categories"]),
-          logo: item_meta["logo"],
-          content: content
-        }
-      end
-    end
-
-    items.sort_by { |i| -i[:published].to_i }
-  end
-
-  # CTF-specific methods (wrappers for backward compatibility)
   def sanitize_which(which)
     sanitize_item(which, BASE_PATH, render_error: true)
-  end
-
-  def sanitize_writeup(which, writeup)
-    sanitize_post(which, writeup, BASE_PATH, render_error: true)
-  end
-
-  def get_all_ctf_infos
-    file = File.read(CTF_INFO_PATH)
-    ctfs = JSON.parse(file)
-    ctf_infos = []
-    ctfs.each_key do |which|
-      writeups_info = get_posts_metadata(BASE_PATH, which.downcase)
-      ctf_infos << writeups_info
-    end
-    ctf_infos
-  end
-
-  def get_ctf_infos(which)
-    get_posts_metadata(BASE_PATH, which)
-  end
-
-  def get_ctf_info(writeup_content)
-    parse_markdown_content(writeup_content)
-  end
-
-  def get_writeup_headings(which, writeup)
-    file_path = BASE_PATH.join(which, "#{writeup}.md")
-    return [] unless File.exist?(file_path)
-
-    content = File.read(file_path)
-    get_headings_from_content(content)
-  end
-
-  def get_timeline
-    get_all_posts_for_feed(BASE_PATH, CTF_INFO_PATH, "/ctf")
-      .group_by { |i| i[:published].year }
-      .tap { |grouped|
-        return grouped.keys.sort.reverse.map { |year|
-          [ year, grouped[year].sort_by { |i| -i[:published].to_i } ]
-        }
-      }
-  end
-
-  # Blog-specific methods
-  def get_blog_posts_for_feed
-    items = []
-
-    begin
-      blog_metadata = JSON.parse(File.read(BLOG_INFO_PATH))
-    rescue StandardError
-      blog_metadata = {}
-    end
-
-    Dir.glob(BLOG_BASE_PATH.join("*.md")).each do |file_path|
-      next unless File.file?(file_path)
-
-      content = File.read(file_path)
-      parsed = parse_markdown_content(content)
-      next unless parsed
-
-      meta = parsed.front_matter || {}
-      slug = File.basename(file_path, ".md")
-
-      # Get category from blogs.json
-      blog_info = blog_metadata[slug] || {}
-      category = blog_info["category"] || "POST"
-      title = blog_info["title"].presence || meta["title"].presence || slug.humanize
-
-      published = begin
-                    Time.parse(meta["published"].to_s)
-                  rescue StandardError
-                    File.ctime(file_path)
-                  end
-
-      link = "/blog/#{slug}"
-
-      items << {
-        type: "blog",
-        which: category,
-        item: slug,
-        slug: slug,
-        title: title,
-        published: published,
-        link: link,
-        description: meta["description"].to_s,
-        topic: meta["topic"].to_s,
-        categories: Array(meta["categories"]),
-        content: content,
-        metadata: meta
-      }
-    end
-
-    items.sort_by { |i| -i[:published].to_i }
-  end
-
-  # Mixed timeline for CTF + Blog posts
-  def get_mixed_timeline
-    ctf_items = get_all_posts_for_feed(BASE_PATH, CTF_INFO_PATH, "/ctf")
-    blog_items = get_blog_posts_for_feed
-
-    combined = ctf_items + blog_items
-
-    grouped = combined.group_by { |i| i[:published].year }
-    timeline = grouped.keys.sort.reverse.map { |year|
-      [ year, grouped[year].sort_by { |i| i[:published] }.reverse ]
-    }
-    timeline
-  end
-
-  def get_blog_post_headings(post_slug)
-    file_path = BLOG_BASE_PATH.join("#{post_slug}.md")
-    return [] unless File.exist?(file_path)
-
-    content = File.read(file_path)
-    get_headings_from_content(content)
   end
 end

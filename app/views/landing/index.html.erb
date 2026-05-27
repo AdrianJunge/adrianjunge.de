@@ -13,7 +13,6 @@
   { label: "about", url: about_path },
   { label: "ctf", url: ctf_path },
   { label: "blog", url: blog_path },
-  { label: "search", url: search_path },
   { label: "timeline", url: timeline_path }
 ], true) %>
 <% timeline_link = timeline_path %>
@@ -51,10 +50,6 @@
                 <a href="<%= about_link %>" class="landing-action landing-action-secondary ui-hover-lift">
                     <%= image_tag("task-bar/about.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
                     <span>About me</span>
-                </a>
-                <a href="<%= search_path %>" class="landing-action landing-action-secondary ui-hover-lift">
-                    <%= image_tag("task-bar/search.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
-                    <span>Global Search</span>
                 </a>
             </div>
         </div>

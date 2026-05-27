@@ -34,3 +34,5 @@ gem "rouge"
 gem "sass-rails"
 
 gem "tailwindcss-rails", "~> 4.0"
+
+gem "json_schemer", "~> 2.5"

@@ -16,10 +16,6 @@ module AboutmeHelper
     end
   end
 
-  def aboutme_value(value, fallback = "Not listed")
-    value.present? ? value : fallback
-  end
-
   def aboutme_external_link(link)
     return nil unless link.is_a?(Hash)
 

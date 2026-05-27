@@ -3,10 +3,9 @@ class BlogController < ApplicationController
   include MarkdownHelper
 
   def index
-    file = File.read(BLOG_INFO_PATH)
-    @blogs = JSON.parse(file)
+    @blogs = content_repository.blog_metadata
 
-    @blog_posts = get_blog_posts_for_feed
+    @blog_posts = content_repository.blog_posts
     @blog_posts.sort_by! { |post| post[:published] }.reverse!
     @filter_years = @blog_posts.map { |post| post[:published].year }.uniq.sort.reverse
     @filter_tags = sorted_filter_values(@blog_posts.flat_map { |post| post[:categories] })
@@ -16,19 +15,14 @@ class BlogController < ApplicationController
   def show
     @post_slug = params[:which].gsub("..", "").gsub("/", "")
 
-    file = File.read(BLOG_INFO_PATH)
-    @blogs = JSON.parse(file)
+    @blogs = content_repository.blog_metadata
 
-    unless File.exist?(BLOG_BASE_PATH.join("#{@post_slug}.md"))
-      render_error_page(:not_found)
-      return
-    end
+    @markdown_content = safe_markdown_content(BLOG_BASE_PATH, @post_slug, render_error: true)
+    return unless @markdown_content
 
-    file_path = BLOG_BASE_PATH.join("#{@post_slug}.md")
-    @markdown_content = File.read(file_path)
     parsed = parse_markdown_content(@markdown_content)
     @blog_info = parsed&.front_matter || {}
-    @headings = get_blog_post_headings(@post_slug)
+    @headings = get_headings_from_content(@markdown_content)
     @html_content = render_markdown(@markdown_content)
 
     blog_config = @blogs[@post_slug] || {}
@@ -37,15 +31,7 @@ class BlogController < ApplicationController
   end
 
   def feed
-    @items = []
-
-    @items = get_blog_posts_for_feed
-
-    @items.map! do |item|
-      file_path = BLOG_BASE_PATH.join("#{item[:slug]}.md")
-      content = File.read(file_path)
-      parsed = parse_markdown_content(content)
-
+    @items = content_repository.blog_posts.map do |item|
       {
         blog: item[:item],
         title: item[:title],

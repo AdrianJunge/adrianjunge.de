@@ -41,7 +41,6 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal "application/xml", response.media_type
     assert_includes response.body, "<loc>#{root_url}</loc>"
-    assert_includes response.body, "<loc>#{search_url}</loc>"
     assert_includes response.body, "<loc>#{timeline_url}</loc>"
     assert_includes response.body, "<loc>#{ctf_url}/umdctf/A%20Minecraft%20Movie</loc>"
     assert_includes response.body, "<loc>#{blog_post_url("htb-cpts")}</loc>"

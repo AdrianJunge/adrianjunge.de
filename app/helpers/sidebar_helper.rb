@@ -4,8 +4,7 @@ module SidebarHelper
       { image_path: "task-bar/home.svg", alt_text: "Home Icon", label: "Home", link: root_path },
       { image_path: "task-bar/about.svg", alt_text: "About Icon", label: "About me", link: about_path },
       { image_path: "task-bar/flag.svg", alt_text: "CTF Icon", label: "CTF", link: ctf_path },
-      { image_path: "task-bar/blog.svg", alt_text: "Blog Icon", label: "Blog", link: blog_path },
-      { image_path: "task-bar/search.svg", alt_text: "Global Search Icon", label: "Global Search", link: search_path }
+      { image_path: "task-bar/blog.svg", alt_text: "Blog Icon", label: "Blog", link: blog_path }
     ]
   end
 

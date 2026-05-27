@@ -11,7 +11,6 @@ class SeoController < ApplicationController
     entries = [
       sitemap_entry(root_path, newest_mtime(site_content_paths)),
       sitemap_entry(about_path, newest_mtime(about_content_paths)),
-      sitemap_entry(search_path, newest_mtime(site_content_paths)),
       sitemap_entry(ctf_path, newest_mtime(ctf_content_paths)),
       sitemap_entry(blog_path, newest_mtime(blog_content_paths)),
       sitemap_entry(timeline_path, newest_mtime(site_content_paths))
@@ -23,7 +22,7 @@ class SeoController < ApplicationController
   end
 
   def ctf_sitemap_entries
-    read_json(CTF_INFO_PATH).flat_map do |name, metadata|
+    content_repository.ctf_metadata.flat_map do |name, metadata|
       directory = metadata["terminal_path"].presence || name.downcase
       directory_path = BASE_PATH.join(directory)
       next [] unless File.directory?(directory_path)
@@ -88,14 +87,8 @@ class SeoController < ApplicationController
   end
 
   def markdown_metadata(file_path)
-    parsed = parse_markdown_content(File.read(file_path))
+    parsed = content_repository.parse_markdown(File.read(file_path))
     parsed&.front_matter || {}
-  rescue StandardError
-    {}
-  end
-
-  def read_json(path)
-    JSON.parse(File.read(path))
   rescue StandardError
     {}
   end

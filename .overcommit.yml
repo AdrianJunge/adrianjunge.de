@@ -21,15 +21,6 @@ PreCommit:
     quiet: false
     on_warn: fail
 
-  HtmlHint:
-    enabled: true
-    include: '**/*.html'
-
-  Stylelint:
-    enabled: true
-    include: '**/*.css'
-    exclude: [ 'vendor/**/*', 'node_modules/**/*', "app/assets/tailwind/application.css", "app/assets/stylesheets/application.tailwind.css", "app/assets/stylesheets/thankfuleyes.css", "app/assets/stylesheets/xterm.css", "app/assets/stylesheets/flowbite.css" ]
-
   RuboCop:
     enabled: true
     flags: [ "-f", "github" ]
