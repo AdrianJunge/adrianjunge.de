@@ -5,6 +5,11 @@
 # Content
 - Next Blog
     - Firedancer Bug Bounty overrun race condition
+        - verify every single statement
+            - e.g. via debugging with GDB etc
+        - what exactly was the fix for this vuln?
+        - update date to real publish date
+        - received money from bug bounty or audit competition pod?
 - Writeup
     - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln aka CTF Writeup schreiben für Deadsecctf 2025
 - Blog

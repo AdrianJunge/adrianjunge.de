@@ -1,4 +1,11 @@
 {
+  "frankendancer": {
+    "terminal_path": "frankendancer",
+    "logo": "blog/solana.svg",
+    "title": "Frankendancer",
+    "category": "Security Research",
+    "description": "Frankendancer"
+  },
   "java-strings": {
     "terminal_path": "java-strings",
     "logo": "blog/java.png",

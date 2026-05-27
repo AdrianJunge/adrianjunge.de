@@ -776,20 +776,22 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".blog-post-card", text: "Funny Java Strings"
     assert_selector ".blog-post-card[data-filter-tags*='JVM Internals']"
     assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/java']"
+    assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/solana']"
 
     fill_in "blog-search-input", with: "CPTS"
-    assert_selector "[data-filter-count='blogs']", text: "1 / 2 items"
+    assert_selector "[data-filter-count='blogs']", text: "1 / 3 items"
     assert_selector ".blog-post-card", text: "HTB CPTS"
 
     find("[data-filter-reset='blogs']").click
     select_filter_year("blogs", "2026")
-    assert_selector "[data-filter-count='blogs']", text: "2 / 2 items"
+    assert_selector "[data-filter-count='blogs']", text: "3 / 3 items"
+    assert_selector ".blog-post-card", text: "Frankendancer"
     assert_selector ".blog-post-card", text: "HTB CPTS"
     assert_selector ".blog-post-card", text: "Funny Java Strings"
 
     find("[data-filter-reset='blogs']").click
     fill_in "blog-search-input", with: "definitely-not-a-post"
-    assert_selector "[data-filter-count='blogs']", text: "0 / 2 items"
+    assert_selector "[data-filter-count='blogs']", text: "0 / 3 items"
     assert_selector ".content-filter-empty", text: "No blog posts match the current filters."
     assert_no_selector ".blog-post-card", text: "HTB CPTS"
     assert_no_selector ".blog-post-card", text: "Funny Java Strings"
