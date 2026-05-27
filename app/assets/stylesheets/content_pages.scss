@@ -107,8 +107,7 @@
     gap: 0.55rem;
 }
 
-.content-link-button,
-.content-page .about-feed-link {
+.content-link-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -124,8 +123,7 @@
     transition: background-color 0.18s ease, transform 0.18s ease;
 }
 
-.content-link-button:hover,
-.content-page .about-feed-link:hover {
+.content-link-button:hover {
     color: #fff;
     background: rgba(8, 145, 178, 0.32);
 }
@@ -362,6 +360,53 @@
     border-radius: var(--radius-ui);
     background: rgba(24, 36, 58, 0.72);
     color: rgba(226, 232, 240, 0.84);
+}
+
+.content-card {
+    position: relative;
+    color: inherit;
+    text-decoration: none;
+}
+
+.content-card-content {
+    position: relative;
+    z-index: auto;
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+}
+
+.content-card-media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.content-card-body {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+.content-card-hitbox {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: var(--radius-ui);
+}
+
+.content-card-hitbox:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 3px;
 }
 
 .content-page.blog-overview,
@@ -1605,45 +1650,6 @@
     padding: 0;
     color: inherit;
     text-decoration: none;
-}
-
-.landing-page .landing-featured-topline,
-.landing-page .landing-featured-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    color: rgba(226, 232, 240, 0.72);
-    font-size: 0.78rem;
-    font-weight: 900;
-    text-transform: uppercase;
-}
-
-.landing-page .landing-featured-kind {
-    padding: 0.25rem 0.55rem;
-    border: 1px solid rgba(125, 211, 252, 0.35);
-    border-radius: var(--radius-ui-pill);
-    color: #cffafe;
-    background: rgba(8, 145, 178, 0.16);
-}
-
-.landing-page .landing-featured-title {
-    color: #fff;
-    font-size: 1.2rem;
-    font-weight: 900;
-    line-height: 1.25;
-    overflow-wrap: anywhere;
-}
-
-.landing-page .landing-featured-description {
-    color: rgba(226, 232, 240, 0.84);
-    font-size: 0.94rem;
-    line-height: 1.6;
-}
-
-.landing-page .landing-featured-meta {
-    margin-top: auto;
-    color: #7dd3fc;
 }
 
 .landing-page .landing-hero-shell {

@@ -1,0 +1,143 @@
+<% card = local_assigns.fetch(:card) %>
+<% card = card.symbolize_keys if card.respond_to?(:symbolize_keys) %>
+<% card_url = card[:url].presence || card[:card_url].presence %>
+<% root_tag = (card[:root_tag].presence || :article).to_sym %>
+<% linked_root = root_tag == :a && card_url.present? %>
+<% overlay_link = card_url.present? && !linked_root %>
+<% hoverable = card.fetch(:hoverable, card_url.present?) %>
+<% root_classes = [ "content-card", "ui-card-surface", ("ui-hover-lift" if hoverable), card[:class_name] ].compact.join(" ") %>
+<% content_classes = [ card.fetch(:content_class, "content-card-content") ].compact.join(" ") %>
+<% body_classes = [ card.fetch(:body_class, "content-card-body") ].compact.join(" ") %>
+<% text_classes = [ card[:text_class] ].compact.join(" ") %>
+<% title_tag = (card[:title_tag].presence || :h3).to_sym %>
+<% description_tag = (card[:description_tag].presence || :span).to_sym %>
+<% title_classes = [ card.fetch(:title_class, "content-card-title") ].compact.join(" ") %>
+<% description_classes = [ card.fetch(:description_class, "content-card-description") ].compact.join(" ") %>
+<% source_classes = [ card.fetch(:source_class, "content-card-source") ].compact.join(" ") %>
+<% date_classes = [ card.fetch(:date_class, "content-card-date") ].compact.join(" ") %>
+<% date_text_classes = [ card.fetch(:date_text_class, "content-card-date-text") ].compact.join(" ") %>
+<% hitbox_classes = [ "content-card-hitbox", card[:hitbox_class] ].compact.join(" ") %>
+<% card_tags = Array(card[:tags]).compact %>
+<% authors = Array(card[:authors]).compact %>
+<% raw_media = card[:media] || {} %>
+<% media = raw_media.respond_to?(:symbolize_keys) ? raw_media.symbolize_keys : raw_media %>
+<% wrap_content = card.fetch(:wrap_content, media.present? || card[:media_html].present?) %>
+<% wrap_body = card.fetch(:wrap_body, body_classes.present?) %>
+<% default_interactive_tags = card.fetch(:interactive_tags, true) %>
+<% root_attrs = {
+     class: root_classes,
+     id: card[:id].presence,
+     data: card[:data],
+     aria: card[:aria]
+   }.compact %>
+<% root_attrs[:aria] = (root_attrs[:aria] || {}).merge(label: card[:aria_label]) if linked_root && card[:aria_label].present? %>
+
+<% media_content = capture do %>
+  <% if media.present? || card[:media_html].present? %>
+    <% media_classes = [ media[:wrapper_class].presence || "content-card-media" ].compact.join(" ") %>
+    <span class="<%= media_classes %>">
+      <% if card[:media_html].present? %>
+        <%= card[:media_html] %>
+      <% elsif media[:image].present? %>
+        <%= image_tag(media[:image], alt: media[:alt].presence || "", class: media[:image_class].presence || "content-card-image") %>
+      <% elsif media[:placeholder].present? %>
+        <span class="<%= media[:placeholder_class].presence || "content-card-placeholder" %>"><%= media[:placeholder] %></span>
+      <% end %>
+    </span>
+  <% end %>
+<% end %>
+
+<% tags_content = capture do %>
+  <% if card_tags.any? %>
+    <% tag_list = safe_join(card_tags.map { |card_tag| content_card_tag(card_tag, default_scope: card[:filter_scope], default_interactive: default_interactive_tags) }.compact) %>
+    <% if card[:tags_outer_class].present? %>
+      <span class="<%= card[:tags_outer_class] %>">
+        <span class="<%= card[:tags_class].presence || "content-card-tags" %>">
+          <%= tag_list %>
+        </span>
+      </span>
+    <% else %>
+      <span class="<%= card[:tags_class].presence || "content-card-tags" %>">
+        <%= tag_list %>
+      </span>
+    <% end %>
+  <% end %>
+<% end %>
+
+<% authors_content = capture do %>
+  <% if authors.any? %>
+    <span class="<%= card[:authors_class].presence || "content-card-authors" %>">
+      <% if card[:authors_label].present? %>
+        <span><%= card[:authors_label] %></span>
+      <% end %>
+      <%= safe_join(authors.map { |author| content_author_node(author) }, ", ".html_safe) %>
+    </span>
+  <% end %>
+<% end %>
+
+<% text_content = capture do %>
+  <% if card[:title].present? %>
+    <%= content_tag(title_tag, card[:title], class: title_classes) %>
+  <% end %>
+
+  <%= tags_content %>
+  <%= authors_content %>
+
+  <% if card[:description].present? %>
+    <%= content_tag(description_tag, card[:description], class: description_classes) %>
+  <% end %>
+
+  <% if card[:date].present? %>
+    <span class="<%= date_classes %>">
+      <% if card[:date_datetime].present? %>
+        <time datetime="<%= card[:date_datetime] %>" class="<%= date_text_classes %>"><%= card[:date] %></time>
+      <% else %>
+        <span class="<%= date_text_classes %>"><%= card[:date] %></span>
+      <% end %>
+    </span>
+  <% end %>
+
+  <% if card[:source].present? %>
+    <span class="<%= source_classes %>"><%= card[:source] %></span>
+  <% end %>
+<% end %>
+
+<% body_content = capture do %>
+  <% if text_classes.present? %>
+    <span class="<%= text_classes %>"><%= text_content %></span>
+  <% else %>
+    <%= text_content %>
+  <% end %>
+<% end %>
+
+<% inner_content = capture do %>
+  <% if overlay_link %>
+    <%= link_to("", card_url, content_card_link_attributes(card_url, card[:aria_label].presence || card[:title].presence || "Open item", class_name: hitbox_classes)) %>
+  <% end %>
+
+  <% if wrap_content %>
+    <span class="<%= content_classes %>">
+      <%= media_content %>
+      <% if wrap_body %>
+        <span class="<%= body_classes %>"><%= body_content %></span>
+      <% else %>
+        <%= body_content %>
+      <% end %>
+    </span>
+  <% else %>
+    <%= media_content %>
+    <% if wrap_body %>
+      <span class="<%= body_classes %>"><%= body_content %></span>
+    <% else %>
+      <%= body_content %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<% if linked_root %>
+  <%= link_to(card_url, root_attrs) do %>
+    <%= inner_content %>
+  <% end %>
+<% else %>
+  <%= content_tag(root_tag, inner_content, root_attrs) %>
+<% end %>

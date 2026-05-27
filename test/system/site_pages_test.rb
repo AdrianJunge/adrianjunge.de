@@ -333,6 +333,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
     visit "/"
     assert_selector ".landing-writeup-cards .blog-post-card", count: 3
+    assert_selector ".landing-writeup-cards .content-card.blog-post-card", count: 3
     assert_selector ".landing-writeup-cards .blog-post-card-hitbox[href]", count: 3, visible: :all
     assert_selector ".landing-writeup-cards .filter-chip", minimum: 1
     assert_selector ".landing-writeup-cards .blog-post-static-chip", minimum: 1
@@ -397,18 +398,22 @@ class SitePagesTest < ApplicationSystemTestCase
 
     visit "/timeline"
     assert_selector ".timeline-content.ui-card-surface", minimum: 1
+    assert_selector ".timeline-content.content-card", minimum: 1
     assert_equal featured_styles, card_surface_styles(".timeline-content")
 
     visit "/ctf"
     assert_selector ".ctf-card.ui-card-surface", minimum: 1
+    assert_selector ".ctf-card.content-card", minimum: 1
     assert_equal featured_styles, card_surface_styles(".ctf-card")
 
     visit "/ctf/cscg"
     assert_selector ".writeup-overview .blog-post-card.ui-card-surface", minimum: 1
+    assert_selector ".writeup-overview .blog-post-card.content-card", minimum: 1
     assert_equal featured_styles, card_surface_styles(".writeup-overview .blog-post-card")
 
     visit "/blog"
     assert_selector ".blog-posts-container .blog-post-card.ui-card-surface", minimum: 1
+    assert_selector ".blog-posts-container .blog-post-card.content-card", minimum: 1
     assert_equal featured_styles, card_surface_styles(".blog-posts-container .blog-post-card")
 
     visit "/about"

@@ -34,24 +34,33 @@
   <div class="ctf-cards-container">
     <% @ctfs.each do |name, ctf| %>
       <% filter_text = [name, ctf["description"], ctf["terminal_path"]].compact.join(" ") %>
-      <%= link_to ctf["writeups"],
-                  class: "ctf-card ui-card-surface ui-hover-lift",
-                  data: {
-                    expandable: false,
-                    filter_card: "ctfs",
-                    filter_text: filter_text,
-                    filter_tags: Array(@ctf_tags[name]).join("|"),
-                    filter_years: Array(@ctf_years[name]).join("|")
-                  },
-                  aria: { label: "Open #{name} writeups" } do %>
-        <%= image_tag(ctf["logo"], alt: "#{name} Logo", class: "ctf-logo") %>
-        <div class="ctf-details">
-          <div class="ctf-text">
-            <h3 class="ctf-name font-bold"><%= name %></h3>
-            <p class="ctf-description"><%= ctf["description"] %></p>
-          </div>
-        </div>
-      <% end %>
+      <%= render_content_card(
+            root_tag: :a,
+            url: ctf["writeups"],
+            class_name: "ctf-card",
+            wrap_content: false,
+            media: {
+              image: ctf["logo"],
+              alt: "#{name} Logo",
+              image_class: "ctf-logo",
+              wrapper_class: "ctf-card-media"
+            },
+            body_class: "ctf-details",
+            text_class: "ctf-text",
+            title: name,
+            title_class: "ctf-name font-bold",
+            description: ctf["description"],
+            description_class: "ctf-description",
+            description_tag: :p,
+            data: {
+              expandable: false,
+              filter_card: "ctfs",
+              filter_text: filter_text,
+              filter_tags: Array(@ctf_tags[name]).join("|"),
+              filter_years: Array(@ctf_years[name]).join("|")
+            },
+            aria_label: "Open #{name} writeups"
+          ) %>
     <% end %>
   </div>
   <p class="content-filter-empty" data-filter-empty="ctfs" hidden>No CTFs match the current filters.</p>

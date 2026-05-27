@@ -1,6 +1,5 @@
 module BlogHelper
   def render_blog_post_card(post_slug, post_info, interactive_tags: true)
-    max_description_length = 200
     title = post_info["title"].presence || post_slug.humanize
     description = post_info["description"] || "No description available"
     published = post_info["published"] || "Unknown date"
@@ -9,73 +8,44 @@ module BlogHelper
     published_year = blog_post_year(post_info)
     filter_text = ([ title, description, published, published_year, post_info["topic"] ] + categories).compact.join(" ")
 
-    post_path = blog_post_path(post_slug)
-
-    content_tag(
-      :article,
-      class: "blog-post-card ui-card-surface ui-hover-lift",
+    render_content_card(
+      url: blog_post_path(post_slug),
+      class_name: "blog-post-card",
+      hitbox_class: "blog-post-card-hitbox",
+      content_class: "blog-post-card-content",
+      media: {
+        image: logo_url,
+        alt: "#{title} Logo",
+        image_class: "blog-logo",
+        wrapper_class: "blog-post-card-logo",
+        placeholder: "📝",
+        placeholder_class: "blog-logo-placeholder"
+      },
+      body_class: "blog-post-card-details",
+      title: title,
+      title_class: "blog-post-title",
+      description: content_truncate(description),
+      description_class: "blog-post-description",
+      description_tag: :p,
+      date: published,
+      date_class: "blog-post-date",
+      date_text_class: "blog-post-date-text",
+      tags_outer_class: "blog-post-meta",
+      tags_class: "blog-post-meta-row",
+      filter_scope: "blogs",
+      interactive_tags: interactive_tags,
+      tags: categories.map { |category| { label: category } },
       data: {
         filter_card: "blogs",
         filter_text: filter_text,
         filter_tags: categories.join("|"),
         filter_years: published_year
-      }
-    ) do
-      hitbox_html = link_to("", post_path, class: "blog-post-card-hitbox", aria: { label: "Open #{title} blog post" })
-
-      content_tag(:div, class: "blog-post-card-content") do
-        logo_html = content_tag(:div, class: "blog-post-card-logo") do
-          if logo_url.present?
-            image_tag(logo_url, alt: "#{title} Logo", class: "blog-logo")
-          else
-            content_tag(:div, class: "blog-logo-placeholder") do
-              "📝"
-            end
-          end
-        end
-
-        content_html = content_tag(:div, class: "blog-post-card-details") do
-          title_html = content_tag(:h3, class: "blog-post-title") do
-            title
-          end
-
-          meta_html = content_tag(:div, class: "blog-post-meta") do
-            content_tag(:div, class: "blog-post-meta-row") do
-              safe_join(categories.map { |category| blog_category_chip(category, interactive_tags: interactive_tags) })
-            end
-          end
-
-          truncated_description = description.length > max_description_length ? "#{description[0, max_description_length]}..." : description
-          desc_html = content_tag(:p, class: "blog-post-description") do
-            truncated_description
-          end
-
-          date_html = content_tag(:div, class: "blog-post-date") do
-            content_tag(:span, published, class: "blog-post-date-text")
-          end
-
-          title_html + meta_html + desc_html + date_html
-        end
-
-        logo_html + content_html
-      end + hitbox_html
-    end
+      },
+      aria_label: "Open #{title} blog post"
+    )
   end
 
   private
-
-  def blog_category_chip(category, interactive_tags:)
-    return content_tag(:span, category, class: "filter-chip blog-post-static-chip") unless interactive_tags
-
-    content_tag(
-      :button,
-      category,
-      type: "button",
-      class: "filter-chip ui-hover-lift",
-      data: { filter_scope: "blogs", filter_tag: category },
-      aria: { pressed: "false", label: "Filter blog posts by #{category}" }
-    )
-  end
 
   def blog_post_year(post_info)
     return Time.parse(post_info["published"].to_s).year if post_info["published"].present?

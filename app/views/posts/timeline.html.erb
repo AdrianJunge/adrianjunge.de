@@ -56,75 +56,45 @@
                   <time datetime="<%= item[:published].iso8601 %>">
                     <%= item[:display_date] %>
                   </time>
-                  <button
-                    type="button"
-                    class="filter-chip ui-hover-lift timeline-kind-pill"
-                    data-filter-scope="timeline"
-                    data-filter-tag="<%= item[:label] %>"
-                    aria-pressed="false"
-                    aria-label="Filter timeline by <%= item[:label] %>"
-                  ><%= item[:label] %></button>
+                  <%= content_filter_chip(item[:label], scope: "timeline", class_name: "timeline-kind-pill") %>
                 </div>
 
                 <div class="timeline-connector">
                   <div class="dot"></div>
                 </div>
 
-                <article class="timeline-content ui-card-surface ui-hover-lift">
-                  <a href="<%= item[:link] %>" class="timeline-card-hitbox" aria-label="Open <%= item[:title] %>"></a>
+                <% timeline_tags = [] %>
+                <% if item[:writeup_winner].present? %>
+                  <% timeline_tags << {
+                       label: item[:writeup_winner][:label],
+                       tag_value: WriteupWinner::FILTER_LABEL,
+                       winner: true,
+                       class_name: "writeup-winner-badge-timeline",
+                       title: item[:writeup_winner][:label]
+                     } %>
+                <% end %>
+                <% visible_tags.first(6).each do |tag_name| %>
+                  <% timeline_tags << { label: tag_name, class_name: "timeline-tag-pill" } %>
+                <% end %>
 
-                  <span class="timeline-title">
-                    <%= item[:title] %>
-                  </span>
-
-                  <% if item[:writeup_winner].present? || visible_tags.any? %>
-                    <span class="timeline-tags">
-                      <% if item[:writeup_winner].present? %>
-                        <button
-                          type="button"
-                          class="filter-chip writeup-winner-badge writeup-winner-badge-timeline writeup-winner-badge-filter"
-                          data-filter-scope="timeline"
-                          data-filter-tag="<%= WriteupWinner::FILTER_LABEL %>"
-                          aria-pressed="false"
-                          aria-label="Filter timeline by <%= WriteupWinner::FILTER_LABEL %>"
-                          title="<%= item[:writeup_winner][:label] %>"
-                        >
-                          <%= tag.svg(
-                                tag.path(
-                                  d: "M12 2.75l2.12 5.78 6.13.23-4.82 3.8 1.68 5.9L12 15.05 6.89 18.46l1.68-5.9-4.82-3.8 6.13-.23L12 2.75z",
-                                  fill: "currentColor"
-                                ),
-                                class: "writeup-winner-icon",
-                                viewBox: "0 0 24 24",
-                                aria: { hidden: true }
-                              ) %>
-                          <span class="writeup-winner-label"><%= item[:writeup_winner][:label] %></span>
-                        </button>
-                      <% end %>
-
-                      <% visible_tags.first(6).each do |tag_name| %>
-                        <button
-                          type="button"
-                          class="filter-chip ui-hover-lift timeline-tag-pill"
-                          data-filter-scope="timeline"
-                          data-filter-tag="<%= tag_name %>"
-                          aria-pressed="false"
-                          aria-label="Filter timeline by <%= tag_name %>"
-                        ><%= tag_name %></button>
-                      <% end %>
-                    </span>
-                  <% end %>
-
-                  <% if item[:description].present? %>
-                    <span class="timeline-meta">
-                      <%= item[:description] %>
-                    </span>
-                  <% end %>
-
-                  <span class="timeline-source">
-                    <%= item[:source] %>
-                  </span>
-                </article>
+                <%= render_content_card(
+                      url: item[:link],
+                      class_name: "timeline-content",
+                      wrap_content: false,
+                      wrap_body: false,
+                      hitbox_class: "timeline-card-hitbox",
+                      title: item[:title],
+                      title_tag: :span,
+                      title_class: "timeline-title",
+                      tags: timeline_tags,
+                      tags_class: "timeline-tags",
+                      filter_scope: "timeline",
+                      description: item[:description],
+                      description_class: "timeline-meta",
+                      source: item[:source],
+                      source_class: "timeline-source",
+                      aria_label: "Open #{item[:title]}"
+                    ) %>
               </li>
             <% end %>
           </ul>

@@ -124,7 +124,7 @@ function initFilterPanel(panel) {
     let visible = 0;
 
     cards.forEach(card => {
-      const displayTarget = card.closest('.blog-post-entry') || card.closest('.timeline-item') || card.closest('.search-result-entry') || card;
+      const displayTarget = card.closest('.blog-post-entry') || card.closest('.timeline-item') || card;
       const text = normalizeToken(card.dataset.filterText);
       const cardTags = tokensFrom(card.dataset.filterTags);
       const cardYears = tokensFrom(card.dataset.filterYears || card.dataset.filterYear);

@@ -105,24 +105,7 @@
             <div class="content-filter-tag-list">
               <% group[:tags].each do |filter_tag| %>
                 <% winner_filter = filter_tag == winner_filter_tag %>
-                <button
-                  type="button"
-                  class="filter-chip content-filter-tag-chip <%= winner_filter ? "writeup-winner-badge writeup-winner-badge-filter" : "ui-hover-lift" %>"
-                  data-filter-scope="<%= scope %>"
-                  data-filter-tag="<%= filter_tag %>"
-                  aria-pressed="false"
-                  aria-label="Filter by <%= filter_tag %>"
-                >
-                  <% if winner_filter %>
-                    <%= tag.path(
-                          d: "M12 2.75l2.12 5.78 6.13.23-4.82 3.8 1.68 5.9L12 15.05 6.89 18.46l1.68-5.9-4.82-3.8 6.13-.23L12 2.75z",
-                          fill: "currentColor"
-                        ).then { |path| content_tag(:svg, path, class: "writeup-winner-icon", viewBox: "0 0 24 24", aria: { hidden: true }) } %>
-                    <span class="writeup-winner-label"><%= filter_tag %></span>
-                  <% else %>
-                    <%= filter_tag %>
-                  <% end %>
-                </button>
+                <%= content_filter_chip(filter_tag, scope: scope, class_name: "content-filter-tag-chip", winner: winner_filter) %>
               <% end %>
             </div>
           </div>
