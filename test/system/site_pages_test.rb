@@ -270,28 +270,59 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
-  test "landing hero keeps clear of the fixed sidebar toggle on compact displays" do
-    [ 320, 390, 721, 760, 860 ].each do |width|
-      page.current_window.resize_to(width, 900)
-      visit "/"
+  test "fixed sidebar toggle overlays compact pages without reserving layout space" do
+    {
+      "/" => "#landing-top",
+      "/ctf" => ".content-hero-inner",
+      "/timeline" => ".timeline-shell",
+      "/about" => ".aboutme-hero-inner"
+    }.each do |path, selector|
+      [ 320, 390 ].each do |width|
+        page.current_window.resize_to(width, 900)
+        visit path
 
-      metrics = page.evaluate_script(<<~JS)
-        (() => {
-          const menu = document.getElementById("menu-icon-right").getBoundingClientRect();
-          const hero = document.querySelector(".landing-hero-shell").getBoundingClientRect();
-          const top = document.getElementById("landing-top").getBoundingClientRect();
+        metrics = page.evaluate_script(<<~JS)
+          (() => {
+            const menu = document.getElementById("menu-icon-right").getBoundingClientRect();
+            const content = document.querySelector("#{selector}").getBoundingClientRect();
+            const viewportWidth = document.documentElement.clientWidth;
 
-          return {
-            menuRight: Math.round(menu.right),
-            heroLeft: Math.round(hero.left),
-            topLeft: Math.round(top.left)
-          };
-        })()
-      JS
+            return {
+              menuPosition: window.getComputedStyle(document.getElementById("menu-icon-right")).position,
+              menuLeft: Math.round(menu.left),
+              contentLeft: Math.round(content.left),
+              contentRightGap: Math.round(viewportWidth - content.right)
+            };
+          })()
+        JS
 
-      assert_operator metrics["heroLeft"], :>, metrics["menuRight"], "landing hero overlapped sidebar toggle at #{width}px"
-      assert_operator metrics["topLeft"], :>, metrics["menuRight"], "landing section overlapped sidebar toggle at #{width}px"
+        assert_equal "fixed", metrics["menuPosition"]
+        assert_equal 0, metrics["menuLeft"], "sidebar toggle drifted away from the viewport edge on #{path} at #{width}px"
+        assert_in_delta metrics["contentLeft"], metrics["contentRightGap"], 2,
+                        "content was offset by sidebar toggle on #{path} at #{width}px"
+      end
     end
+  end
+
+  test "fixed sidebar toggle does not jump while scrolling compact pages" do
+    page.current_window.resize_to(390, 900)
+    visit "/timeline"
+
+    metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const menu = document.getElementById("menu-icon-right");
+        const before = Math.round(menu.getBoundingClientRect().top);
+        window.scrollTo(0, document.documentElement.scrollHeight);
+        const bottom = Math.round(menu.getBoundingClientRect().top);
+        window.scrollTo(0, 0);
+        const top = Math.round(menu.getBoundingClientRect().top);
+
+        return { before, bottom, top };
+      })()
+    JS
+
+    assert_in_delta metrics["before"], metrics["bottom"], 1
+    assert_in_delta metrics["before"], metrics["top"], 1
   end
 
   test "landing recent posts render as evenly spaced full-width rows" do

@@ -137,7 +137,7 @@ body.site-background::before {
     left: 0;
     width: 0;
     opacity: 0;
-    height: 100dvh;
+    height: 100svh;
     display: flex;
     white-space: nowrap;
     flex-direction: column;
@@ -152,6 +152,13 @@ body.site-background::before {
     user-select: none;
     box-sizing: border-box;
     pointer-events: none;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+#taskbar-left::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 #taskbar-left.expanded {
@@ -211,17 +218,19 @@ body.site-background::before {
     position: fixed;
     width: calc(var(--taskbar-icon-size) * 0.8);
     height: calc(var(--taskbar-icon-size) * 1.7);
-    top: calc(50% - var(--taskbar-icon-size));
+    top: 50%;
+    top: 50svh;
     left: 0;
     border-top-right-radius: 1vmin;
     border-bottom-right-radius: 1vmin;
     border: 0.3dvh solid var(--color-chrome);
     border-left: none;
     box-sizing: border-box;
+    transform: translateY(-50%);
 
     transition: transform 0.2s ease-in-out, background-color 1s ease, left 0.3s ease-in-out;
     &:hover {
-        transform: scale(1.1);
+        transform: translateY(-50%) scale(1.1);
         background-color: var(--color-accent);
     }
 }
