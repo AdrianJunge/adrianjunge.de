@@ -4,5 +4,4 @@ import "terminal";
 import "content_filters";
 import "ctf";
 import "blog";
-
-import "mathjax"
+import "mathjax_loader";

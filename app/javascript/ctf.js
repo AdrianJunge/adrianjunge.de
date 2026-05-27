@@ -1,39 +1,3 @@
-window.MathJax = {
-  loader: {
-    paths: {
-      mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5'
-    },
-    load: ['input/tex-full', 'output/chtml', '[tex]/color']
-  },
-  options: {
-    skipHtmlTags: ["script","noscript","style","textarea"]
-  },
-  tex: {
-    packages: {
-      '[+]': ['color']
-    },
-    inlineMath: [['$','$'], ['\\(','\\)']],
-    displayMath: [['$$','$$'], ['\\[','\\]']]
-  },
-  startup: {
-    pageReady() {
-      function updateScrollClasses() {
-        document.querySelectorAll('.MathJax').forEach(el => {
-          if (el.scrollWidth > el.clientWidth) {
-            el.classList.add('has-scroll');
-          } else {
-            el.classList.remove('has-scroll');
-          }
-        });
-      }
-      return MathJax.startup.defaultPageReady().then(() => {
-        updateScrollClasses();
-        window.addEventListener('resize', updateScrollClasses);
-      });
-    }
-  }
-};
-
 document.querySelectorAll('.ctf-card:not([data-expandable="false"])').forEach(card => {
   card.addEventListener('transitionend', event => {
     if (!card.classList.contains('expanded')) {

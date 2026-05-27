@@ -22,7 +22,7 @@ class CtfFilesController < ApplicationController
       return head :not_found
     end
 
-    content_type = Marcel::MimeType.for Pathname.new(real_file) rescue "application/octet-stream"
+    content_type = Rack::Mime.mime_type(File.extname(real_file), "application/octet-stream")
 
     send_file real_file,
               disposition: "attachment",

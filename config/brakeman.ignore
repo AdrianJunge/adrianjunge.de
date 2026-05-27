@@ -3,13 +3,13 @@
     {
       "warning_type": "File Access",
       "warning_code": 16,
-      "fingerprint": "3a266212b28fab67e5e48028d3218ac020eb68eb185975fad4b4d7d75f2e8c62",
+      "fingerprint": "6486680f965d2b9ad28438870b5ac1841b585e918ba077f618ddc7ed8616b562",
       "check_name": "SendFile",
       "message": "Parameter value used in file name",
       "file": "app/controllers/ctf_files_controller.rb",
       "line": 27,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "send_file(File.expand_path(File.join(Rails.root.join(\"public\", \"ctf\", \"files\").to_s, params[:file_path].to_s.sub(/\\A\\//, \"\"))), :disposition => \"attachment\", :filename => File.basename(File.expand_path(File.join(Rails.root.join(\"public\", \"ctf\", \"files\").to_s, params[:file_path].to_s.sub(/\\A\\//, \"\")))), :type => (Marcel::MimeType.for(Pathname.new(File.expand_path(File.join(Rails.root.join(\"public\", \"ctf\", \"files\").to_s, params[:file_path].to_s.sub(/\\A\\//, \"\"))))) rescue \"application/octet-stream\"))",
+      "code": "send_file(File.expand_path(File.join(Rails.root.join(\"public\", \"ctf\", \"files\").to_s, params[:file_path].to_s.sub(/\\A\\//, \"\"))), :disposition => \"attachment\", :filename => File.basename(File.expand_path(File.join(Rails.root.join(\"public\", \"ctf\", \"files\").to_s, params[:file_path].to_s.sub(/\\A\\//, \"\")))), :type => Rack::Mime.mime_type(File.extname(File.expand_path(File.join(Rails.root.join(\"public\", \"ctf\", \"files\").to_s, params[:file_path].to_s.sub(/\\A\\//, \"\")))), \"application/octet-stream\"))",
       "render_path": null,
       "location": {
         "type": "method",
@@ -21,30 +21,7 @@
       "cwe_id": [
         22
       ],
-      "note": ""
-    },
-    {
-      "warning_type": "File Access",
-      "warning_code": 16,
-      "fingerprint": "4cc7486753aad2f5d47ceda6a91d6d6439901588c4c028210ced269d6b5be028",
-      "check_name": "FileAccess",
-      "message": "Parameter value used in file name",
-      "file": "app/controllers/ctf_files_controller.rb",
-      "line": 25,
-      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "Pathname.new(File.expand_path(File.join(Rails.root.join(\"public\", \"ctf\", \"files\").to_s, params[:file_path].to_s.sub(/\\A\\//, \"\"))))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "CtfFilesController",
-        "method": "download"
-      },
-      "user_input": "params[:file_path].to_s.sub(/\\A\\//, \"\")",
-      "confidence": "Weak",
-      "cwe_id": [
-        22
-      ],
-      "note": ""
+      "note": "file_path is constrained to [\\w-.\\/] and then checked with File.expand_path against BASE_DIR before send_file"
     },
     {
       "warning_type": "Path Traversal",
