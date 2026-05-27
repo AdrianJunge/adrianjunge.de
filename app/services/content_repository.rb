@@ -1,4 +1,6 @@
 class ContentRepository
+  READING_WORDS_PER_MINUTE = 225
+
   def about_markdown
     @about_markdown ||= read_file(ApplicationController::ABOUTME_TEXT_PATH)
   end
@@ -25,7 +27,7 @@ class ContentRepository
       parsed = parse_markdown(read_file(file_path))
       next unless parsed
 
-      posts_info[File.basename(file_path, ".md")] = parsed.front_matter || {}
+      posts_info[File.basename(file_path, ".md")] = post_metadata_from(parsed)
     end.tap { |posts_info| post_metadata_cache[cache_key] = posts_info }
   end
 
@@ -40,7 +42,7 @@ class ContentRepository
         parsed = parse_markdown(content)
         next unless parsed
 
-        meta = parsed.front_matter || {}
+        meta = post_metadata_from(parsed)
         title = meta["title"].presence || File.basename(file_path, ".md").humanize
         slug = File.basename(file_path, ".md")
         published = parsed_time(meta["published"], fallback: file_time(file_path, meta["year"]))
@@ -58,6 +60,8 @@ class ContentRepository
           categories: Array(meta["categories"]),
           logo: item_meta["logo"],
           content: content,
+          reading_time_minutes: meta["reading_time_minutes"],
+          reading_time_label: meta["reading_time_label"],
           metadata: meta
         }
       end
@@ -75,7 +79,7 @@ class ContentRepository
         parsed = parse_markdown(content)
         next unless parsed
 
-        meta = parsed.front_matter || {}
+        meta = post_metadata_from(parsed)
         slug = File.basename(file_path, ".md")
         blog_info = metadata[slug] || {}
         category = blog_info["category"] || "POST"
@@ -94,6 +98,8 @@ class ContentRepository
           topic: meta["topic"].to_s,
           categories: Array(meta["categories"]),
           content: content,
+          reading_time_minutes: meta["reading_time_minutes"],
+          reading_time_label: meta["reading_time_label"],
           metadata: meta
         }
       end.sort_by { |item| -item[:published].to_i }
@@ -102,6 +108,18 @@ class ContentRepository
 
   def post_count
     ctf_posts.length + blog_posts.length
+  end
+
+  def total_post_reading_time_minutes
+    post_reading_time_minutes(ctf_posts + blog_posts)
+  end
+
+  def post_reading_time_minutes(posts)
+    Array(posts).sum { |post| post[:reading_time_minutes].to_i }
+  end
+
+  def format_reading_time(minutes)
+    "#{minutes.to_i} min read"
   end
 
   def metadata_year(metadata)
@@ -128,6 +146,26 @@ class ContentRepository
     FrontMatterParser::Parser.new(:md).call(content)
   rescue StandardError
     nil
+  end
+
+  def post_metadata_from(parsed)
+    metadata = (parsed&.front_matter || {}).dup
+    body = parsed&.content.to_s
+
+    metadata.merge(
+      "reading_time_minutes" => reading_time_minutes(body),
+      "reading_time_label" => reading_time_label(body)
+    )
+  end
+
+  def reading_time_minutes(markdown)
+    word_count = markdown_word_count(markdown)
+
+    [ (word_count / READING_WORDS_PER_MINUTE.to_f).ceil, 1 ].max
+  end
+
+  def reading_time_label(markdown)
+    format_reading_time(reading_time_minutes(markdown))
   end
 
   def parsed_time(value, fallback:)
@@ -172,6 +210,15 @@ class ContentRepository
 
   def read_file(path)
     File.exist?(path) ? File.read(path) : ""
+  end
+
+  def markdown_word_count(markdown)
+    text = markdown.to_s
+    text = text.gsub(/!\[[^\]]*\]\([^)]+\)/, " ")
+    text = text.gsub(/\[([^\]]+)\]\([^)]+\)/, "\\1")
+    text = text.gsub(/<[^>]+>/, " ")
+
+    text.scan(/[[:alnum:]][[:alnum:]_-]*/).length
   end
 
   def about_entries_cache

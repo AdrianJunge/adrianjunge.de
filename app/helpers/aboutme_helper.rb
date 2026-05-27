@@ -1,3 +1,5 @@
+require "cgi"
+
 module AboutmeHelper
   CVE_ID_PATTERN = /\ACVE-\d{4}-\d{4,}\z/i
   CWE_ID_PATTERN = /\ACWE-(\d+)\z/i
@@ -94,6 +96,7 @@ module AboutmeHelper
     title_label = entry["title"].presence || entry["short_summary"].presence || entry["summary"].presence
     summary_text = aboutme_finding_summary(entry)
     collapsible = aboutme_finding_collapsible?(entry)
+    card_url = entry["card_url"].presence || (collapsible ? nil : entry["title_url"].presence)
     body_blocks = []
     body_blocks << { title: "Summary", text: summary_text } if aboutme_visible_detail?(summary_text)
 
@@ -115,13 +118,15 @@ module AboutmeHelper
       body_blocks: body_blocks,
       timeline: aboutme_timeline_items(entry["timeline"]),
       collapsible: collapsible,
-      card_url: entry["card_url"].presence || (collapsible ? nil : entry["title_url"].presence),
+      card_url: card_url,
+      reading_time: aboutme_reading_time_for_url(card_url),
       aria_label: "Open #{entry["project"].presence || title_label}"
     }
   end
 
   def aboutme_milestone_card(entry)
     events = aboutme_visible_events(entry["events"])
+    card_url = entry["card_url"].presence || entry["title_url"].presence
 
     {
       id: entry["id"],
@@ -134,7 +139,8 @@ module AboutmeHelper
       body_blocks: [],
       children: events.map { |event| aboutme_event_card(entry, event) },
       collapsible: false,
-      card_url: entry["card_url"].presence || entry["title_url"].presence,
+      card_url: card_url,
+      reading_time: aboutme_reading_time_for_url(card_url),
       aria_label: "Open #{entry["title"]}"
     }
   end
@@ -171,6 +177,7 @@ module AboutmeHelper
 
   def aboutme_event_card(entry, event)
     event_id = event["id"].presence || [ entry["id"].presence || entry["title"], event["date"], event["title"] ].compact.join("-").parameterize
+    card_url = event["card_url"].presence || event["url"].presence || entry["card_url"].presence || entry["title_url"].presence
 
     {
       id: event_id,
@@ -180,7 +187,8 @@ module AboutmeHelper
       tags: aboutme_event_tags(event),
       body_blocks: [],
       collapsible: false,
-      card_url: event["card_url"].presence || event["url"].presence || entry["card_url"].presence || entry["title_url"].presence,
+      card_url: card_url,
+      reading_time: aboutme_reading_time_for_url(card_url),
       aria_label: "Open #{event["title"].presence || entry["title"]}"
     }
   end
@@ -189,5 +197,35 @@ module AboutmeHelper
     return [] if event["date"].blank?
 
     [ { label: event["date"], datetime: event["date"], class_name: "aboutme-tag-date" } ]
+  end
+
+  def aboutme_reading_time_for_url(url)
+    normalized_path = aboutme_normalized_local_path(url)
+    return nil if normalized_path.blank?
+
+    aboutme_post_reading_times[normalized_path]
+  end
+
+  def aboutme_post_reading_times
+    @aboutme_post_reading_times ||= begin
+      repository = ContentRepository.new
+
+      (repository.blog_posts + repository.ctf_posts).each_with_object({}) do |post, reading_times|
+        path = aboutme_normalized_local_path(post[:link])
+        next if path.blank? || post[:reading_time_label].blank?
+
+        reading_times[path] = post[:reading_time_label]
+      end
+    end
+  end
+
+  def aboutme_normalized_local_path(url)
+    raw_url = url.to_s
+    return nil unless raw_url.start_with?("/")
+
+    path = raw_url.split(/[?#]/, 2).first
+    CGI.unescape(path)
+  rescue ArgumentError
+    path
   end
 end

@@ -86,6 +86,8 @@ class ContentIndex
         tags: filter_tags,
         search_parts: [ post[:which], post[:title], metadata, post[:content] ],
         logo: post[:logo],
+        reading_time_minutes: post[:reading_time_minutes],
+        reading_time_label: post[:reading_time_label],
         writeup_winner: winner
       )
     end
@@ -107,7 +109,9 @@ class ContentIndex
         link: post[:link],
         tags: post[:categories],
         search_parts: [ post[:which], post[:title], post[:metadata], post[:content] ],
-        logo: blog_metadata.dig(post[:slug], "logo")
+        logo: blog_metadata.dig(post[:slug], "logo"),
+        reading_time_minutes: post[:reading_time_minutes],
+        reading_time_label: post[:reading_time_label]
       )
     end
   end

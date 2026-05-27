@@ -1,0 +1,12 @@
+<% items = Array(local_assigns[:items]).map(&:to_s).reject(&:blank?) %>
+<% reading_time = local_assigns[:reading_time].to_s.presence %>
+<% items << reading_time if reading_time.present? %>
+
+<% if items.any? %>
+  <p class="post-meta-line" aria-label="Post metadata">
+    <%= safe_join(
+          items.map { |item| content_tag(:span, item, class: "post-meta-item") },
+          content_tag(:span, "·", class: "post-meta-separator", aria: { hidden: true })
+        ) %>
+  </p>
+<% end %>

@@ -60,4 +60,17 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
     assert_select ".aboutme-achievement-details", 0
     assert_select ".aboutme-link-row", 0
   end
+
+  test "milestone card shows reading time for linked local posts" do
+    render partial: "aboutme/milestone_card", locals: {
+      entry: {
+        "title" => "HTB CPTS",
+        "card_url" => "/blog/htb-cpts",
+        "category" => "Certification",
+        "summary" => "Certification writeup."
+      }
+    }
+
+    assert_select ".aboutme-card-reading-time", text: /min read/
+  end
 end

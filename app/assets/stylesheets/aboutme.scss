@@ -90,6 +90,7 @@
     position: relative;
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-direction: column;
     gap: 0.15rem;
     min-height: 4.35rem;
@@ -329,6 +330,17 @@
     font-size: 0.95rem;
     line-height: 1.55;
     overflow-wrap: anywhere;
+}
+
+.aboutme-card-reading-time {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin-top: -0.2rem;
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 0.82rem;
+    font-weight: 900;
+    line-height: 1.35;
 }
 
 .aboutme-card-tags,

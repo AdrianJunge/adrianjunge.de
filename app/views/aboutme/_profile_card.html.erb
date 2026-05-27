@@ -6,6 +6,7 @@
 <% collapsible = card[:collapsible] && (body_blocks.any? || timeline_items.any? || child_cards.any?) %>
 <% card_url = collapsible ? nil : card[:card_url].presence %>
 <% title_url = card[:title_link] ? card[:title_url].presence : nil %>
+<% reading_time = card[:reading_time].to_s.presence %>
 <% card_classes = [ "aboutme-card", "ui-card-surface", ("ui-hover-lift" if card_url.present?), card[:class_name], ("aboutme-card-static" unless collapsible), ("aboutme-card-linked" if card_url.present?), ("aboutme-card-nested" if card[:nested]) ].compact.join(" ") %>
 <% main_classes = [ "aboutme-card-main", card[:main_class] ].compact.join(" ") %>
 <% title_classes = [ "aboutme-card-title", card[:title_class] ].compact.join(" ") %>
@@ -35,6 +36,10 @@
       <span class="<%= summary_classes %>">
         <%= aboutme_optional_link(card[:description], card[:description_url], class_name: card[:description_link_class]) %>
       </span>
+    <% end %>
+
+    <% if reading_time.present? %>
+      <span class="aboutme-card-reading-time"><%= reading_time %></span>
     <% end %>
   </span>
 <% end %>

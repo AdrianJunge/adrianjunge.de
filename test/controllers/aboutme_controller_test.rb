@@ -64,6 +64,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#certificates", text: certificates.length.to_s
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#achievements", text: achievement_events.to_s
     assert_select ".landing-metric[href=?] .landing-metric-value", timeline_path, text: post_count.to_s
+    assert_select ".landing-metric[href=?] .landing-metric-sublabel", timeline_path, text: ContentRepository.new.format_reading_time(ContentRepository.new.total_post_reading_time_minutes)
     assert_select ".landing-featured-card", 3
   end
 

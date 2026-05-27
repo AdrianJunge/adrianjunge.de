@@ -1,0 +1,28 @@
+require "test_helper"
+
+class ContentRepositoryTest < ActiveSupport::TestCase
+  test "post metadata includes reading time from markdown body" do
+    repository = ContentRepository.new
+    markdown = <<~MARKDOWN
+      ---
+      title: Tiny Post
+      ---
+
+      #{Array.new(226, "word").join(" ")}
+    MARKDOWN
+
+    metadata = repository.post_metadata_from(repository.parse_markdown(markdown))
+
+    assert_equal 2, metadata["reading_time_minutes"]
+    assert_equal "2 min read", metadata["reading_time_label"]
+  end
+
+  test "repository attaches reading time to blog posts and ctf posts" do
+    repository = ContentRepository.new
+
+    assert repository.blog_posts.all? { |post| post[:reading_time_label].present? }
+    assert repository.ctf_posts.all? { |post| post[:reading_time_label].present? }
+    assert_operator repository.total_post_reading_time_minutes, :>, 0
+    assert_match(/\A\d+ min read\z/, repository.format_reading_time(repository.total_post_reading_time_minutes))
+  end
+end

@@ -371,6 +371,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-writeup-cards .blog-post-static-chip", minimum: 1
     assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='writeups']", minimum: 1
     assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='blogs']", minimum: 1
+    assert_selector ".landing-writeup-cards .blog-post-reading-time", minimum: 3, text: /min read/
     assert_selector ".landing-writeup-cards .writeup-post-card .blog-post-authors", minimum: 1
     assert_selector ".landing-writeup-cards .blog-logo", count: 3
     assert_selector ".landing-writeup-cards .writeup-post-card .blog-logo[src*='/assets/ctf/']", minimum: 1
@@ -402,6 +403,20 @@ class SitePagesTest < ApplicationSystemTestCase
     blog_styles = post_card_styles(".blog-posts-container .blog-post-card")
 
     assert_equal blog_styles, landing_styles
+  end
+
+  test "post pages show reading time in the article header" do
+    visit "/blog"
+    assert_selector ".blog-posts-container .blog-post-reading-time", minimum: 1, text: /min read/
+
+    visit "/ctf/cscg"
+    assert_selector ".writeup-overview .blog-post-reading-time", minimum: 1, text: /min read/
+
+    visit "/blog/java-strings"
+    assert_selector ".post-meta-line", text: /min read/
+
+    visit "/ctf/kitctf/xmalloc"
+    assert_selector ".post-meta-line", text: /min read/
   end
 
   test "post card author links stay clickable above full card hitboxes" do
@@ -467,6 +482,20 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-metric", count: 6
     assert_selector ".landing-metric.aboutme-stat", count: 6
     assert_selector ".landing-metric:first-child[href='/timeline']", text: "Posts"
+    assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.landing-metric')).justifyContent")
+    assert_selector ".landing-metric:first-child .landing-metric-sublabel", text: /min read/
+    metric_order = page.evaluate_script(<<~JS)
+      (() => {
+        const metric = document.querySelector(".landing-metric:first-child");
+        const label = metric.querySelector(".landing-metric-label").getBoundingClientRect();
+        const sublabel = metric.querySelector(".landing-metric-sublabel").getBoundingClientRect();
+
+        return {
+          sublabelBelowLabel: sublabel.top >= label.bottom - 1
+        };
+      })()
+    JS
+    assert_equal true, metric_order["sublabelBelowLabel"]
     page.execute_script("document.querySelector('.landing-metrics').scrollIntoView({ block: 'center' })")
 
     [
@@ -662,6 +691,20 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector "a.ctf-card.ui-hover-scale"
 
     first_card = find("a.ctf-card", match: :first)
+    assert_selector "a.ctf-card .ctf-reading-time", minimum: 1, text: /min read/
+    ctf_reading_time_style = page.evaluate_script(<<~JS)
+      (() => {
+        const element = document.querySelector("a.ctf-card .ctf-reading-time");
+        const style = window.getComputedStyle(element);
+
+        return {
+          borderTopWidth: style.borderTopWidth,
+          backgroundColor: style.backgroundColor
+        };
+      })()
+    JS
+    assert_equal "0px", ctf_reading_time_style["borderTopWidth"]
+    assert_equal "rgba(0, 0, 0, 0)", ctf_reading_time_style["backgroundColor"]
     target_path = URI.parse(first_card[:href]).path
     first_card.click
 

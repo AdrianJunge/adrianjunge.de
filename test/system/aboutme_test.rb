@@ -25,8 +25,23 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_text "GPNCTF 2025"
     assert_text "Web challenge about URL parser differentials"
     assert_selector "#my-challenges .aboutme-card-link-overlay[href='/ctf/gpnctf/Smile%20at%20me']", visible: :all
+    assert_selector "#my-challenges .aboutme-card-reading-time", text: /min read/
+    reading_time_style = page.evaluate_script(<<~JS)
+      (() => {
+        const element = document.querySelector("#my-challenges .aboutme-card-reading-time");
+        const style = window.getComputedStyle(element);
+
+        return {
+          borderTopWidth: style.borderTopWidth,
+          backgroundColor: style.backgroundColor
+        };
+      })()
+    JS
+    assert_equal "0px", reading_time_style["borderTopWidth"]
+    assert_equal "rgba(0, 0, 0, 0)", reading_time_style["backgroundColor"]
     assert_selector "#my-challenges .aboutme-card-tag[href='https://ctftime.org/ctf/854/']", text: "GPNCTF 2025"
     assert_selector "#certificates .aboutme-card-link-overlay[href='/blog/htb-cpts']", visible: :all
+    assert_selector "#certificates .aboutme-card-reading-time", text: /min read/
     assert_selector "#certificates .aboutme-tag-certification[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", text: "Certification"
     assert_selector "#achievements #firedancer-v1-audit-competition .aboutme-card-link-overlay[href='https://immunefi.com/audit-competition/firedancer-v1-audit-comp/information/']", visible: :all
     assert_selector "#achievements #kitctf .aboutme-card-link-overlay[href='https://ctftime.org/team/7221/']", visible: :all
@@ -50,6 +65,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector ".aboutme-stat[href='#my-challenges']", text: "Created Challenges"
     assert_selector ".aboutme-stat[href='#certificates']", text: "Certificates"
     assert_selector ".aboutme-stat[href='#achievements']", text: "Achievements"
+    assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.aboutme-stat')).justifyContent")
     assert_selector "#cves .aboutme-section-count", text: /entries/
     assert_selector "#bug-bounties .aboutme-section-count", text: /finding/
     assert_selector "#my-challenges .aboutme-section-count", text: /challenge/

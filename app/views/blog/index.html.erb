@@ -46,6 +46,8 @@
           "topic" => post[:topic],
           "categories" => post[:categories],
           "published" => post[:published].strftime("%Y-%m-%d"),
+          "reading_time_label" => post[:reading_time_label],
+          "reading_time_minutes" => post[:reading_time_minutes],
           "logo" => blog_data["logo"]
         }) %>
         <%= render_blog_post_card(post[:slug], blog_data_with_meta) %>

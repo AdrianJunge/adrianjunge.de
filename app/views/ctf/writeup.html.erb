@@ -59,6 +59,7 @@
 
     <h4 class="writeup-year text-white text-center"><%= @which.upcase %>-<%= @ctf_info["year"] %></h4>
     <h1 class="writeup-title text-white text-center"><%= @ctf_info["title"] %></h1>
+    <%= render "shared/post_meta", items: [ @ctf_info["published"] ], reading_time: @ctf_info["reading_time_label"] %>
 
     <% if (winner_badge = render_writeup_winner_badge(@ctf_info, context: :article)) %>
       <div class="writeup-winner-article">

@@ -30,7 +30,7 @@
 <% kit_link = "https://www.kit.edu" %>
 <% kitctf_link = "https://kitctf.de" %>
 <% landing_metrics = [
-  { label: "Posts", value: @amount_posts, link: timeline_link },
+  { label: "Posts", value: @amount_posts, sublabel: @amount_post_reading_time, link: timeline_link },
   { label: "CVEs", value: @amount_cves, link: about_path(anchor: "cves") },
   { label: "Bug bounties", value: @amount_bug_bounties, link: about_path(anchor: "bug-bounties") },
   { label: "Created Challenges", value: @amount_challenges, link: about_path(anchor: "my-challenges") },
@@ -85,6 +85,9 @@
             <a href="<%= metric[:link] %>" class="landing-metric aboutme-stat ui-hover-lift">
                 <span class="landing-metric-value aboutme-stat-value"><%= metric[:value] %></span>
                 <span class="landing-metric-label aboutme-stat-label"><%= metric[:label] %></span>
+                <% if metric[:sublabel].present? %>
+                    <span class="landing-metric-sublabel aboutme-stat-sublabel"><%= metric[:sublabel] %></span>
+                <% end %>
             </a>
         <% end %>
     </div>
@@ -138,6 +141,8 @@
                     "topic" => post[:topic],
                     "categories" => post[:categories],
                     "published" => post[:published].strftime("%Y-%m-%d"),
+                    "reading_time_label" => post[:reading_time_label],
+                    "reading_time_minutes" => post[:reading_time_minutes],
                     "logo" => blog_config["logo"]
                 }) %>
 

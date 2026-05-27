@@ -1,5 +1,5 @@
 # TODOs
-- Add minutes of reading approximation via the wordcount
+- alle images durchgehen und gucken ob die noch abgerundet werden können mit transparent background
 
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
     => https://github.com/felixfbecker/dom-to-svg

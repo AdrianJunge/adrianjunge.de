@@ -10,11 +10,15 @@ class CtfController < ApplicationController
 
       [ name, {
         years: metadata.filter_map { |entry| content_repository.metadata_year(entry) }.uniq.sort.reverse,
-        tags: sorted_filter_values(metadata.flat_map { |entry| content_repository.metadata_tags(entry) })
+        tags: sorted_filter_values(metadata.flat_map { |entry| content_repository.metadata_tags(entry) }),
+        reading_time_minutes: metadata.sum { |entry| entry["reading_time_minutes"].to_i }
       } ]
     end
     @ctf_years = @ctf_filters.transform_values { |filters| filters[:years] }
     @ctf_tags = @ctf_filters.transform_values { |filters| filters[:tags] }
+    @ctf_reading_times = @ctf_filters.transform_values do |filters|
+      content_repository.format_reading_time(filters[:reading_time_minutes])
+    end
     @filter_years = @ctf_years.values.flatten.uniq.sort.reverse
     @filter_tags = sorted_filter_values(@ctf_tags.values.flatten)
     @filter_tag_groups = filter_tag_groups(@filter_tags, topic_label: "Challenge tags")
@@ -41,7 +45,7 @@ class CtfController < ApplicationController
     @markdown_content = safe_markdown_content(BASE_PATH, @which, @writeup, render_error: true)
     return unless @markdown_content
 
-    @ctf_info = parse_markdown_content(@markdown_content)&.front_matter || {}
+    @ctf_info = content_repository.post_metadata_from(parse_markdown_content(@markdown_content))
     @headings = get_headings_from_content(@markdown_content)
     @html_content = render_markdown(@markdown_content)
     @challenge_file = writeup_public_asset("files", "zip")

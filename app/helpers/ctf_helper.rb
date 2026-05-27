@@ -51,6 +51,8 @@ module CtfHelper
       date: published,
       date_class: "blog-post-date",
       date_text_class: "blog-post-date-text",
+      reading_time: info["reading_time_label"],
+      reading_time_class: "blog-post-reading-time",
       tags_outer_class: "blog-post-meta",
       tags_class: "blog-post-meta-row",
       tags: tags,

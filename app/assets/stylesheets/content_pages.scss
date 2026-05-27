@@ -585,6 +585,20 @@
     -webkit-mask-image: none;
 }
 
+.content-page .ctf-reading-time {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin-top: -0.15rem;
+}
+
+.content-page .ctf-reading-time-text {
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
 .content-page .blog-post-entry {
     min-height: 0;
 }
@@ -935,6 +949,19 @@
     font-weight: 700;
 }
 
+.content-page .content-card-meta-separator,
+.landing-page .landing-writeup-cards .content-card-meta-separator {
+    color: rgba(148, 163, 184, 0.72);
+    font-weight: 900;
+}
+
+.content-page .blog-post-reading-time,
+.landing-page .landing-writeup-cards .blog-post-reading-time,
+.content-page .timeline-reading-time {
+    color: rgba(226, 232, 240, 0.78);
+    font-weight: 800;
+}
+
 .content-page .writeup-content {
     padding: 1.5rem 0 4rem;
 }
@@ -1013,11 +1040,35 @@
 }
 
 .content-page .writeup-title {
-    margin: 0 0 2rem;
+    margin: 0 0 0.85rem;
     color: #fff;
     font-size: 3rem;
     line-height: 1.1;
     text-align: center;
+}
+
+.content-page .post-meta-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    margin: 0 0 2rem;
+    color: rgba(226, 232, 240, 0.74);
+    font-size: 0.94rem;
+    font-weight: 800;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.content-page .post-meta-item {
+    display: inline-flex;
+    align-items: center;
+}
+
+.content-page .post-meta-separator {
+    color: rgba(125, 211, 252, 0.68);
+    font-weight: 900;
 }
 
 .content-page .writeup-winner-article {
@@ -1528,6 +1579,19 @@
     pointer-events: none;
 }
 
+.timeline-page .content-card-date {
+    display: flex;
+    position: relative;
+    z-index: 2;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    color: rgba(226, 232, 240, 0.7);
+    font-size: 0.78rem;
+    font-weight: 800;
+    pointer-events: none;
+}
+
 .timeline-page .timeline-tags {
     display: flex;
     position: relative;
@@ -1818,7 +1882,9 @@
     position: relative;
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-direction: column;
+    gap: 0.15rem;
     min-height: 4.35rem;
     padding: 0.8rem 0.9rem;
     border: 0;
@@ -1850,6 +1916,14 @@
     font-size: 1.55rem;
     font-weight: 800;
     line-height: 1;
+}
+
+.landing-page .landing-metric-sublabel {
+    margin-top: 0.12rem;
+    color: rgba(125, 211, 252, 0.82);
+    font-size: 0.72rem;
+    font-weight: 900;
+    line-height: 1.1;
 }
 
 .landing-page .landing-metric-label {

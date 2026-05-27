@@ -8,6 +8,7 @@ class CtfHelperTest < ActionView::TestCase
         "description" => "A writeup with multiple challenge authors.",
         "categories" => [ "Web" ],
         "published" => "2026-01-01",
+        "reading_time_label" => "4 min read",
         "authors" => [
           { "name" => "External Author", "url" => "https://example.com" },
           { "name" => "Local Author", "url" => "/about" },
@@ -17,6 +18,7 @@ class CtfHelperTest < ActionView::TestCase
     }
 
     assert_select ".blog-post-authors", text: /Challenge by/
+    assert_select ".blog-post-reading-time", text: "4 min read"
     assert_select ".blog-post-author-link[href=?][target=?][rel=?]", "https://example.com", "_blank", "noopener noreferrer", text: "External Author"
     assert_select ".blog-post-author-link[href=?]", "/about", text: "Local Author"
     assert_select ".blog-post-author-name", text: "No Link"

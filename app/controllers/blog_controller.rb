@@ -21,7 +21,7 @@ class BlogController < ApplicationController
     return unless @markdown_content
 
     parsed = parse_markdown_content(@markdown_content)
-    @blog_info = parsed&.front_matter || {}
+    @blog_info = content_repository.post_metadata_from(parsed)
     @headings = get_headings_from_content(@markdown_content)
     @html_content = render_markdown(@markdown_content)
 
