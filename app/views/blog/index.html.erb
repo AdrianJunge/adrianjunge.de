@@ -1,9 +1,12 @@
 <% content_for :head do %>
-  <title>Blog Posts</title>
-  <meta name="description" content="Overview of blog posts covering various topics in cybersecurity and programming.">
-  <meta property="og:title" content="Blog Overview">
-  <meta property="og:description" content="Overview of blog posts covering various topics.">
-  <meta property="og:type" content="website">
+  <% blog_description = "Longer notes on security work, learning, and practical writeups outside the CTF archive." %>
+  <%= seo_meta_tags(
+        title: "Blog",
+        description: blog_description,
+        canonical_path: blog_path,
+        image: "blog/htb-cpts.png",
+        json_ld: seo_collection_schema(title: "Blog", description: blog_description, canonical_path: blog_path)
+      ) %>
 <% end %>
 
 <%= render_taskbar_items %>

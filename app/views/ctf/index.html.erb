@@ -1,9 +1,12 @@
 <% content_for :head do %>
-  <title>CTF organizations</title>
-  <meta name="description" content="Overview of CTF competitions including links to writeups.">
-  <meta property="og:title" content="CTF Overview">
-  <meta property="og:description" content="Overview of CTF competitions including links to writeups.">
-  <meta property="og:type" content="website">
+  <% ctf_description = "Competition notes, challenge writeups, and security research practice grouped by event." %>
+  <%= seo_meta_tags(
+        title: "CTF writeups",
+        description: ctf_description,
+        canonical_path: ctf_path,
+        image: "ctf/kitctf.png",
+        json_ld: seo_collection_schema(title: "CTF writeups", description: ctf_description, canonical_path: ctf_path)
+      ) %>
 <% end %>
 
 <%= render_taskbar_items %>

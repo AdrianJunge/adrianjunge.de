@@ -1,18 +1,15 @@
 # TODOs
-- Make the page suiting SEO (search engine optimization)
-- xterm css should be fetched via CDN instead of having the xterm.css file in the repo
-
-- Add for the writeups shiny Contest win labels for the following writeups and apply the links behind these labels so you are able to see the proof
-    - [ ] Davor aber die PDF Urkunde downloaden und in public folder stellen
-    - UMDCTF: https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959
-    - CSCG: PDF Urkunde mit attachen wie bei https://morrisbe.de/ctf/supercluster
-
-- Scrape https://dimasc.tf/ for features and make suggestions on what to be added to my website
+- Add to the templates for the writeups an option to set "writeup-winner" or something like this
+    - this should be visually shown by some shiny Contest win label in the writeup overview and in the writeup itself - when clicking on it you are redirected to the proof
+        - UMDCTF "a minecraft movie": https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959
+        - CSCG "Airsmeller" and "kdfdream": /home/vurlo/stuff/adrianjunge.de/public/ctf/certifications
 
 - remove mathjax from `application.html.erb` into JS file
 - review all the boiler plate code from ruby on Rails and remove what is not needed/necessary
 
-- thoroughly test every single feature and page
+- Scrape https://dimasc.tf/ for features and make suggestions on what to be added to my website
+
+- thoroughly review and test every single feature and page - is there anything that could be made much easier by using ruby or node packages?
 
 - Tim um Feedback bitten
 

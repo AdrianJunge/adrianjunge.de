@@ -129,28 +129,40 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
-  test "year filter select uses flat styling" do
+  test "year filter uses a rounded custom dropdown" do
     [ "/ctf", "/blog" ].each do |path|
       visit path
 
-      assert_selector ".content-filter-select"
+      assert_selector ".content-filter-year-button"
+      assert_selector ".content-filter-select", visible: :hidden
+
+      find(".content-filter-year-button").click
+      assert_selector ".content-filter-year-menu", visible: :visible
 
       styles = page.evaluate_script(<<~JS)
         (() => {
+          const button = document.querySelector(".content-filter-year-button");
+          const menu = document.querySelector(".content-filter-year-menu");
           const select = document.querySelector(".content-filter-select");
-          const style = window.getComputedStyle(select);
+          const buttonStyle = window.getComputedStyle(button);
+          const menuStyle = window.getComputedStyle(menu);
+          const selectStyle = window.getComputedStyle(select);
 
           return {
-            appearance: style.appearance,
-            backgroundImage: style.backgroundImage,
-            boxShadow: style.boxShadow
+            buttonRadius: buttonStyle.borderTopLeftRadius,
+            menuRadius: menuStyle.borderTopLeftRadius,
+            menuBoxShadow: menuStyle.boxShadow,
+            nativeOpacity: selectStyle.opacity,
+            nativePointerEvents: selectStyle.pointerEvents
           };
         })()
       JS
 
-      assert_equal "none", styles["appearance"]
-      assert_equal "none", styles["backgroundImage"]
-      assert_equal "none", styles["boxShadow"]
+      assert_equal styles["buttonRadius"], styles["menuRadius"]
+      assert_not_equal "0px", styles["menuRadius"]
+      assert_equal "none", styles["menuBoxShadow"]
+      assert_equal "0", styles["nativeOpacity"]
+      assert_equal "none", styles["nativePointerEvents"]
     end
   end
 
@@ -393,7 +405,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
     find("[data-filter-reset='ctfs']").click
     assert_selector "[data-filter-count='ctfs']", text: "10 / 10 items"
-    find("[data-filter-year='ctfs']").find("option", text: "2026").select_option
+    select_filter_year("ctfs", "2026")
     assert_selector "[data-filter-count='ctfs']", text: "1 / 10 items"
     assert_selector ".ctf-card", text: "KITCTF"
     assert_equal [ "KITCTF" ], all(".ctf-card .ctf-name").map(&:text)
@@ -414,7 +426,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
     find("[data-filter-reset='writeups']").click
     assert_selector "[data-filter-count='writeups']", text: "6 / 6 items"
-    find("[data-filter-year='writeups']").find("option", text: "2024").select_option
+    select_filter_year("writeups", "2024")
     assert_selector "[data-filter-count='writeups']", text: "2 / 6 items"
     assert_selector ".writeup-overview .blog-post-card", text: "Hoster"
     assert_selector ".writeup-overview .blog-post-card", text: "Photoeditor"
@@ -434,7 +446,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".blog-post-card", text: "HTB CPTS"
 
     find("[data-filter-reset='blogs']").click
-    find("[data-filter-year='blogs']").find("option", text: "2026").select_option
+    select_filter_year("blogs", "2026")
     assert_selector "[data-filter-count='blogs']", text: "1 / 1 item"
     assert_selector ".blog-post-card", text: "HTB CPTS"
 
@@ -598,5 +610,12 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_operator metrics["headingMarginTop"], :>=, 0
       assert_equal "center", metrics["titleTextAlign"]
     end
+  end
+
+  private
+
+  def select_filter_year(scope, year)
+    find("[data-year-dropdown-button='#{scope}']").click
+    find("[data-year-dropdown-option='#{scope}'][data-year-value='#{year}']").click
   end
 end

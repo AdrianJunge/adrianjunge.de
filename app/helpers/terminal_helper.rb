@@ -1,4 +1,6 @@
 module TerminalHelper
+  XTERM_CSS_CDN_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css".freeze
+
   def render_terminal(paths, minimized)
     paths = normalized_terminal_paths(paths)
     terminal_class = "subpixel-antialiased font-mono bg-black"

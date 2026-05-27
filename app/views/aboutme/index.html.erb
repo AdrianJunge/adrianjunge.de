@@ -1,9 +1,13 @@
 <% content_for :head do %>
-  <title>About me</title>
-  <meta name="description" content="<%= @about_info["description"] || "About Adrian Junge, security research, CVEs, bug bounties, certificates, and achievements." %>">
-  <meta property="og:title" content="About Adrian Junge">
-  <meta property="og:description" content="<%= @about_info["description"] || "Security research, CTFs, bug bounties, certificates, and achievements." %>">
-  <meta property="og:type" content="profile">
+  <% about_description = @about_info["description"].presence || "About Adrian Junge, security research, CVEs, bug bounties, certificates, and achievements." %>
+  <%= seo_meta_tags(
+        title: "About Adrian Junge",
+        description: about_description,
+        type: "profile",
+        canonical_path: about_path,
+        image: "landing/profile.png",
+        json_ld: seo_person_schema(description: about_description)
+      ) %>
 <% end %>
 
 <%= render_taskbar_items %>

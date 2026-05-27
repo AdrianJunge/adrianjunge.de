@@ -1,9 +1,24 @@
 <% content_for :head do %>
-  <title><%= @blog_title %> - Blog</title>
-  <meta name="description" content="<%= @blog_info["description"] || @post_slug.humanize %>">
-  <meta property="og:title" content="<%= @blog_title %>">
-  <meta property="og:description" content="<%= @blog_info["description"] || @post_slug.humanize %>">
-  <meta property="og:type" content="article">
+  <% blog_description = @blog_info["description"].presence || @post_slug.humanize %>
+  <% blog_tags = Array(@blog_info["categories"]) %>
+  <% blog_image = (@blogs[@post_slug] || {})["logo"].presence || "blog/htb-cpts.png" %>
+  <%= seo_meta_tags(
+        title: "#{@blog_title} - Blog",
+        description: blog_description,
+        type: "article",
+        canonical_path: blog_post_path(@post_slug),
+        image: blog_image,
+        published_time: @blog_info["published"],
+        tags: blog_tags,
+        json_ld: seo_article_schema(
+          title: @blog_title,
+          description: blog_description,
+          canonical_path: blog_post_path(@post_slug),
+          published: @blog_info["published"],
+          tags: blog_tags,
+          image: blog_image
+        )
+      ) %>
 <% end %>
 
 <%= render_taskbar_items %>

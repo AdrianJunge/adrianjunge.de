@@ -24,17 +24,57 @@
     </div>
 
     <% if years.any? %>
-      <label class="content-filter-select-wrap">
-        <span><%= local_assigns.fetch(:year_label, "Year") %></span>
+      <% year_label_id = "#{scope}-year-filter-label" %>
+      <% year_menu_id = "#{scope}-year-filter-menu" %>
+      <div class="content-filter-select-wrap" data-year-dropdown="<%= scope %>">
+        <span id="<%= year_label_id %>"><%= local_assigns.fetch(:year_label, "Year") %></span>
         <span class="content-filter-select-control">
-          <select class="content-filter-select" data-filter-year="<%= scope %>">
+          <select class="content-filter-select content-filter-native-select" data-filter-year="<%= scope %>" aria-hidden="true" tabindex="-1">
             <option value="">All years</option>
             <% years.each do |year| %>
               <option value="<%= year %>"><%= year %></option>
             <% end %>
           </select>
+          <button
+            type="button"
+            class="content-filter-year-button"
+            data-year-dropdown-button="<%= scope %>"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-controls="<%= year_menu_id %>"
+            aria-labelledby="<%= year_label_id %>"
+          >
+            <span data-year-dropdown-label="<%= scope %>">All years</span>
+          </button>
         </span>
-      </label>
+        <div
+          id="<%= year_menu_id %>"
+          class="content-filter-year-menu"
+          data-year-dropdown-menu="<%= scope %>"
+          role="listbox"
+          aria-labelledby="<%= year_label_id %>"
+          hidden
+        >
+          <button
+            type="button"
+            class="content-filter-year-option is-active"
+            data-year-dropdown-option="<%= scope %>"
+            data-year-value=""
+            role="option"
+            aria-selected="true"
+          >All years</button>
+          <% years.each do |year| %>
+            <button
+              type="button"
+              class="content-filter-year-option"
+              data-year-dropdown-option="<%= scope %>"
+              data-year-value="<%= year %>"
+              role="option"
+              aria-selected="false"
+            ><%= year %></button>
+          <% end %>
+        </div>
+      </div>
     <% end %>
   </div>
 

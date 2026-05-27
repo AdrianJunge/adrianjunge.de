@@ -18,6 +18,92 @@ function setChipState(scope, activeTags) {
   });
 }
 
+function initYearDropdown(panel, scope, select, onChange) {
+  const wrap = panel.querySelector(`[data-year-dropdown="${scope}"]`);
+  const button = panel.querySelector(`[data-year-dropdown-button="${scope}"]`);
+  const label = panel.querySelector(`[data-year-dropdown-label="${scope}"]`);
+  const menu = panel.querySelector(`[data-year-dropdown-menu="${scope}"]`);
+  const options = Array.from(panel.querySelectorAll(`[data-year-dropdown-option="${scope}"]`));
+  if (!wrap || !button || !label || !menu || !select || options.length === 0) return null;
+
+  function sync() {
+    const selectedOption = select.selectedOptions[0];
+    label.textContent = selectedOption ? selectedOption.textContent : 'All years';
+    options.forEach(option => {
+      const active = option.dataset.yearValue === select.value;
+      option.classList.toggle('is-active', active);
+      option.setAttribute('aria-selected', active.toString());
+    });
+  }
+
+  function close() {
+    menu.hidden = true;
+    wrap.classList.remove('is-open');
+    button.setAttribute('aria-expanded', 'false');
+  }
+
+  function open() {
+    menu.hidden = false;
+    wrap.classList.add('is-open');
+    button.setAttribute('aria-expanded', 'true');
+    (options.find(option => option.dataset.yearValue === select.value) || options[0]).focus();
+  }
+
+  function choose(option) {
+    select.value = option.dataset.yearValue || '';
+    sync();
+    close();
+    button.focus();
+    onChange();
+  }
+
+  button.addEventListener('click', event => {
+    event.stopPropagation();
+    if (menu.hidden) {
+      open();
+    } else {
+      close();
+    }
+  });
+
+  button.addEventListener('keydown', event => {
+    if (event.key !== 'ArrowDown' && event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    open();
+  });
+
+  options.forEach((option, index) => {
+    option.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      choose(option);
+    });
+
+    option.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        close();
+        button.focus();
+      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const direction = event.key === 'ArrowDown' ? 1 : -1;
+        const nextIndex = (index + direction + options.length) % options.length;
+        options[nextIndex].focus();
+      } else if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        choose(option);
+      }
+    });
+  });
+
+  document.addEventListener('click', event => {
+    if (!wrap.contains(event.target)) close();
+  });
+
+  sync();
+  return { sync, close };
+}
+
 function initFilterPanel(panel) {
   const scope = panel.dataset.filterScope;
   if (!scope) return;
@@ -30,6 +116,7 @@ function initFilterPanel(panel) {
   const empty = document.querySelector(`[data-filter-empty="${scope}"]`);
   const cards = Array.from(document.querySelectorAll(`[data-filter-card="${scope}"]`));
   const activeTags = new Set();
+  let yearDropdown = null;
 
   function applyFilters() {
     const query = normalizeToken(search && search.value);
@@ -62,10 +149,12 @@ function initFilterPanel(panel) {
 
     if (empty) empty.hidden = visible !== 0;
     if (reset) reset.hidden = query === '' && selectedYear === '' && activeTags.size === 0;
+    if (yearDropdown) yearDropdown.sync();
   }
 
   if (search) search.addEventListener('input', applyFilters);
   if (year) year.addEventListener('change', applyFilters);
+  yearDropdown = initYearDropdown(panel, scope, year, applyFilters);
   if (clear && search) {
     clear.addEventListener('click', () => {
       search.value = '';
@@ -78,6 +167,7 @@ function initFilterPanel(panel) {
       if (search) search.value = '';
       if (year) year.value = '';
       activeTags.clear();
+      if (yearDropdown) yearDropdown.close();
       applyFilters();
     });
   }

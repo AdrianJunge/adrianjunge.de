@@ -1,9 +1,22 @@
 <% content_for :head do %>
-  <title><%= @ctf_info["title"] %> - <%= @ctf_info['ctf'] %></title>
-  <meta name="description" content="Writeup for <%= @ctf_info['title'] %> from <%= @ctf_info['year'] %> CTF.">
-  <meta property="og:title" content="<%= @ctf_info['title'] %> Writeup">
-  <meta property="og:description" content="Writeup for <%= @ctf_info['title'] %> from <%= @ctf_info['year'] %> CTF.">
-  <meta property="og:type" content="article">
+  <% writeup_title = "#{@ctf_info["title"]} - #{@ctf_info["ctf"]} writeup" %>
+  <% writeup_description = @ctf_info["description"].presence || "Writeup for #{@ctf_info["title"]} from #{@ctf_info["year"]} CTF." %>
+  <% writeup_tags = Array(@ctf_info["categories"]) %>
+  <%= seo_meta_tags(
+        title: writeup_title,
+        description: writeup_description,
+        type: "article",
+        canonical_path: request.path,
+        published_time: @ctf_info["published"],
+        tags: writeup_tags,
+        json_ld: seo_article_schema(
+          title: writeup_title,
+          description: writeup_description,
+          canonical_path: request.path,
+          published: @ctf_info["published"],
+          tags: writeup_tags
+        )
+      ) %>
 <% end %>
 
 <%= render_taskbar_items %>

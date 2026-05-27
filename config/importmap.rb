@@ -9,7 +9,7 @@ pin "ctf", to: "ctf.js"
 pin "blog", to: "blog.js"
 pin "content_filters", to: "content_filters.js"
 
-pin "xterm", to: "https://cdn.jsdelivr.net/npm/xterm/lib/xterm.min.js"
+pin "xterm", to: "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"
 pin "xterm-addon-fit", to: "https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"
 
 pin "mathjax", to: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/startup.js", preload: true

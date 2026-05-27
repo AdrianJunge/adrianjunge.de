@@ -1,7 +1,9 @@
 <% content_for :head do %>
-  <title><%= @status_code %> <%= @error_content[:title] %></title>
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="<%= @error_content[:summary] %>">
+  <%= seo_meta_tags(
+        title: "#{@status_code} #{@error_content[:title]}",
+        description: @error_content[:summary],
+        noindex: true
+      ) %>
 <% end %>
 
 <%= render_taskbar_items %>

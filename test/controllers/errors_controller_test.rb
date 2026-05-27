@@ -45,4 +45,14 @@ class ErrorsControllerTest < ActionDispatch::IntegrationTest
       assert_no_match "Invalid post", response.body
     end
   end
+
+  test "renders custom html error page for missing asset-like paths" do
+    get "/asdf.png"
+
+    assert_response :not_found
+    assert_equal "text/html", response.media_type
+    assert_select "main.error-page"
+    assert_select "h1", text: /404 Page not found/
+    assert_no_match "Missing template", response.body
+  end
 end

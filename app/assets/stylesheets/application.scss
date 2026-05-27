@@ -274,3 +274,19 @@
     width: 0;
     height: 0;
 }
+
+.xterm-underline-1,
+.xterm-underline-2,
+.xterm-underline-3,
+.xterm-underline-4,
+.xterm-underline-5 {
+    transition: transform 0.2s ease-in-out;
+}
+
+.xterm-underline-1:hover,
+.xterm-underline-2:hover,
+.xterm-underline-3:hover,
+.xterm-underline-4:hover,
+.xterm-underline-5:hover {
+    transform: scale(1.1);
+}

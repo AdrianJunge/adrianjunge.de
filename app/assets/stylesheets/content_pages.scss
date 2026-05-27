@@ -213,8 +213,86 @@
     border-bottom: 2px solid rgba(248, 250, 252, 0.9);
     content: "";
     pointer-events: none;
+    transition: transform 0.18s ease;
     transform: translateY(-50%) rotate(45deg);
     transform-origin: center;
+}
+
+.content-page .content-filter-select-wrap.is-open .content-filter-select-control::after {
+    transform: translateY(-30%) rotate(225deg);
+}
+
+.content-page .content-filter-native-select {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.content-page .content-filter-year-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.65rem 2.4rem 0.65rem 0.85rem;
+    border: 1px solid rgba(93, 116, 158, 0.7);
+    border-radius: var(--radius-ui);
+    color: #f8fafc;
+    background: rgba(30, 73, 119, 0.76);
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.content-page .content-filter-year-button:hover,
+.content-page .content-filter-year-button:focus-visible,
+.content-page .content-filter-select-wrap.is-open .content-filter-year-button {
+    border-color: rgba(125, 211, 252, 0.95);
+    background: rgba(30, 73, 119, 0.92);
+    outline: none;
+}
+
+.content-page .content-filter-year-menu {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    left: 0;
+    z-index: 40;
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.35rem;
+    border: 1px solid rgba(93, 116, 158, 0.8);
+    border-radius: var(--radius-ui);
+    background: #102b49;
+    box-shadow: none;
+}
+
+.content-page .content-filter-year-menu[hidden] {
+    display: none;
+}
+
+.content-page .content-filter-year-option {
+    min-height: 2.35rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: var(--radius-ui-control);
+    color: rgba(226, 232, 240, 0.86);
+    background: transparent;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.content-page .content-filter-year-option:hover,
+.content-page .content-filter-year-option:focus-visible,
+.content-page .content-filter-year-option.is-active {
+    color: #fff;
+    background: rgba(8, 145, 178, 0.36);
+    outline: none;
 }
 
 .content-page .content-filter-tags {

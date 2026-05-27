@@ -1,9 +1,13 @@
 <% content_for :head do %>
-  <title><%= @ctf["terminal_path"].upcase %> CTF Writeups</title>
-  <meta name="description" content="Writeups for the <%= @ctf["terminal_path"].upcase %> Capture The Flag (CTF) competition.">
-  <meta property="og:title" content="<%= @ctf["terminal_path"].upcase %> CTF Writeups">
-  <meta property="og:description" content="Writeups for the <%= @ctf["terminal_path"].upcase %> Capture The Flag (CTF) competition.">
-  <meta property="og:type" content="website">
+  <% ctf_title = "#{@ctf["terminal_path"].upcase} CTF writeups" %>
+  <% ctf_description = "Writeups for the #{@ctf["terminal_path"].upcase} Capture The Flag competition." %>
+  <%= seo_meta_tags(
+        title: ctf_title,
+        description: ctf_description,
+        canonical_path: request.path,
+        image: @ctf["logo"],
+        json_ld: seo_collection_schema(title: ctf_title, description: ctf_description, canonical_path: request.path)
+      ) %>
 <% end %>
 
 <%= render_taskbar_items %>

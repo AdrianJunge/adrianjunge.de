@@ -43,7 +43,7 @@ class ApplicationController < ActionController::Base
     @error_content = ERROR_CONTENT.fetch(key)
     @status_code = Rack::Utils.status_code(@error_content[:status])
 
-    render "errors/show", status: @error_content[:status]
+    render "errors/show", formats: [ :html ], content_type: "text/html", status: @error_content[:status]
   end
 
   def parse_markdown_content(content)

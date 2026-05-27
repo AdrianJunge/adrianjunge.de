@@ -1,9 +1,11 @@
 <% content_for :head do %>
-  <title>Posts timeline</title>
-  <meta name="description" content="A timeline of all posts and writeups organized by year.">
-  <meta property="og:title" content="Posts timeline">
-  <meta property="og:description" content="A timeline of all posts and writeups organized by year.">
-  <meta property="og:type" content="website">
+  <% timeline_description = "All blog posts and CTF writeups ordered by publication year." %>
+  <%= seo_meta_tags(
+        title: "Posts timeline",
+        description: timeline_description,
+        canonical_path: posts_path,
+        json_ld: seo_collection_schema(title: "Posts timeline", description: timeline_description, canonical_path: posts_path)
+      ) %>
 <% end %>
 
 <%= render_taskbar_items %>

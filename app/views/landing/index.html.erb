@@ -1,9 +1,11 @@
 <% content_for :head do %>
-  <title>vurlo</title>
-  <meta name="description" content="Security research, CVEs, bug bounty work, source review, CTF writeups, and technical notes by Adrian Junge.">
-  <meta property="og:title" content="Welcome to my bug collection 🐛">
-  <meta property="og:description" content="Security research, CVEs, bug bounty work, source review, CTF writeups, and technical notes by Adrian Junge.">
-  <meta property="og:type" content="website">
+  <%= seo_meta_tags(
+        title: "Welcome to my bug collection 🐛",
+        description: SeoHelper::DEFAULT_DESCRIPTION,
+        canonical_path: root_path,
+        image: "landing/profile.png",
+        json_ld: seo_website_schema
+      ) %>
 <% end %>
 
 <%= render_taskbar_items %>
