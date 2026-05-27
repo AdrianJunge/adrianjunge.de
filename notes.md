@@ -1,12 +1,7 @@
 # TODOs
-- remove mathjax from `application.html.erb` into JS file
-- review all the boiler plate code from ruby on Rails and remove what is not needed/necessary
-
-- the background is already turning from dark blue to very dark blue, but I think it could be even better having the transition stretched over every page dynamically depending on how long the page is and reaching the very dark blue at the end of the page
-
 - Scrape https://dimasc.tf/ for features and make suggestions on what to be added to my website
 
-- thoroughly review and test every single feature and page - is there anything that could be made much easier by using ruby or node packages?
+- thoroughly review and test every single feature and page - is there anything that could be made much easier by using ruby or node packages? Moreover remove unnecessary redundancies and merge them. Remove any unnecessary or unused code.
 
 - Tim um Feedback bitten
 

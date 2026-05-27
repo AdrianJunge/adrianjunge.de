@@ -9,6 +9,38 @@
 @import "content_pages";
 @import "footer";
 
+html {
+    min-height: 100%;
+    background: var(--color-page-end);
+}
+
+body.site-background {
+    position: relative;
+    min-height: 100dvh;
+    background: transparent;
+    isolation: isolate;
+}
+
+body.site-background::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: -1;
+    min-height: 100dvh;
+    height: var(--page-background-height);
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 12% 0%, rgba(85, 170, 255, 0.12), transparent 28rem),
+        linear-gradient(
+            180deg,
+            var(--color-page-start) 0%,
+            var(--color-page-mid) 46%,
+            var(--color-page-end) 100%
+        );
+    content: "";
+}
+
 .back-button-floating {
     position: fixed;
     top: 1rem;

@@ -30,6 +30,48 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
+  test "page background gradient stretches to the full document height" do
+    page.current_window.resize_to(1280, 900)
+    visit "/ctf/kitctf/xmalloc"
+
+    assert_selector ".article-page"
+
+    metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const rootStyle = window.getComputedStyle(document.documentElement);
+        const bodyStyle = window.getComputedStyle(document.body);
+        const beforeStyle = window.getComputedStyle(document.body, "::before");
+        const pageStyle = window.getComputedStyle(document.querySelector(".content-page"));
+        const scrollHeight = Math.max(
+          document.documentElement.scrollHeight,
+          document.documentElement.offsetHeight,
+          document.body.scrollHeight,
+          document.body.offsetHeight,
+          window.innerHeight
+        );
+
+        return {
+          hasClass: document.body.classList.contains("site-background"),
+          variableHeight: Math.round(parseFloat(rootStyle.getPropertyValue("--page-background-height"))),
+          scrollHeight: Math.round(scrollHeight),
+          beforeHeight: Math.round(parseFloat(beforeStyle.height)),
+          beforeBackground: beforeStyle.backgroundImage,
+          bodyBackground: bodyStyle.backgroundColor,
+          pageBackgroundColor: pageStyle.backgroundColor,
+          pageBackgroundImage: pageStyle.backgroundImage
+        };
+      })()
+    JS
+
+    assert_equal true, metrics["hasClass"]
+    assert_operator metrics["variableHeight"], :>=, metrics["scrollHeight"] - 2
+    assert_operator metrics["beforeHeight"], :>=, metrics["scrollHeight"] - 2
+    assert_includes metrics["beforeBackground"], "linear-gradient"
+    assert_equal "rgba(0, 0, 0, 0)", metrics["bodyBackground"]
+    assert_equal "rgba(0, 0, 0, 0)", metrics["pageBackgroundColor"]
+    assert_includes metrics["pageBackgroundImage"], "linear-gradient"
+  end
+
   test "sidebar keeps a usable fixed inset on narrow displays" do
     [ 320, 390 ].each do |width|
       page.current_window.resize_to(width, 900)

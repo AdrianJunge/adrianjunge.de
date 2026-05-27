@@ -10,6 +10,9 @@
   --color-accent: #ccffff;
   --color-border: #5d749e;
   --color-chrome: #4c566a;
+  --color-page-start: #101f33;
+  --color-page-mid: #0a101a;
+  --color-page-end: #020611;
 }
 
 @layer base {
@@ -24,6 +27,7 @@
     --radius-ui-pill: 9999px;
     --motion-fast: 0.18s ease;
     --motion-standard: 0.2s ease-in-out;
+    --page-background-height: 100dvh;
   }
 
   @media (min-width: 480px) {
