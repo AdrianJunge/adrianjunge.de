@@ -1,14 +1,13 @@
 # TODOs
-- alle images durchgehen und gucken ob die noch abgerundet werden können mit transparent background
-
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
     => https://github.com/felixfbecker/dom-to-svg
 
 # Content
+- Next Blog
+    - Firedancer Bug Bounty overrun race condition
 - Writeup
     - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln aka CTF Writeup schreiben für Deadsecctf 2025
 - Blog
-    - Firedancer Bug Bounty overrun race condition
     - Post zu meinen Erfahrungen mit CVE und Bug Bounty Hunting in 2026
         - Projekte die fully vibe coded sind (ChurchCRM)
         - lange triage Zeit zB wordpress 8.5 Monate - suitecrm und joomla auch sehr lange

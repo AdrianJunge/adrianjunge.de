@@ -54,7 +54,7 @@ module SidebarHelper
       end
 
       concat(taskbar_icon_item(
-        image_path: "task-bar/post.svg",
+        image_path: "task-bar/timeline.svg",
         alt_text: "Timeline Icon",
         label: "Timeline",
         link: timeline_path,

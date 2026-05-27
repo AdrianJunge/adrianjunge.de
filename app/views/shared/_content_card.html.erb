@@ -35,14 +35,14 @@
 
 <% media_content = capture do %>
   <% if media.present? || card[:media_html].present? %>
-    <% media_classes = [ media[:wrapper_class].presence || "content-card-media" ].compact.join(" ") %>
+    <% media_classes = [ "content-card-media", media[:wrapper_class] ].compact.join(" ") %>
     <span class="<%= media_classes %>">
       <% if card[:media_html].present? %>
         <%= card[:media_html] %>
       <% elsif media[:image].present? %>
-        <%= image_tag(media[:image], alt: media[:alt].presence || "", class: media[:image_class].presence || "content-card-image") %>
+        <%= image_tag(media[:image], alt: media[:alt].presence || "", class: [ "content-card-image", media[:image_class] ].compact.join(" ")) %>
       <% elsif media[:placeholder].present? %>
-        <span class="<%= media[:placeholder_class].presence || "content-card-placeholder" %>"><%= media[:placeholder] %></span>
+        <span class="<%= [ "content-card-placeholder", media[:placeholder_class] ].compact.join(" ") %>"><%= media[:placeholder] %></span>
       <% end %>
     </span>
   <% end %>

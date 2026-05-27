@@ -685,16 +685,16 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".ctf-button"
     assert_no_text "Website"
     assert_no_text "Writeups"
-    assert_selector "a.ctf-card[href^='/ctf/']", minimum: 1
-    assert_selector "a.ctf-card.ui-hover-lift", minimum: 1
-    assert_selector "a.ctf-card.ui-card-surface", minimum: 1
-    assert_no_selector "a.ctf-card.ui-hover-scale"
+    assert_selector ".ctf-card .blog-post-card-hitbox[href^='/ctf/']", minimum: 1
+    assert_selector ".ctf-card.ui-hover-lift", minimum: 1
+    assert_selector ".ctf-card.ui-card-surface", minimum: 1
+    assert_no_selector ".ctf-card.ui-hover-scale"
 
-    first_card = find("a.ctf-card", match: :first)
-    assert_selector "a.ctf-card .ctf-reading-time", minimum: 1, text: /min read/
+    first_card = find(".ctf-card", match: :first)
+    assert_selector ".ctf-card .ctf-reading-time", minimum: 1, text: /min read/
     ctf_reading_time_style = page.evaluate_script(<<~JS)
       (() => {
-        const element = document.querySelector("a.ctf-card .ctf-reading-time");
+        const element = document.querySelector(".ctf-card .ctf-reading-time");
         const style = window.getComputedStyle(element);
 
         return {
@@ -705,8 +705,8 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
     assert_equal "0px", ctf_reading_time_style["borderTopWidth"]
     assert_equal "rgba(0, 0, 0, 0)", ctf_reading_time_style["backgroundColor"]
-    target_path = URI.parse(first_card[:href]).path
-    first_card.click
+    target_path = URI.parse(first_card.find(".blog-post-card-hitbox", visible: :all)[:href]).path
+    click_card_link_area(first_card)
 
     assert_current_path target_path
   end
@@ -721,6 +721,8 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal 1, ctf_filter_tags.count("Writeup winner")
     assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
     assert_selector ".content-filter-panel .filter-chip", text: /^pwn$/i
+    assert_selector ".ctf-card .filter-chip", text: /^pwn$/i
+    assert_selector ".ctf-card .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
     find(".content-filter-panel .filter-chip", text: /^pwn$/i).click
     assert_selector ".content-filter-panel .filter-chip.is-active", text: /^pwn$/i
     assert_selector ".ctf-card", text: "KITCTF"
@@ -796,12 +798,12 @@ class SitePagesTest < ApplicationSystemTestCase
   test "blog and writeup cards keep full-card navigation" do
     visit "/blog"
 
-    find(".blog-post-card", text: "HTB CPTS").find(".blog-post-card-hitbox", visible: :all).click
+    click_card_link_area(find(".blog-post-card", text: "HTB CPTS"))
     assert_current_path "/blog/htb-cpts"
     assert_selector ".writeup-title", text: "HTB CPTS"
 
     visit "/ctf/cscg"
-    find(".blog-post-card", text: "Hoster").find(".blog-post-card-hitbox", visible: :all).click
+    click_card_link_area(find(".blog-post-card", text: "Hoster"))
     assert_text "Hoster"
     assert_selector ".writeup-title", text: "Hoster"
   end
@@ -1072,6 +1074,11 @@ class SitePagesTest < ApplicationSystemTestCase
         };
       })()
     JS
+  end
+
+  def click_card_link_area(card)
+    target = card.first(".blog-post-title, .ctf-name", visible: true)
+    page.driver.browser.action.move_to(target.native).click.perform
   end
 
   def post_card_styles(selector)
