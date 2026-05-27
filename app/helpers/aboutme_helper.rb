@@ -64,13 +64,9 @@ module AboutmeHelper
     end
   end
 
-  def aboutme_visible_details(details)
-    Array(details).select(&:present?)
-  end
-
   def aboutme_visible_events(events)
     Array(events).select do |event|
-      event.is_a?(Hash) && %w[title date summary details links url].any? { |field| event[field].present? }
+      event.is_a?(Hash) && %w[title date summary card_url url].any? { |field| event[field].present? }
     end
   end
 
@@ -125,10 +121,7 @@ module AboutmeHelper
   end
 
   def aboutme_milestone_card(entry)
-    details = aboutme_visible_details(entry["details"])
     events = aboutme_visible_events(entry["events"])
-    body_blocks = []
-    body_blocks << { items: details } if details.any?
 
     {
       id: entry["id"],
@@ -138,7 +131,7 @@ module AboutmeHelper
       title_link: false,
       description: entry["summary"],
       tags: aboutme_milestone_tags(entry, events),
-      body_blocks: body_blocks,
+      body_blocks: [],
       children: events.map { |event| aboutme_event_card(entry, event) },
       collapsible: false,
       card_url: entry["card_url"].presence || entry["title_url"].presence,
@@ -177,9 +170,6 @@ module AboutmeHelper
   end
 
   def aboutme_event_card(entry, event)
-    event_details = aboutme_visible_details(event["details"])
-    event_body_blocks = []
-    event_body_blocks << { items: event_details } if event_details.any?
     event_id = event["id"].presence || [ entry["id"].presence || entry["title"], event["date"], event["title"] ].compact.join("-").parameterize
 
     {
@@ -188,7 +178,7 @@ module AboutmeHelper
       title: event["title"],
       description: event["summary"],
       tags: aboutme_event_tags(event),
-      body_blocks: event_body_blocks,
+      body_blocks: [],
       collapsible: false,
       card_url: event["card_url"].presence || event["url"].presence || entry["card_url"].presence || entry["title_url"].presence,
       aria_label: "Open #{event["title"].presence || entry["title"]}"

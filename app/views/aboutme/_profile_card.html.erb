@@ -15,6 +15,9 @@
 <% header_content = capture do %>
   <span class="<%= main_classes %>">
     <% if card[:title].present? %>
+      <% if card[:kicker].present? %>
+        <span class="aboutme-card-kicker"><%= card[:kicker] %></span>
+      <% end %>
       <%= content_tag(heading_tag, class: title_classes) do %>
         <%= aboutme_optional_link(card[:title], title_url, class_name: card[:title_link_class]) %>
       <% end %>

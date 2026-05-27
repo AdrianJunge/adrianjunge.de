@@ -38,17 +38,14 @@ Challenge, certificate, and achievement entries support these fields:
   "category": "Competition",
   "category_url": "https://example.com/category",
   "date": "2026",
-  "summary": "One-line summary.",
-  "details": [
-    "Optional detail."
-  ],
+  "summary": "Summary shown on the card.",
   "links": [
     { "label": "Reference", "url": "https://example.com" }
   ]
 }
 ```
 
-`summary` and `details` are optional for TBA milestone cards.
+Use `summary` for all visible card text. Keep it empty only for TBA milestone cards.
 
 Achievement entries can group dated events so every event becomes its own search and timeline item:
 
@@ -75,4 +72,4 @@ Achievement entries can group dated events so every event becomes its own search
 }
 ```
 
-Use event-level `id`, `title`, and `date` for timeline entries. Event `summary`, `details`, `links`, and `url` are optional.
+Use event-level `id`, `title`, and `date` for timeline entries. Event `summary`, `card_url`, and `url` are optional.

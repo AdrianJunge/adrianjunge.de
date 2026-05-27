@@ -10,10 +10,7 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
         "category" => "Competition",
         "category_url" => "https://example.com/competition",
         "date" => "2026",
-        "summary" => "Placed well in an example event.",
-        "details" => [
-          "Solved practical web and pwn tasks."
-        ],
+        "summary" => "Placed well in an example event after solving practical web and pwn tasks.",
         "events" => [
           {
             "id" => "example-2026",
@@ -51,7 +48,6 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
         "category" => "",
         "date" => "",
         "summary" => "",
-        "details" => [ "" ],
         "links" => [
           { "label" => "", "url" => "" }
         ]

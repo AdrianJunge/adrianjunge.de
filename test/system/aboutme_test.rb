@@ -254,7 +254,7 @@ class AboutmeTest < ApplicationSystemTestCase
 
     within "#my-challenges" do
       assert_text "Smile at me"
-      assert_text "CTF challenge published for GPNCTF 2025."
+      assert_text "Published for GPNCTF 2025."
       find(".aboutme-card-link-overlay[href='/ctf/gpnctf/Smile%20at%20me']", visible: :all).click
     end
 

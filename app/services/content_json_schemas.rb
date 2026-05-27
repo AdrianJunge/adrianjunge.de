@@ -71,7 +71,7 @@ class ContentJsonSchemas
 
   MILESTONE = {
     "type" => "object",
-    "required" => %w[id title title_url category date summary details links],
+    "required" => %w[id title title_url category date summary links],
     "additionalProperties" => false,
     "properties" => {
       "id" => STRING,
@@ -82,7 +82,6 @@ class ContentJsonSchemas
       "category_url" => STRING,
       "date" => DATE,
       "summary" => STRING,
-      "details" => { "type" => "array", "items" => STRING },
       "links" => { "type" => "array", "items" => LINK }
     }
   }.freeze

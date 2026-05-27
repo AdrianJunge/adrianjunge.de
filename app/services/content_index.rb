@@ -46,12 +46,15 @@ class ContentIndex
   end
 
   def featured_items(limit = 3)
+    featured_about_items(limit)
+  end
+
+  def featured_about_items(limit = 3)
     candidates = [
-      latest_featured_about("cve") { |item| item[:cve_id].present? },
-      latest_featured_about("bug-bounty") { |item| meaningful_description?(item) },
-      latest_post { |item| item[:writeup_winner].present? },
-      latest_featured_about("certificate") { |item| meaningful_description?(item) },
-      latest_featured_about("challenge") { |item| meaningful_description?(item) }
+      latest_featured_about_entry("cve") { |item| item[:entry]["cve_id"].present? },
+      latest_featured_about_entry("bug-bounty") { |item| meaningful_description?(item) },
+      latest_featured_about_entry("certificate") { |item| meaningful_description?(item) },
+      latest_featured_about_entry("challenge") { |item| meaningful_description?(item) }
     ].compact
 
     candidates.uniq { |item| item[:id] }.sort_by { |item| -item[:published].to_i }.first(limit)
@@ -196,26 +199,40 @@ class ContentIndex
     )
   end
 
-  def latest_featured_about(kind)
-    all_items.find do |item|
-      item[:kind] == kind && item[:featured] && yield(item)
+  def latest_featured_about_entry(kind)
+    featured_about_entry_items.find do |item|
+      item[:kind] == kind && yield(item)
     end
   end
 
-  def latest_post
-    all_items.find do |item|
-      %w[writeup blog].include?(item[:kind]) && yield(item)
-    end
+  def featured_about_entry_items
+    @featured_about_entry_items ||= ABOUT_COLLECTIONS.select { |collection| collection[:featured] }.flat_map do |collection|
+      repository.about_entries(collection[:path]).filter_map do |entry|
+        id = entry["id"].presence || entry["title"].to_s.parameterize
+        next if id.blank?
+
+        {
+          id: "about-#{collection[:kind]}-#{id.parameterize}",
+          kind: collection[:kind],
+          label: collection[:label],
+          entry: entry,
+          published: about_published_time(entry, collection[:path])
+        }
+      end
+    end.sort_by { |item| -item[:published].to_i }
   end
 
   def meaningful_description?(item)
-    item[:description].present? && !item[:title].to_s.match?(/\bTBA\b/i)
+    if item[:entry].present?
+      item[:entry]["summary"].present? && !item[:entry]["title"].to_s.match?(/\bTBA\b/i)
+    else
+      item[:description].present? && !item[:title].to_s.match?(/\bTBA\b/i)
+    end
   end
 
   def about_description(entry)
     entry["short_summary"].presence ||
       entry["summary"].presence ||
-      Array(entry["details"]).map(&:to_s).find(&:present?) ||
       ""
   end
 

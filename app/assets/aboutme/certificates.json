@@ -7,11 +7,7 @@
     "category": "Certification",
     "category_url": "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url",
     "date": "2026-03-23",
-    "summary": "Completed the HTB CPTS path and passed the practical exam on the first attempt.",
-    "details": [
-      "Built a full penetration-test report for the exam environment.",
-      "Focused on disciplined enumeration, Active Directory attack paths, web findings, and reproducible reporting."
-    ],
+    "summary": "Completed the HTB CPTS path and passed the practical exam on the first attempt, including a full penetration-test report for the exam environment. The work focused on disciplined enumeration, Active Directory attack paths, web findings, and reproducible reporting.",
     "links": [
       {
         "label": "Credential",

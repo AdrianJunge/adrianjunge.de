@@ -461,7 +461,9 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".landing-metric[href='/ctf']", text: "CTFs"
     assert_no_selector ".landing-metric", text: "Tags"
     assert_selector ".landing-featured-card.aboutme-card", count: 3
-    assert_selector ".landing-featured-card .aboutme-card-header", count: 3
+    assert_equal 3, page.evaluate_script("document.querySelectorAll('.landing-featured-card .aboutme-card-header, .landing-featured-card > summary').length")
+    assert_selector ".landing-featured-card .aboutme-card-kicker", text: "CVE"
+    assert_selector ".landing-featured-card .aboutme-card-kicker", text: "Certificate"
     assert_no_selector ".landing-featured-topline"
     assert_selector ".landing-featured-card", text: "CVE"
     assert_selector ".landing-featured-card", text: /Certificate/i

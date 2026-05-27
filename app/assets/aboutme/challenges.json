@@ -7,10 +7,7 @@
     "category": "GPNCTF 2025",
     "category_url": "https://ctftime.org/ctf/854/",
     "date": "2025-06-21",
-    "summary": "Web challenge about URL parser differentials, strict CSP, and an XS-Leak using Scroll-to-Text Fragment behavior with lazy-loaded images.",
-    "details": [
-      "CTF challenge published for GPNCTF 2025."
-    ],
+    "summary": "Web challenge about URL parser differentials, strict CSP, and an XS-Leak using Scroll-to-Text Fragment behavior with lazy-loaded images. Published for GPNCTF 2025.",
     "links": [
       {
         "label": "Read writeup",

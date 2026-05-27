@@ -98,10 +98,14 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, challenges.length
     assert_equal [ "smile-at-me" ], challenges.map { |entry| entry["id"] }
     assert_equal "Smile at me", challenges.first["title"]
+    assert_nil challenges.first["details"]
+    assert_includes challenges.first["summary"], "Published for GPNCTF 2025"
     assert_equal "GPNCTF 2025", challenges.first["category"]
     assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.first["title_url"]
     assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.first["card_url"]
     assert_equal "https://ctftime.org/ctf/854/", challenges.first["category_url"]
+    assert_nil certificates.first["details"]
+    assert_includes certificates.first["summary"], "full penetration-test report"
     assert_equal "/blog/htb-cpts", certificates.first["card_url"]
     assert_equal "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url", certificates.first["category_url"]
     assert_equal %w[

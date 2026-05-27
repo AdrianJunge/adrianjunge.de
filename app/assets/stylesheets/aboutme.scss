@@ -316,6 +316,13 @@
     overflow-wrap: anywhere;
 }
 
+.aboutme-card-kicker {
+    color: #7dd3fc;
+    font-size: 0.76rem;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
 .aboutme-card-summary,
 .aboutme-finding-summary {
     color: rgba(226, 232, 240, 0.82);
@@ -386,19 +393,6 @@ a.aboutme-card-tag:focus-visible {
     border-color: rgba(125, 211, 252, 0.82);
     background: rgba(8, 145, 178, 0.38);
     transform: translateY(-1px);
-}
-
-.aboutme-tag-certification {
-    color: #fef3c7;
-    border-color: rgba(250, 204, 21, 0.52);
-    background: rgba(161, 98, 7, 0.22);
-}
-
-a.aboutme-tag-certification:hover,
-a.aboutme-tag-certification:focus-visible {
-    color: #fffbeb;
-    border-color: rgba(250, 204, 21, 0.85);
-    background: rgba(161, 98, 7, 0.34);
 }
 
 .aboutme-card-link-overlay {

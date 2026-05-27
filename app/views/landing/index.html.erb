@@ -100,28 +100,17 @@
 
             <div class="landing-featured-grid">
                 <% @featured_items.each do |item| %>
-                    <% tags = [
-                        { label: item[:label] },
-                        { label: item[:display_date], datetime: item[:published].iso8601, class_name: "aboutme-tag-date" },
-                        { label: item[:source] }
-                    ] %>
-                    <% if item[:cve_id].present? %>
-                        <% tags << { label: item[:cve_id], url: aboutme_cve_url(item[:cve_id]), class_name: "aboutme-cve-id" } %>
-                    <% elsif item[:writeup_winner].present? %>
-                        <% tags << { label: item[:writeup_winner][:label] } %>
-                    <% end %>
+                    <% featured_card =
+                        case item[:kind]
+                        when "cve", "bug-bounty"
+                            aboutme_finding_card(item[:entry], kind: item[:kind])
+                        else
+                            aboutme_milestone_card(item[:entry])
+                        end %>
+                    <% featured_card[:class_name] = [featured_card[:class_name], "landing-featured-card"].compact.join(" ") %>
+                    <% featured_card[:kicker] = item[:label] %>
 
-                    <%= render "aboutme/profile_card",
-                               card: {
-                                 id: item[:id],
-                                 class_name: "landing-featured-card",
-                                 title: item[:title],
-                                 description: (truncate(item[:description], length: 180) if item[:description].present?),
-                                 tags: tags,
-                                 collapsible: false,
-                                 card_url: item[:link],
-                                 aria_label: "Open #{item[:title]}"
-                               } %>
+                    <%= render "aboutme/profile_card", card: featured_card %>
                 <% end %>
             </div>
         </section>
