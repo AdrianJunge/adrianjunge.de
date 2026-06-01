@@ -970,6 +970,10 @@
 }
 
 .article-page {
+    --toc-panel-top: 4.5rem;
+    --toc-panel-padding: 1.25rem;
+    --toc-toggle-top: calc(var(--toc-panel-top) + var(--toc-panel-padding));
+    --toc-toggle-right: calc(max(7rem, (100vw - 88rem) / 2) + var(--toc-panel-padding));
     padding: 4.5rem 1rem 4rem;
 }
 
@@ -1063,16 +1067,12 @@
 }
 
 .content-page .article-progress {
-    position: sticky;
-    top: 1rem;
-    z-index: 18;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.35rem 0.85rem;
     width: 100%;
-    max-width: 25rem;
-    margin: -0.75rem auto 1.5rem;
+    margin: 1.15rem 0 0;
     padding: 0.62rem 0.78rem;
     border: 1px solid rgba(125, 211, 252, 0.42);
     border-radius: var(--radius-ui);
@@ -1344,11 +1344,11 @@
 
 .content-page .table-of-content {
     position: sticky;
-    top: 1.5rem;
+    top: var(--toc-panel-top);
     flex: 0 0 20rem;
     max-width: 20rem;
     height: fit-content;
-    padding: 1.25rem;
+    padding: var(--toc-panel-padding);
     border-radius: var(--radius-ui);
     background: rgba(24, 36, 58, 0.82);
     font-size: 0.95rem;
@@ -1374,9 +1374,14 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1rem;
+    padding-right: 3rem;
 }
 
 .content-page .toc-toggle-button {
+    position: fixed;
+    top: var(--toc-toggle-top);
+    right: var(--toc-toggle-right);
+    z-index: 30;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1390,17 +1395,17 @@
     transition: transform 0.18s ease;
 }
 
+.content-page .toc-toggle-button:hover,
+.content-page .toc-toggle-button:focus-visible {
+    transform: none;
+}
+
 .content-page .toc-toggle-button.is-collapsed svg {
     transform: rotate(180deg);
 }
 
 .content-page .writeup-toc-restore-button {
-    position: sticky;
-    top: 1rem;
-    z-index: 20;
     display: none;
-    float: right;
-    margin: 0 0 0.75rem 0.75rem;
 }
 
 .content-page .writeup-wrapper.toc-collapsed .writeup-toc-restore-button {
@@ -2145,12 +2150,6 @@
 
     .content-page .writeup-container {
         padding: 1rem;
-    }
-
-    .content-page .article-progress {
-        top: 0.75rem;
-        width: 100%;
-        margin-top: -0.5rem;
     }
 
     .content-page #toc,

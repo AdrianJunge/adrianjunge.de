@@ -412,6 +412,7 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "post pages show reading time in the article header" do
+    page.current_window.resize_to(1440, 1200)
     blog_post = first_blog_post
     ctf_post = first_ctf_post
 
@@ -423,18 +424,43 @@ class SitePagesTest < ApplicationSystemTestCase
 
     visit blog_post[:link]
     assert_selector ".post-meta-line", text: /min read/
-    assert_selector ".article-progress[data-word-total]", text: %r{\d+\s*/\s*[\d,.]+\s+words}
+    assert_selector "#toc .article-progress[data-word-total]", text: %r{\d+\s*/\s*[\d,.]+\s+words}
     assert_selector ".article-progress-percent", text: /\d+%/
-    assert_equal "sticky", page.evaluate_script("window.getComputedStyle(document.querySelector('.article-progress')).position")
+    progress_metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const element = document.querySelector('.article-progress');
+        const toc = document.getElementById('toc');
+        const tocBody = document.getElementById('toc-body');
+        const rect = element.getBoundingClientRect();
+        const tocBodyRect = tocBody.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+
+        return {
+          position: style.position,
+          inToc: toc.contains(element),
+          belowTocBody: rect.top >= tocBodyRect.bottom - 1
+        };
+      })()
+    JS
+    assert_equal "static", progress_metrics["position"]
+    assert_equal true, progress_metrics["inToc"]
+    assert_equal true, progress_metrics["belowTocBody"]
     assert_operator page.evaluate_script("parseInt(document.querySelector('.article-progress').dataset.wordTotal, 10)"), :>, 0
     progress_gradient = page.evaluate_script("window.getComputedStyle(document.querySelector('.article-progress-bar')).backgroundImage")
     assert_includes progress_gradient, "rgb(2, 11, 31)"
     assert_includes progress_gradient, "rgb(125, 211, 252)"
+    find("#toc-toggle").click
+    assert_selector ".writeup-wrapper.toc-collapsed", visible: :all
+    assert_no_selector ".article-progress", visible: :visible
 
     visit ctf_post[:link]
     assert_selector ".post-meta-line", text: /min read/
-    assert_selector ".article-progress[data-word-total]", text: %r{\d+\s*/\s*[\d,.]+\s+words}
+    assert_selector "#toc .article-progress[data-word-total]", text: %r{\d+\s*/\s*[\d,.]+\s+words}
     assert_selector ".article-progress-percent", text: /\d+%/
+
+    page.current_window.resize_to(390, 900)
+    visit blog_post[:link]
+    assert_no_selector ".article-progress", visible: :visible
   end
 
   test "post card author links stay clickable above full card hitboxes" do
@@ -1021,8 +1047,30 @@ class SitePagesTest < ApplicationSystemTestCase
     page.current_window.resize_to(1440, 1200)
     visit ctf_post_with_headings[:link]
 
+    button_metrics_script = <<~JS
+      (selector => {
+        const element = document.querySelector(selector);
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+
+        return {
+          position: style.position,
+          top: Math.round(rect.top),
+          right: Math.round(window.innerWidth - rect.right)
+        };
+      })
+    JS
+
     width_script = "Math.round(document.querySelector('.writeup-container').getBoundingClientRect().width)"
     original_width = page.evaluate_script(width_script)
+    expanded_button_metrics = page.evaluate_script("#{button_metrics_script}('#toc-toggle')")
+
+    page.execute_script("window.scrollTo(0, 700)")
+    scrolled_expanded_button_metrics = page.evaluate_script("#{button_metrics_script}('#toc-toggle')")
+    assert_equal "fixed", expanded_button_metrics["position"]
+    assert_in_delta expanded_button_metrics["top"], scrolled_expanded_button_metrics["top"], 1
+    assert_in_delta expanded_button_metrics["right"], scrolled_expanded_button_metrics["right"], 1
+
     find("#toc-toggle").click
 
     assert_selector ".writeup-wrapper.toc-collapsed"
@@ -1031,11 +1079,15 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".writeup-toc-restore-button", visible: :visible
     expanded_width = page.evaluate_script(width_script)
     assert_operator expanded_width, :>, original_width
-    assert_equal "sticky", page.evaluate_script("window.getComputedStyle(document.querySelector('.writeup-toc-restore-button')).position")
+    collapsed_button_metrics = page.evaluate_script("#{button_metrics_script}('.writeup-toc-restore-button')")
+    assert_equal "fixed", collapsed_button_metrics["position"]
+    assert_in_delta expanded_button_metrics["top"], collapsed_button_metrics["top"], 1
+    assert_in_delta expanded_button_metrics["right"], collapsed_button_metrics["right"], 1
 
-    page.execute_script("window.scrollTo(0, 700)")
-    sticky_top = page.evaluate_script("Math.round(document.querySelector('.writeup-toc-restore-button').getBoundingClientRect().top)")
-    assert_in_delta 16, sticky_top, 4
+    page.execute_script("window.scrollTo(0, 0)")
+    top_collapsed_button_metrics = page.evaluate_script("#{button_metrics_script}('.writeup-toc-restore-button')")
+    assert_in_delta expanded_button_metrics["top"], top_collapsed_button_metrics["top"], 1
+    assert_in_delta expanded_button_metrics["right"], top_collapsed_button_metrics["right"], 1
 
     find(".writeup-toc-restore-button").click
     assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all

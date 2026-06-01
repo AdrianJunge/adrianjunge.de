@@ -67,8 +67,6 @@
       </div>
     <% end %>
 
-    <%= render "shared/post_progress", word_total: @ctf_info["word_count"] %>
-
     <div class="flex flex-col items-center gap-4">
       <div class="writeup-challengefiles flex items-center gap-4">
         <% if @challenge_file %>
@@ -178,6 +176,7 @@
         </li>
       <% end %>
     </ul>
+    <%= render "shared/post_progress", word_total: @ctf_info["word_count"] %>
   </div>
 </div>
 </main>
