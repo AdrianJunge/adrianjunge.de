@@ -78,12 +78,58 @@ function initCodeCopy() {
   });
 }
 
+function initArticleProgress() {
+  const progress = document.querySelector('[data-article-progress]');
+  const article = document.querySelector('.markdown-content');
+  if (!progress || !article) return;
+
+  const totalWords = parseInt(progress.dataset.wordTotal || '0', 10);
+  if (!Number.isFinite(totalWords) || totalWords <= 0) return;
+
+  const currentNode = progress.querySelector('[data-article-progress-current]');
+  const percentNode = progress.querySelector('[data-article-progress-percent]');
+  const formatter = new Intl.NumberFormat(document.documentElement.lang || undefined);
+  let ticking = false;
+
+  function clamp(value) {
+    return Math.min(Math.max(value, 0), 1);
+  }
+
+  function update() {
+    const rect = article.getBoundingClientRect();
+    const pageTop = window.scrollY + rect.top;
+    const readableHeight = Math.max(article.scrollHeight - (window.innerHeight * 0.55), 1);
+    const viewportAnchor = window.scrollY + (window.innerHeight * 0.35);
+    const ratio = clamp((viewportAnchor - pageTop) / readableHeight);
+    const percent = Math.round(ratio * 100);
+    const currentWords = Math.round(totalWords * ratio);
+
+    progress.style.setProperty('--article-progress', `${percent}%`);
+    progress.setAttribute('aria-valuenow', percent.toString());
+    if (currentNode) currentNode.textContent = formatter.format(currentWords);
+    if (percentNode) percentNode.textContent = `${percent}%`;
+    ticking = false;
+  }
+
+  function scheduleUpdate() {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(update);
+  }
+
+  window.addEventListener('scroll', scheduleUpdate, { passive: true });
+  window.addEventListener('resize', scheduleUpdate);
+  update();
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initBlogTOC();
     initCodeCopy();
+    initArticleProgress();
   });
 } else {
   initBlogTOC();
   initCodeCopy();
+  initArticleProgress();
 }

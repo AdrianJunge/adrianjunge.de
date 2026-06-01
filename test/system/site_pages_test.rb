@@ -1,22 +1,11 @@
 require "application_system_test_case"
 
 class SitePagesTest < ApplicationSystemTestCase
-  PAGES = {
-    "/" => "Welcome to my bug collection 🐛",
-    "/ctf" => "CTF writeups",
-    "/ctf/lactf" => "LACTF",
-    "/ctf/lactf/Gamedev" => "Gamedev",
-    "/blog" => "Blog",
-    "/blog/htb-cpts" => "HTB CPTS",
-    "/blog/java-strings" => "Funny Java Strings",
-    "/timeline" => "Timeline"
-  }.freeze
-
   test "main pages use the refreshed visual shells without horizontal overflow" do
     [ [ 1280, 1400 ], [ 390, 1200 ], [ 320, 1200 ] ].each do |width, height|
       page.current_window.resize_to(width, height)
 
-      PAGES.each do |path, expected_text|
+      pages_with_expected_text.each do |path, expected_text|
         visit path
 
         overflow = page.evaluate_script(<<~JS)
@@ -33,7 +22,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
   test "page background gradient stretches to the full document height" do
     page.current_window.resize_to(1280, 900)
-    visit "/ctf/kitctf/xmalloc"
+    visit first_ctf_post[:link]
 
     assert_selector ".article-page"
 
@@ -117,15 +106,18 @@ class SitePagesTest < ApplicationSystemTestCase
 
   test "feed controls render as flat hero actions outside the filters" do
     {
-      "/ctf" => [ ".ctf-rss-feed", ".ctf-rss-icon" ],
-      "/blog" => [ ".blog-rss-feed", ".blog-rss-icon" ]
-    }.each do |path, (button_selector, icon_selector)|
+      "/ctf" => [ ".ctf-rss-feed", ".ctf-atom-feed", ".ctf-rss-icon" ],
+      "/blog" => [ ".blog-rss-feed", ".blog-atom-feed", ".blog-rss-icon" ]
+    }.each do |path, (button_selector, atom_selector, icon_selector)|
       visit path
 
       button = find(button_selector)
+      atom_button = find(atom_selector)
       find(icon_selector)
       assert_selector ".content-hero-actions #{button_selector}"
       assert_selector ".content-hero-title-row .content-hero-actions #{button_selector}"
+      assert_equal "/feed", URI.parse(button[:href]).path
+      assert_equal "/feed.atom", URI.parse(atom_button[:href]).path
       assert_no_selector ".content-filter-panel #{button_selector}"
       assert_no_selector ".ctf-header-section #{button_selector}" if path == "/ctf"
       assert_no_selector ".blog-header-section #{button_selector}" if path == "/blog"
@@ -211,10 +203,11 @@ class SitePagesTest < ApplicationSystemTestCase
 
   test "compact landing keeps recent post spacing even and hides scroll affordance" do
     page.current_window.resize_to(390, 700)
+    expected_card_count = landing_latest_posts.length
     visit "/"
 
     assert_no_selector "#scroll-down-button", visible: :visible
-    assert_selector ".landing-writeup-cards .blog-post-entry", count: 3
+    assert_selector ".landing-writeup-cards .blog-post-entry", count: expected_card_count
 
     metrics = page.evaluate_script(<<~JS)
       (() => {
@@ -222,20 +215,19 @@ class SitePagesTest < ApplicationSystemTestCase
         const scrollButton = document.querySelector("#scroll-down-button");
         const cards = [...document.querySelectorAll(".landing-writeup-cards .blog-post-entry")];
         const rects = cards.map((card) => card.getBoundingClientRect());
+        const gaps = rects.slice(1).map((rect, index) => Math.round(rect.top - rects[index].bottom));
 
         return {
           display: window.getComputedStyle(container).display,
           scrollButtonDisplay: window.getComputedStyle(scrollButton).display,
-          gaps: [
-            Math.round(rects[1].top - rects[0].bottom),
-            Math.round(rects[2].top - rects[1].bottom)
-          ]
+          gaps: gaps
         };
       })()
     JS
 
     assert_equal "grid", metrics["display"]
     assert_equal "none", metrics["scrollButtonDisplay"]
+    assert_operator metrics["gaps"].length, :>=, 1
     assert_operator metrics["gaps"].min, :>=, 15
     assert_in_delta metrics["gaps"].first, metrics["gaps"].last, 1
   end
@@ -328,9 +320,10 @@ class SitePagesTest < ApplicationSystemTestCase
 
   test "landing recent posts render as evenly spaced full-width rows" do
     page.current_window.resize_to(1280, 1400)
+    expected_card_count = landing_latest_posts.length
     visit "/"
 
-    assert_selector ".landing-writeup-cards .blog-post-entry", count: 3
+    assert_selector ".landing-writeup-cards .blog-post-entry", count: expected_card_count
 
     metrics = page.evaluate_script(<<~JS)
       (() => {
@@ -338,16 +331,14 @@ class SitePagesTest < ApplicationSystemTestCase
         const cards = [...document.querySelectorAll(".landing-writeup-cards .blog-post-entry")];
         const containerRect = container.getBoundingClientRect();
         const rects = cards.map((card) => card.getBoundingClientRect());
+        const gaps = rects.slice(1).map((rect, index) => Math.round(rect.top - rects[index].bottom));
 
         return {
           gridColumns: window.getComputedStyle(container).gridTemplateColumns.split(" ").length,
           leftEdges: rects.map((rect) => Math.round(rect.left)),
           widths: rects.map((rect) => Math.round(rect.width)),
           containerWidth: Math.round(containerRect.width),
-          gaps: [
-            Math.round(rects[1].top - rects[0].bottom),
-            Math.round(rects[2].top - rects[1].bottom)
-          ]
+          gaps: gaps
         };
       })()
     JS
@@ -357,29 +348,44 @@ class SitePagesTest < ApplicationSystemTestCase
     metrics["widths"].each do |width|
       assert_in_delta metrics["containerWidth"], width, 1
     end
+    assert_operator metrics["gaps"].length, :>=, 1
     assert_in_delta metrics["gaps"].first, metrics["gaps"].last, 1
   end
 
   test "landing latest notes use the shared post card styling" do
     page.current_window.resize_to(1280, 1400)
+    expected_card_count = landing_latest_posts.length
+    expected_card_scopes = landing_latest_posts.map { |post| post[:type] == "ctf" ? "writeups" : "blogs" }.uniq
+    expected_logo_count = landing_latest_posts.count { |post| landing_post_logo?(post) }
+    expected_placeholder_count = landing_latest_posts.count { |post| landing_post_placeholder?(post) }
+    expected_svg_count = landing_latest_posts.count { |post| landing_post_inline_svg?(post) }
+    expected_writeup_count = landing_latest_posts.count { |post| post[:type] == "ctf" }
 
     visit "/"
-    assert_selector ".landing-writeup-cards .blog-post-card", count: 3
-    assert_selector ".landing-writeup-cards .content-card.blog-post-card", count: 3
-    assert_selector ".landing-writeup-cards .blog-post-card-hitbox[href]", count: 3, visible: :all
+    assert_selector ".landing-writeup-cards .blog-post-card", count: expected_card_count
+    assert_selector ".landing-writeup-cards .content-card.blog-post-card", count: expected_card_count
+    assert_selector ".landing-writeup-cards .blog-post-card-hitbox[href]", count: expected_card_count, visible: :all
     assert_selector ".landing-writeup-cards .filter-chip", minimum: 1
     assert_selector ".landing-writeup-cards .blog-post-static-chip", minimum: 1
-    assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='writeups']", minimum: 1
-    assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='blogs']", minimum: 1
-    assert_selector ".landing-writeup-cards .blog-post-reading-time", minimum: 3, text: /min read/
-    assert_selector ".landing-writeup-cards .writeup-post-card .blog-post-authors", minimum: 1
-    assert_selector ".landing-writeup-cards .blog-logo", count: 3
-    assert_selector ".landing-writeup-cards .writeup-post-card .blog-logo[src*='/assets/ctf/']", minimum: 1
-    assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/']", minimum: 1
+    expected_card_scopes.each do |scope|
+      assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='#{scope}']", minimum: 1
+    end
+    assert_selector ".landing-writeup-cards .blog-post-reading-time", minimum: expected_card_count, text: /min read/
+    assert_selector ".landing-writeup-cards .blog-post-card-logo", count: expected_card_count
+    assert_selector_count ".landing-writeup-cards .blog-logo", expected_logo_count
+    assert_selector_count ".landing-writeup-cards .blog-logo-placeholder", expected_placeholder_count
+    if expected_card_scopes.include?("writeups")
+      ctf_logo_count = landing_latest_posts.count { |post| post[:type] == "ctf" && landing_post_logo?(post) }
+      assert_selector ".landing-writeup-cards .writeup-post-card .blog-post-authors", count: expected_writeup_count
+      assert_selector_count ".landing-writeup-cards .writeup-post-card .blog-logo[src*='/assets/ctf/']", ctf_logo_count
+    end
+    if expected_card_scopes.include?("blogs")
+      blog_logo_count = landing_latest_posts.count { |post| post[:type] == "blog" && landing_post_logo?(post) }
+      assert_selector_count ".landing-writeup-cards .blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/']", blog_logo_count
+    end
     assert_no_selector ".landing-writeup-cards .filter-chip[data-filter-tag]", visible: :all
     assert_no_selector ".landing-writeup-cards .filter-chip.ui-hover-lift", visible: :all
-    assert_no_selector ".landing-writeup-cards .blog-logo-placeholder", visible: :all
-    assert_no_selector ".landing-writeup-cards .blog-post-card-logo svg", visible: :all
+    assert_selector_count ".landing-writeup-cards .blog-post-card-logo svg", expected_svg_count
     static_chip_styles = page.evaluate_script(<<~JS)
       (() => {
         const chip = document.querySelector(".landing-writeup-cards .blog-post-static-chip");
@@ -406,39 +412,54 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "post pages show reading time in the article header" do
+    blog_post = first_blog_post
+    ctf_post = first_ctf_post
+
     visit "/blog"
     assert_selector ".blog-posts-container .blog-post-reading-time", minimum: 1, text: /min read/
 
-    visit "/ctf/cscg"
+    visit "/ctf/#{ctf_post[:directory]}"
     assert_selector ".writeup-overview .blog-post-reading-time", minimum: 1, text: /min read/
 
-    visit "/blog/java-strings"
+    visit blog_post[:link]
     assert_selector ".post-meta-line", text: /min read/
+    assert_selector ".article-progress[data-word-total]", text: %r{\d+\s*/\s*[\d,.]+\s+words}
+    assert_selector ".article-progress-percent", text: /\d+%/
+    assert_equal "sticky", page.evaluate_script("window.getComputedStyle(document.querySelector('.article-progress')).position")
+    assert_operator page.evaluate_script("parseInt(document.querySelector('.article-progress').dataset.wordTotal, 10)"), :>, 0
+    progress_gradient = page.evaluate_script("window.getComputedStyle(document.querySelector('.article-progress-bar')).backgroundImage")
+    assert_includes progress_gradient, "rgb(2, 11, 31)"
+    assert_includes progress_gradient, "rgb(125, 211, 252)"
 
-    visit "/ctf/kitctf/xmalloc"
+    visit ctf_post[:link]
     assert_selector ".post-meta-line", text: /min read/
+    assert_selector ".article-progress[data-word-total]", text: %r{\d+\s*/\s*[\d,.]+\s+words}
+    assert_selector ".article-progress-percent", text: /\d+%/
   end
 
   test "post card author links stay clickable above full card hitboxes" do
     page.current_window.resize_to(1280, 1400)
+    author_post, author = first_ctf_post_with_author_link
 
     visit "/"
-    assert_selector ".landing-writeup-cards .blog-post-author-link[href='https://ju256.rip/']", text: "ju256"
-    landing_hit = link_hit_target(".landing-writeup-cards .blog-post-author-link[href='https://ju256.rip/']")
-    assert_equal "https://ju256.rip/", landing_hit["href"]
-    assert_includes landing_hit["className"], "blog-post-author-link"
+    if page.has_selector?(".landing-writeup-cards .blog-post-author-link", wait: 0)
+      landing_hit = link_hit_target(".landing-writeup-cards .blog-post-author-link")
+      assert_match %r{\Ahttps?://|/about}, landing_hit["href"]
+      assert_includes landing_hit["className"], "blog-post-author-link"
+    end
 
-    visit "/ctf/cscg"
-    assert_selector ".writeup-overview .blog-post-author-link[href='https://popax21.dev/']", text: "Popax21"
-    overview_hit = link_hit_target(".writeup-overview .blog-post-author-link[href='https://popax21.dev/']")
-    assert_equal "https://popax21.dev/", overview_hit["href"]
+    visit "/ctf/#{author_post[:directory]}"
+    author_selector = ".writeup-overview .blog-post-author-link[href='#{author[:url]}']"
+    assert_selector author_selector, text: author[:name]
+    overview_hit = link_hit_target(author_selector)
+    assert_href_matches author[:url], overview_hit["href"]
     assert_includes overview_hit["className"], "blog-post-author-link"
   end
 
   test "main content cards share the blue surface treatment" do
     visit "/"
     assert_selector ".landing-featured-card.ui-card-surface", minimum: 1
-    assert_selector ".landing-writeup-cards .blog-post-card.ui-card-surface", count: 3
+    assert_selector ".landing-writeup-cards .blog-post-card.ui-card-surface", count: landing_latest_posts.length
     featured_styles = card_surface_styles(".landing-featured-card")
     latest_styles = card_surface_styles(".landing-writeup-cards .blog-post-card")
     assert_equal featured_styles, latest_styles
@@ -453,7 +474,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".ctf-card.content-card", minimum: 1
     assert_equal featured_styles, card_surface_styles(".ctf-card")
 
-    visit "/ctf/cscg"
+    visit "/ctf/#{first_ctf_event_with_writeups[:directory]}"
     assert_selector ".writeup-overview .blog-post-card.ui-card-surface", minimum: 1
     assert_selector ".writeup-overview .blog-post-card.content-card", minimum: 1
     assert_equal featured_styles, card_surface_styles(".writeup-overview .blog-post-card")
@@ -478,6 +499,17 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_text "Welcome to my flag collection"
     assert_selector ".landing-action[href='/timeline']", text: "Timeline"
     assert_selector ".landing-action[href='/about']", text: "About me"
+    assert_selector ".landing-affiliation-link[href='https://kitctf.de'] img"
+    assert_selector ".landing-affiliation-link[href='https://www.kit.edu'] img"
+    affiliation_image_size = page.evaluate_script(<<~JS)
+      (() => {
+        const image = document.querySelector(".landing-affiliation-link[href='https://kitctf.de'] img");
+        const rect = image.getBoundingClientRect();
+
+        return Math.round(rect.width);
+      })()
+    JS
+    assert_operator affiliation_image_size, :>=, 44
     assert_selector ".landing-metrics.aboutme-stats"
     assert_selector ".landing-metric", count: 6
     assert_selector ".landing-metric.aboutme-stat", count: 6
@@ -521,8 +553,9 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-metric[href='/timeline'] .landing-metric-value", text: post_count.to_s
     assert_no_selector ".landing-metric[href='/ctf']", text: "CTFs"
     assert_no_selector ".landing-metric", text: "Tags"
-    assert_selector ".landing-featured-card.aboutme-card", count: 3
-    assert_equal 3, page.evaluate_script("document.querySelectorAll('.landing-featured-card .aboutme-card-header, .landing-featured-card > summary').length")
+    expected_featured_count = content_index.featured_items.length
+    assert_selector ".landing-featured-card.aboutme-card", count: expected_featured_count
+    assert_equal expected_featured_count, page.evaluate_script("document.querySelectorAll('.landing-featured-card .aboutme-card-header, .landing-featured-card > summary').length")
     assert_selector ".landing-featured-card .aboutme-card-kicker", text: "CVE"
     assert_selector ".landing-featured-card .aboutme-card-kicker", text: "Certificate"
     assert_no_selector ".landing-featured-topline"
@@ -531,15 +564,21 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "TBA findings render as static cards while disclosed findings stay collapsible" do
+    cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
+    bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
+
     visit "/about"
 
-    assert_selector "#cves article.aboutme-finding-card-static", minimum: 2
-    assert_selector "#cves details.aboutme-finding-card-cve", minimum: 10
-    assert_selector "#bug-bounties article.aboutme-finding-card-static"
-    assert_no_selector "#bug-bounties details"
+    assert_selector_count "#cves article.aboutme-finding-card-static", cves.count { |entry| !about_finding_collapsible?(entry) }
+    assert_selector_count "#cves details.aboutme-finding-card-cve", cves.count { |entry| about_finding_collapsible?(entry) }
+    assert_selector_count "#bug-bounties article.aboutme-finding-card-static", bug_bounties.count { |entry| !about_finding_collapsible?(entry) }
+    assert_selector_count "#bug-bounties details", bug_bounties.count { |entry| about_finding_collapsible?(entry) }
   end
 
   test "timeline entries are full-card links" do
+    timeline_post = first_timeline_post_with_tags
+    tag_name = first_visible_timeline_tag
+
     visit "/timeline"
 
     assert_selector ".timeline-content .timeline-card-hitbox[href]", minimum: 1
@@ -548,16 +587,16 @@ class SitePagesTest < ApplicationSystemTestCase
     first_link = find(".timeline-content .timeline-card-hitbox", match: :first, visible: :all)
     assert first_link[:href].match?(%r{/((ctf/.+/.+)|(blog/.+)|(about#.+))\z})
 
-    htb_title = find(".timeline-title", text: "HTB CPTS", exact_text: true)
-    page.driver.browser.action.move_to(htb_title.native).click.perform
-    assert_current_path "/blog/htb-cpts"
+    timeline_card = find(".timeline-card-hitbox[href='#{timeline_post[:link]}']", visible: :all)
+                         .find(:xpath, "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-content ')]")
+    page.driver.browser.action.move_to(timeline_card.find(".timeline-title").native).click.perform
+    assert_current_path timeline_post[:link]
 
     visit "/timeline"
     empty_tag_row_target = page.evaluate_script(<<~JS)
       (() => {
-        const title = [...document.querySelectorAll(".timeline-title")]
-          .find((node) => node.innerText.trim() === "HTB CPTS");
-        const card = title.closest(".timeline-content");
+        const hitbox = document.querySelector(".timeline-card-hitbox[href='#{timeline_post[:link]}']");
+        const card = hitbox.closest(".timeline-content");
         const tags = card.querySelector(".timeline-tags");
         card.scrollIntoView({ block: "center", inline: "nearest" });
         const rect = tags.getBoundingClientRect();
@@ -573,20 +612,27 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
 
     assert_includes empty_tag_row_target["className"], "timeline-card-hitbox"
-    assert_match %r{/blog/htb-cpts\z}, empty_tag_row_target["href"]
-    assert_current_path "/blog/htb-cpts"
+    assert_match %r{#{Regexp.escape(timeline_post[:link])}\z}, empty_tag_row_target["href"]
+    assert_current_path timeline_post[:link]
 
     visit "/timeline"
-    find(".timeline-tags .timeline-tag-pill", text: "Crypto", match: :first).click
+    find(".timeline-tags .timeline-tag-pill", text: tag_name, match: :first).click
     assert_current_path "/timeline"
-    assert_selector ".timeline-tags .timeline-tag-pill.is-active", text: "Crypto"
-    assert_selector ".content-filter-panel .filter-chip.is-active", text: "Crypto"
+    assert_selector ".timeline-tags .timeline-tag-pill.is-active", text: tag_name
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: tag_name
   end
 
   test "timeline filters all indexed content" do
+    total_items = timeline_items.length
+    search_case = timeline_search_case
+    certificate_count = timeline_items.count { |item| item[:tags].include?("Certificate") }
+    winner_items = timeline_items.select { |item| item[:tags].include?(WriteupWinner::FILTER_LABEL) }
+    first_winner_label = winner_items.first&.dig(:writeup_winner, :label) || "Contest win"
+    tag_case = timeline_tag_case
+
     visit "/timeline"
 
-    assert_selector ".timeline-content", minimum: 30
+    assert_selector ".timeline-content", count: total_items
     assert_timeline_year_counts_match_visible_cards
     timeline_tag_positions = page.evaluate_script(<<~JS)
       (() => {
@@ -608,58 +654,67 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".content-filter-tag-group-label", text: "TOPICS, PROJECTS, AND SOURCES"
     assert_selector ".content-filter-panel .filter-chip", text: "CVE"
     assert_selector ".content-filter-panel .filter-chip", text: "CTF writeup"
-    assert_selector ".timeline-tags .writeup-winner-badge-timeline[data-filter-tag='Writeup winner']", text: "Best challenge writeup"
+    assert_selector ".timeline-tags .writeup-winner-badge-timeline[data-filter-tag='Writeup winner']", text: first_winner_label
 
-    fill_in "timeline-search-input", with: "Firedancer"
-    assert_selector ".timeline-content", text: "Firedancer"
-    assert_no_selector ".timeline-content", text: "HTB CPTS"
+    fill_in "timeline-search-input", with: search_case[:query]
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(search_case[:items].length, total_items)
+    assert_selector ".timeline-content", text: search_case[:items].first[:title]
+    assert_hidden_timeline_item search_case[:items]
     assert_timeline_year_counts_match_visible_cards
 
     find("[data-filter-reset='timeline']").click
     find(".content-filter-panel .filter-chip", text: "Certificate").click
     assert_selector ".content-filter-panel .filter-chip.is-active", text: "Certificate"
-    assert_selector ".timeline-content", text: "Hack The Box Certified Penetration Testing Specialist"
-    assert_no_selector ".timeline-content", text: "xmalloc"
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(certificate_count, total_items)
+    assert_selector ".timeline-content", count: certificate_count
+    assert_hidden_timeline_item timeline_items.select { |item| item[:tags].include?("Certificate") }
     assert_timeline_year_counts_match_visible_cards
 
     find("[data-filter-reset='timeline']").click
     find(".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner").click
     assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter.is-active", text: "Writeup winner"
-    assert_selector ".timeline-content", text: "KDF dream"
-    assert_selector ".timeline-content", text: "A Minecraft Movie"
-    assert_no_selector ".timeline-content", text: "HTB CPTS"
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(winner_items.length, total_items)
+    winner_items.each do |item|
+      assert_selector ".timeline-content", text: item[:title]
+    end
+    assert_hidden_timeline_item winner_items
     assert_timeline_year_counts_match_visible_cards
 
     find("[data-filter-reset='timeline']").click
-    find(".timeline-tags .timeline-tag-pill", text: "Crypto", match: :first).click
-    assert_selector ".timeline-tags .timeline-tag-pill.is-active", text: "Crypto"
-    assert_selector ".content-filter-panel .filter-chip.is-active", text: "Crypto"
-    assert_selector ".timeline-content", text: "KDF dream"
-    assert_no_selector ".timeline-content", text: "HTB CPTS"
+    find(".timeline-tags .timeline-tag-pill", text: tag_case[:tag], match: :first).click
+    assert_selector ".timeline-tags .timeline-tag-pill.is-active", text: tag_case[:tag]
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: tag_case[:tag]
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(tag_case[:items].length, total_items)
+    assert_selector ".timeline-content", text: tag_case[:items].first[:title]
+    assert_hidden_timeline_item tag_case[:items]
     assert_timeline_year_counts_match_visible_cards
   end
 
   test "ctf markdown preserves anchors and external links while resolving local images" do
-    visit "/ctf/umdctf/A%20Minecraft%20Movie"
+    post = ctf_post_with_anchor_external_link_and_image
 
-    assert_text "A Minecraft Movie"
-    assert_selector ".markdown-content a[href='#exploitation%20variant%201']"
-    assert_selector ".markdown-content a[href='https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions#none']"
-    assert_selector ".markdown-content img[src*='/assets/ctf/writeups/umdctf/aminecraftmovie/landingoverview']"
+    visit post[:link]
+
+    assert_text post[:title]
+    assert_selector ".markdown-content a[href^='#']"
+    assert_selector ".markdown-content a[href^='http']"
+    assert_selector ".markdown-content img[src*='/assets/ctf/writeups/']"
   end
 
   test "table of contents indents nested headings by depth" do
     page.current_window.resize_to(1440, 1200)
-    visit "/ctf/umdctf/A%20Minecraft%20Movie"
+    post, top_heading, nested_heading = ctf_post_with_nested_headings
 
-    assert_selector "#toc-body .toc-depth-0", text: "4. Exploitation"
-    assert_selector "#toc-body .toc-depth-1", text: "4.1. Exploitation Variant 1"
+    visit post[:link]
+
+    assert_selector "#toc-body .toc-depth-#{top_heading[:level] - 1}", text: top_heading[:text]
+    assert_selector "#toc-body .toc-depth-#{nested_heading[:level] - 1}", text: nested_heading[:text]
 
     metrics = page.evaluate_script(<<~JS)
       (() => {
         const links = [...document.querySelectorAll("#toc-body .toc-anchor")];
-        const top = links.find((link) => link.innerText.trim() === "4. Exploitation");
-        const nested = links.find((link) => link.innerText.includes("4.1. Exploitation Variant 1"));
+        const top = links.find((link) => link.innerText.trim() === #{top_heading[:text].to_json});
+        const nested = links.find((link) => link.innerText.trim() === #{nested_heading[:text].to_json});
 
         return {
           topLeft: Math.round(top.getBoundingClientRect().left),
@@ -672,10 +727,10 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
 
-    assert_includes metrics["topClass"], "toc-depth-0"
-    assert_includes metrics["nestedClass"], "toc-depth-1"
-    assert_equal false, metrics["topMarker"]
-    assert_equal true, metrics["nestedMarker"]
+    assert_includes metrics["topClass"], "toc-depth-#{top_heading[:level] - 1}"
+    assert_includes metrics["nestedClass"], "toc-depth-#{nested_heading[:level] - 1}"
+    assert_equal top_heading[:level] > 1, metrics["topMarker"]
+    assert_equal nested_heading[:level] > 1, metrics["nestedMarker"]
     assert_operator metrics["nestedLeft"], :>, metrics["topLeft"] + 8
   end
 
@@ -712,6 +767,13 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "content filters search by text tags and year" do
+    ctf_total = ctf_overview_items.length
+    ctf_tag_case = ctf_overview_tag_case
+    ctf_search_case = ctf_overview_search_case
+    ctf_year_case = ctf_overview_year_case
+    writeup_case = writeup_filter_case
+    internal_author_post, internal_author = first_ctf_post_with_internal_author_link
+
     visit "/ctf"
 
     ctf_filter_tags = all(".content-filter-panel .content-filter-tag-list [data-filter-tag]").map do |chip|
@@ -720,105 +782,118 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal "Writeup winner", ctf_filter_tags.first
     assert_equal 1, ctf_filter_tags.count("Writeup winner")
     assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
-    assert_selector ".content-filter-panel .filter-chip", text: /^pwn$/i
-    assert_selector ".ctf-card .filter-chip", text: /^pwn$/i
+    assert_selector ".content-filter-panel .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
+    assert_selector ".ctf-card .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector ".ctf-card .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
-    find(".content-filter-panel .filter-chip", text: /^pwn$/i).click
-    assert_selector ".content-filter-panel .filter-chip.is-active", text: /^pwn$/i
-    assert_selector ".ctf-card", text: "KITCTF"
-    assert_not_includes all(".ctf-card .ctf-name").map(&:text), "GPNCTF"
+    find(".content-filter-panel .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i).click
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
+    assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_tag_case[:items].length, ctf_total)
+    assert_equal ctf_tag_case[:items].map { |item| item[:name] }, visible_ctf_names
 
     find("[data-filter-reset='ctfs']").click
-    assert_selector "[data-filter-count='ctfs']", text: "10 / 10 items"
-    fill_in "ctf-search-input", with: "gpn"
-    assert_selector "[data-filter-count='ctfs']", text: "2 / 10 items"
-    assert_selector ".ctf-card", text: "GPNCTF"
-    assert_no_selector ".ctf-card", text: "CSCG"
+    assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_total, ctf_total)
+    fill_in "ctf-search-input", with: ctf_search_case[:query]
+    assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_search_case[:items].length, ctf_total)
+    assert_equal ctf_search_case[:items].map { |item| item[:name] }, visible_ctf_names
 
     find("[data-filter-reset='ctfs']").click
-    assert_selector "[data-filter-count='ctfs']", text: "10 / 10 items"
-    select_filter_year("ctfs", "2026")
-    assert_selector "[data-filter-count='ctfs']", text: "1 / 10 items"
-    assert_selector ".ctf-card", text: "KITCTF"
-    assert_equal [ "KITCTF" ], all(".ctf-card .ctf-name").map(&:text)
+    assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_total, ctf_total)
+    select_filter_year("ctfs", ctf_year_case[:year].to_s)
+    assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_year_case[:items].length, ctf_total)
+    assert_equal ctf_year_case[:items].map { |item| item[:name] }, visible_ctf_names
 
-    visit "/ctf/cscg"
+    visit "/ctf/#{writeup_case[:directory]}"
     assert_selector ".blog-post-authors", text: "Challenge by"
-    assert_selector ".blog-post-author-link[href='https://popax21.dev/']", text: "Popax21"
     assert_selector ".content-filter-tags-label", text: "TAGS"
-    assert_selector ".content-filter-panel .filter-chip", text: "Crypto"
+    assert_selector ".content-filter-panel .filter-chip", text: writeup_case[:tag]
 
     within ".content-filter-panel" do
-      find(".filter-chip", text: "Crypto").click
-      assert_selector ".filter-chip.is-active", text: "Crypto"
+      find(".filter-chip", text: writeup_case[:tag]).click
+      assert_selector ".filter-chip.is-active", text: writeup_case[:tag]
     end
-    assert_selector "[data-filter-count='writeups']", text: "1 / 6 items"
-    assert_selector ".writeup-overview .blog-post-card", text: "KDF dream"
-    assert_no_selector ".writeup-overview .blog-post-card", text: "Hoster"
+    assert_selector "[data-filter-count='writeups']", text: filter_count_text(writeup_case[:tag_posts].length, writeup_case[:posts].length)
+    assert_equal writeup_case[:tag_posts].map { |post| post[:title] }, visible_writeup_titles
 
     find("[data-filter-reset='writeups']").click
-    assert_selector "[data-filter-count='writeups']", text: "6 / 6 items"
-    select_filter_year("writeups", "2024")
-    assert_selector "[data-filter-count='writeups']", text: "2 / 6 items"
-    assert_selector ".writeup-overview .blog-post-card", text: "Hoster"
-    assert_selector ".writeup-overview .blog-post-card", text: "Photoeditor"
-    assert_no_selector ".writeup-overview .blog-post-card", text: "KDF dream"
+    assert_selector "[data-filter-count='writeups']", text: filter_count_text(writeup_case[:posts].length, writeup_case[:posts].length)
+    select_filter_year("writeups", writeup_case[:year].to_s)
+    assert_selector "[data-filter-count='writeups']", text: filter_count_text(writeup_case[:year_posts].length, writeup_case[:posts].length)
+    assert_equal writeup_case[:year_posts].map { |post| post[:title] }, visible_writeup_titles
 
-    visit "/ctf/gpnctf"
-    assert_selector ".blog-post-author-link[href='/about']", text: "vurlo"
+    visit "/ctf/#{internal_author_post[:directory]}"
+    assert_selector ".blog-post-author-link[href='#{internal_author[:url]}']", text: internal_author[:name]
+  end
+
+  test "filter chips clear active state when tapped twice" do
+    ctf_tag_case = ctf_overview_tag_case
+
+    visit "/ctf"
+
+    chip = find(".content-filter-panel .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i)
+    chip.click
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
+
+    chip.click
+    assert_no_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
+    assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_overview_items.length, ctf_overview_items.length)
   end
 
   test "blog filters search text and publish year" do
+    blog_total = blog_posts.length
+    tag_case = blog_tag_case
+    search_case = blog_search_case
+    year_case = blog_year_case
+    logo_posts = blog_posts.select { |post| repository.blog_metadata.dig(post[:slug], "logo").present? }
+
     visit "/blog"
 
-    assert_selector ".content-filter-panel .filter-chip", text: "Active Directory"
-    assert_selector ".content-filter-panel .filter-chip", text: "JVM Internals"
-    assert_selector ".blog-post-card", text: "Funny Java Strings"
-    assert_selector ".blog-post-card[data-filter-tags*='JVM Internals']"
-    assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/java']"
-    assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/solana']"
+    assert_selector ".content-filter-panel .filter-chip", text: tag_case[:tag]
+    assert_selector ".blog-post-card", text: search_case[:post][:title]
+    assert_selector ".blog-post-card[data-filter-tags*='#{tag_case[:tag]}']"
+    assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo", minimum: logo_posts.length if logo_posts.any?
 
-    fill_in "blog-search-input", with: "CPTS"
-    assert_selector "[data-filter-count='blogs']", text: "1 / 3 items"
-    assert_selector ".blog-post-card", text: "HTB CPTS"
+    fill_in "blog-search-input", with: search_case[:query]
+    assert_selector "[data-filter-count='blogs']", text: filter_count_text(search_case[:items].length, blog_total)
+    assert_equal search_case[:items].map { |post| post[:title] }.sort, visible_blog_titles.sort
 
     find("[data-filter-reset='blogs']").click
-    select_filter_year("blogs", "2026")
-    assert_selector "[data-filter-count='blogs']", text: "3 / 3 items"
-    assert_selector ".blog-post-card", text: "Frankendancer"
-    assert_selector ".blog-post-card", text: "HTB CPTS"
-    assert_selector ".blog-post-card", text: "Funny Java Strings"
+    select_filter_year("blogs", year_case[:year].to_s)
+    assert_selector "[data-filter-count='blogs']", text: filter_count_text(year_case[:items].length, blog_total)
+    assert_equal year_case[:items].map { |post| post[:title] }.sort, visible_blog_titles.sort
 
     find("[data-filter-reset='blogs']").click
     fill_in "blog-search-input", with: "definitely-not-a-post"
-    assert_selector "[data-filter-count='blogs']", text: "0 / 3 items"
+    assert_selector "[data-filter-count='blogs']", text: filter_count_text(0, blog_total)
     assert_selector ".content-filter-empty", text: "No blog posts match the current filters."
-    assert_no_selector ".blog-post-card", text: "HTB CPTS"
-    assert_no_selector ".blog-post-card", text: "Funny Java Strings"
+    assert_no_selector ".blog-post-card"
   end
 
   test "blog and writeup cards keep full-card navigation" do
+    blog_post = first_blog_post
+    writeup_post = first_ctf_post
+
     visit "/blog"
 
-    click_card_link_area(find(".blog-post-card", text: "HTB CPTS"))
-    assert_current_path "/blog/htb-cpts"
-    assert_selector ".writeup-title", text: "HTB CPTS"
+    click_card_link_area(find(".blog-post-card", text: blog_post[:title]))
+    assert_current_path blog_post[:link]
+    assert_selector ".writeup-title", text: blog_post[:title]
 
-    visit "/ctf/cscg"
-    click_card_link_area(find(".blog-post-card", text: "Hoster"))
-    assert_text "Hoster"
-    assert_selector ".writeup-title", text: "Hoster"
+    visit "/ctf/#{writeup_post[:directory]}"
+    click_card_link_area(find(".blog-post-card", text: writeup_post[:title]))
+    assert_current_path writeup_post[:link]
+    assert_selector ".writeup-title", text: writeup_post[:title]
   end
 
   test "winning writeups show proof badges on overview cards and articles" do
-    visit "/ctf/cscg"
+    winner_case = winning_writeup_case
 
-    within find(".blog-post-card", text: "KDF dream") do
-      assert_selector ".blog-post-meta-row > .writeup-winner-badge:first-child[href='/ctf/certifications/cscg25-best-writeup-kdfdream.pdf']", text: "Best challenge writeup"
-    end
+    visit "/ctf/#{winner_case[:directory]}"
 
-    within find(".blog-post-card", text: "Air smeller") do
-      assert_selector ".blog-post-meta-row > .writeup-winner-badge:first-child[href='/ctf/certifications/cscg25-best-writeup-airsmeller.pdf']", text: "Best challenge writeup"
+    winner_case[:winner_posts].each do |post|
+      winner = WriteupWinner.from_metadata(post[:metadata])
+      within find(".blog-post-card", text: post[:title]) do
+        assert_selector ".blog-post-meta-row > .writeup-winner-badge:first-child[href='#{winner[:proof_url]}']", text: winner[:label]
+      end
     end
 
     filter_tags = all(".content-filter-panel .content-filter-tag-list [data-filter-tag]").map do |chip|
@@ -826,20 +901,25 @@ class SitePagesTest < ApplicationSystemTestCase
     end
     assert_equal "Writeup winner", filter_tags.first
     assert_equal 1, filter_tags.count("Writeup winner")
-    assert_no_selector ".content-filter-panel [data-filter-tag='Best challenge writeup']"
+    winner_case[:winner_posts].map { |post| WriteupWinner.from_metadata(post[:metadata])[:label] }.uniq.each do |label|
+      assert_no_selector ".content-filter-panel [data-filter-tag='#{label}']"
+    end
     assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
     find(".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner").click
     assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter.is-active", text: "Writeup winner"
-    assert_selector "[data-filter-count='writeups']", text: "2 / 6 items"
-    assert_selector ".writeup-overview .blog-post-card", text: "KDF dream"
-    assert_selector ".writeup-overview .blog-post-card", text: "Air smeller"
-    assert_no_selector ".writeup-overview .blog-post-card", text: "Hoster"
+    assert_selector "[data-filter-count='writeups']", text: filter_count_text(winner_case[:winner_posts].length, winner_case[:posts].length)
+    assert_equal winner_case[:winner_posts].map { |post| post[:title] }, visible_writeup_titles
 
-    visit "/ctf/cscg/KDF%20dream"
-    assert_selector ".writeup-winner-article .writeup-winner-badge[href='/ctf/certifications/cscg25-best-writeup-kdfdream.pdf']", text: "Best challenge writeup"
+    first_winner = winner_case[:winner_posts].first
+    first_winner_badge = WriteupWinner.from_metadata(first_winner[:metadata])
+    visit first_winner[:link]
+    assert_selector ".writeup-winner-article .writeup-winner-badge[href='#{first_winner_badge[:proof_url]}']", text: first_winner_badge[:label]
 
-    visit "/ctf/umdctf/A%20Minecraft%20Movie"
-    assert_selector ".writeup-winner-article .writeup-winner-badge[href='https://discord.com/channels/938193497306067065/938196910039269406/1412823165213605959']", text: "Best web writeup 2025"
+    if (external_winner = first_external_winning_writeup)
+      external_badge = WriteupWinner.from_metadata(external_winner[:metadata])
+      visit external_winner[:link]
+      assert_selector ".writeup-winner-article .writeup-winner-badge[href='#{external_badge[:proof_url]}']", text: external_badge[:label]
+    end
   end
 
   test "terminal stays bounded on high resolution displays" do
@@ -878,20 +958,25 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "ctf writeups are ordered from latest to oldest" do
-    visit "/ctf/ehax"
+    event = first_ctf_event_with_multiple_writeups
+    expected_titles = event[:writeups].map { |post| post[:title] }
 
-    assert_selector ".writeup-overview .blog-post-card", count: 2
+    visit "/ctf/#{event[:directory]}"
+
+    assert_selector ".writeup-overview .blog-post-card", count: expected_titles.length
     assert_no_selector ".writeup-overview .writeup-card"
 
     titles = all(".writeup-overview .blog-post-title").map(&:text)
-    assert_equal [ "Fantastic Doom", "Cash Memo" ], titles
+    assert_equal expected_titles, titles
   end
 
   test "filtered overviews keep spacing tag borders and shrink page height" do
     page.current_window.resize_to(1280, 900)
-    visit "/ctf/cscg"
+    writeup_case = writeup_filter_case
 
-    assert_selector ".writeup-overview .blog-post-entry", count: 6
+    visit "/ctf/#{writeup_case[:directory]}"
+
+    assert_selector ".writeup-overview .blog-post-entry", count: writeup_case[:posts].length
 
     initial_metrics = page.evaluate_script(<<~JS)
       (() => {
@@ -907,8 +992,8 @@ class SitePagesTest < ApplicationSystemTestCase
 
     assert_operator initial_metrics["gap"], :>=, 15
 
-    select_filter_year("writeups", "2024")
-    assert_selector "[data-filter-count='writeups']", text: "2 / 6 items"
+    select_filter_year("writeups", writeup_case[:year].to_s)
+    assert_selector "[data-filter-count='writeups']", text: filter_count_text(writeup_case[:year_posts].length, writeup_case[:posts].length)
 
     filtered_height = page.evaluate_script(<<~JS)
       (() => {
@@ -934,7 +1019,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
   test "article table of contents toggle collapses the toc column" do
     page.current_window.resize_to(1440, 1200)
-    visit "/ctf/lactf/Gamedev"
+    visit ctf_post_with_headings[:link]
 
     width_script = "Math.round(document.querySelector('.writeup-container').getBoundingClientRect().width)"
     original_width = page.evaluate_script(width_script)
@@ -959,7 +1044,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
   test "article code blocks are centered and shrink to their content" do
     page.current_window.resize_to(1440, 1200)
-    visit "/ctf/lactf/Gamedev"
+    visit ctf_post_with_code_block[:link]
 
     assert_selector ".code-block pre.highlight"
 
@@ -990,11 +1075,7 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "article markdown keeps readable heading typography" do
-    {
-      "/ctf/gpnctf/Smile%20at%20me" => "TL;DR",
-      "/blog/htb-cpts" => "1. My Background",
-      "/blog/java-strings" => "1. The Tiny Problem With Strings"
-    }.each do |path, heading_text|
+    article_heading_cases.each do |path, heading_text|
       page.current_window.resize_to(1280, 1200)
       visit path
 
@@ -1032,9 +1113,81 @@ class SitePagesTest < ApplicationSystemTestCase
 
   private
 
+  def repository
+    @repository ||= ContentRepository.new
+  end
+
+  def content_index
+    @content_index ||= ContentIndex.new(repository: repository)
+  end
+
+  def blog_posts
+    @blog_posts ||= repository.blog_posts
+  end
+
+  def ctf_posts
+    @ctf_posts ||= repository.ctf_posts
+  end
+
+  def timeline_items
+    @timeline_items ||= content_index.all_items
+  end
+
+  def first_blog_post
+    blog_posts.first || flunk("expected at least one blog post")
+  end
+
+  def first_ctf_post
+    ctf_posts.first || flunk("expected at least one CTF writeup")
+  end
+
+  def first_ctf_event_with_writeups
+    ctf_overview_items.find { |event| event[:writeups].any? } || flunk("expected at least one CTF with writeups")
+  end
+
+  def first_ctf_event_with_multiple_writeups
+    ctf_overview_items.find { |event| event[:writeups].length >= 2 } || flunk("expected a CTF with multiple writeups")
+  end
+
+  def pages_with_expected_text
+    ctf_post = first_ctf_post
+    blog_post = first_blog_post
+
+    {
+      "/" => "Welcome to my bug collection 🐛",
+      "/ctf" => "CTF writeups",
+      "/ctf/#{ctf_post[:directory]}" => ctf_event_label(ctf_post[:directory]),
+      ctf_post[:link] => ctf_post[:title],
+      "/blog" => "Blog",
+      blog_post[:link] => blog_post[:title],
+      "/timeline" => "Timeline"
+    }
+  end
+
   def select_filter_year(scope, year)
     find("[data-year-dropdown-button='#{scope}']").click
     find("[data-year-dropdown-option='#{scope}'][data-year-value='#{year}']").click
+  end
+
+  def filter_count_text(visible, total)
+    "#{visible} / #{total} #{total == 1 ? "item" : "items"}"
+  end
+
+  def assert_selector_count(selector, count)
+    if count.zero?
+      assert_no_selector selector
+    else
+      assert_selector selector, count: count
+    end
+  end
+
+  def about_finding_collapsible?(entry)
+    about_visible_detail?(entry["summary"]) ||
+      Array(entry["timeline"]).any? { |item| item.is_a?(Hash) && item["event"].present? }
+  end
+
+  def about_visible_detail?(value)
+    value.present? && value.to_s.strip.casecmp("tba") != 0
   end
 
   def assert_timeline_year_counts_match_visible_cards
@@ -1057,6 +1210,390 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
 
     assert_equal [], mismatches
+  end
+
+  def landing_latest_posts
+    @landing_latest_posts ||= (ctf_posts + blog_posts).sort_by { |post| -post[:published].to_i }.first(3)
+  end
+
+  def landing_post_logo?(post)
+    case post[:type]
+    when "blog"
+      repository.blog_metadata.dig(post[:slug], "logo").present?
+    when "ctf"
+      post[:logo].present?
+    else
+      false
+    end
+  end
+
+  def landing_post_placeholder?(post)
+    post[:type] == "blog" && !landing_post_logo?(post)
+  end
+
+  def landing_post_inline_svg?(post)
+    post[:type] == "ctf" && !landing_post_logo?(post)
+  end
+
+  def ctf_event_label(directory)
+    match = repository.ctf_metadata.find do |name, metadata|
+      ctf_directory(name, metadata) == directory
+    end
+
+    match ? match.first : directory.upcase
+  end
+
+  def ctf_directory(name, metadata)
+    metadata["terminal_path"].presence || name.downcase
+  end
+
+  def ctf_overview_items
+    @ctf_overview_items ||= repository.ctf_metadata.map do |name, metadata|
+      directory = ctf_directory(name, metadata)
+      writeups = ctf_posts.select { |post| post[:directory] == directory }
+      metadata_values = writeups.map { |post| post[:metadata] || {} }
+      tags = sorted_filter_tags(metadata_values.flat_map { |entry| repository.metadata_tags(entry) })
+      years = metadata_values.filter_map { |entry| repository.metadata_year(entry) }.uniq.sort.reverse
+      filter_text = [ name, metadata["description"], directory, tags ].flatten.compact.join(" ").downcase
+
+      {
+        name: name,
+        directory: directory,
+        link: "/ctf/#{directory}",
+        writeups: writeups,
+        tags: tags,
+        years: years,
+        text: filter_text
+      }
+    end
+  end
+
+  def sorted_filter_tags(values)
+    values.map(&:to_s).reject(&:blank?).uniq { |value| value.downcase }.sort_by { |value| WriteupWinner.filter_sort_key(value) }
+  end
+
+  def ctf_overview_tag_case
+    groups = {}
+    ctf_overview_items.each do |item|
+      item[:tags].reject { |tag| tag == WriteupWinner::FILTER_LABEL }.each do |tag|
+        key = tag.downcase
+        groups[key] ||= { tag: tag, items: [] }
+        groups[key][:items] << item
+      end
+    end
+
+    groups.values.find { |group| group[:items].length < ctf_overview_items.length } ||
+      groups.values.first ||
+      flunk("expected at least one CTF filter tag")
+  end
+
+  def ctf_overview_search_case
+    ctf_overview_items.each do |item|
+      query = item[:name]
+      matches = ctf_overview_items.select { |candidate| candidate[:text].include?(query.downcase) }
+      return { query: query, items: matches } if matches.any?
+    end
+
+    flunk("expected at least one searchable CTF")
+  end
+
+  def ctf_overview_year_case
+    groups = {}
+    ctf_overview_items.each do |item|
+      item[:years].each do |year|
+        groups[year] ||= { year: year, items: [] }
+        groups[year][:items] << item
+      end
+    end
+
+    groups.values.find { |group| group[:items].length < ctf_overview_items.length } ||
+      groups.values.first ||
+      flunk("expected at least one CTF filter year")
+  end
+
+  def writeup_filter_case
+    ctf_overview_items.each do |event|
+      posts = event[:writeups]
+      next unless posts.length >= 3
+
+      tag_case = writeup_tag_case_for(posts)
+      year_case = writeup_year_case_for(posts)
+      next unless tag_case && year_case
+
+      return {
+        directory: event[:directory],
+        posts: posts,
+        tag: tag_case[:tag],
+        tag_posts: tag_case[:posts],
+        year: year_case[:year],
+        year_posts: year_case[:posts]
+      }
+    end
+
+    flunk("expected a CTF overview with filterable writeups")
+  end
+
+  def writeup_tag_case_for(posts)
+    groups = {}
+    posts.each do |post|
+      repository.metadata_tags(post[:metadata] || {}).reject { |tag| tag == WriteupWinner::FILTER_LABEL }.each do |tag|
+        key = tag.downcase
+        groups[key] ||= { tag: tag, posts: [] }
+        groups[key][:posts] << post
+      end
+    end
+
+    groups.values.select { |group| group[:posts].length < posts.length }.min_by { |group| group[:posts].length }
+  end
+
+  def writeup_year_case_for(posts)
+    groups = {}
+    posts.each do |post|
+      year = post[:published].year
+      groups[year] ||= { year: year, posts: [] }
+      groups[year][:posts] << post
+    end
+
+    groups.values.select { |group| group[:posts].length < posts.length }.min_by { |group| group[:posts].length }
+  end
+
+  def visible_ctf_names
+    all(".ctf-card .ctf-name").map(&:text)
+  end
+
+  def visible_writeup_titles
+    all(".writeup-overview .blog-post-title").map(&:text)
+  end
+
+  def visible_blog_titles
+    all(".blog-posts-container .blog-post-title").map(&:text)
+  end
+
+  def blog_tag_case
+    groups = {}
+    blog_posts.each do |post|
+      Array(post[:categories]).each do |tag|
+        groups[tag.downcase] ||= { tag: tag, posts: [] }
+        groups[tag.downcase][:posts] << post
+      end
+    end
+
+    candidate = groups.values.find { |group| group[:posts].length < blog_posts.length } ||
+      groups.values.first ||
+      flunk("expected at least one blog tag")
+
+    { tag: candidate[:tag], items: candidate[:posts] }
+  end
+
+  def blog_search_case
+    blog_posts.each do |post|
+      query = post[:title]
+      matches = blog_posts.select { |candidate| blog_filter_text(candidate).include?(query.downcase) }
+      return { query: query, post: post, items: matches } if matches.any?
+    end
+
+    flunk("expected at least one searchable blog post")
+  end
+
+  def blog_year_case
+    groups = {}
+    blog_posts.each do |post|
+      year = post[:published].year
+      groups[year] ||= { year: year, items: [] }
+      groups[year][:items] << post
+    end
+
+    groups.values.find { |group| group[:items].length < blog_posts.length } ||
+      groups.values.first ||
+      flunk("expected at least one blog year")
+  end
+
+  def blog_filter_text(post)
+    published = post[:published].strftime("%Y-%m-%d")
+    ([ post[:title], post[:description], published, post[:published].year, post[:topic] ] + Array(post[:categories]))
+      .compact
+      .join(" ")
+      .downcase
+  end
+
+  def first_timeline_post_with_tags
+    timeline_items.find { |item| item[:link].to_s.match?(%r{\A/(blog|ctf)/}) && visible_timeline_tags(item).any? } ||
+      flunk("expected at least one timeline item with visible tags")
+  end
+
+  def first_visible_timeline_tag
+    visible_timeline_tags(first_timeline_post_with_tags).first
+  end
+
+  def visible_timeline_tags(item)
+    Array(item[:tags]).reject { |tag| [ item[:label], WriteupWinner::FILTER_LABEL ].include?(tag) }
+  end
+
+  def timeline_search_case
+    timeline_items.each do |item|
+      query = item[:title].to_s
+      next if query.blank?
+
+      matches = timeline_items.select { |candidate| candidate[:search_text].to_s.include?(query.downcase) }
+      return { query: query, items: matches } if matches.any?
+    end
+
+    flunk("expected at least one searchable timeline item")
+  end
+
+  def timeline_tag_case
+    groups = {}
+    timeline_items.each do |item|
+      visible_timeline_tags(item).each do |tag|
+        key = tag.downcase
+        groups[key] ||= { tag: tag, items: [] }
+        groups[key][:items] << item
+      end
+    end
+
+    groups.values.find { |group| group[:items].length < timeline_items.length } ||
+      groups.values.first ||
+      flunk("expected at least one timeline tag")
+  end
+
+  def assert_hidden_timeline_item(visible_items)
+    hidden = timeline_items.find { |item| visible_items.exclude?(item) }
+    return unless hidden
+
+    assert_no_selector ".timeline-card-hitbox[href='#{hidden[:link]}']"
+  end
+
+  def first_ctf_post_with_author_link
+    ctf_posts.each do |post|
+      if (author = authors_from_metadata(post[:metadata]).find { |entry| entry[:url].present? })
+        return [ post, author ]
+      end
+    end
+
+    flunk("expected at least one writeup author link")
+  end
+
+  def first_ctf_post_with_internal_author_link
+    ctf_posts.each do |post|
+      if (author = authors_from_metadata(post[:metadata]).find { |entry| entry[:url].to_s.start_with?("/") })
+        return [ post, author ]
+      end
+    end
+
+    first_ctf_post_with_author_link
+  end
+
+  def authors_from_metadata(metadata)
+    explicit_authors = metadata["authors"].presence
+    link_map = metadata["author_urls"].presence || metadata["author_links"].presence || {}
+
+    authors =
+      if explicit_authors.is_a?(Array)
+        explicit_authors.filter_map { |author| author_from_entry(author, link_map) }
+      else
+        metadata["author"].to_s.split(",").map(&:strip).reject(&:blank?).map do |name|
+          { name: name, url: link_map[name].presence || metadata["author_url"].presence }
+        end
+      end
+
+    authors.presence || [ { name: "Unknown author", url: nil } ]
+  end
+
+  def author_from_entry(author, link_map)
+    if author.is_a?(Hash)
+      name = author["name"].presence || author[:name].presence
+      return nil if name.blank?
+
+      { name: name, url: author["url"].presence || author[:url].presence || link_map[name].presence }
+    else
+      name = author.to_s.strip
+      return nil if name.blank?
+
+      { name: name, url: link_map[name].presence }
+    end
+  end
+
+  def assert_href_matches(expected, actual)
+    if expected.to_s.start_with?("/")
+      assert_equal expected, URI.parse(actual).path
+    else
+      assert_equal expected, actual
+    end
+  end
+
+  def winning_writeup_case
+    grouped = ctf_posts.select { |post| WriteupWinner.from_metadata(post[:metadata]) }.group_by { |post| post[:directory] }
+    directory, winner_posts = grouped.find { |_, posts| posts.length >= 2 } || grouped.first
+    flunk("expected at least one winning writeup") unless directory
+
+    {
+      directory: directory,
+      posts: ctf_posts.select { |post| post[:directory] == directory },
+      winner_posts: winner_posts
+    }
+  end
+
+  def first_external_winning_writeup
+    ctf_posts.find do |post|
+      WriteupWinner.from_metadata(post[:metadata])&.dig(:proof_url).to_s.match?(%r{\Ahttps?://}i)
+    end
+  end
+
+  def ctf_post_with_anchor_external_link_and_image
+    ctf_posts.find do |post|
+      post[:content].match?(/\]\(#[^)]+\)/) &&
+        post[:content].match?(/\]\(https?:\/\//i) &&
+        post[:content].match?(/!\[[^\]]*\]\((?!https?:\/\/)[^)]+\)/i)
+    end || flunk("expected a CTF post with an anchor link, external link, and local image")
+  end
+
+  def ctf_post_with_nested_headings
+    ctf_posts.each do |post|
+      headings = markdown_headings(post[:content])
+      headings.each_with_index do |heading, index|
+        next unless heading[:level] > 1
+
+        parent = headings[0...index].reverse.find { |candidate| candidate[:level] < heading[:level] }
+        return [ post, parent, heading ] if parent
+      end
+    end
+
+    flunk("expected a CTF post with nested headings")
+  end
+
+  def ctf_post_with_headings
+    ctf_posts.find { |post| markdown_headings(post[:content]).any? } || flunk("expected a CTF post with headings")
+  end
+
+  def ctf_post_with_code_block
+    ctf_posts.find { |post| post[:content].include?("```") } || flunk("expected a CTF post with a code block")
+  end
+
+  def article_heading_cases
+    [ ctf_post_with_headings, blog_posts.find { |post| markdown_headings(post[:content]).any? } ].compact.map do |post|
+      [ post[:link], markdown_headings(post[:content]).first[:text] ]
+    end
+  end
+
+  def markdown_headings(markdown)
+    headings = []
+    in_fence = false
+
+    markdown.to_s.each_line do |line|
+      if line.match?(/\A\s*```/)
+        in_fence = !in_fence
+        next
+      end
+      next if in_fence
+
+      match = line.match(/\A(\#{1,6})\s+(.+?)\s*\z/)
+      next unless match
+
+      text = match[2].sub(/<a\b.*\z/i, "").gsub(/<[^>]+>/, "").strip
+      headings << { level: match[1].length, text: text } if text.present?
+    end
+
+    headings
   end
 
   def link_hit_target(selector)

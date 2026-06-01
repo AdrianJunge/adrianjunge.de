@@ -24,7 +24,7 @@
              icon_alt: "Blog",
              title: "Blog",
              description: "Longer notes on security work, learning, and practical writeups outside the CTF archive.",
-             actions: feed_actions_for(:blog, feed_url: blog_feed_path, atom_url: blog_feed_path(format: :atom), label: "Blog") %>
+             actions: feed_actions_for(:blog, feed_url: feed_path, atom_url: feed_path(format: :atom), label: "Website") %>
 
   <%= render "shared/content_filters",
              scope: "blogs",

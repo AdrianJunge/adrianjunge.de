@@ -25,7 +25,7 @@
              icon_alt: "CTF",
              title: "CTF writeups",
              description: "Competition notes, challenge writeups, and security research practice grouped by event.",
-             actions: feed_actions_for(:ctf, feed_url: ctf_feed_path, atom_url: ctf_feed_path(format: :atom), label: "CTF") %>
+             actions: feed_actions_for(:ctf, feed_url: feed_path, atom_url: feed_path(format: :atom), label: "Website") %>
 
   <%= render "shared/content_filters",
              scope: "ctfs",

@@ -18,6 +18,13 @@ function setChipState(scope, activeTags) {
   });
 }
 
+function shouldReleaseChipFocus(pointerType) {
+  if (pointerType === 'touch' || pointerType === 'pen') return true;
+  if (!window.matchMedia) return false;
+
+  return window.matchMedia('(hover: none), (pointer: coarse)').matches;
+}
+
 function initYearDropdown(panel, scope, select, onChange) {
   const wrap = panel.querySelector(`[data-year-dropdown="${scope}"]`);
   const button = panel.querySelector(`[data-year-dropdown-button="${scope}"]`);
@@ -188,6 +195,12 @@ function initFilterPanel(panel) {
   }
 
   document.querySelectorAll(`[data-filter-tag][data-filter-scope="${scope}"]`).forEach(chip => {
+    let pointerType = '';
+
+    chip.addEventListener('pointerdown', event => {
+      pointerType = event.pointerType;
+    });
+
     chip.addEventListener('click', event => {
       event.preventDefault();
       event.stopPropagation();
@@ -199,6 +212,9 @@ function initFilterPanel(panel) {
         activeTags.add(tag);
       }
       applyFilters();
+
+      if (shouldReleaseChipFocus(pointerType)) chip.blur();
+      pointerType = '';
     });
 
     chip.addEventListener('keydown', event => {

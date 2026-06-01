@@ -1,5 +1,17 @@
 class ContentRepository
   READING_WORDS_PER_MINUTE = 225
+  FEED_SOURCES = [
+    {
+      key: :blog,
+      label: "Blog post",
+      method: :blog_posts
+    },
+    {
+      key: :ctf,
+      label: "CTF writeup",
+      method: :ctf_posts
+    }
+  ].freeze
 
   def about_markdown
     @about_markdown ||= read_file(ApplicationController::ABOUTME_TEXT_PATH)
@@ -60,6 +72,8 @@ class ContentRepository
           categories: Array(meta["categories"]),
           logo: item_meta["logo"],
           content: content,
+          word_count: meta["word_count"],
+          word_count_label: meta["word_count_label"],
           reading_time_minutes: meta["reading_time_minutes"],
           reading_time_label: meta["reading_time_label"],
           metadata: meta
@@ -98,6 +112,8 @@ class ContentRepository
           topic: meta["topic"].to_s,
           categories: Array(meta["categories"]),
           content: content,
+          word_count: meta["word_count"],
+          word_count_label: meta["word_count_label"],
           reading_time_minutes: meta["reading_time_minutes"],
           reading_time_label: meta["reading_time_label"],
           metadata: meta
@@ -120,6 +136,20 @@ class ContentRepository
 
   def format_reading_time(minutes)
     "#{minutes.to_i} min read"
+  end
+
+  def format_word_count(words)
+    count = words.to_i
+    "#{count} #{count == 1 ? "word" : "words"}"
+  end
+
+  def feed_posts(source_keys: nil)
+    keys = Array(source_keys).compact.map { |key| key.to_sym }
+    sources = keys.empty? ? FEED_SOURCES : FEED_SOURCES.select { |source| keys.include?(source[:key]) }
+
+    sources.flat_map do |source|
+      public_send(source[:method]).map { |post| feed_post_from(post, source) }
+    end.sort_by { |item| -item[:published].to_i }
   end
 
   def metadata_year(metadata)
@@ -151,17 +181,19 @@ class ContentRepository
   def post_metadata_from(parsed)
     metadata = (parsed&.front_matter || {}).dup
     body = parsed&.content.to_s
+    word_count = markdown_word_count(body)
+    reading_time_minutes = reading_time_minutes_for_word_count(word_count)
 
     metadata.merge(
-      "reading_time_minutes" => reading_time_minutes(body),
-      "reading_time_label" => reading_time_label(body)
+      "word_count" => word_count,
+      "word_count_label" => format_word_count(word_count),
+      "reading_time_minutes" => reading_time_minutes,
+      "reading_time_label" => format_reading_time(reading_time_minutes)
     )
   end
 
   def reading_time_minutes(markdown)
-    word_count = markdown_word_count(markdown)
-
-    [ (word_count / READING_WORDS_PER_MINUTE.to_f).ceil, 1 ].max
+    reading_time_minutes_for_word_count(markdown_word_count(markdown))
   end
 
   def reading_time_label(markdown)
@@ -219,6 +251,28 @@ class ContentRepository
     text = text.gsub(/<[^>]+>/, " ")
 
     text.scan(/[[:alnum:]][[:alnum:]_-]*/).length
+  end
+
+  def reading_time_minutes_for_word_count(word_count)
+    [ (word_count / READING_WORDS_PER_MINUTE.to_f).ceil, 1 ].max
+  end
+
+  def feed_post_from(post, source)
+    parsed = parse_markdown(post[:content])
+    description = post[:description].presence || parsed&.content.to_s[0, 800]
+
+    {
+      source_key: source[:key].to_s,
+      source_label: source[:label],
+      type: post[:type],
+      title: post[:title],
+      description: description.to_s,
+      link: post[:link],
+      published: post[:published],
+      guid: post[:link],
+      reading_time_label: post[:reading_time_label],
+      word_count: post[:word_count] || post.dig(:metadata, "word_count")
+    }
   end
 
   def about_entries_cache

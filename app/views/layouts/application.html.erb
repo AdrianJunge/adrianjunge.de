@@ -10,10 +10,8 @@
     <link rel="stylesheet" href="<%= TerminalHelper::XTERM_CSS_CDN_URL %>" crossorigin="anonymous">
     <%= stylesheet_link_tag 'application', media: 'all' %>
 
-    <link rel="alternate" type="application/rss+xml" title="CTF Writeups (RSS)" href="<%= ctf_feed_url %>">
-    <link rel="alternate" type="application/atom+xml" title="CTF Writeups (Atom)" href="<%= ctf_feed_url(format: :atom) %>">
-    <link rel="alternate" type="application/rss+xml" title="Blog Posts (RSS)" href="<%= blog_feed_url %>">
-    <link rel="alternate" type="application/atom+xml" title="Blog Posts (Atom)" href="<%= blog_feed_url(format: :atom) %>">
+    <link rel="alternate" type="application/rss+xml" title="adrianjunge.de (RSS)" href="<%= feed_url %>">
+    <link rel="alternate" type="application/atom+xml" title="adrianjunge.de (Atom)" href="<%= feed_url(format: :atom) %>">
 
     <%= javascript_importmap_tags %>
     <%= favicon_link_tag asset_path('favicon.svg') %>

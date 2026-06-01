@@ -13,6 +13,8 @@ class ContentRepositoryTest < ActiveSupport::TestCase
 
     metadata = repository.post_metadata_from(repository.parse_markdown(markdown))
 
+    assert_equal 226, metadata["word_count"]
+    assert_equal "226 words", metadata["word_count_label"]
     assert_equal 2, metadata["reading_time_minutes"]
     assert_equal "2 min read", metadata["reading_time_label"]
   end
@@ -22,7 +24,18 @@ class ContentRepositoryTest < ActiveSupport::TestCase
 
     assert repository.blog_posts.all? { |post| post[:reading_time_label].present? }
     assert repository.ctf_posts.all? { |post| post[:reading_time_label].present? }
+    assert repository.blog_posts.all? { |post| post[:word_count].positive? }
+    assert repository.ctf_posts.all? { |post| post[:word_count].positive? }
     assert_operator repository.total_post_reading_time_minutes, :>, 0
     assert_match(/\A\d+ min read\z/, repository.format_reading_time(repository.total_post_reading_time_minutes))
+  end
+
+  test "generic feed posts merge configured content sources" do
+    repository = ContentRepository.new
+    items = repository.feed_posts
+
+    assert items.any? { |item| item[:source_key] == "blog" && item[:link].start_with?("/blog/") }
+    assert items.any? { |item| item[:source_key] == "ctf" && item[:link].start_with?("/ctf/") }
+    assert_equal items.sort_by { |item| -item[:published].to_i }.map { |item| item[:guid] }, items.map { |item| item[:guid] }
   end
 end

@@ -57,6 +57,7 @@
     <h4 class="writeup-year text-white text-center"><%= @blog_category %></h4>
     <h1 class="writeup-title text-white text-center"><%= @blog_title %></h1>
     <%= render "shared/post_meta", items: [ @blog_info["published"] ], reading_time: @blog_info["reading_time_label"] %>
+    <%= render "shared/post_progress", word_total: @blog_info["word_count"] %>
 
     <%= @html_content %>
   </div>

@@ -1,0 +1,26 @@
+<% word_total = local_assigns[:word_total].to_i %>
+
+<% if word_total.positive? %>
+  <div
+    class="article-progress"
+    data-article-progress
+    data-word-total="<%= word_total %>"
+    role="meter"
+    aria-label="Article reading progress"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-valuenow="0"
+    style="--article-progress: 0%;"
+  >
+    <span class="article-progress-count">
+      <span data-article-progress-current>0</span>
+      <span aria-hidden="true">/</span>
+      <span data-article-progress-total><%= number_with_delimiter(word_total) %></span>
+      words
+    </span>
+    <span class="article-progress-percent" data-article-progress-percent>0%</span>
+    <span class="article-progress-track" aria-hidden="true">
+      <span class="article-progress-bar"></span>
+    </span>
+  </div>
+<% end %>
