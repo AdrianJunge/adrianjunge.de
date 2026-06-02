@@ -22,10 +22,12 @@ class BlogController < ApplicationController
 
     parsed = parse_markdown_content(@markdown_content)
     @blog_info = content_repository.post_metadata_from(parsed)
+    blog_config = @blogs[@post_slug] || {}
+    return render_error_page(:not_found) if content_repository.hidden_content?(@blog_info) || content_repository.hidden_content?(blog_config)
+
     @headings = get_headings_from_content(@markdown_content)
     @html_content = render_markdown(@markdown_content)
 
-    blog_config = @blogs[@post_slug] || {}
     @blog_category = blog_config["category"] || "Post"
     @blog_title = blog_config["title"].presence || @blog_info["title"].presence || @post_slug.humanize
   end

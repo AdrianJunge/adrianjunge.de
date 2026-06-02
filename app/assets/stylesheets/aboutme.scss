@@ -649,15 +649,55 @@ a.aboutme-cwe-id:focus-visible {
     text-underline-offset: 0.22em;
 }
 
+.aboutme-finding-summary a.aboutme-finding-advisory-link {
+    display: inline;
+    margin-left: -0.22rem;
+    padding: 0.18rem 0.4rem 0.18rem 0.58rem;
+    border-left: 3px solid rgba(125, 211, 252, 0.72);
+    border-radius: 0.42rem;
+    color: #e0f2fe;
+    background: linear-gradient(90deg, rgba(8, 145, 178, 0.22), rgba(15, 23, 42, 0.06));
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    font-weight: 800;
+    text-decoration: none;
+    transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.aboutme-finding-summary a.aboutme-finding-advisory-link::after {
+    display: inline-block;
+    width: 0.42rem;
+    height: 0.42rem;
+    margin-left: 0.42rem;
+    border-top: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    content: "";
+    opacity: 0.74;
+    transform: translateY(-0.06rem) rotate(45deg);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.aboutme-finding-summary a.aboutme-finding-advisory-link:hover,
+.aboutme-finding-summary a.aboutme-finding-advisory-link:focus-visible {
+    border-left-color: rgba(251, 191, 36, 0.78);
+    color: #fff;
+    background: linear-gradient(90deg, rgba(8, 145, 178, 0.34), rgba(15, 23, 42, 0.08));
+    text-decoration: none;
+}
+
+.aboutme-finding-summary a.aboutme-finding-advisory-link:hover::after,
+.aboutme-finding-summary a.aboutme-finding-advisory-link:focus-visible::after {
+    opacity: 1;
+    transform: translate(0.1rem, -0.06rem) rotate(45deg);
+}
+
 .aboutme-finding-project .aboutme-finding-project-link {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     max-width: 100%;
-    text-decoration: underline;
-    text-decoration-color: rgba(125, 211, 252, 0.5);
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.2em;
+    color: #f8fafc;
+    text-decoration: none;
 }
 
 .aboutme-finding-project .aboutme-finding-project-link::after {
@@ -676,6 +716,12 @@ a.aboutme-cwe-id:focus-visible {
 .aboutme-finding-project .aboutme-finding-project-link:focus-visible::after {
     opacity: 1;
     transform: translate(0.1rem, -0.05rem) rotate(45deg);
+}
+
+.aboutme-finding-project .aboutme-finding-project-link:hover,
+.aboutme-finding-project .aboutme-finding-project-link:focus-visible {
+    color: #7dd3fc;
+    text-decoration: none;
 }
 
 .aboutme-timeline {

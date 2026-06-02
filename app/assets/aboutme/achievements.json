@@ -17,6 +17,7 @@
     "events": [
       {
         "id": "firedancer-v1-audit-competition-tba",
+        "hidden": true,
         "title": "Firedancer v1.0 audit competition (TBA)",
         "date": "2026"
       }

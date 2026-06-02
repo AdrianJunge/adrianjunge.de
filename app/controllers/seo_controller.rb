@@ -22,20 +22,20 @@ class SeoController < ApplicationController
   end
 
   def ctf_sitemap_entries
+    visible_posts_by_directory = content_repository.ctf_posts.group_by { |post| post[:directory] }
+
     content_repository.ctf_metadata.flat_map do |name, metadata|
       directory = metadata["terminal_path"].presence || name.downcase
-      directory_path = BASE_PATH.join(directory)
-      next [] unless File.directory?(directory_path)
+      posts = Array(visible_posts_by_directory[directory])
+      next [] if posts.empty?
 
-      files = Dir.glob(directory_path.join("*.md").to_s).select { |path| File.file?(path) }
+      files = posts.map { |post| BASE_PATH.join(directory, "#{post[:slug]}.md") }
       entries = [ sitemap_entry("/ctf/#{url_segment(directory)}", newest_mtime(files)) ]
 
-      entries.concat(files.map do |file_path|
-        slug = File.basename(file_path, ".md")
-        metadata = markdown_metadata(file_path)
+      entries.concat(posts.map do |post|
         sitemap_entry(
-          "/ctf/#{url_segment(directory)}/#{url_segment(slug)}",
-          metadata_date(metadata, file_path)
+          "/ctf/#{url_segment(directory)}/#{url_segment(post[:slug])}",
+          metadata_date(post[:metadata], BASE_PATH.join(directory, "#{post[:slug]}.md"))
         )
       end)
 
@@ -44,12 +44,9 @@ class SeoController < ApplicationController
   end
 
   def blog_sitemap_entries
-    Dir.glob(BLOG_BASE_PATH.join("*.md").to_s).filter_map do |file_path|
-      next unless File.file?(file_path)
-
-      slug = File.basename(file_path, ".md")
-      metadata = markdown_metadata(file_path)
-      sitemap_entry(blog_post_path(slug), metadata_date(metadata, file_path))
+    content_repository.blog_posts.map do |post|
+      file_path = BLOG_BASE_PATH.join("#{post[:slug]}.md")
+      sitemap_entry(blog_post_path(post[:slug]), metadata_date(post[:metadata], file_path))
     end
   end
 

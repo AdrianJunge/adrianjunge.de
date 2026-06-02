@@ -88,6 +88,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "<loc>#{ctf_url}/umdctf/A%20Minecraft%20Movie</loc>"
     assert_includes response.body, "<loc>#{blog_post_url("htb-cpts")}</loc>"
     assert_includes response.body, "<loc>#{blog_post_url("java-strings")}</loc>"
+    assert_not_includes response.body, blog_post_url("frankendancer-net-shred-overrun")
     assert_match %r{<lastmod>\d{4}-\d{2}-\d{2}</lastmod>}, response.body
     assert_not_includes response.body, "/feed"
   end

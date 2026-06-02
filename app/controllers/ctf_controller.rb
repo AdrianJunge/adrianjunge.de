@@ -46,6 +46,8 @@ class CtfController < ApplicationController
     return unless @markdown_content
 
     @ctf_info = content_repository.post_metadata_from(parse_markdown_content(@markdown_content))
+    return render_error_page(:not_found) if content_repository.hidden_content?(@ctf_info)
+
     @headings = get_headings_from_content(@markdown_content)
     @html_content = render_markdown(@markdown_content)
     @challenge_file = writeup_public_asset("files", "zip")

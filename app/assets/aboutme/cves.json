@@ -129,6 +129,7 @@
   },
   {
     "id": "suitecrm-tba-2",
+    "hidden": true,
     "project": "SuiteCRM",
     "project_url": "https://github.com/salesagility/SuiteCRM",
     "title": "SuiteCRM advisory #2 (TBA)",
@@ -153,6 +154,7 @@
   },
   {
     "id": "suitecrm-tba-1",
+    "hidden": true,
     "project": "SuiteCRM",
     "project_url": "https://github.com/salesagility/SuiteCRM",
     "title": "SuiteCRM advisory #1 (TBA)",

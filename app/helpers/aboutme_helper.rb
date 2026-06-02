@@ -21,13 +21,15 @@ module AboutmeHelper
     end
   end
 
-  def aboutme_optional_link(label, url, class_name: nil)
+  def aboutme_optional_link(label, url, class_name: nil, aria_label: nil, title: nil)
     return nil if label.blank?
 
     text = label
     url = url.to_s
     options = {}
     options[:class] = class_name if class_name.present?
+    options[:aria] = { label: aria_label } if aria_label.present?
+    options[:title] = title if title.present?
 
     return content_tag(:span, text, options) if url.blank?
 
@@ -92,11 +94,17 @@ module AboutmeHelper
     url.present? ? aboutme_optional_link(label, url, class_name: tag_classes) : content_tag(:span, label, class: tag_classes)
   end
 
+  def aboutme_ordered_tags(tags)
+    Array(tags).compact.partition { |tag| tag[:url].blank? }.flatten
+  end
+
   def aboutme_finding_card(entry, kind:)
     title_label = entry["title"].presence || entry["short_summary"].presence || entry["summary"].presence
     summary_text = aboutme_finding_summary(entry)
     collapsible = aboutme_finding_collapsible?(entry)
     card_url = entry["card_url"].presence || (collapsible ? nil : entry["title_url"].presence)
+    description_url = collapsible ? entry["title_url"] : nil
+    advisory_link = kind == "cve" && description_url.present?
     body_blocks = []
     body_blocks << { title: "Summary", text: summary_text } if aboutme_visible_detail?(summary_text)
 
@@ -112,8 +120,10 @@ module AboutmeHelper
       title_link: collapsible,
       title_link_class: "aboutme-finding-project-link",
       description: title_label,
-      description_url: collapsible ? entry["title_url"] : nil,
-      description_link_class: "aboutme-finding-summary-link",
+      description_url: description_url,
+      description_link_class: [ "aboutme-finding-summary-link", ("aboutme-finding-advisory-link" if advisory_link) ].compact.join(" "),
+      description_aria_label: ("Open advisory for #{title_label}" if advisory_link),
+      description_title: ("Open advisory source" if advisory_link),
       tags: aboutme_finding_tags(entry),
       body_blocks: body_blocks,
       timeline: aboutme_timeline_items(entry["timeline"]),

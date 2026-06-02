@@ -1,5 +1,7 @@
 class ContentRepository
   READING_WORDS_PER_MINUTE = 225
+  HIDDEN_CONTENT_KEYS = %w[hidden draft wip].freeze
+  HIDDEN_CONTENT_VALUES = %w[1 true yes y on].freeze
   FEED_SOURCES = [
     {
       key: :blog,
@@ -17,8 +19,12 @@ class ContentRepository
     @about_markdown ||= read_file(ApplicationController::ABOUTME_TEXT_PATH)
   end
 
-  def about_entries(path)
-    about_entries_cache[path.to_s] ||= read_json_array(path)
+  def about_entries(path, include_hidden: false)
+    cache_key = [ path.to_s, include_hidden ]
+    about_entries_cache[cache_key] ||= begin
+      entries = read_json_array(path)
+      include_hidden ? entries : visible_about_entries(entries, path)
+    end
   end
 
   def blog_metadata
@@ -39,7 +45,10 @@ class ContentRepository
       parsed = parse_markdown(read_file(file_path))
       next unless parsed
 
-      posts_info[File.basename(file_path, ".md")] = post_metadata_from(parsed)
+      metadata = post_metadata_from(parsed)
+      next if hidden_content?(metadata)
+
+      posts_info[File.basename(file_path, ".md")] = metadata
     end.tap { |posts_info| post_metadata_cache[cache_key] = posts_info }
   end
 
@@ -55,6 +64,8 @@ class ContentRepository
         next unless parsed
 
         meta = post_metadata_from(parsed)
+        next if hidden_content?(meta)
+
         title = meta["title"].presence || File.basename(file_path, ".md").humanize
         slug = File.basename(file_path, ".md")
         published = parsed_time(meta["published"], fallback: file_time(file_path, meta["year"]))
@@ -96,6 +107,8 @@ class ContentRepository
         meta = post_metadata_from(parsed)
         slug = File.basename(file_path, ".md")
         blog_info = metadata[slug] || {}
+        next if hidden_content?(meta) || hidden_content?(blog_info)
+
         category = blog_info["category"] || "POST"
         title = blog_info["title"].presence || meta["title"].presence || slug.humanize
         published = parsed_time(meta["published"], fallback: file_time(file_path, meta["year"]))
@@ -167,8 +180,19 @@ class ContentRepository
 
   def achievement_event_count(entries)
     Array(entries).sum do |entry|
+      next 0 if hidden_content?(entry)
+
       events = Array(entry["events"]).select { |event| event.is_a?(Hash) && event["title"].present? }
-      events.any? ? events.length : 1
+      visible_events = events.reject { |event| hidden_content?(event) }
+      events.any? ? visible_events.length : 1
+    end
+  end
+
+  def hidden_content?(metadata)
+    return false unless metadata.respond_to?(:[])
+
+    HIDDEN_CONTENT_KEYS.any? do |key|
+      hidden_content_value?(metadata[key])
     end
   end
 
@@ -239,6 +263,25 @@ class ContentRepository
   end
 
   private
+
+  def visible_about_entries(entries, path)
+    Array(entries).filter_map do |entry|
+      next if hidden_content?(entry)
+
+      if path.to_s == ApplicationController::ABOUTME_ACHIEVEMENTS_PATH.to_s
+        visible_events = Array(entry["events"]).reject { |event| hidden_content?(event) }
+        next if visible_events.empty?
+
+        entry.merge("events" => visible_events)
+      else
+        entry
+      end
+    end
+  end
+
+  def hidden_content_value?(value)
+    value == true || HIDDEN_CONTENT_VALUES.include?(value.to_s.strip.downcase)
+  end
 
   def read_file(path)
     File.exist?(path) ? File.read(path) : ""

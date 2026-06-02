@@ -3,7 +3,8 @@ require "test_helper"
 class AboutmeControllerTest < ActionDispatch::IntegrationTest
   test "shows about me page with security sections" do
     get about_path
-    cves = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
+    repository = ContentRepository.new
+    cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
 
     assert_response :success
     assert_select "main.aboutme-page"
@@ -16,7 +17,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".aboutme-finding-card", minimum: 1
     assert_select ".aboutme-achievement-card", minimum: 1
     assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#cves", text: cves.length.to_s
-    assert_select ".aboutme-stat[href=?]", "#bug-bounties", text: /Bug bounties/
+    assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#bug-bounties", text: "0"
     assert_select ".aboutme-stat[href=?]", "#my-challenges", text: /Created Challenges/
     assert_select ".aboutme-stat[href=?]", "#certificates", text: /Certificates/
     assert_select ".aboutme-stat[href=?]", "#achievements", text: /Achievements/
@@ -38,17 +39,12 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
   test "landing page exposes about section counters" do
     get root_path
 
-    cves = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
-    bug_bounties = JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
-    challenges = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
-    certificates = JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH))
-    achievements = JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
-    achievement_events = achievements.sum { |entry| Array(entry["events"]).length }
-    ctf_posts = JSON.parse(File.read(ApplicationController::CTF_INFO_PATH)).sum do |name, metadata|
-      directory = metadata["terminal_path"].presence || name.downcase
-      Dir.glob(ApplicationController::BASE_PATH.join(directory, "*.md")).length
-    end
-    post_count = ctf_posts + Dir.glob(ApplicationController::BLOG_BASE_PATH.join("*.md")).length
+    repository = ContentRepository.new
+    cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
+    challenges = repository.about_entries(ApplicationController::ABOUTME_CHALLENGES_PATH)
+    certificates = repository.about_entries(ApplicationController::ABOUTME_CERTIFICATES_PATH)
+    achievements = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH)
+    achievement_events = repository.achievement_event_count(achievements)
 
     assert_response :success
     assert_select "h1", text: "Welcome to my bug collection 🐛"
@@ -58,13 +54,13 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".landing-metric.aboutme-stat", 6
     assert_select ".landing-metric:first-child[href=?]", timeline_path, text: /Posts/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
-    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#bug-bounties", text: bug_bounties.length.to_s
+    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#bug-bounties", text: "0"
     assert_select ".landing-metric[href=?]", "#{about_path}#my-challenges", text: /Created Challenges/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#my-challenges", text: challenges.length.to_s
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#certificates", text: certificates.length.to_s
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#achievements", text: achievement_events.to_s
-    assert_select ".landing-metric[href=?] .landing-metric-value", timeline_path, text: post_count.to_s
-    assert_select ".landing-metric[href=?] .landing-metric-sublabel", timeline_path, text: ContentRepository.new.format_reading_time(ContentRepository.new.total_post_reading_time_minutes)
+    assert_select ".landing-metric[href=?] .landing-metric-value", timeline_path, text: repository.post_count.to_s
+    assert_select ".landing-metric[href=?] .landing-metric-sublabel", timeline_path, text: repository.format_reading_time(repository.total_post_reading_time_minutes)
     assert_select ".landing-featured-card", 3
   end
 
@@ -94,8 +90,11 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-48898" }
     assert_equal 0, cves.count { |entry| entry["project"] == "Joomla CMS" && entry["cve_id"].blank? }
     assert_equal 2, cves.count { |entry| entry["project"] == "SuiteCRM" && entry["cve_id"].blank? }
+    assert cves.select { |entry| entry["id"].include?("suitecrm-tba") }.all? { |entry| entry["hidden"] }
     assert bug_bounties.any? { |entry| entry["project"] == "Firedancer" && entry["title"].include?("TBA") }
     assert bug_bounties.any? { |entry| entry["project"] == "Firedancer" && entry["cve_id"].blank? }
+    assert bug_bounties.all? { |entry| entry["hidden"] }
+    assert_empty ContentRepository.new.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
     assert_equal 1, challenges.length
     assert_equal [ "smile-at-me" ], challenges.map { |entry| entry["id"] }
     assert_equal "Smile at me", challenges.first["title"]
@@ -115,6 +114,12 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
       cscg
       kitctf
     ], achievements.map { |entry| entry["id"] }
+    assert achievements.find { |entry| entry["id"] == "firedancer-v1-audit-competition" }["events"].all? { |event| event["hidden"] }
+    assert_equal %w[
+      dhm
+      cscg
+      kitctf
+    ], ContentRepository.new.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).map { |entry| entry["id"] }
     dhm = achievements.find { |entry| entry["id"] == "dhm" }
     cscg = achievements.find { |entry| entry["id"] == "cscg" }
     assert_equal %w[dhm-2025 dhm-2024], dhm["events"].map { |event| event["id"] }

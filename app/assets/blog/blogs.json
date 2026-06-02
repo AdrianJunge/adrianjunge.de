@@ -1,5 +1,6 @@
 {
   "frankendancer": {
+    "hidden": true,
     "terminal_path": "frankendancer",
     "logo": "blog/solana.svg",
     "title": "Frankendancer",

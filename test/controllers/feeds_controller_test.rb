@@ -11,6 +11,7 @@ class FeedsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "<category>CTF writeup</category>"
     assert_match %r{<link>http://www\.example\.com/blog/}, response.body
     assert_match %r{<link>http://www\.example\.com/ctf/}, response.body
+    assert_not_includes response.body, "frankendancer-net-shred-overrun"
   end
 
   test "atom feed merges blog posts and ctf writeups" do
@@ -23,6 +24,7 @@ class FeedsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '<category term="CTF writeup"/>'
     assert_match %r{href="http://www\.example\.com/blog/}, response.body
     assert_match %r{href="http://www\.example\.com/ctf/}, response.body
+    assert_not_includes response.body, "frankendancer-net-shred-overrun"
   end
 
   test "legacy section feeds point to the generic website feed" do

@@ -31,6 +31,11 @@ class AboutmeFindingCardTest < ActionView::TestCase
     assert_select "summary .aboutme-finding-project + .aboutme-finding-badges"
     assert_select "summary a[href=?][target=?][rel=?]", "https://github.com/example/project", "_blank", "noopener noreferrer"
     assert_select "summary a[href=?][target=?][rel=?]", "https://github.com/example/project/security/advisories/GHSA-example", "_blank", "noopener noreferrer", text: "Example advisory title"
+    assert_select "summary .aboutme-finding-summary-link.aboutme-finding-advisory-link[href=?][aria-label=?][title=?]",
+                  "https://github.com/example/project/security/advisories/GHSA-example",
+                  "Open advisory for Example advisory title",
+                  "Open advisory source",
+                  text: "Example advisory title"
     assert_select ".aboutme-cve-id[href=?]", "https://www.cve.org/CVERecord?id=CVE-2026-0001", text: "CVE-2026-0001"
     assert_select ".aboutme-cwe-id[href=?]", "https://cwe.mitre.org/data/definitions/79.html", text: "CWE-79"
     assert_select ".aboutme-detail-block", text: /allowing session actions/

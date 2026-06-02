@@ -27,6 +27,7 @@ Finding entries support these fields:
 
 `cve_id` and `cwe_id` render as clickable chips when they contain real IDs. Leave them empty for pending or non-CVE findings.
 Finding cards are only collapsible when they contain real detail fields such as `summary` or `timeline`.
+Set `"hidden": true` on pending JSON records or achievement events that should remain in source but not render publicly. Markdown posts use `draft: true` in front matter for the same behavior.
 
 Challenge, certificate, and achievement entries support these fields:
 
@@ -45,7 +46,7 @@ Challenge, certificate, and achievement entries support these fields:
 }
 ```
 
-Use `summary` for all visible card text. Keep it empty only for TBA milestone cards.
+Use `summary` for all visible card text. Keep pending milestones hidden until they have public summary text.
 
 Achievement entries can group dated events so every event becomes its own search and timeline item:
 

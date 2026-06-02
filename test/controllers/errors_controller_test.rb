@@ -32,6 +32,7 @@ class ErrorsControllerTest < ActionDispatch::IntegrationTest
   test "renders custom not found page for invalid blog and ctf subpaths" do
     [
       "/blog/definitely-not-a-post",
+      "/blog/frankendancer-net-shred-overrun",
       "/ctf/definitely-not-a-ctf",
       "/ctf/cscg/definitely-not-a-writeup"
     ].each do |path|

@@ -53,6 +53,7 @@ class ContentJsonSchemas
       "severity" => STRING,
       "short_summary" => STRING,
       "summary" => STRING,
+      "hidden" => { "type" => "boolean" },
       "timeline" => {
         "type" => "array",
         "items" => {
@@ -82,6 +83,7 @@ class ContentJsonSchemas
       "category_url" => STRING,
       "date" => DATE,
       "summary" => STRING,
+      "hidden" => { "type" => "boolean" },
       "links" => { "type" => "array", "items" => LINK }
     }
   }.freeze
@@ -98,6 +100,7 @@ class ContentJsonSchemas
       "category" => STRING,
       "category_url" => STRING,
       "summary" => STRING,
+      "hidden" => { "type" => "boolean" },
       "links" => { "type" => "array", "items" => LINK },
       "events" => {
         "type" => "array",
@@ -112,7 +115,8 @@ class ContentJsonSchemas
             "date" => DATE,
             "summary" => STRING,
             "url" => STRING,
-            "card_url" => STRING
+            "card_url" => STRING,
+            "hidden" => { "type" => "boolean" }
           }
         }
       }
@@ -128,7 +132,8 @@ class ContentJsonSchemas
       "logo" => STRING,
       "title" => STRING,
       "category" => STRING,
-      "description" => STRING
+      "description" => STRING,
+      "hidden" => { "type" => "boolean" }
     }
   }.freeze
 
@@ -141,7 +146,8 @@ class ContentJsonSchemas
       "logo" => STRING,
       "writeups" => STRING,
       "website" => STRING,
-      "description" => STRING
+      "description" => STRING,
+      "hidden" => { "type" => "boolean" }
     }
   }.freeze
 

@@ -519,7 +519,7 @@ class SitePagesTest < ApplicationSystemTestCase
   test "landing page exposes about section counters as direct links" do
     visit "/"
 
-    assert_text "creating writeups, collecting CVEs, bounties"
+    assert_text "creating writeups, collecting CVEs, bounties, and notes"
     assert_text "occasionally convince software to confess"
     assert_no_text "Security researcher and computer science student focused on web security"
     assert_no_text "Welcome to my flag collection"
@@ -557,14 +557,14 @@ class SitePagesTest < ApplicationSystemTestCase
     page.execute_script("document.querySelector('.landing-metrics').scrollIntoView({ block: 'center' })")
 
     [
-      [ "/about#cves", "CVEs", JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH)).length ],
-      [ "/about#bug-bounties", "Bug bounties", JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)).length ],
-      [ "/about#my-challenges", "Created Challenges", JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH)).length ],
-      [ "/about#certificates", "Certificates", JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH)).length ],
+      [ "/about#cves", "CVEs", repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).length ],
+      [ "/about#bug-bounties", "Bug bounties", repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH).length ],
+      [ "/about#my-challenges", "Created Challenges", repository.about_entries(ApplicationController::ABOUTME_CHALLENGES_PATH).length ],
+      [ "/about#certificates", "Certificates", repository.about_entries(ApplicationController::ABOUTME_CERTIFICATES_PATH).length ],
       [
         "/about#achievements",
         "Achievements",
-        JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH)).sum { |entry| Array(entry["events"]).length }
+        repository.achievement_event_count(repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
       ]
     ].each do |href, label, count|
       assert_selector ".landing-metric[href='#{href}']", text: label
@@ -572,11 +572,7 @@ class SitePagesTest < ApplicationSystemTestCase
     end
 
     assert_selector ".landing-metric[href='/timeline']", text: "Posts"
-    post_count = JSON.parse(File.read(ApplicationController::CTF_INFO_PATH)).sum do |name, metadata|
-      directory = metadata["terminal_path"].presence || name.downcase
-      Dir.glob(ApplicationController::BASE_PATH.join(directory, "*.md")).length
-    end + Dir.glob(ApplicationController::BLOG_BASE_PATH.join("*.md")).length
-    assert_selector ".landing-metric[href='/timeline'] .landing-metric-value", text: post_count.to_s
+    assert_selector ".landing-metric[href='/timeline'] .landing-metric-value", text: repository.post_count.to_s
     assert_no_selector ".landing-metric[href='/ctf']", text: "CTFs"
     assert_no_selector ".landing-metric", text: "Tags"
     expected_featured_count = content_index.featured_items.length
@@ -589,16 +585,19 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-featured-card", text: /Certificate/i
   end
 
-  test "TBA findings render as static cards while disclosed findings stay collapsible" do
+  test "hidden TBA findings stay out of public finding sections" do
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
     bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
 
     visit "/about"
 
+    assert_no_text "TBA"
+    assert_selector "#bug-bounties .aboutme-section-count", text: "0 findings"
+    assert_selector "#bug-bounties .aboutme-empty-state", text: "No public bounties yet - the disclosure timers are still pretending to be load-bearing."
+    assert_no_selector "#bug-bounties .aboutme-finding-card"
     assert_selector_count "#cves article.aboutme-finding-card-static", cves.count { |entry| !about_finding_collapsible?(entry) }
     assert_selector_count "#cves details.aboutme-finding-card-cve", cves.count { |entry| about_finding_collapsible?(entry) }
-    assert_selector_count "#bug-bounties article.aboutme-finding-card-static", bug_bounties.count { |entry| !about_finding_collapsible?(entry) }
-    assert_selector_count "#bug-bounties details", bug_bounties.count { |entry| about_finding_collapsible?(entry) }
+    assert_empty bug_bounties
   end
 
   test "timeline entries are full-card links" do

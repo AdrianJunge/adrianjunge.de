@@ -1,5 +1,5 @@
 <% card = local_assigns.fetch(:card) %>
-<% tags = Array(card[:tags]).compact %>
+<% tags = aboutme_ordered_tags(card[:tags]) %>
 <% body_blocks = Array(card[:body_blocks]).compact %>
 <% timeline_items = Array(card[:timeline]).compact %>
 <% child_cards = Array(card[:children]).compact %>
@@ -34,7 +34,13 @@
 
     <% if card[:description].present? %>
       <span class="<%= summary_classes %>">
-        <%= aboutme_optional_link(card[:description], card[:description_url], class_name: card[:description_link_class]) %>
+        <%= aboutme_optional_link(
+              card[:description],
+              card[:description_url],
+              class_name: card[:description_link_class],
+              aria_label: card[:description_aria_label],
+              title: card[:description_title]
+            ) %>
       </span>
     <% end %>
 

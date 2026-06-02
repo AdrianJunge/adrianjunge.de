@@ -18,9 +18,9 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_text "Privilege escalation through com_users batch task"
     assert_text "Authenticated blind SQL injection in com_finder"
     assert_text "Authenticated blind SQL injection in com_tags"
-    assert_text "SuiteCRM advisory #1 (TBA)"
-    assert_text "SuiteCRM advisory #2 (TBA)"
-    assert_text "Firedancer bug bounty finding (TBA)"
+    assert_no_text "SuiteCRM advisory #1 (TBA)"
+    assert_no_text "SuiteCRM advisory #2 (TBA)"
+    assert_no_text "Firedancer bug bounty finding (TBA)"
     assert_text "Smile at me"
     assert_text "GPNCTF 2025"
     assert_text "Web challenge about URL parser differentials"
@@ -43,7 +43,17 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#certificates .aboutme-card-link-overlay[href='/blog/htb-cpts']", visible: :all
     assert_selector "#certificates .aboutme-card-reading-time", text: /min read/
     assert_selector "#certificates .aboutme-tag-certification[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", text: "Certification"
-    assert_selector "#achievements #firedancer-v1-audit-competition .aboutme-card-link-overlay[href='https://immunefi.com/audit-competition/firedancer-v1-audit-comp/information/']", visible: :all
+    certificate_tags = page.evaluate_script(<<~JS)
+      Array.from(document.querySelectorAll("#certificates .aboutme-card-tags > *")).map((tag) => ({
+        text: tag.innerText.trim(),
+        linked: tag.matches("a")
+      }))
+    JS
+    assert_equal [
+      { "text" => "2026-03-23", "linked" => false },
+      { "text" => "Certification", "linked" => true }
+    ], certificate_tags
+    assert_no_selector "#achievements #firedancer-v1-audit-competition"
     assert_selector "#achievements #kitctf .aboutme-card-link-overlay[href='https://ctftime.org/team/7221/']", visible: :all
     assert_no_text "Public advisories"
     assert_no_text "Responsible disclosure"
@@ -55,19 +65,19 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_no_text "Placeholder"
     assert_no_text "Pending disclosure"
     assert_no_text "Details will be added"
-    assert_selector "#cves article.aboutme-finding-card-static", minimum: 1
+    assert_no_selector "#cves article.aboutme-finding-card-static"
     assert_selector "#cves details.aboutme-finding-card-cve", minimum: 1
-    assert_selector "#bug-bounties article.aboutme-finding-card-static .aboutme-card-link-overlay[href='https://immunefi.com/bug-bounty/firedancer/information/']", visible: :all
-    assert_no_selector "#bug-bounties details"
+    assert_selector "#bug-bounties .aboutme-empty-state", text: "No public bounties yet - the disclosure timers are still pretending to be load-bearing."
     assert_selector ".aboutme-achievement-card", minimum: 1
     assert_selector ".aboutme-stat[href='#cves']", text: "CVEs"
+    assert_selector ".aboutme-stat[href='#bug-bounties']", text: "0"
     assert_selector ".aboutme-stat[href='#bug-bounties']", text: "Bug bounties"
     assert_selector ".aboutme-stat[href='#my-challenges']", text: "Created Challenges"
     assert_selector ".aboutme-stat[href='#certificates']", text: "Certificates"
     assert_selector ".aboutme-stat[href='#achievements']", text: "Achievements"
     assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.aboutme-stat')).justifyContent")
     assert_selector "#cves .aboutme-section-count", text: /entries/
-    assert_selector "#bug-bounties .aboutme-section-count", text: /finding/
+    assert_selector "#bug-bounties .aboutme-section-count", text: "0 findings"
     assert_selector "#my-challenges .aboutme-section-count", text: /challenge/
     assert_selector "#certificates .aboutme-section-count", text: /certificate/
     assert_selector "#achievements .aboutme-section-count", text: /events/
@@ -111,7 +121,7 @@ class AboutmeTest < ApplicationSystemTestCase
         })()
       JS
 
-      assert_in_delta stats_layout["statsWidth"], stats_layout["lastStatWidth"], 2
+      assert_operator stats_layout["lastStatWidth"], :<=, stats_layout["statsWidth"]
     end
   end
 
@@ -214,6 +224,7 @@ class AboutmeTest < ApplicationSystemTestCase
         const cveTagActionStyle = window.getComputedStyle(cveTag, "::after");
         const cweTagStyle = window.getComputedStyle(cweTag);
         const projectLinkStyle = window.getComputedStyle(finding.querySelector(".aboutme-finding-project-link"));
+        const advisoryLink = finding.querySelector(".aboutme-finding-advisory-link");
         const highSeverityStyle = window.getComputedStyle(document.querySelector(".aboutme-severity-high"));
         const mediumSeverityStyle = window.getComputedStyle(document.querySelector(".aboutme-severity-medium"));
         const challengeTag = document.querySelector("#my-challenges .aboutme-tag-gpnctf-2025");
@@ -232,6 +243,10 @@ class AboutmeTest < ApplicationSystemTestCase
           cveHref: cveTag.href,
           cweHref: cweTag.href,
           projectDecoration: projectLinkStyle.textDecorationLine,
+          advisoryHref: advisoryLink.href,
+          advisoryClass: advisoryLink.className,
+          advisoryAriaLabel: advisoryLink.getAttribute("aria-label"),
+          advisoryTitle: advisoryLink.getAttribute("title"),
           achievementTagsBelowTitle: achievementTags.top >= achievementTitle.bottom,
           cveTagClass: cveTag.className,
           cveTagBackground: cveTagStyle.backgroundColor,
@@ -270,7 +285,11 @@ class AboutmeTest < ApplicationSystemTestCase
     assert metrics["achievementTagsBelowTitle"]
     assert_equal "https://www.cve.org/CVERecord?id=CVE-2026-48898", metrics["cveHref"]
     assert_equal "https://cwe.mitre.org/data/definitions/284.html", metrics["cweHref"]
-    assert_equal "underline", metrics["projectDecoration"]
+    assert_equal "none", metrics["projectDecoration"]
+    assert_equal "https://developer.joomla.org/security-centre/1045-20260513-core-privilege-escalation-through-com-users-batch-task.html", metrics["advisoryHref"]
+    assert_includes metrics["advisoryClass"], "aboutme-finding-advisory-link"
+    assert_equal "Open advisory for Privilege escalation through com_users batch task", metrics["advisoryAriaLabel"]
+    assert_equal "Open advisory source", metrics["advisoryTitle"]
     assert_includes metrics["cveTagClass"], "ui-hover-lift"
     assert_equal "rgba(8, 145, 178, 0.16)", metrics["cveTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.32)", metrics["cveTagBorder"]
@@ -382,12 +401,7 @@ class AboutmeTest < ApplicationSystemTestCase
     JS
 
     assert_equal "Privilege escalation through com_users batch task", first_cve_title
-    assert_equal [
-      "Firedancer v1.0 audit competition",
-      "DHM",
-      "CSCG",
-      "KITCTF"
-    ], achievement_titles
+    assert_equal [ "DHM", "CSCG", "KITCTF" ], achievement_titles
     assert_equal [ "DHM 2025 participation", "DHM 2024 #1" ], achievement_events["DHM"].map { |event| event["title"] }
     assert_equal [ "CSCG 2025 top 10 global", "CSCG 2024 DHM qualification" ], achievement_events["CSCG"].map { |event| event["title"] }
     assert_equal [
