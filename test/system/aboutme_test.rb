@@ -208,36 +208,59 @@ class AboutmeTest < ApplicationSystemTestCase
         const finding = document.querySelector("#cves .aboutme-finding-card");
         const findingTitle = finding.querySelector(".aboutme-finding-project").getBoundingClientRect();
         const findingTags = finding.querySelector(".aboutme-finding-badges").getBoundingClientRect();
-        const cveTagStyle = window.getComputedStyle(finding.querySelector(".aboutme-cve-id"));
-        const cweTagStyle = window.getComputedStyle(finding.querySelector(".aboutme-cwe-id"));
+        const cveTag = finding.querySelector(".aboutme-cve-id");
+        const cweTag = finding.querySelector(".aboutme-cwe-id");
+        const cveTagStyle = window.getComputedStyle(cveTag);
+        const cveTagActionStyle = window.getComputedStyle(cveTag, "::after");
+        const cweTagStyle = window.getComputedStyle(cweTag);
         const projectLinkStyle = window.getComputedStyle(finding.querySelector(".aboutme-finding-project-link"));
         const highSeverityStyle = window.getComputedStyle(document.querySelector(".aboutme-severity-high"));
         const mediumSeverityStyle = window.getComputedStyle(document.querySelector(".aboutme-severity-medium"));
-        const challengeTagStyle = window.getComputedStyle(document.querySelector("#my-challenges .aboutme-tag-gpnctf-2025"));
+        const challengeTag = document.querySelector("#my-challenges .aboutme-tag-gpnctf-2025");
+        const challengeTagStyle = window.getComputedStyle(challengeTag);
+        const challengeTagActionStyle = window.getComputedStyle(challengeTag, "::after");
 
         const achievement = document.querySelector("#achievements .aboutme-achievement-card");
         const achievementTitle = achievement.querySelector("h3").getBoundingClientRect();
         const achievementTags = achievement.querySelector(".aboutme-achievement-meta").getBoundingClientRect();
-        const achievementTagStyle = window.getComputedStyle(achievement.querySelector(".aboutme-achievement-meta .aboutme-card-tag"));
+        const achievementTag = achievement.querySelector(".aboutme-achievement-meta .aboutme-card-tag");
+        const achievementTagStyle = window.getComputedStyle(achievementTag);
+        const achievementTagActionStyle = window.getComputedStyle(achievementTag, "::after");
 
         return {
           findingTagsBelowTitle: findingTags.top >= findingTitle.bottom,
-          cveHref: finding.querySelector(".aboutme-cve-id").href,
-          cweHref: finding.querySelector(".aboutme-cwe-id").href,
+          cveHref: cveTag.href,
+          cweHref: cweTag.href,
           projectDecoration: projectLinkStyle.textDecorationLine,
           achievementTagsBelowTitle: achievementTags.top >= achievementTitle.bottom,
+          cveTagClass: cveTag.className,
           cveTagBackground: cveTagStyle.backgroundColor,
           cveTagBorder: cveTagStyle.borderTopColor,
+          cveTagCursor: cveTagStyle.cursor,
+          cveTagActionContent: cveTagActionStyle.content,
+          cveTagActionWidth: cveTagActionStyle.width,
+          cweTagClass: cweTag.className,
           cweTagBackground: cweTagStyle.backgroundColor,
           cweTagBorder: cweTagStyle.borderTopColor,
+          cweTagCursor: cweTagStyle.cursor,
+          challengeTagClass: challengeTag.className,
           challengeTagBackground: challengeTagStyle.backgroundColor,
           challengeTagBorder: challengeTagStyle.borderTopColor,
+          challengeTagCursor: challengeTagStyle.cursor,
+          challengeTagActionContent: challengeTagActionStyle.content,
+          challengeTagActionWidth: challengeTagActionStyle.width,
           highSeverityBorder: highSeverityStyle.borderTopColor,
           highSeverityBackgroundImage: highSeverityStyle.backgroundImage,
+          highSeverityShadow: highSeverityStyle.boxShadow,
           mediumSeverityBorder: mediumSeverityStyle.borderTopColor,
           mediumSeverityBackgroundImage: mediumSeverityStyle.backgroundImage,
+          mediumSeverityShadow: mediumSeverityStyle.boxShadow,
+          achievementTagClass: achievementTag.className,
           achievementTagBackground: achievementTagStyle.backgroundColor,
           achievementTagBorder: achievementTagStyle.borderTopColor,
+          achievementTagCursor: achievementTagStyle.cursor,
+          achievementTagShadow: achievementTagStyle.boxShadow,
+          achievementTagActionContent: achievementTagActionStyle.content,
           visibleActionRows: document.querySelectorAll(".aboutme-link-row").length
         };
       })()
@@ -248,20 +271,34 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "https://www.cve.org/CVERecord?id=CVE-2026-48898", metrics["cveHref"]
     assert_equal "https://cwe.mitre.org/data/definitions/284.html", metrics["cweHref"]
     assert_equal "underline", metrics["projectDecoration"]
-    assert_equal "rgba(8, 145, 178, 0.3)", metrics["cveTagBackground"]
-    assert_equal "rgba(34, 211, 238, 0.68)", metrics["cveTagBorder"]
-    assert_equal "rgba(109, 40, 217, 0.3)", metrics["cweTagBackground"]
-    assert_equal "rgba(196, 181, 253, 0.62)", metrics["cweTagBorder"]
-    assert_equal "rgba(8, 145, 178, 0.28)", metrics["challengeTagBackground"]
-    assert_equal "rgba(34, 211, 238, 0.62)", metrics["challengeTagBorder"]
+    assert_includes metrics["cveTagClass"], "ui-hover-lift"
+    assert_equal "rgba(8, 145, 178, 0.16)", metrics["cveTagBackground"]
+    assert_equal "rgba(125, 211, 252, 0.32)", metrics["cveTagBorder"]
+    assert_equal "pointer", metrics["cveTagCursor"]
+    assert_equal '""', metrics["cveTagActionContent"]
+    assert_not_equal "0px", metrics["cveTagActionWidth"]
+    assert_includes metrics["cweTagClass"], "ui-hover-lift"
+    assert_equal "rgba(109, 40, 217, 0.2)", metrics["cweTagBackground"]
+    assert_equal "rgba(167, 139, 250, 0.4)", metrics["cweTagBorder"]
+    assert_equal "pointer", metrics["cweTagCursor"]
+    assert_includes metrics["challengeTagClass"], "ui-hover-lift"
+    assert_equal "rgba(8, 145, 178, 0.16)", metrics["challengeTagBackground"]
+    assert_equal "rgba(125, 211, 252, 0.32)", metrics["challengeTagBorder"]
+    assert_equal "pointer", metrics["challengeTagCursor"]
+    assert_equal '""', metrics["challengeTagActionContent"]
+    assert_not_equal "0px", metrics["challengeTagActionWidth"]
     assert_match(/rgba?\(251,\s*146,\s*60/, metrics["highSeverityBorder"])
     assert_includes metrics["highSeverityBackgroundImage"], "linear-gradient"
+    assert_includes metrics["highSeverityShadow"], "inset"
     assert_match(/rgba?\(250,\s*204,\s*21/, metrics["mediumSeverityBorder"])
     assert_includes metrics["mediumSeverityBackgroundImage"], "linear-gradient"
+    assert_includes metrics["mediumSeverityShadow"], "inset"
     assert_equal "rgba(8, 145, 178, 0.16)", metrics["achievementTagBackground"]
-    assert_equal "rgba(125, 211, 252, 0.32)", metrics["achievementTagBorder"]
-    assert_not_equal metrics["cveTagBackground"], metrics["achievementTagBackground"]
-    assert_not_equal metrics["challengeTagBackground"], metrics["achievementTagBackground"]
+    assert_equal "rgba(125, 211, 252, 0.56)", metrics["achievementTagBorder"]
+    assert_equal "default", metrics["achievementTagCursor"]
+    assert_includes metrics["achievementTagShadow"], "inset"
+    assert_not_equal '""', metrics["achievementTagActionContent"]
+    assert_not_includes metrics["achievementTagClass"], "ui-hover-lift"
     assert_equal 0, metrics["visibleActionRows"]
   end
 

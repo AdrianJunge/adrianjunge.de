@@ -82,7 +82,7 @@ module AboutmeHelper
   def aboutme_tag(label:, url: nil, class_name: nil, datetime: nil)
     return nil if label.blank?
 
-    tag_classes = [ "aboutme-card-tag", class_name ].compact.join(" ")
+    tag_classes = [ "aboutme-card-tag", class_name, ("ui-hover-lift" if url.present?) ].compact.join(" ")
     if datetime.present?
       return aboutme_optional_link(label, url, class_name: tag_classes) if url.present?
 
