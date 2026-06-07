@@ -5,7 +5,6 @@ categories:
     - Active Directory
     - Privilege Escalation
     - Web Exploitation
-year: 2026
 published: "2026-03-23"
 ---
 

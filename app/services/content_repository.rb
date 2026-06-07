@@ -81,7 +81,7 @@ class ContentRepository
 
         title = meta["title"].presence || File.basename(file_path, ".md").humanize
         slug = File.basename(file_path, ".md")
-        published = parsed_time(meta["published"], fallback: file_time(file_path, meta["year"]))
+        published = parsed_time(meta["published"], fallback: file_time(file_path, legacy_year(meta)))
 
         {
           type: "ctf",
@@ -124,7 +124,7 @@ class ContentRepository
 
         category = blog_info["category"] || "POST"
         title = blog_info["title"].presence || meta["title"].presence || slug.humanize
-        published = parsed_time(meta["published"], fallback: file_time(file_path, meta["year"]))
+        published = parsed_time(meta["published"], fallback: file_time(file_path, legacy_year(meta)))
 
         {
           type: "blog",
@@ -216,7 +216,14 @@ class ContentRepository
     published = metadata["published"].presence
     return parsed_time(published, fallback: nil)&.year if published
 
-    metadata["year"].presence&.to_i
+    legacy_year(metadata)&.to_i
+  end
+
+  def ctf_event_year(metadata)
+    year = metadata["ctf_year"].presence ||
+           metadata["event_year"].presence ||
+           legacy_year(metadata)
+    year.to_s[/\d{4}/] || metadata_year(metadata)
   end
 
   def metadata_tags(metadata = nil, include_difficulty: true, **metadata_keywords)
@@ -358,6 +365,10 @@ class ContentRepository
     File.exist?(path) ? File.read(path) : ""
   end
 
+  def legacy_year(metadata)
+    metadata["year"].presence
+  end
+
   def markdown_word_count(markdown)
     text = markdown.to_s
     text = text.gsub(/!\[[^\]]*\]\([^)]+\)/, " ")
@@ -380,7 +391,7 @@ class ContentRepository
   end
 
   def authored_challenge_event(post)
-    [ post.dig(:metadata, "ctf").presence || post[:which], post[:published]&.year ].compact.join(" ")
+    [ post.dig(:metadata, "ctf").presence || post[:which], ctf_event_year(post[:metadata] || {}) ].compact.join(" ")
   end
 
   def authored_challenge_summary(description, event)

@@ -8,7 +8,7 @@ description: Welcome to the canteen's online menu, where you can check out the d
 categories:
     - Web
 difficulty: Medium
-year: 2025
+ctf_year: 2025
 challengefiles: canteenfood
 published: "2025-05-09"
 ---

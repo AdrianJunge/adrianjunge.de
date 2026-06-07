@@ -70,6 +70,19 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert_equal [ "web" ], repository.metadata_tags("categories" => [ "web" ])
   end
 
+  test "ctf event year is separate from published year" do
+    repository = ContentRepository.new
+
+    metadata = {
+      "ctf_year" => "2025",
+      "published" => "2026-01-02"
+    }
+
+    assert_equal 2026, repository.metadata_year(metadata)
+    assert_equal "2025", repository.ctf_event_year(metadata)
+    assert_equal "2024", repository.ctf_event_year("year" => "2024", "published" => "2026-01-02")
+  end
+
   test "generic feed posts merge configured content sources" do
     repository = ContentRepository.new
     items = repository.feed_posts

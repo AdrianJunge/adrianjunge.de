@@ -8,7 +8,7 @@ description: All of our slot machines switched from using the very insecure libc
 categories:
     - pwn
 difficulty: Medium
-year: 2026
+ctf_year: 2025
 challengefiles: xmalloc
 published: "2026-05-25"
 ---

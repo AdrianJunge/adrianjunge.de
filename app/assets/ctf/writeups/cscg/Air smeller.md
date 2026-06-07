@@ -8,7 +8,7 @@ description: I found this website where you can rate the smell of the air, after
 categories:
     - Web
 difficulty: Hard
-year: 2025
+ctf_year: 2025
 challengefiles: air-smeller
 published: "2025-05-01"
 optional:

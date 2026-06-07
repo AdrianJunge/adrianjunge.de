@@ -9,7 +9,7 @@ categories:
     - pwn
     - web
 difficulty: Hard
-year: 2026
+ctf_year: 2026
 challengefiles: scanwich-station
 published: "2026-06-05"
 optional:

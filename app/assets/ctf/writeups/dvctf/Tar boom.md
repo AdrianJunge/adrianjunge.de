@@ -8,7 +8,7 @@ description: Within the Louvre Museum's intranet, there is a service that allows
 categories:
     - web
 difficulty: Medium
-year: 2025
+ctf_year: 2025
 challengefiles: tarboom
 published: "2025-03-27"
 ---

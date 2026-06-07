@@ -1078,8 +1078,11 @@ class SitePagesTest < ApplicationSystemTestCase
     click_card_link_area(find(".blog-post-card", text: writeup_post[:title]))
     assert_current_path writeup_post[:link]
     assert_selector ".writeup-title", text: writeup_post[:title]
+    ctf_event_year = writeup_post[:metadata]["ctf_year"].presence ||
+                     writeup_post[:metadata]["year"].presence ||
+                     writeup_post[:published].year
     assert_selector ".writeup-year-link[href='#{repository.ctf_metadata.dig(writeup_post[:which], "website")}'][target='_blank'][rel='noopener noreferrer']",
-                    text: /#{Regexp.escape(writeup_post[:which].upcase)}-#{writeup_post[:published].year}/
+                    text: /#{Regexp.escape(writeup_post[:which].upcase)}-#{ctf_event_year}/
     difficulty = WriteupDifficulty.from_metadata(writeup_post[:metadata])
     assert_selector ".writeup-badges-article .difficulty-badge-#{difficulty[:key]}.difficulty-badge-article", text: difficulty[:label]
   end

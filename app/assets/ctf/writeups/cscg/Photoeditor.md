@@ -9,7 +9,7 @@ categories:
     - Web
     - .NET
 difficulty: Medium
-year: 2024
+ctf_year: 2024
 challengefiles: photoeditor
 published: "2024-05-17"
 ---

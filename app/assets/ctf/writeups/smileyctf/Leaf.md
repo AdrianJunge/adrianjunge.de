@@ -8,7 +8,7 @@ description: I always think leaf ~= tea. Please allow remote to have some time t
 categories:
     - web
 difficulty: Hard
-year: 2025
+ctf_year: 2025
 challengefiles: leaf
 published: "2025-06-09"
 ---

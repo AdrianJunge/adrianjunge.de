@@ -8,7 +8,7 @@ description: You gained access to a Linux server. Can you also gain privileges?
 categories:
     - PrivEsc
 difficulty: Medium
-year: 2024
+ctf_year: 2024
 challengefiles: hoster
 published: "2024-05-23"
 ---

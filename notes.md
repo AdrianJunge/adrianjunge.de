@@ -1,8 +1,4 @@
 # TODOs
-- On small displays like a smarthphone, the font size in codeblocks is a bit too big (it should be equal or a bit smaller than the normal text font size). Moreover the Download button at the top of a post e.g. a writeup, should have more space to the first title.
-
-- Is the "year" attribute in the markdown headers obsolete because of the "publisehd" attribute?
-
 - Add new section "Talks" to the /about page and a new counter at the top
     - The cards should be generic with "title", "date", "link to slides" etc
     - KITCTF web intro 07.05.2026 (https://kitctf.de/intro/)
@@ -15,6 +11,8 @@
 - If there is a line wrap (e.g. for the CVE Proof links on the landing page for the Joomla CVE), there shouldn't be a new "line" at the start of the newline. Moreover when hovering the yellow at this line looks weird, use a different color that suits the color pallet and the context
 
 - Reduce the counters on the landing page so there are only “Posts, CVEs, bounties, & more...". I think this reduces the impression of me just wanting "to show off" or whats your opinion on this? What do you think could I change on my website to its not arrogant or superior of me showing what I've done so far? Or is it good how it currently is? Make suggestions what we could improve on my website
+
+- Refactor again the tag colors, it still looks weird having just that small colored border - so maybe having a transparent color filling the tags is better? Moreover in /blog having "Privilege escalation" as the only tag with an emoji is weird. So please remove this emoji
 
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
     => https://github.com/felixfbecker/dom-to-svg

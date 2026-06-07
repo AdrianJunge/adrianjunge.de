@@ -10,7 +10,7 @@ description: Doctor Doom, the monarch of Latveria has made many doombots. You wo
 categories:
     - Pwn
 difficulty: Medium
-year: 2025
+ctf_year: 2025
 challengefiles: fantasticdoom
 published: "2025-04-24"
 ---

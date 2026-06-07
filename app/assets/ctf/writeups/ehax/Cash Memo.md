@@ -8,7 +8,7 @@ description: I have a really hard time managing my cash, am afraid someone might
 categories:
     - PWN
 difficulty: Medium
-year: 2025
+ctf_year: 2025
 challengefiles: cashmemo
 published: "2025-04-17"
 ---

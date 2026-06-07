@@ -5,7 +5,6 @@ categories:
     - JVM Internals
     - Security Research
     - Memory
-year: 2026
 published: "2026-05-27"
 ---
 # 1. The Tiny Problem With Strings<a id="the-tiny-problem-with-strings"></a>

@@ -8,7 +8,7 @@ description: We've managed to insert ourselves into a secure channel between two
 categories:
     - Crypto
 difficulty: Medium
-year: 2025
+ctf_year: 2025
 challengefiles: kdf-dream
 published: "2025-05-02"
 optional:

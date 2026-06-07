@@ -18,7 +18,7 @@ description:
 categories:
     -
 difficulty: unknown difficulty
-year:
+ctf_year:
 challengefiles:
 published: "2025-08-25"
 

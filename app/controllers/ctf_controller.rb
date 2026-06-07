@@ -115,7 +115,7 @@ class CtfController < ApplicationController
   end
 
   def writeup_public_asset(public_dir, extension)
-    year = @ctf_info["year"].to_s
+    year = content_repository.ctf_event_year(@ctf_info).to_s
     asset_name = @ctf_info["challengefiles"].to_s
     return nil unless year.match?(/\A\d{4}\z/) && safe_public_asset_segment?(asset_name)
 

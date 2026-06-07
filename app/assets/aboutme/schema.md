@@ -39,7 +39,7 @@ optional:
     summary: Summary shown on the about card.
 ```
 
-The `optional` section may be omitted entirely. Inside `authored_challenge`, `event`, `event_url`, and `summary` are optional; missing values fall back to the CTF name/year, configured CTF website, and writeup description.
+The `optional` section may be omitted entirely. Inside `authored_challenge`, `event`, `event_url`, and `summary` are optional; missing values fall back to the CTF name plus `ctf_year`, configured CTF website, and writeup description.
 
 Certificate and achievement entries support these fields:
 

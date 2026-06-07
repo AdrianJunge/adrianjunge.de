@@ -239,6 +239,14 @@ module CtfHelper
     info["year"].presence
   end
 
+  def writeup_ctf_year(info)
+    year = info["ctf_year"].presence ||
+           info["event_year"].presence ||
+           info["year"].presence
+
+    year.to_s[/\d{4}/] || writeup_year(info)
+  end
+
   def writeup_authors(info)
     explicit_authors = info["authors"].presence
     link_map = info["author_urls"].presence || info["author_links"].presence || {}

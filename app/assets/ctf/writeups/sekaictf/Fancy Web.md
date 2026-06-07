@@ -8,7 +8,7 @@ description: The Ministry of Information and Communications Technology of Konoha
 categories:
     - web
 difficulty: Medium
-year: 2025
+ctf_year: 2025
 challengefiles: fancy-web
 published: "2025-09-06"
 optional:

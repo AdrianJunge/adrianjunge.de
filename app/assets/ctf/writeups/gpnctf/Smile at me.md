@@ -8,7 +8,7 @@ description: Be careful, others might be able to find out your most sacred secre
 categories:
     - web
 difficulty: Hard
-year: 2025
+ctf_year: 2025
 challengefiles: smile-at-me
 published: "2025-08-21"
 optional:

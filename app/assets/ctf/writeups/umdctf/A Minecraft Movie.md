@@ -8,7 +8,7 @@ description: I...AM STEVE!
 categories:
     - Web
 difficulty: Medium
-year: 2025
+ctf_year: 2025
 challengefiles: a-minecraft-movie
 published: "2025-02-04"
 optional:

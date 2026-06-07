@@ -150,6 +150,12 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-card[data-filter-tags*='hint']", false
   end
 
+  test "ctf event year stays separate from published year" do
+    assert_equal "2025", writeup_ctf_year("ctf_year" => "2025", "published" => "2026-01-01")
+    assert_equal 2026, writeup_year("ctf_year" => "2025", "published" => "2026-01-01")
+    assert_equal "2024", writeup_ctf_year("year" => "2024", "published" => "2026-01-01")
+  end
+
   test "article hints render as collapsed markdown details" do
     render inline: "<%= render_writeup_hints(info) %>", locals: {
       info: {
