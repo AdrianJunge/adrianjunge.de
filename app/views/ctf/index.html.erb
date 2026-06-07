@@ -46,7 +46,9 @@
              winner: tag == WriteupWinner::FILTER_LABEL,
              authored: tag == AuthoredChallenge::FILTER_LABEL,
              difficulty_filter: WriteupDifficulty.filter_label?(tag),
-             difficulty_key: tag
+             difficulty_key: tag,
+             category: tag != WriteupWinner::FILTER_LABEL && tag != AuthoredChallenge::FILTER_LABEL && !WriteupDifficulty.filter_label?(tag),
+             category_key: tag
            }
          end %>
       <% filter_text = [name, ctf["description"], ctf["terminal_path"], ctf_tags].flatten.compact.join(" ") %>

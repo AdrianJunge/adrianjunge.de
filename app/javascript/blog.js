@@ -1,6 +1,7 @@
 function initBlogTOC() {
   const tocLinks = document.querySelectorAll(".toc-anchor");
-  const headings = document.querySelectorAll(".markdown-content h1, .markdown-content h2, .markdown-content h3");
+  const article = document.querySelector(".writeup-container > .markdown-content") || document.querySelector(".markdown-content");
+  const headings = article ? article.querySelectorAll("h1, h2, h3") : [];
 
   if (tocLinks.length === 0) return;
 
@@ -80,7 +81,7 @@ function initCodeCopy() {
 
 function initArticleProgress() {
   const progress = document.querySelector('[data-article-progress]');
-  const article = document.querySelector('.markdown-content');
+  const article = document.querySelector('.writeup-container > .markdown-content') || document.querySelector('.markdown-content');
   if (!progress || !article) return;
 
   const totalWords = parseInt(progress.dataset.wordTotal || '0', 10);

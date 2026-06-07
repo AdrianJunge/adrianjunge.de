@@ -95,6 +95,13 @@
                          difficulty_filter: true,
                          difficulty_key: tag_name
                        } %>
+                  <% elsif ContentCategoryTag.recognized?(tag_name) %>
+                    <% timeline_tags << {
+                         label: tag_name,
+                         class_name: "timeline-tag-pill",
+                         category: true,
+                         category_key: tag_name
+                       } %>
                   <% else %>
                     <% timeline_tags << { label: tag_name, class_name: "timeline-tag-pill" } %>
                   <% end %>

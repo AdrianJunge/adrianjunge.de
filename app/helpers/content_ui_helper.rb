@@ -5,10 +5,11 @@ module ContentUiHelper
     render "shared/content_card", card: card
   end
 
-  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, static_class: "blog-post-static-chip", title: nil)
+  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, static_class: "blog-post-static-chip", title: nil)
     label = label.to_s
     classes = [ "filter-chip", class_name ]
     difficulty_key = WriteupDifficulty.css_key(difficulty_key) if difficulty_key.present?
+    category_key = ContentCategoryTag.css_key(category_key) if category_key.present?
 
     if winner
       classes << "writeup-winner-badge"
@@ -20,6 +21,10 @@ module ContentUiHelper
       classes << "difficulty-badge"
       classes << "difficulty-badge-#{difficulty_key}"
       classes << "difficulty-badge-filter"
+    elsif category_key.present?
+      classes << "category-badge"
+      classes << "category-badge-#{category_key}"
+      classes << "category-badge-filter"
     end
 
     interactive = false if scope.blank?
@@ -37,7 +42,7 @@ module ContentUiHelper
       return content_tag(:span, content, class: classes.compact.join(" "), title: title)
     end
 
-    classes << "ui-hover-lift" unless winner || authored || difficulty_key.present?
+    classes << "ui-hover-lift" unless winner || authored || difficulty_key.present? || category_key.present?
     content_tag(
       :button,
       content,
@@ -87,6 +92,19 @@ module ContentUiHelper
       label,
       class: classes.join(" "),
       title: title.presence || "Challenge difficulty: #{label}"
+    )
+  end
+
+  def content_category_badge(label:, context: :card, title: nil)
+    label = label.to_s
+    key = ContentCategoryTag.css_key(label)
+    classes = [ "category-badge", "category-badge-#{key}", "category-badge-#{context}" ]
+
+    content_tag(
+      :span,
+      label,
+      class: classes.join(" "),
+      title: title.presence || "Challenge category: #{label}"
     )
   end
 
@@ -148,6 +166,7 @@ module ContentUiHelper
       winner: config[:winner],
       authored: config[:authored],
       difficulty_key: config[:difficulty_filter] ? config[:difficulty_key] || config[:label] : nil,
+      category_key: config[:category] ? config[:category_key] || config[:label] : nil,
       static_class: config[:static_class].presence || "blog-post-static-chip",
       title: config[:title]
     )

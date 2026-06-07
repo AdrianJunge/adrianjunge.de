@@ -189,7 +189,7 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
-  test "linked content hero titles show a subtle link cue" do
+  test "linked content hero titles show an arrow link cue without title underline" do
     _, ctf = repository.ctf_metadata.find { |_, entry| entry["website"].present? }
 
     visit ctf["writeups"]
@@ -209,7 +209,6 @@ class SitePagesTest < ApplicationSystemTestCase
           title: heading.innerText.trim(),
           borderWidth: parseFloat(linkStyle.borderTopWidth),
           textDecorationLine: headingStyle.textDecorationLine,
-          textDecorationColor: headingStyle.textDecorationColor,
           cueContent: cueStyle.content,
           cueWidth: parseFloat(cueStyle.width),
           cueHeight: parseFloat(cueStyle.height),
@@ -221,8 +220,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
     assert_equal ctf["terminal_path"].upcase, styles["title"]
     assert_equal 0, styles["borderWidth"]
-    assert_includes styles["textDecorationLine"], "underline"
-    assert_not_equal "rgba(0, 0, 0, 0)", styles["textDecorationColor"]
+    assert_equal "none", styles["textDecorationLine"]
     assert_not_equal "none", styles["cueContent"]
     assert_operator styles["cueWidth"], :>, 0
     assert_operator styles["cueHeight"], :>, 0
@@ -923,8 +921,15 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".content-filter-panel .filter-chip.authored-challenge-badge-filter", text: "Authored challenge"
     assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.difficulty-badge-#{ctf_difficulty_case[:key]}",
                     text: /^#{Regexp.escape(ctf_difficulty_case[:label])}$/
-    assert_selector ".content-filter-panel .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
-    assert_selector ".ctf-card .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
+    assert_selector ".content-filter-panel .filter-chip.category-badge-filter.category-badge-#{ContentCategoryTag.css_key(ctf_tag_case[:tag])}",
+                    text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
+    assert_selector ".ctf-card .filter-chip.category-badge-filter.category-badge-#{ContentCategoryTag.css_key(ctf_tag_case[:tag])}",
+                    text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
+    category_emoji_content = page.evaluate_script(<<~JS)
+      window.getComputedStyle(document.querySelector(".content-filter-panel .filter-chip.category-badge-filter"), "::before").content
+    JS
+    assert_not_equal "none", category_emoji_content
+    assert_not_equal "\"\"", category_emoji_content
     assert_selector ".ctf-card .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
     assert_selector ".ctf-card .filter-chip.authored-challenge-badge-filter", text: "Authored challenge"
     assert_selector ".ctf-card .filter-chip.difficulty-badge-filter.difficulty-badge-#{ctf_difficulty_case[:key]}",
@@ -992,7 +997,8 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".content-filter-tag-group-label", text: "DIFFICULTY"
     assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.difficulty-badge-#{writeup_difficulty_case[:key]}",
                     text: /^#{Regexp.escape(writeup_difficulty_case[:label])}$/
-    assert_selector ".content-filter-panel .filter-chip", text: writeup_case[:tag]
+    assert_selector ".content-filter-panel .filter-chip.category-badge-filter.category-badge-#{ContentCategoryTag.css_key(writeup_case[:tag])}",
+                    text: /^#{Regexp.escape(writeup_case[:tag])}$/i
 
     within ".content-filter-panel" do
       find(".filter-chip.difficulty-badge-filter", text: /^#{Regexp.escape(writeup_difficulty_case[:label])}$/).click
@@ -1003,8 +1009,8 @@ class SitePagesTest < ApplicationSystemTestCase
 
     find("[data-filter-reset='writeups']").click
     within ".content-filter-panel" do
-      find(".filter-chip", text: writeup_case[:tag]).click
-      assert_selector ".filter-chip.is-active", text: writeup_case[:tag]
+      find(".filter-chip.category-badge-filter", text: /^#{Regexp.escape(writeup_case[:tag])}$/i).click
+      assert_selector ".filter-chip.category-badge-filter.is-active", text: /^#{Regexp.escape(writeup_case[:tag])}$/i
     end
     assert_selector "[data-filter-count='writeups']", text: filter_count_text(writeup_case[:tag_posts].length, writeup_case[:posts].length)
     assert_equal writeup_case[:tag_posts].map { |post| post[:title] }, visible_writeup_titles
@@ -1084,6 +1090,58 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".writeup-badges-article .difficulty-badge-#{difficulty[:key]}.difficulty-badge-article", text: difficulty[:label]
   end
 
+  test "writeup optional hints render as overview counts and collapsed article details" do
+    page.current_window.resize_to(1440, 1200)
+    post = ctf_post_with_hints
+    hints = writeup_hints_for(post)
+    hint_count_label = "#{hints.length} #{hints.length == 1 ? "hint" : "hints"}"
+
+    visit "/ctf/#{post[:directory]}"
+
+    within find(".blog-post-card", text: post[:title]) do
+      assert_selector ".writeup-hints-chip", text: hint_count_label
+      assert_no_selector ".writeup-hints-chip[data-filter-tag]", visible: :all
+    end
+
+    visit post[:link]
+
+    assert_selector "details.writeup-hints:not([open])"
+    assert_selector ".writeup-hints-summary", text: "Hints"
+    assert_selector ".writeup-hints-count", text: hint_count_label
+    assert_no_selector ".writeup-hints-list", visible: true
+    assert_selector ".article-progress-percent"
+    progress_state = page.evaluate_script(<<~JS)
+      (() => {
+        return new Promise((resolve) => {
+          requestAnimationFrame(() => {
+            const progress = document.querySelector(".article-progress");
+            const article = document.querySelector(".writeup-container > .markdown-content");
+            const firstMarkdown = document.querySelector(".markdown-content");
+            const currentText = progress.querySelector("[data-article-progress-current]").innerText;
+            const percentText = progress.querySelector("[data-article-progress-percent]").innerText;
+
+            resolve({
+              firstMarkdownIsHint: firstMarkdown !== article,
+              currentWords: parseInt(currentText.replace(/\\D/g, ""), 10),
+              percent: parseInt(percentText, 10),
+              totalWords: parseInt(progress.dataset.wordTotal, 10)
+            });
+          });
+        });
+      })()
+    JS
+    assert_equal true, progress_state["firstMarkdownIsHint"]
+    assert_operator progress_state["percent"], :<, 100
+    assert_operator progress_state["currentWords"], :<, progress_state["totalWords"]
+
+    find(".writeup-hints-summary").click
+    assert_selector "details.writeup-hints[open]"
+    assert_selector "ul.writeup-hints-list li", count: hints.length
+
+    inline_code = hints.join(" ")[/`([^`]+)`/, 1]
+    assert_selector ".writeup-hints-list code", text: inline_code if inline_code
+  end
+
   test "winning writeups show proof badges on overview cards and articles" do
     winner_case = winning_writeup_case
 
@@ -1139,6 +1197,20 @@ class SitePagesTest < ApplicationSystemTestCase
     visit post[:link]
     assert_selector ".writeup-badges-article .difficulty-badge-hard", text: "Hard"
     assert_selector ".writeup-badges-article .authored-challenge-badge[href='#{authored[:event_url]}'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
+    Array(post[:metadata]["categories"]).each do |category|
+      assert_selector ".writeup-badges-article .category-badge.category-badge-#{ContentCategoryTag.css_key(category)}.category-badge-article",
+                      text: /^#{Regexp.escape(category)}$/i
+    end
+    article_badge_order = page.evaluate_script(<<~JS)
+      [...document.querySelectorAll(".writeup-badges-article > *")].map((badge) => {
+        if (badge.classList.contains("writeup-winner-badge") || badge.classList.contains("authored-challenge-badge")) return "shiny";
+        if (badge.classList.contains("difficulty-badge")) return "difficulty";
+        if (badge.classList.contains("category-badge")) return "category";
+        return "other";
+      })
+    JS
+    assert_operator article_badge_order.index("shiny"), :<, article_badge_order.index("difficulty")
+    assert_operator article_badge_order.index("difficulty"), :<, article_badge_order.index("category")
   end
 
   test "terminal stays bounded on high resolution displays" do
@@ -1846,6 +1918,21 @@ class SitePagesTest < ApplicationSystemTestCase
     end || flunk("expected an authored CTF writeup with an event URL")
   end
 
+  def ctf_post_with_hints
+    ctf_posts.find { |post| writeup_hints_for(post).any? } ||
+      flunk("expected a CTF writeup with optional hints")
+  end
+
+  def writeup_hints_for(post)
+    raw_hints = AuthoredChallenge.metadata_value(post[:metadata] || {}, "hints", "hint")
+    hint_entries = raw_hints.is_a?(Array) ? raw_hints : [ raw_hints ]
+
+    hint_entries.filter_map do |hint|
+      hint = AuthoredChallenge.raw_value(hint, "text", "hint", "value") if hint.is_a?(Hash)
+      hint.to_s.strip.presence
+    end
+  end
+
   def ctf_post_with_anchor_external_link_and_image
     ctf_posts.find do |post|
       post[:content].match?(/\]\(#[^)]+\)/) &&
@@ -1949,8 +2036,7 @@ class SitePagesTest < ApplicationSystemTestCase
           logoBorderRight: logoStyle.borderRightColor,
           titleFontSize: titleStyle.fontSize,
           titleFontWeight: titleStyle.fontWeight,
-          chipBorderRadius: chipStyle?.borderTopLeftRadius || null,
-          chipBackground: chipStyle?.backgroundColor || null
+          chipBorderRadius: chipStyle?.borderTopLeftRadius || null
         };
       })()
     JS

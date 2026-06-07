@@ -32,7 +32,7 @@ optional:
         label:
         proof_url:
     hints:
-        -
+        - "Optional hint shown collapsed on the writeup page."
 ---
 
 # TL;DR<a id="TL;DR"></a>

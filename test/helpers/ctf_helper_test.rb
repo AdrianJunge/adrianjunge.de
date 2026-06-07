@@ -109,6 +109,64 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-meta-row > .difficulty-badge[data-filter-tag]", false
     assert_select ".blog-post-card[data-filter-text*='Hard']"
     assert_select ".blog-post-card[data-filter-tags*='Hard']"
+    assert_select ".blog-post-meta-row > button.category-badge.category-badge-web.category-badge-filter[data-filter-tag='Web']", text: "Web"
+  end
+
+  test "writeup cards render colorful category badges after difficulty" do
+    render inline: "<%= render_writeup_card('Categories', '/ctf/demo/Categories', info) %>", locals: {
+      info: {
+        "title" => "Categories",
+        "description" => "A writeup with multiple categories.",
+        "categories" => [ "Pwn", "Crypto" ],
+        "difficulty" => "Medium",
+        "published" => "2026-01-01"
+      }
+    }
+
+    assert_select ".blog-post-meta-row > .difficulty-badge:first-child", text: "Medium"
+    assert_select ".blog-post-meta-row > button.category-badge.category-badge-pwn.category-badge-filter[data-filter-tag='Pwn']", text: "Pwn"
+    assert_select ".blog-post-meta-row > button.category-badge.category-badge-crypto.category-badge-filter[data-filter-tag='Crypto']", text: "Crypto"
+  end
+
+  test "writeup cards render optional hint counts without making them filters" do
+    render inline: "<%= render_writeup_card('Hints', '/ctf/demo/Hints', info) %>", locals: {
+      info: {
+        "title" => "Hints",
+        "description" => "A writeup with hints.",
+        "categories" => [ "Web" ],
+        "difficulty" => "Easy",
+        "published" => "2026-01-01",
+        "optional" => {
+          "hints" => [
+            "Look at `parse_url` first.",
+            "The second redirect matters."
+          ]
+        }
+      }
+    }
+
+    assert_select ".blog-post-meta-row > span.writeup-hints-chip", text: /2 hints/
+    assert_select ".blog-post-meta-row > button.writeup-hints-chip", false
+    assert_select ".blog-post-card[data-filter-tags*='hint']", false
+  end
+
+  test "article hints render as collapsed markdown details" do
+    render inline: "<%= render_writeup_hints(info) %>", locals: {
+      info: {
+        "optional" => {
+          "hints" => [
+            "Look at `in_array`.",
+            "Use the `__toString` gadget."
+          ]
+        }
+      }
+    }
+
+    assert_select "details.writeup-hints[open]", false
+    assert_select "details.writeup-hints summary", text: /Hints/
+    assert_select "details.writeup-hints .writeup-hints-count", text: "2 hints"
+    assert_select "details.writeup-hints ul.writeup-hints-list li", 2
+    assert_select "details.writeup-hints code", text: "in_array"
   end
 
   test "article difficulty badge falls back when metadata is omitted" do
@@ -120,6 +178,18 @@ class CtfHelperTest < ActionView::TestCase
     }
 
     assert_select ".difficulty-badge.difficulty-badge-unknown.difficulty-badge-article", text: "unknown difficulty"
+  end
+
+  test "article category badges render colorful static badges" do
+    render inline: "<%= safe_join(render_writeup_category_badges(info, context: :article)) %>", locals: {
+      info: {
+        "categories" => [ "Web", "PrivEsc" ]
+      }
+    }
+
+    assert_select ".category-badge.category-badge-web.category-badge-article", text: "Web"
+    assert_select ".category-badge.category-badge-privesc.category-badge-article", text: "PrivEsc"
+    assert_select ".category-badge[data-filter-tag]", false
   end
 
   test "writeup cards can render ctf organizer logos" do
