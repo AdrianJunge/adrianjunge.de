@@ -45,6 +45,33 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-card[data-filter-tags*='Contest win']", false
   end
 
+  test "non-interactive writeup cards link shiny badges instead of rendering static filter chips" do
+    render inline: "<%= render_writeup_card('Winner', '/ctf/demo/Winner', info, interactive_tags: false) %>", locals: {
+      info: {
+        "title" => "Winner",
+        "description" => "A winning authored writeup.",
+        "categories" => [ "Web" ],
+        "published" => "2026-01-01",
+        "writeup_winner" => {
+          "label" => "Contest win",
+          "proof_url" => "https://example.com/proof"
+        },
+        "optional" => {
+          "authored_challenge" => {
+            "event" => "DemoCTF 2026",
+            "event_url" => "https://example.com/ctf"
+          }
+        }
+      }
+    }
+
+    assert_select ".blog-post-meta-row > a.writeup-winner-badge[href='https://example.com/proof'][target='_blank'][rel='noopener noreferrer']", text: /Contest win/
+    assert_select ".blog-post-meta-row > a.authored-challenge-badge[href='https://example.com/ctf'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
+    assert_select ".blog-post-meta-row > button.writeup-winner-badge", false
+    assert_select ".blog-post-meta-row > button.authored-challenge-badge", false
+    assert_select ".blog-post-meta-row > .filter-chip.blog-post-static-chip", text: "Web"
+  end
+
   test "writeup cards render authored challenge badge from optional metadata" do
     render inline: "<%= render_writeup_card('Authored', '/ctf/demo/Authored', info) %>", locals: {
       info: {
@@ -65,6 +92,34 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-meta-row > a.authored-challenge-badge", 0
     assert_select ".authored-challenge-icon", text: "✒️"
     assert_select ".blog-post-card[data-filter-tags*='Authored challenge']"
+  end
+
+  test "writeup cards render static difficulty badge with filterable difficulty metadata" do
+    render inline: "<%= render_writeup_card('Difficulty', '/ctf/demo/Difficulty', info) %>", locals: {
+      info: {
+        "title" => "Difficulty",
+        "description" => "A writeup with a challenge difficulty.",
+        "categories" => [ "Web" ],
+        "difficulty" => "Hard",
+        "published" => "2026-01-01"
+      }
+    }
+
+    assert_select ".blog-post-meta-row > .difficulty-badge.difficulty-badge-hard.difficulty-badge-card", text: "Hard"
+    assert_select ".blog-post-meta-row > .difficulty-badge[data-filter-tag]", false
+    assert_select ".blog-post-card[data-filter-text*='Hard']"
+    assert_select ".blog-post-card[data-filter-tags*='Hard']"
+  end
+
+  test "article difficulty badge falls back when metadata is omitted" do
+    render inline: "<%= render_writeup_difficulty_badge(info, context: :article) %>", locals: {
+      info: {
+        "title" => "Unknown",
+        "categories" => [ "Web" ]
+      }
+    }
+
+    assert_select ".difficulty-badge.difficulty-badge-unknown.difficulty-badge-article", text: "unknown difficulty"
   end
 
   test "writeup cards can render ctf organizer logos" do

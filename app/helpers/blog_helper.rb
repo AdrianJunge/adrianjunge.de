@@ -6,7 +6,18 @@ module BlogHelper
     categories = Array(post_info["categories"]).presence || []
     logo_url = post_info["logo"]
     published_year = blog_post_year(post_info)
-    filter_text = ([ title, description, published, published_year, post_info["topic"] ] + categories).compact.join(" ")
+    difficulty = WriteupDifficulty.filter_label_for(post_info) ? WriteupDifficulty.from_metadata(post_info) : nil
+    filter_tags = ([ difficulty&.fetch(:label, nil) ] + categories).compact
+    filter_text = ([ title, description, published, published_year, post_info["topic"], difficulty&.fetch(:label, nil) ] + categories).compact.join(" ")
+    tags = categories.map { |category| { label: category } }
+    if difficulty
+      tags.unshift({
+        label: difficulty[:label],
+        difficulty: true,
+        difficulty_key: difficulty[:key],
+        title: "Post difficulty: #{difficulty[:label]}"
+      })
+    end
 
     render_content_card(
       url: blog_post_path(post_slug),
@@ -36,11 +47,11 @@ module BlogHelper
       tags_class: "blog-post-meta-row",
       filter_scope: "blogs",
       interactive_tags: interactive_tags,
-      tags: categories.map { |category| { label: category } },
+      tags: tags,
       data: {
         filter_card: "blogs",
         filter_text: filter_text,
-        filter_tags: categories.join("|"),
+        filter_tags: filter_tags.join("|"),
         filter_years: published_year
       },
       aria_label: "Open #{title} blog post"

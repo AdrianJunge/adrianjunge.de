@@ -71,9 +71,6 @@ class ContentIndex
       metadata = post[:metadata] || {}
       winner = WriteupWinner.from_metadata(metadata)
       authored_challenge = AuthoredChallenge.from_metadata(metadata)
-      filter_tags = Array(post[:categories]).map(&:to_s).reject(&:blank?)
-      filter_tags << WriteupWinner::FILTER_LABEL if winner
-      filter_tags << AuthoredChallenge::FILTER_LABEL if authored_challenge
 
       content_item(
         id: "ctf-#{post[:directory].parameterize}-#{post[:slug].parameterize}",
@@ -85,7 +82,7 @@ class ContentIndex
         published: post[:published],
         display_date: post[:published].strftime("%Y-%m-%d"),
         link: post[:link],
-        tags: filter_tags,
+        tags: repository.metadata_tags(metadata),
         search_parts: [ post[:which], post[:title], metadata, post[:content] ],
         logo: post[:logo],
         reading_time_minutes: post[:reading_time_minutes],
@@ -100,6 +97,8 @@ class ContentIndex
     blog_metadata = repository.blog_metadata
 
     repository.blog_posts.map do |post|
+      metadata = post[:metadata] || {}
+
       content_item(
         id: "blog-#{post[:slug].parameterize}",
         kind: "blog",
@@ -110,8 +109,8 @@ class ContentIndex
         published: post[:published],
         display_date: post[:published].strftime("%Y-%m-%d"),
         link: post[:link],
-        tags: post[:categories],
-        search_parts: [ post[:which], post[:title], post[:metadata], post[:content] ],
+        tags: repository.metadata_tags(metadata),
+        search_parts: [ post[:which], post[:title], metadata, post[:content] ],
         logo: blog_metadata.dig(post[:slug], "logo"),
         reading_time_minutes: post[:reading_time_minutes],
         reading_time_label: post[:reading_time_label]
@@ -258,8 +257,9 @@ class ContentIndex
       entry["category"],
       entry["severity"],
       entry["cve_id"],
-      entry["cwe_id"]
-    ].map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }
+      entry["cwe_id"],
+      WriteupDifficulty.filter_label_for(entry)
+    ].map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| ContentRepository.filter_tag_sort_key(tag) }
   end
 
   def about_published_time(entry, path)

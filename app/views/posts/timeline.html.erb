@@ -88,7 +88,16 @@
                      } %>
                 <% end %>
                 <% visible_tags.first(6).each do |tag_name| %>
-                  <% timeline_tags << { label: tag_name, class_name: "timeline-tag-pill" } %>
+                  <% if WriteupDifficulty.filter_label?(tag_name) %>
+                    <% timeline_tags << {
+                         label: tag_name,
+                         class_name: "timeline-tag-pill",
+                         difficulty_filter: true,
+                         difficulty_key: tag_name
+                       } %>
+                  <% else %>
+                    <% timeline_tags << { label: tag_name, class_name: "timeline-tag-pill" } %>
+                  <% end %>
                 <% end %>
 
                 <%= render_content_card(

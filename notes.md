@@ -1,6 +1,4 @@
 # TODOs
-- Now for the ctf writeups add a new md-header attribute "difficulty". Thoroughly research for the ctfs and the dedicated challenge, to find out which was the difficulty for this challenge I created the writeup for. Moreover the difficulty should be shown in the overview and somewhere at the top on the writeup page itself and also for the self-created challenges on the /about page. There are 5 categories "Intro", "Easy", "Medium", "Hard", "Insane"/"0-day", so every of these categories should have their own tag-color-font-color combination fitting the difficulty. If the difficulty is unknown just use "unknown difficulty".
-
 - Ok and about the optional "hints" metadata, do you have suggestions on where to display these?
 
 - Do you have any suggestions for /ctf to show that the listed cards, are CTFs and not directly the writeups?

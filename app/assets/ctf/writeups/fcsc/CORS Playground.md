@@ -7,6 +7,7 @@ authors:
 description: Perplexed by CORS? Our CORS Playground is your ideal solution. This intuitive and sleek platform lets you effortlessly learn and experiment with CORS policies. Perfect for unraveling the complexities of secure cross-origin requests. Dive in and clarify your CORS concepts!
 categories:
     - Web
+difficulty: Easy
 year: 2024
 challengefiles: cors-playground
 published: "2024-09-07"

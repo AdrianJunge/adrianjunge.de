@@ -445,6 +445,34 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_selector ".landing-writeup-cards .writeup-post-card .blog-post-authors", count: expected_writeup_count
       assert_selector_count ".landing-writeup-cards .writeup-post-card .blog-logo[src*='/assets/ctf/']", ctf_logo_count
     end
+    landing_authored_posts = landing_latest_posts.select { |post| post[:type] == "ctf" && AuthoredChallenge.from_metadata(post[:metadata] || {}) }
+    if landing_authored_posts.any?
+      authored_post = landing_authored_posts.first
+      authored = AuthoredChallenge.from_metadata(authored_post[:metadata] || {})
+      event_url = authored[:event_url].presence || repository.ctf_metadata.dig(authored_post[:which], "website")
+
+      within find(".landing-writeup-cards .blog-post-card", text: authored_post[:title]) do
+        assert_selector ".blog-post-meta-row > a.authored-challenge-badge[href='#{event_url}'][target='_blank'][rel='noopener noreferrer']",
+                        text: /Authored challenge/
+        assert_no_selector ".blog-post-meta-row > button.authored-challenge-badge"
+        assert_no_selector ".blog-post-meta-row > .authored-challenge-badge.blog-post-static-chip"
+      end
+      authored_hit = link_hit_target(".landing-writeup-cards .authored-challenge-badge")
+      assert_equal event_url, authored_hit["href"]
+      assert_includes authored_hit["className"], "authored-challenge-badge"
+    end
+    landing_winner_posts = landing_latest_posts.select { |post| post[:type] == "ctf" && WriteupWinner.from_metadata(post[:metadata] || {}) }
+    if landing_winner_posts.any?
+      winner_post = landing_winner_posts.first
+      winner = WriteupWinner.from_metadata(winner_post[:metadata] || {})
+
+      within find(".landing-writeup-cards .blog-post-card", text: winner_post[:title]) do
+        assert_selector ".blog-post-meta-row > a.writeup-winner-badge[href='#{winner[:proof_url]}'][target='_blank'][rel='noopener noreferrer']",
+                        text: winner[:label]
+        assert_no_selector ".blog-post-meta-row > button.writeup-winner-badge"
+        assert_no_selector ".blog-post-meta-row > .writeup-winner-badge.blog-post-static-chip"
+      end
+    end
     if expected_card_scopes.include?("blogs")
       blog_logo_count = landing_latest_posts.count { |post| post[:type] == "blog" && landing_post_logo?(post) }
       assert_selector_count ".landing-writeup-cards .blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/']", blog_logo_count
@@ -719,6 +747,7 @@ class SitePagesTest < ApplicationSystemTestCase
     certificate_count = timeline_items.count { |item| item[:tags].include?("Certificate") }
     winner_items = timeline_items.select { |item| item[:tags].include?(WriteupWinner::FILTER_LABEL) }
     first_winner_label = winner_items.first&.dig(:writeup_winner, :label) || "Contest win"
+    difficulty_case = timeline_difficulty_case
     tag_case = timeline_tag_case
 
     visit "/timeline"
@@ -742,9 +771,14 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal true, timeline_tag_positions["nextContentBelowTags"]
     assert_text "Timeline"
     assert_selector ".content-filter-tag-group-label", text: "CONTENT TYPE"
+    assert_selector ".content-filter-tag-group-label", text: "DIFFICULTY"
     assert_selector ".content-filter-tag-group-label", text: "TOPICS, PROJECTS, AND SOURCES"
     assert_selector ".content-filter-panel .filter-chip", text: "CVE"
     assert_selector ".content-filter-panel .filter-chip", text: "CTF writeup"
+    assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.difficulty-badge-#{difficulty_case[:key]}",
+                    text: /^#{Regexp.escape(difficulty_case[:label])}$/
+    assert_selector ".timeline-tags .difficulty-badge-filter.difficulty-badge-#{difficulty_case[:key]}[data-filter-tag='#{difficulty_case[:label]}']",
+                    text: /^#{Regexp.escape(difficulty_case[:label])}$/
     assert_selector ".timeline-tags .writeup-winner-badge-timeline[data-filter-tag='Writeup winner']", text: first_winner_label
 
     fill_in "timeline-search-input", with: search_case[:query]
@@ -769,6 +803,14 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_selector ".timeline-content", text: item[:title]
     end
     assert_hidden_timeline_item winner_items
+    assert_timeline_year_counts_match_visible_cards
+
+    find("[data-filter-reset='timeline']").click
+    find(".content-filter-panel .filter-chip.difficulty-badge-filter", text: /^#{Regexp.escape(difficulty_case[:label])}$/).click
+    assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.is-active", text: difficulty_case[:label]
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(difficulty_case[:items].length, total_items)
+    assert_selector ".timeline-content", text: difficulty_case[:items].first[:title]
+    assert_hidden_timeline_item difficulty_case[:items]
     assert_timeline_year_counts_match_visible_cards
 
     find("[data-filter-reset='timeline']").click
@@ -860,9 +902,11 @@ class SitePagesTest < ApplicationSystemTestCase
   test "content filters search by text tags and year" do
     ctf_total = ctf_overview_items.length
     ctf_tag_case = ctf_overview_tag_case
+    ctf_difficulty_case = ctf_overview_difficulty_case
     ctf_search_case = ctf_overview_search_case
     ctf_year_case = ctf_overview_year_case
     writeup_case = writeup_filter_case
+    writeup_difficulty_case = writeup_case[:difficulty]
     internal_author_post, internal_author = first_ctf_post_with_internal_author_link
 
     visit "/ctf"
@@ -874,16 +918,61 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal "Authored challenge", ctf_filter_tags.second
     assert_equal 1, ctf_filter_tags.count("Writeup winner")
     assert_equal 1, ctf_filter_tags.count("Authored challenge")
+    assert_selector ".content-filter-tag-group-label", text: "DIFFICULTY"
     assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
     assert_selector ".content-filter-panel .filter-chip.authored-challenge-badge-filter", text: "Authored challenge"
+    assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.difficulty-badge-#{ctf_difficulty_case[:key]}",
+                    text: /^#{Regexp.escape(ctf_difficulty_case[:label])}$/
     assert_selector ".content-filter-panel .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector ".ctf-card .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector ".ctf-card .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
     assert_selector ".ctf-card .filter-chip.authored-challenge-badge-filter", text: "Authored challenge"
+    assert_selector ".ctf-card .filter-chip.difficulty-badge-filter.difficulty-badge-#{ctf_difficulty_case[:key]}",
+                    text: /^#{Regexp.escape(ctf_difficulty_case[:label])}$/
+    ctf_card_tag_order = page.evaluate_script(<<~JS)
+      (() => {
+        const card = [...document.querySelectorAll(".ctf-card")].find((entry) => {
+          const tags = [...entry.querySelectorAll(".blog-post-meta-row > *")];
+          return tags.some((tag) => tag.classList.contains("difficulty-badge-filter")) &&
+            tags.some((tag) => !tag.classList.contains("difficulty-badge-filter") &&
+              !tag.classList.contains("writeup-winner-badge-filter") &&
+              !tag.classList.contains("authored-challenge-badge-filter"));
+        });
+        if (!card) return [];
+
+        return [...card.querySelectorAll(".blog-post-meta-row > *")].map((tag) => {
+          if (tag.classList.contains("writeup-winner-badge-filter") || tag.classList.contains("authored-challenge-badge-filter")) return "shiny";
+          if (tag.classList.contains("difficulty-badge-filter")) return "difficulty";
+          return "category";
+        });
+      })()
+    JS
+    assert_includes ctf_card_tag_order, "difficulty"
+    assert_includes ctf_card_tag_order, "category"
+    assert_operator ctf_card_tag_order.index("difficulty"), :<, ctf_card_tag_order.index("category")
+    assert_operator ctf_card_tag_order.index("shiny"), :<, ctf_card_tag_order.index("difficulty") if ctf_card_tag_order.include?("shiny")
     find(".content-filter-panel .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i).click
     assert_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_tag_case[:items].length, ctf_total)
     assert_equal ctf_tag_case[:items].map { |item| item[:name] }, visible_ctf_names
+
+    find("[data-filter-reset='ctfs']").click
+    find(".content-filter-panel .filter-chip.difficulty-badge-filter", text: /^#{Regexp.escape(ctf_difficulty_case[:label])}$/).click
+    assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.is-active", text: ctf_difficulty_case[:label]
+    active_difficulty_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const chip = document.querySelector(".content-filter-panel .filter-chip.difficulty-badge-filter.is-active");
+        const style = window.getComputedStyle(chip);
+        return {
+          boxShadow: style.boxShadow,
+          transform: style.transform
+        };
+      })()
+    JS
+    assert_not_equal "none", active_difficulty_styles["boxShadow"]
+    assert_not_equal "none", active_difficulty_styles["transform"]
+    assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_difficulty_case[:items].length, ctf_total)
+    assert_equal ctf_difficulty_case[:items].map { |item| item[:name] }, visible_ctf_names
 
     find("[data-filter-reset='ctfs']").click
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_total, ctf_total)
@@ -900,8 +989,19 @@ class SitePagesTest < ApplicationSystemTestCase
     visit "/ctf/#{writeup_case[:directory]}"
     assert_selector ".blog-post-authors", text: "Challenge by"
     assert_selector ".content-filter-tags-label", text: "TAGS"
+    assert_selector ".content-filter-tag-group-label", text: "DIFFICULTY"
+    assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.difficulty-badge-#{writeup_difficulty_case[:key]}",
+                    text: /^#{Regexp.escape(writeup_difficulty_case[:label])}$/
     assert_selector ".content-filter-panel .filter-chip", text: writeup_case[:tag]
 
+    within ".content-filter-panel" do
+      find(".filter-chip.difficulty-badge-filter", text: /^#{Regexp.escape(writeup_difficulty_case[:label])}$/).click
+      assert_selector ".filter-chip.difficulty-badge-filter.is-active", text: writeup_difficulty_case[:label]
+    end
+    assert_selector "[data-filter-count='writeups']", text: filter_count_text(writeup_difficulty_case[:posts].length, writeup_case[:posts].length)
+    assert_equal writeup_difficulty_case[:posts].map { |post| post[:title] }, visible_writeup_titles
+
+    find("[data-filter-reset='writeups']").click
     within ".content-filter-panel" do
       find(".filter-chip", text: writeup_case[:tag]).click
       assert_selector ".filter-chip.is-active", text: writeup_case[:tag]
@@ -974,11 +1074,14 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".writeup-title", text: blog_post[:title]
 
     visit "/ctf/#{writeup_post[:directory]}"
+    assert_selector ".blog-post-card .difficulty-badge", minimum: 1
     click_card_link_area(find(".blog-post-card", text: writeup_post[:title]))
     assert_current_path writeup_post[:link]
     assert_selector ".writeup-title", text: writeup_post[:title]
     assert_selector ".writeup-year-link[href='#{repository.ctf_metadata.dig(writeup_post[:which], "website")}'][target='_blank'][rel='noopener noreferrer']",
                     text: /#{Regexp.escape(writeup_post[:which].upcase)}-#{writeup_post[:published].year}/
+    difficulty = WriteupDifficulty.from_metadata(writeup_post[:metadata])
+    assert_selector ".writeup-badges-article .difficulty-badge-#{difficulty[:key]}.difficulty-badge-article", text: difficulty[:label]
   end
 
   test "winning writeups show proof badges on overview cards and articles" do
@@ -1028,11 +1131,13 @@ class SitePagesTest < ApplicationSystemTestCase
 
     within find(".blog-post-card", text: post[:title]) do
       assert_selector ".blog-post-meta-row > button.authored-challenge-badge[data-filter-tag='Authored challenge']", text: /Authored challenge/
+      assert_selector ".blog-post-meta-row > .difficulty-badge.difficulty-badge-hard", text: "Hard"
       assert_no_selector ".blog-post-meta-row > a.authored-challenge-badge"
       assert_selector ".authored-challenge-icon", text: "✒️"
     end
 
     visit post[:link]
+    assert_selector ".writeup-badges-article .difficulty-badge-hard", text: "Hard"
     assert_selector ".writeup-badges-article .authored-challenge-badge[href='#{authored[:event_url]}'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
   end
 
@@ -1393,6 +1498,7 @@ class SitePagesTest < ApplicationSystemTestCase
       writeups = ctf_posts.select { |post| post[:directory] == directory }
       metadata_values = writeups.map { |post| post[:metadata] || {} }
       tags = sorted_filter_tags(metadata_values.flat_map { |entry| repository.metadata_tags(entry) })
+      difficulty_labels = sorted_difficulty_labels(metadata_values.map { |entry| WriteupDifficulty.filter_label_for(entry) })
       years = metadata_values.filter_map { |entry| repository.metadata_year(entry) }.uniq.sort.reverse
       filter_text = [ name, metadata["description"], directory, tags ].flatten.compact.join(" ").downcase
 
@@ -1402,6 +1508,7 @@ class SitePagesTest < ApplicationSystemTestCase
         link: "/ctf/#{directory}",
         writeups: writeups,
         tags: tags,
+        difficulty_labels: difficulty_labels,
         years: years,
         text: filter_text
       }
@@ -1409,7 +1516,11 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   def sorted_filter_tags(values)
-    values.map(&:to_s).reject(&:blank?).uniq { |value| value.downcase }.sort_by { |value| AuthoredChallenge.filter_sort_key(value) }
+    values.map(&:to_s).reject(&:blank?).uniq { |value| value.downcase }.sort_by { |value| ContentRepository.filter_tag_sort_key(value) }
+  end
+
+  def sorted_difficulty_labels(values)
+    values.map(&:to_s).reject(&:blank?).uniq { |value| value.downcase }.sort_by { |value| WriteupDifficulty.filter_sort_key(value) }
   end
 
   def ctf_overview_tag_case
@@ -1425,6 +1536,21 @@ class SitePagesTest < ApplicationSystemTestCase
     groups.values.find { |group| group[:items].length < ctf_overview_items.length } ||
       groups.values.first ||
       flunk("expected at least one CTF filter tag")
+  end
+
+  def ctf_overview_difficulty_case
+    groups = {}
+    ctf_overview_items.each do |item|
+      item[:difficulty_labels].each do |label|
+        key = label.downcase
+        groups[key] ||= { label: label, key: WriteupDifficulty.css_key(label), items: [] }
+        groups[key][:items] << item
+      end
+    end
+
+    groups.values.select { |group| group[:items].length < ctf_overview_items.length }.min_by { |group| group[:items].length } ||
+      groups.values.first ||
+      flunk("expected at least one CTF difficulty filter")
   end
 
   def ctf_overview_search_case
@@ -1457,14 +1583,16 @@ class SitePagesTest < ApplicationSystemTestCase
       next unless posts.length >= 3
 
       tag_case = writeup_tag_case_for(posts)
+      difficulty_case = writeup_difficulty_case_for(posts)
       year_case = writeup_year_case_for(posts)
-      next unless tag_case && year_case
+      next unless tag_case && difficulty_case && year_case
 
       return {
         directory: event[:directory],
         posts: posts,
         tag: tag_case[:tag],
         tag_posts: tag_case[:posts],
+        difficulty: difficulty_case,
         year: year_case[:year],
         year_posts: year_case[:posts]
       }
@@ -1481,6 +1609,20 @@ class SitePagesTest < ApplicationSystemTestCase
         groups[key] ||= { tag: tag, posts: [] }
         groups[key][:posts] << post
       end
+    end
+
+    groups.values.select { |group| group[:posts].length < posts.length }.min_by { |group| group[:posts].length }
+  end
+
+  def writeup_difficulty_case_for(posts)
+    groups = {}
+    posts.each do |post|
+      label = WriteupDifficulty.filter_label_for(post[:metadata] || {})
+      next if label.blank?
+
+      key = label.downcase
+      groups[key] ||= { label: label, key: WriteupDifficulty.css_key(label), posts: [] }
+      groups[key][:posts] << post
     end
 
     groups.values.select { |group| group[:posts].length < posts.length }.min_by { |group| group[:posts].length }
@@ -1570,7 +1712,7 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   def special_filter_tag?(tag)
-    [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(tag)
+    [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(tag) || WriteupDifficulty.filter_label?(tag)
   end
 
   def timeline_search_case
@@ -1598,6 +1740,21 @@ class SitePagesTest < ApplicationSystemTestCase
     groups.values.find { |group| group[:items].length < timeline_items.length } ||
       groups.values.first ||
       flunk("expected at least one timeline tag")
+  end
+
+  def timeline_difficulty_case
+    groups = {}
+    timeline_items.each do |item|
+      Array(item[:tags]).select { |tag| WriteupDifficulty.filter_label?(tag) }.each do |tag|
+        key = tag.downcase
+        groups[key] ||= { label: tag, key: WriteupDifficulty.css_key(tag), items: [] }
+        groups[key][:items] << item
+      end
+    end
+
+    groups.values.find { |group| group[:items].length < timeline_items.length } ||
+      groups.values.first ||
+      flunk("expected at least one timeline difficulty tag")
   end
 
   def assert_hidden_timeline_item(visible_items)

@@ -181,7 +181,28 @@ module AboutmeHelper
       if entry["category"].present?
         tags << { label: entry["category"], url: entry["category_url"], class_name: "aboutme-tag-#{entry["category"].parameterize}" }
       end
+      tags.concat(aboutme_extra_tags(entry["tags"]))
       tags << { label: entry["date"], datetime: entry["date"], class_name: "aboutme-tag-date" } if entry["date"].present? && events.empty?
+    end
+  end
+
+  def aboutme_extra_tags(raw_tags)
+    Array(raw_tags).filter_map do |tag|
+      if tag.respond_to?(:to_h)
+        tag_data = tag.to_h
+        label = tag_data["label"].presence || tag_data[:label].presence || tag_data["name"].presence || tag_data[:name].presence
+        next if label.blank?
+
+        {
+          label: label,
+          url: tag_data["url"].presence || tag_data[:url].presence,
+          class_name: tag_data["class_name"].presence || tag_data[:class_name].presence,
+          datetime: tag_data["datetime"].presence || tag_data[:datetime].presence
+        }
+      else
+        label = tag.to_s.presence
+        { label: label } if label
+      end
     end
   end
 

@@ -8,6 +8,7 @@ description: Recently I learned ASP .NET Core and boy, it's so magic! Dependency
 categories:
     - Web
     - .NET
+difficulty: Medium
 year: 2024
 challengefiles: photoeditor
 published: "2024-05-17"

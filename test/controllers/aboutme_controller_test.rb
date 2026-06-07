@@ -102,11 +102,13 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_nil challenges.first["details"]
     assert_includes challenges.first["summary"], "Published for GPNCTF 2026"
     assert_equal "GPNCTF 2026", challenges.first["category"]
+    assert_equal "Hard", challenges.first["tags"].first["label"]
     assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["title_url"]
     assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["card_url"]
     assert_equal "https://gpn24.ctf.kitctf.de/", challenges.first["category_url"]
     assert_includes challenges.second["summary"], "Published for GPNCTF 2025"
     assert_equal "GPNCTF 2025", challenges.second["category"]
+    assert_equal "Hard", challenges.second["tags"].first["label"]
     assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["title_url"]
     assert_equal "https://gpn23.ctf.kitctf.de/", challenges.second["category_url"]
     assert_nil certificates.first["details"]

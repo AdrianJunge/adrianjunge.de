@@ -1,16 +1,22 @@
 <% years = Array(local_assigns.fetch(:years, [])).compact.map(&:to_s).reject(&:blank?).uniq.sort.reverse %>
 <% winner_filter_tag = WriteupWinner::FILTER_LABEL %>
 <% authored_filter_tag = AuthoredChallenge::FILTER_LABEL %>
-<% tags = Array(local_assigns.fetch(:tags, [])).compact.map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| AuthoredChallenge.filter_sort_key(tag) } %>
+<% tags = Array(local_assigns.fetch(:tags, [])).compact.map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| ContentRepository.filter_tag_sort_key(tag) } %>
 <% tag_groups = Array(local_assigns.fetch(:tag_groups, [])).filter_map do |group|
      next unless group.is_a?(Hash)
 
      group_tags = Array(group[:tags] || group["tags"]).compact.map(&:to_s).reject(&:blank?)
      next if group_tags.empty?
 
+     sort = (group[:sort] || group["sort"]).to_s
+     sorted_group_tags = group_tags.uniq { |tag| tag.downcase }.sort_by do |tag|
+       sort == "difficulty" ? WriteupDifficulty.filter_sort_key(tag) : ContentRepository.filter_tag_sort_key(tag)
+     end
+
      {
        label: (group[:label] || group["label"]).to_s,
-       tags: group_tags.uniq { |tag| tag.downcase }.sort_by { |tag| AuthoredChallenge.filter_sort_key(tag) }
+       sort: sort,
+       tags: sorted_group_tags
      }
    end %>
 <% tag_groups = [ { label: "", tags: tags } ] if tag_groups.empty? && tags.any? %>
@@ -107,7 +113,15 @@
               <% group[:tags].each do |filter_tag| %>
                 <% winner_filter = filter_tag == winner_filter_tag %>
                 <% authored_filter = filter_tag == authored_filter_tag %>
-                <%= content_filter_chip(filter_tag, scope: scope, class_name: "content-filter-tag-chip", winner: winner_filter, authored: authored_filter) %>
+                <% difficulty_filter = WriteupDifficulty.filter_label?(filter_tag) %>
+                <%= content_filter_chip(
+                      filter_tag,
+                      scope: scope,
+                      class_name: "content-filter-tag-chip",
+                      winner: winner_filter,
+                      authored: authored_filter,
+                      difficulty_key: difficulty_filter ? filter_tag : nil
+                    ) %>
               <% end %>
             </div>
           </div>

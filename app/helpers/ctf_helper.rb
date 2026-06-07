@@ -22,18 +22,27 @@ module CtfHelper
     published_year = writeup_year(info)
     winner = writeup_winner(info)
     authored_challenge = authored_challenge(info)
+    difficulty = writeup_difficulty(info)
+    difficulty_label = difficulty[:label]
     winner_label = winner&.fetch(:label, nil)
     winner_filter_label = winner ? WriteupWinner::FILTER_LABEL : nil
     authored_filter_label = authored_challenge ? AuthoredChallenge::FILTER_LABEL : nil
-    filter_tags = ([ winner_filter_label, authored_filter_label ] + categories).compact
-    filter_text = ([ title, description, published, published_year, winner_label, winner_filter_label, authored_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
+    filter_tags = ([ winner_filter_label, authored_filter_label, difficulty_label ] + categories).compact
+    filter_text = ([ title, description, published, published_year, difficulty_label, winner_label, winner_filter_label, authored_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
 
     tags = categories.map { |category| { label: category } }
+    tags.unshift({
+      label: difficulty_label,
+      difficulty: true,
+      difficulty_key: difficulty[:key],
+      title: "Challenge difficulty: #{difficulty_label}"
+    })
     if authored_challenge
       tags.unshift({
         label: authored_challenge[:label],
         tag_value: AuthoredChallenge::FILTER_LABEL,
         authored: true,
+        url: interactive_tags ? nil : authored_challenge[:event_url],
         class_name: "authored-challenge-badge-card"
       })
     end
@@ -41,6 +50,7 @@ module CtfHelper
       label: winner[:label],
       tag_value: WriteupWinner::FILTER_LABEL,
       winner: true,
+      url: interactive_tags ? nil : winner[:proof_url],
       class_name: "writeup-winner-badge-card"
     }) if winner
     media_html = logo.present? ? nil : get_category_svg(first_category).html_safe
@@ -93,6 +103,16 @@ module CtfHelper
     content_winner_badge(label: winner[:label], url: winner[:proof_url], context: context)
   end
 
+  def render_writeup_difficulty_badge(info, context: :card)
+    difficulty = writeup_difficulty(info)
+
+    content_difficulty_badge(
+      label: difficulty[:label],
+      key: difficulty[:key],
+      context: context
+    )
+  end
+
   def render_writeup_authored_badge(info, context: :card)
     authored = authored_challenge(info)
     return nil unless authored && authored[:event_url].present?
@@ -137,6 +157,10 @@ module CtfHelper
     AuthoredChallenge.from_metadata(info).tap do |authored|
       authored[:event_url] = info["ctf_event_url"].presence if authored && authored[:event_url].blank?
     end
+  end
+
+  def writeup_difficulty(info)
+    WriteupDifficulty.from_metadata(info)
   end
 
   def writeup_year(info)

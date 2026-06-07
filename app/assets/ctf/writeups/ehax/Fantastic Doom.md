@@ -9,6 +9,7 @@ authors:
 description: Doctor Doom, the monarch of Latveria has made many doombots. You working with the Fantastic 4 have to access doombot machine and foil his plans of releasing doombots.
 categories:
     - Pwn
+difficulty: Medium
 year: 2025
 challengefiles: fantasticdoom
 published: "2025-04-24"

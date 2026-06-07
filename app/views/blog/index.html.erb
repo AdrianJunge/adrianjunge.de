@@ -40,7 +40,7 @@
     <% @blog_posts.each do |post| %>
       <div class="blog-post-entry">
         <% blog_data = @blogs[post[:slug]] || {} %>
-        <% blog_data_with_meta = blog_data.merge({
+        <% blog_data_with_meta = blog_data.merge(post[:metadata] || {}).merge({
           "title" => post[:title],
           "description" => post[:description],
           "topic" => post[:topic],

@@ -17,6 +17,7 @@ authors:
 description:
 categories:
     -
+difficulty: unknown difficulty
 year:
 challengefiles:
 published: "2025-08-25"

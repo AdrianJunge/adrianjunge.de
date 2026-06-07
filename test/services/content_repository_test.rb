@@ -38,21 +38,36 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert_equal "GPNCTF 2026", challenges.first["category"]
     assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["card_url"]
     assert_equal "https://gpn24.ctf.kitctf.de/", challenges.first["category_url"]
+    assert_equal [
+      {
+        "label" => "Hard",
+        "class_name" => "aboutme-difficulty-tag aboutme-difficulty-tag-hard"
+      }
+    ], challenges.first["tags"]
     assert_includes challenges.first["summary"], "Published for GPNCTF 2026"
     assert_equal "GPNCTF 2025", challenges.second["category"]
     assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["card_url"]
+    assert_equal [
+      {
+        "label" => "Hard",
+        "class_name" => "aboutme-difficulty-tag aboutme-difficulty-tag-hard"
+      }
+    ], challenges.second["tags"]
   end
 
-  test "metadata tags include authored challenge filters from optional section" do
+  test "metadata tags include optional filters and declared difficulties by shared priority" do
     repository = ContentRepository.new
     metadata = {
       "categories" => [ "web" ],
+      "difficulty" => "Hard",
       "optional" => {
         "authored_challenge" => true
       }
     }
 
-    assert_equal [ "web", AuthoredChallenge::FILTER_LABEL ], repository.metadata_tags(metadata)
+    assert_equal [ AuthoredChallenge::FILTER_LABEL, "Hard", "web" ], repository.metadata_tags(metadata)
+    assert_equal [ AuthoredChallenge::FILTER_LABEL, "web" ], repository.metadata_tags(metadata, include_difficulty: false)
+    assert_equal [ "web" ], repository.metadata_tags("categories" => [ "web" ])
   end
 
   test "generic feed posts merge configured content sources" do

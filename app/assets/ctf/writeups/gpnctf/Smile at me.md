@@ -7,6 +7,7 @@ authors:
 description: Be careful, others might be able to find out your most sacred secrets! (Flag only consists of emojis surrounded by 'GPNCTF{...}') The remote instance is not deployed via Docker-compose but plain Docker, resulting in the bot URL to be 'localhost:3000' instead of 'bot_service:3000' and the challenge server being 'localhost:9222' instead of 'challenge_service:9222'.
 categories:
     - web
+difficulty: Hard
 year: 2025
 challengefiles: smile-at-me
 published: "2025-08-21"

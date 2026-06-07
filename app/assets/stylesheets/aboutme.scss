@@ -519,6 +519,64 @@ a.aboutme-cwe-id:focus-visible {
     background: rgba(109, 40, 217, 0.42);
 }
 
+.aboutme-card-tag.aboutme-difficulty-tag {
+    font-weight: 900;
+}
+
+.aboutme-difficulty-tag-intro {
+    --aboutme-static-tag-border: rgba(45, 212, 191, 0.82);
+    --aboutme-static-tag-ring: rgba(204, 251, 241, 0.18);
+    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(20, 184, 166, 0.18);
+    color: #ccfbf1;
+    border: 1px solid rgba(45, 212, 191, 0.78);
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.82), rgba(20, 184, 166, 0.48));
+}
+
+.aboutme-difficulty-tag-easy {
+    --aboutme-static-tag-border: rgba(74, 222, 128, 0.8);
+    --aboutme-static-tag-ring: rgba(220, 252, 231, 0.18);
+    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(34, 197, 94, 0.18);
+    color: #dcfce7;
+    border: 1px solid rgba(74, 222, 128, 0.76);
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.84), rgba(34, 197, 94, 0.48));
+}
+
+.aboutme-difficulty-tag-medium {
+    --aboutme-static-tag-border: rgba(251, 191, 36, 0.9);
+    --aboutme-static-tag-ring: rgba(254, 243, 199, 0.18);
+    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(245, 158, 11, 0.2);
+    color: #fef3c7;
+    border: 1px solid rgba(251, 191, 36, 0.86);
+    background: linear-gradient(135deg, rgba(146, 64, 14, 0.88), rgba(245, 158, 11, 0.5));
+}
+
+.aboutme-difficulty-tag-hard {
+    --aboutme-static-tag-border: rgba(251, 113, 133, 0.94);
+    --aboutme-static-tag-ring: rgba(255, 228, 230, 0.18);
+    --aboutme-static-tag-shadow: 0 0.5rem 1.2rem rgba(244, 63, 94, 0.22);
+    color: #ffe4e6;
+    border: 1px solid rgba(251, 113, 133, 0.9);
+    background: linear-gradient(135deg, rgba(159, 18, 57, 0.9), rgba(244, 63, 94, 0.54));
+}
+
+.aboutme-difficulty-tag-insane {
+    --aboutme-static-tag-border: rgba(232, 121, 249, 0.96);
+    --aboutme-static-tag-ring: rgba(250, 232, 255, 0.2);
+    --aboutme-static-tag-shadow: 0 0.55rem 1.35rem rgba(192, 38, 211, 0.24);
+    color: #fae8ff;
+    border: 1px solid rgba(232, 121, 249, 0.94);
+    background: linear-gradient(135deg, rgba(88, 28, 135, 0.92), rgba(192, 38, 211, 0.58), rgba(15, 23, 42, 0.48));
+}
+
+.aboutme-difficulty-tag-unknown {
+    --aboutme-static-tag-border: rgba(148, 163, 184, 0.7);
+    --aboutme-static-tag-ring: rgba(226, 232, 240, 0.12);
+    --aboutme-static-tag-shadow: 0 0.4rem 1rem rgba(148, 163, 184, 0.12);
+    color: #cbd5e1;
+    border: 1px solid rgba(148, 163, 184, 0.66);
+    background: rgba(51, 65, 85, 0.62);
+}
+
 a.aboutme-cve-id:focus-visible,
 a.aboutme-cwe-id:focus-visible {
     outline: 2px solid #7dd3fc;

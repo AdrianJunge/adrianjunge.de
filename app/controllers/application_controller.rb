@@ -159,7 +159,7 @@ class ApplicationController < ActionController::Base
       .map(&:to_s)
       .reject(&:blank?)
       .uniq { |value| value.downcase }
-      .sort_by { |value| AuthoredChallenge.filter_sort_key(value) }
+      .sort_by { |value| ContentRepository.filter_tag_sort_key(value) }
   end
 
   def filter_tag_groups(values, content_labels: [], topic_label: "Topics")
@@ -168,6 +168,15 @@ class ApplicationController < ActionController::Base
 
     recognition_tags, tags = tags.partition { |value| [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(value) }
     grouped << { label: "Recognition", tags: recognition_tags } if recognition_tags.any?
+
+    difficulty_tags, tags = tags.partition { |value| WriteupDifficulty.filter_label?(value) }
+    if difficulty_tags.any?
+      grouped << {
+        label: "Difficulty",
+        tags: difficulty_tags,
+        sort: "difficulty"
+      }
+    end
 
     content_lookup = Array(content_labels).index_by(&:downcase)
     if content_lookup.any?

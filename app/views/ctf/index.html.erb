@@ -40,6 +40,15 @@
   <div class="ctf-cards-container">
     <% @ctfs.each do |name, ctf| %>
       <% ctf_tags = Array(@ctf_tags[name]) %>
+      <% ctf_card_tags = ctf_tags.map do |tag|
+           {
+             label: tag,
+             winner: tag == WriteupWinner::FILTER_LABEL,
+             authored: tag == AuthoredChallenge::FILTER_LABEL,
+             difficulty_filter: WriteupDifficulty.filter_label?(tag),
+             difficulty_key: tag
+           }
+         end %>
       <% filter_text = [name, ctf["description"], ctf["terminal_path"], ctf_tags].flatten.compact.join(" ") %>
       <%= render_content_card(
             url: ctf["writeups"],
@@ -59,7 +68,7 @@
             tags_outer_class: "blog-post-meta",
             tags_class: "blog-post-meta-row",
             filter_scope: "ctfs",
-            tags: ctf_tags.map { |tag| { label: tag, winner: tag == WriteupWinner::FILTER_LABEL, authored: tag == AuthoredChallenge::FILTER_LABEL } },
+            tags: ctf_card_tags,
             description: ctf["description"],
             description_class: "ctf-description",
             description_tag: :p,

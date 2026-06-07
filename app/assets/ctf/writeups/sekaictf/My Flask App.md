@@ -7,6 +7,7 @@ authors:
 description: I created a Web application in Flask, what could be wrong?
 categories:
     - web
+difficulty: Easy
 year: 2025
 challengefiles: my-flask-app
 published: "2025-09-11"

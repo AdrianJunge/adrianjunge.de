@@ -7,6 +7,7 @@ authors:
 description: I always think leaf ~= tea. Please allow remote to have some time to boot the browser.
 categories:
     - web
+difficulty: Hard
 year: 2025
 challengefiles: leaf
 published: "2025-06-09"

@@ -8,6 +8,7 @@ description: A table-side QR reader for hungry guests and suspicious menus. One 
 categories:
     - pwn
     - web
+difficulty: Hard
 year: 2026
 challengefiles: scanwich-station
 published: "2026-06-05"

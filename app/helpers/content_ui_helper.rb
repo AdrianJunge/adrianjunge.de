@@ -5,9 +5,10 @@ module ContentUiHelper
     render "shared/content_card", card: card
   end
 
-  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, static_class: "blog-post-static-chip", title: nil)
+  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, static_class: "blog-post-static-chip", title: nil)
     label = label.to_s
     classes = [ "filter-chip", class_name ]
+    difficulty_key = WriteupDifficulty.css_key(difficulty_key) if difficulty_key.present?
 
     if winner
       classes << "writeup-winner-badge"
@@ -15,6 +16,10 @@ module ContentUiHelper
     elsif authored
       classes << "authored-challenge-badge"
       classes << "authored-challenge-badge-filter"
+    elsif difficulty_key.present?
+      classes << "difficulty-badge"
+      classes << "difficulty-badge-#{difficulty_key}"
+      classes << "difficulty-badge-filter"
     end
 
     interactive = false if scope.blank?
@@ -32,7 +37,7 @@ module ContentUiHelper
       return content_tag(:span, content, class: classes.compact.join(" "), title: title)
     end
 
-    classes << "ui-hover-lift" unless winner || authored
+    classes << "ui-hover-lift" unless winner || authored || difficulty_key.present?
     content_tag(
       :button,
       content,
@@ -70,6 +75,19 @@ module ContentUiHelper
         content_tag(:span, label, class: "authored-challenge-label")
       ])
     end
+  end
+
+  def content_difficulty_badge(label:, key:, context: :card, title: nil)
+    label = label.to_s.presence || WriteupDifficulty::UNKNOWN_LABEL
+    key = WriteupDifficulty.css_key(key)
+    classes = [ "difficulty-badge", "difficulty-badge-#{key}", "difficulty-badge-#{context}" ]
+
+    content_tag(
+      :span,
+      label,
+      class: classes.join(" "),
+      title: title.presence || "Challenge difficulty: #{label}"
+    )
   end
 
   def content_winner_icon
@@ -112,6 +130,15 @@ module ContentUiHelper
       )
     end
 
+    if config[:difficulty]
+      return content_difficulty_badge(
+        label: config[:label],
+        key: config[:difficulty_key],
+        context: config[:context].presence || :card,
+        title: config[:title]
+      )
+    end
+
     content_filter_chip(
       config[:label],
       scope: config.fetch(:scope, default_scope),
@@ -120,6 +147,7 @@ module ContentUiHelper
       class_name: config[:class_name],
       winner: config[:winner],
       authored: config[:authored],
+      difficulty_key: config[:difficulty_filter] ? config[:difficulty_key] || config[:label] : nil,
       static_class: config[:static_class].presence || "blog-post-static-chip",
       title: config[:title]
     )

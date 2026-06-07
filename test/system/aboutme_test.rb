@@ -40,6 +40,8 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "0px", reading_time_style["borderTopWidth"]
     assert_equal "rgba(0, 0, 0, 0)", reading_time_style["backgroundColor"]
     assert_selector "#my-challenges .aboutme-card-tag[href='https://gpn23.ctf.kitctf.de/']", text: "GPNCTF 2025"
+    assert_selector "#my-challenges .aboutme-difficulty-tag-hard", text: "Hard"
+    assert_no_selector "#my-challenges .aboutme-difficulty-tag-unknown"
     assert_selector "#certificates .aboutme-card-link-overlay[href='/blog/htb-cpts']", visible: :all
     assert_selector "#certificates .aboutme-card-reading-time", text: /min read/
     assert_selector "#certificates .aboutme-tag-certification[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", text: "Certification"

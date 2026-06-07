@@ -7,6 +7,7 @@ authors:
 description: Welcome to the canteen's online menu, where you can check out the daily specials and their prices. But is everything as appetizing as it seems?
 categories:
     - Web
+difficulty: Medium
 year: 2025
 challengefiles: canteenfood
 published: "2025-05-09"

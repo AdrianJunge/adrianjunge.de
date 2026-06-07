@@ -17,6 +17,17 @@ class ContentRepository
     }
   ].freeze
 
+  def self.filter_tag_sort_key(value)
+    recognition_key = AuthoredChallenge.filter_sort_key(value)
+    return recognition_key if recognition_key.first < 2
+
+    if WriteupDifficulty.filter_label?(value)
+      [ 2, *WriteupDifficulty.filter_sort_key(value) ]
+    else
+      [ 3, value.to_s.downcase ]
+    end
+  end
+
   def about_markdown
     @about_markdown ||= read_file(ApplicationController::ABOUTME_TEXT_PATH)
   end
@@ -151,6 +162,7 @@ class ContentRepository
       summary = authored[:summary].presence || authored_challenge_summary(post[:description], event)
       date = authored[:date].presence || post[:published].strftime("%Y-%m-%d")
       link = encoded_local_path(post[:link])
+      difficulty = WriteupDifficulty.from_metadata(post[:metadata] || {})
 
       {
         "id" => authored[:id].presence || post[:slug].parameterize,
@@ -161,6 +173,12 @@ class ContentRepository
         "category_url" => event_url,
         "date" => date,
         "summary" => summary,
+        "tags" => [
+          {
+            "label" => difficulty[:label],
+            "class_name" => "aboutme-difficulty-tag aboutme-difficulty-tag-#{difficulty[:key]}"
+          }
+        ],
         "links" => [
           { "label" => "Read writeup", "url" => link }
         ]
@@ -201,8 +219,12 @@ class ContentRepository
     metadata["year"].presence&.to_i
   end
 
-  def metadata_tags(metadata)
-    (Array(metadata["categories"]) + [ WriteupWinner.filter_label_for(metadata), AuthoredChallenge.filter_label_for(metadata) ])
+  def metadata_tags(metadata = nil, include_difficulty: true, **metadata_keywords)
+    metadata = metadata_keywords if metadata.nil? && metadata_keywords.any?
+    metadata ||= {}
+    difficulty_label = WriteupDifficulty.filter_label_for(metadata) if include_difficulty
+
+    sort_metadata_tags(Array(metadata["categories"]) + [ WriteupWinner.filter_label_for(metadata), AuthoredChallenge.filter_label_for(metadata), difficulty_label ])
       .map(&:to_s)
       .reject(&:blank?)
   end
@@ -235,6 +257,14 @@ class ContentRepository
     HIDDEN_CONTENT_KEYS.any? do |key|
       hidden_content_value?(metadata[key])
     end
+  end
+
+  def sort_metadata_tags(values)
+    values
+      .map(&:to_s)
+      .reject(&:blank?)
+      .uniq { |value| value.downcase }
+      .sort_by { |value| self.class.filter_tag_sort_key(value) }
   end
 
   def parse_markdown(content)
