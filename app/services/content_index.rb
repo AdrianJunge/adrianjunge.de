@@ -29,6 +29,13 @@ class ContentIndex
       featured: true
     },
     {
+      path: ApplicationController::ABOUTME_TALKS_PATH,
+      kind: "talk",
+      label: "Talk",
+      section: "talks",
+      featured: false
+    },
+    {
       path: ApplicationController::ABOUTME_ACHIEVEMENTS_PATH,
       kind: "achievement",
       label: "Achievement",

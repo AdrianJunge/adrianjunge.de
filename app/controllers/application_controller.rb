@@ -11,6 +11,7 @@ class ApplicationController < ActionController::Base
   ABOUTME_BUG_BOUNTIES_PATH = ABOUTME_BASE_PATH.join("bug_bounties.json")
   ABOUTME_CHALLENGES_PATH = ABOUTME_BASE_PATH.join("challenges.json")
   ABOUTME_CERTIFICATES_PATH = ABOUTME_BASE_PATH.join("certificates.json")
+  ABOUTME_TALKS_PATH = ABOUTME_BASE_PATH.join("talks.json")
   ABOUTME_ACHIEVEMENTS_PATH = ABOUTME_BASE_PATH.join("achievements.json")
   CONTENT_FILTER_KIND_LABELS = [
     "CTF writeup",
@@ -19,6 +20,7 @@ class ApplicationController < ActionController::Base
     "Bug bounty",
     "Created challenge",
     "Certificate",
+    "Talk",
     "Achievement"
   ].freeze
   ERROR_CONTENT = {

@@ -9,6 +9,7 @@ class AboutmeController < ApplicationController
     @bug_bounties = content_repository.about_entries(ABOUTME_BUG_BOUNTIES_PATH)
     @challenges = content_repository.authored_challenges
     @certificates = content_repository.about_entries(ABOUTME_CERTIFICATES_PATH)
+    @talks = content_repository.about_entries(ABOUTME_TALKS_PATH)
     @achievements = content_repository.about_entries(ABOUTME_ACHIEVEMENTS_PATH)
     @cve_entry_count = @cves.length
     @achievement_event_count = content_repository.achievement_event_count(@achievements)

@@ -1,18 +1,11 @@
 # TODOs
-- Add new section "Talks" to the /about page and a new counter at the top
-    - The cards should be generic with "title", "date", "link to slides" etc
-    - KITCTF web intro 07.05.2026 (https://kitctf.de/intro/)
-        => link to slides (https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf)
-
 - If some writeup got multiple CTF challenge categories then the image icon should be displayed as a circle divided equally by the number of different categories (e.g. having a challenge with web & pwn means the left half is the left half of the web icon and the same for the right have with the pwn icon - same for 3 so every icon got a third of the circle)
+
+- Refactor again the tag colors, it still looks weird having just that small colored border - so maybe having a transparent color filling the tags is better? Or having different blue and green tones might work out better? e.g. for the difficulties going from light blue for the intro to very dark blue for the 0-day? Moreover in /blog having "Privilege escalation" as the only tag with an emoji is weird. So please remove this emoji
 
 - Make the whole design of the sidebar more fitting to the whole website. Currently the sidebar looks too "easy" compared to the rest of the website
 
 - If there is a line wrap (e.g. for the CVE Proof links on the landing page for the Joomla CVE), there shouldn't be a new "line" at the start of the newline. Moreover when hovering the yellow at this line looks weird, use a different color that suits the color pallet and the context
-
-- Reduce the counters on the landing page so there are only “Posts, CVEs, bounties, & more...". I think this reduces the impression of me just wanting "to show off" or whats your opinion on this? What do you think could I change on my website to its not arrogant or superior of me showing what I've done so far? Or is it good how it currently is? Make suggestions what we could improve on my website
-
-- Refactor again the tag colors, it still looks weird having just that small colored border - so maybe having a transparent color filling the tags is better? Moreover in /blog having "Privilege escalation" as the only tag with an emoji is weird. So please remove this emoji
 
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
     => https://github.com/felixfbecker/dom-to-svg

@@ -10,7 +10,9 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_text "Bug bounties"
     assert_text "Created CTF Challenges"
     assert_text "Certificates"
+    assert_text "Talks"
     assert_text "Relevant achievements"
+    assert_text "record of what I have worked on and learned from"
     assert_text "CVE-2026-39327"
     assert_text "CVE-2026-35221"
     assert_text "CVE-2026-35222"
@@ -55,6 +57,11 @@ class AboutmeTest < ApplicationSystemTestCase
       { "text" => "2026-03-23", "linked" => false },
       { "text" => "Certification", "linked" => true }
     ], certificate_tags
+    assert_selector "#talks #kitctf-web-intro-2026.aboutme-achievement-card"
+    assert_selector "#talks .aboutme-card-link-overlay[href='https://kitctf.de/intro/']", visible: :all
+    assert_selector "#talks .aboutme-card-title", text: "KITCTF Web Intro"
+    assert_selector "#talks .aboutme-tag-date", text: "2026-05-07"
+    assert_selector "#talks .aboutme-tag-slides[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf'][target='_blank'][rel='noopener noreferrer']", text: "Slides"
     assert_no_selector "#achievements #firedancer-v1-audit-competition"
     assert_selector "#achievements #kitctf .aboutme-card-link-overlay[href='https://ctftime.org/team/7221/']", visible: :all
     assert_no_text "Public advisories"
@@ -76,12 +83,14 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector ".aboutme-stat[href='#bug-bounties']", text: "Bug bounties"
     assert_selector ".aboutme-stat[href='#my-challenges']", text: "Created Challenges"
     assert_selector ".aboutme-stat[href='#certificates']", text: "Certificates"
+    assert_selector ".aboutme-stat[href='#talks']", text: "Talks"
     assert_selector ".aboutme-stat[href='#achievements']", text: "Achievements"
     assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.aboutme-stat')).justifyContent")
     assert_selector "#cves .aboutme-section-count", text: /entries/
     assert_selector "#bug-bounties .aboutme-section-count", text: "0 findings"
     assert_selector "#my-challenges .aboutme-section-count", text: /challenge/
     assert_selector "#certificates .aboutme-section-count", text: /certificate/
+    assert_selector "#talks .aboutme-section-count", text: "1 talk"
     assert_selector "#achievements .aboutme-section-count", text: /events/
   end
 
@@ -109,6 +118,7 @@ class AboutmeTest < ApplicationSystemTestCase
       assert_text "About me"
       assert_text "Certificates"
       assert_text "Created CTF Challenges"
+      assert_text "Talks"
       assert_text "Relevant achievements"
 
       stats_layout = page.evaluate_script(<<~JS)
@@ -369,6 +379,7 @@ class AboutmeTest < ApplicationSystemTestCase
         return [
           linkAtCenter("#my-challenges .aboutme-tag-gpnctf-2025"),
           linkAtCenter("#certificates .aboutme-tag-certification"),
+          linkAtCenter("#talks .aboutme-tag-slides"),
           linkAtCenter("#achievements #dhm-2025 .aboutme-card-link-overlay"),
           linkAtCenter("#achievements #kitctf-glacierctf-2025 .aboutme-card-link-overlay")
         ];
@@ -377,8 +388,9 @@ class AboutmeTest < ApplicationSystemTestCase
 
     assert_equal "https://gpn23.ctf.kitctf.de/", hit_targets[0]["href"]
     assert_equal "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url", hit_targets[1]["href"]
-    assert_equal "https://hacking-meisterschaft.de/", hit_targets[2]["href"]
-    assert_equal "https://ctftime.org/event/2714", hit_targets[3]["href"]
+    assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", hit_targets[2]["href"]
+    assert_equal "https://hacking-meisterschaft.de/", hit_targets[3]["href"]
+    assert_equal "https://ctftime.org/event/2714", hit_targets[4]["href"]
 
     page.execute_script("document.querySelector('#dhm-2025').scrollIntoView({ block: 'center' });")
     find("#dhm-2025").hover

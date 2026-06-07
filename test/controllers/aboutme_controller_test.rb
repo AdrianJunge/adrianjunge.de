@@ -13,6 +13,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".aboutme-section-title", text: "Bug bounties"
     assert_select ".aboutme-section-title", text: "Created CTF Challenges"
     assert_select ".aboutme-section-title", text: "Certificates"
+    assert_select ".aboutme-section-title", text: "Talks"
     assert_select ".aboutme-section-title", text: "Relevant achievements"
     assert_select ".aboutme-finding-card", minimum: 1
     assert_select ".aboutme-achievement-card", minimum: 1
@@ -20,6 +21,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#bug-bounties", text: "0"
     assert_select ".aboutme-stat[href=?]", "#my-challenges", text: /Created Challenges/
     assert_select ".aboutme-stat[href=?]", "#certificates", text: /Certificates/
+    assert_select ".aboutme-stat[href=?]", "#talks", text: /Talks/
     assert_select ".aboutme-stat[href=?]", "#achievements", text: /Achievements/
   end
 
@@ -41,26 +43,24 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
 
     repository = ContentRepository.new
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
-    challenges = repository.authored_challenges
-    certificates = repository.about_entries(ApplicationController::ABOUTME_CERTIFICATES_PATH)
-    achievements = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH)
-    achievement_events = repository.achievement_event_count(achievements)
 
     assert_response :success
     assert_select "h1", text: "Welcome to my bug collection 🐛"
     assert_select ".landing-action[href=?]", timeline_path, text: /Timeline/
     assert_select ".landing-action[href=?]", about_path, text: /About me/
     assert_select ".landing-metrics.aboutme-stats"
-    assert_select ".landing-metric.aboutme-stat", 6
+    assert_select ".landing-metric.aboutme-stat", 4
     assert_select ".landing-metric:first-child[href=?]", timeline_path, text: /Posts/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#bug-bounties", text: "0"
-    assert_select ".landing-metric[href=?]", "#{about_path}#my-challenges", text: /Created Challenges/
-    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#my-challenges", text: challenges.length.to_s
-    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#certificates", text: certificates.length.to_s
-    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#achievements", text: achievement_events.to_s
+    assert_select ".landing-metric[href=?]", "#{about_path}#bug-bounties", text: /Bounties/
+    assert_select ".landing-metric[href=?]", about_path, text: /& more\.\.\./
+    assert_select ".landing-metric[href=?]", "#{about_path}#my-challenges", false
+    assert_select ".landing-metric[href=?]", "#{about_path}#certificates", false
+    assert_select ".landing-metric[href=?]", "#{about_path}#achievements", false
     assert_select ".landing-metric[href=?] .landing-metric-value", timeline_path, text: repository.post_count.to_s
     assert_select ".landing-metric[href=?] .landing-metric-sublabel", timeline_path, text: repository.format_reading_time(repository.total_post_reading_time_minutes)
+    assert_select "#landing-featured-title", text: "Selected work"
     assert_select ".landing-featured-card", 3
   end
 
@@ -70,12 +70,14 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     challenge_records = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
     challenges = ContentRepository.new.authored_challenges
     certificates = JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH))
+    talks = JSON.parse(File.read(ApplicationController::ABOUTME_TALKS_PATH))
     achievements = JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
 
     assert_kind_of Array, cves
     assert_kind_of Array, bug_bounties
     assert_kind_of Array, challenge_records
     assert_kind_of Array, certificates
+    assert_kind_of Array, talks
     assert_kind_of Array, achievements
     assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-39327" }
     assert_equal 12, cves.length
@@ -115,6 +117,14 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_includes certificates.first["summary"], "full penetration-test report"
     assert_equal "/blog/htb-cpts", certificates.first["card_url"]
     assert_equal "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url", certificates.first["category_url"]
+    assert_equal 1, talks.length
+    assert_equal "kitctf-web-intro-2026", talks.first["id"]
+    assert_equal "KITCTF Web Intro", talks.first["title"]
+    assert_equal "2026-05-07", talks.first["date"]
+    assert_equal "Slides", talks.first["category"]
+    assert_equal "https://kitctf.de/intro/", talks.first["card_url"]
+    assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", talks.first["category_url"]
+    assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", talks.first["links"].first["url"]
     assert_equal %w[
       firedancer-v1-audit-competition
       dhm
@@ -168,7 +178,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
       assert entry.fetch("references", []).any? { |link| link["url"] == "https://www.cve.org/CVERecord?id=#{entry["cve_id"]}" }
     end
 
-    (challenges + certificates + achievements).each do |entry|
+    (challenges + certificates + talks + achievements).each do |entry|
       assert entry["title"].present?
       assert entry["category"].present?
     end

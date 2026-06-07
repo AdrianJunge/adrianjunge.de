@@ -1,6 +1,6 @@
 # About me content
 
-CVEs live in `cves.json`, disclosed bounty entries live in `bug_bounties.json`, certificates live in `certificates.json`, and achievements live in `achievements.json`. Authored challenges are derived from CTF writeup markdown front matter instead of `challenges.json`.
+CVEs live in `cves.json`, disclosed bounty entries live in `bug_bounties.json`, certificates live in `certificates.json`, talks live in `talks.json`, and achievements live in `achievements.json`. Authored challenges are derived from CTF writeup markdown front matter instead of `challenges.json`.
 
 Finding entries support these fields:
 
@@ -41,7 +41,7 @@ optional:
 
 The `optional` section may be omitted entirely. Inside `authored_challenge`, `event`, `event_url`, and `summary` are optional; missing values fall back to the CTF name plus `ctf_year`, configured CTF website, and writeup description.
 
-Certificate and achievement entries support these fields:
+Certificate, talk, and achievement entries support these fields:
 
 ```json
 {
@@ -58,7 +58,7 @@ Certificate and achievement entries support these fields:
 }
 ```
 
-Use `summary` for all visible card text. Keep pending milestones hidden until they have public summary text.
+Use `summary` for all visible card text. Use `category_url` when the category chip should link to a public reference, such as talk slides. Keep pending milestones hidden until they have public summary text.
 
 Achievement entries can group dated events so every event becomes its own search and timeline item:
 

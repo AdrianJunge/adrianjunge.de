@@ -633,8 +633,8 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
     assert_operator affiliation_image_size, :>=, 44
     assert_selector ".landing-metrics.aboutme-stats"
-    assert_selector ".landing-metric", count: 6
-    assert_selector ".landing-metric.aboutme-stat", count: 6
+    assert_selector ".landing-metric", count: 4
+    assert_selector ".landing-metric.aboutme-stat", count: 4
     assert_selector ".landing-metric:first-child[href='/timeline']", text: "Posts"
     assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.landing-metric')).justifyContent")
     assert_selector ".landing-metric:first-child .landing-metric-sublabel", text: /min read/
@@ -654,14 +654,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
     [
       [ "/about#cves", "CVEs", repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).length ],
-      [ "/about#bug-bounties", "Bug bounties", repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH).length ],
-      [ "/about#my-challenges", "Created Challenges", repository.authored_challenges.length ],
-      [ "/about#certificates", "Certificates", repository.about_entries(ApplicationController::ABOUTME_CERTIFICATES_PATH).length ],
-      [
-        "/about#achievements",
-        "Achievements",
-        repository.achievement_event_count(repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
-      ]
+      [ "/about#bug-bounties", "Bounties", repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH).length ]
     ].each do |href, label, count|
       assert_selector ".landing-metric[href='#{href}']", text: label
       assert_selector ".landing-metric[href='#{href}'] .landing-metric-value", text: count.to_s
@@ -669,9 +662,16 @@ class SitePagesTest < ApplicationSystemTestCase
 
     assert_selector ".landing-metric[href='/timeline']", text: "Posts"
     assert_selector ".landing-metric[href='/timeline'] .landing-metric-value", text: repository.post_count.to_s
+    assert_selector ".landing-metric[href='/about']", text: "& more..."
+    assert_no_selector ".landing-metric[href='/about'] .landing-metric-value"
+    assert_no_selector ".landing-metric", text: "Created Challenges"
+    assert_no_selector ".landing-metric", text: "Certificates"
+    assert_no_selector ".landing-metric", text: "Achievements"
     assert_no_selector ".landing-metric[href='/ctf']", text: "CTFs"
     assert_no_selector ".landing-metric", text: "Tags"
     expected_featured_count = content_index.featured_items.length
+    assert_selector "#landing-featured-title", text: "Selected work"
+    assert_no_selector "#landing-featured-title", text: "Featured work"
     assert_selector ".landing-featured-card.aboutme-card", count: expected_featured_count
     assert_equal expected_featured_count, page.evaluate_script("document.querySelectorAll('.landing-featured-card .aboutme-card-header, .landing-featured-card > summary').length")
     assert_selector ".landing-featured-card .aboutme-card-kicker", text: "CVE"

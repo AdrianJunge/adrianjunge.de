@@ -33,10 +33,8 @@
 <% landing_metrics = [
   { label: "Posts", value: @amount_posts, sublabel: @amount_post_reading_time, link: timeline_link },
   { label: "CVEs", value: @amount_cves, link: about_path(anchor: "cves") },
-  { label: "Bug bounties", value: @amount_bug_bounties, link: about_path(anchor: "bug-bounties") },
-  { label: "Created Challenges", value: @amount_challenges, link: about_path(anchor: "my-challenges") },
-  { label: "Certificates", value: @amount_certificates, link: about_path(anchor: "certificates") },
-  { label: "Achievements", value: @amount_achievements, link: about_path(anchor: "achievements") }
+  { label: "Bounties", value: @amount_bug_bounties, link: about_path(anchor: "bug-bounties") },
+  { label: "& more...", link: about_link }
 ] %>
 
 <main class="landing-page">
@@ -85,10 +83,12 @@
         </aside>
     </div>
 
-    <div class="landing-metrics aboutme-stats" aria-label="Site and security profile counters">
+    <div class="landing-metrics aboutme-stats" aria-label="Site overview links">
         <% landing_metrics.each do |metric| %>
             <a href="<%= metric[:link] %>" class="landing-metric aboutme-stat ui-hover-lift">
-                <span class="landing-metric-value aboutme-stat-value"><%= metric[:value] %></span>
+                <% if metric.key?(:value) %>
+                    <span class="landing-metric-value aboutme-stat-value"><%= metric[:value] %></span>
+                <% end %>
                 <span class="landing-metric-label aboutme-stat-label"><%= metric[:label] %></span>
                 <% if metric[:sublabel].present? %>
                     <span class="landing-metric-sublabel aboutme-stat-sublabel"><%= metric[:sublabel] %></span>
@@ -114,7 +114,7 @@
 <section id="landing-bottom">
     <% if @featured_items.any? %>
         <section class="landing-featured-section" aria-labelledby="landing-featured-title">
-            <h2 id="landing-featured-title" class="text-3xl font-bold mb-6 text-white text-center">Featured work</h2>
+            <h2 id="landing-featured-title" class="text-3xl font-bold mb-6 text-white text-center">Selected work</h2>
 
             <div class="landing-featured-grid">
                 <% @featured_items.each do |item| %>

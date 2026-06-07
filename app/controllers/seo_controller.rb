@@ -107,6 +107,7 @@ class SeoController < ApplicationController
       ABOUTME_BUG_BOUNTIES_PATH,
       ABOUTME_CHALLENGES_PATH,
       ABOUTME_CERTIFICATES_PATH,
+      ABOUTME_TALKS_PATH,
       ABOUTME_ACHIEVEMENTS_PATH
     ]
   end

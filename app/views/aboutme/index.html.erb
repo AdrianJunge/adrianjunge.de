@@ -5,6 +5,7 @@
        { title: "Bug bounties", link: about_path(anchor: "bug-bounties") },
        { title: "Created CTF challenges", link: about_path(anchor: "my-challenges") },
        { title: "Certificates", link: about_path(anchor: "certificates") },
+       { title: "Talks", link: about_path(anchor: "talks") },
        { title: "Relevant achievements", link: about_path(anchor: "achievements") }
      ] %>
   <%= seo_meta_tags(
@@ -32,6 +33,7 @@
   { label: "Bug bounties", value: @bug_bounties.length, anchor: "bug-bounties" },
   { label: "Created Challenges", value: @challenges.length, anchor: "my-challenges" },
   { label: "Certificates", value: @certificates.length, anchor: "certificates" },
+  { label: "Talks", value: @talks.length, anchor: "talks" },
   { label: "Achievements", value: @achievement_event_count, anchor: "achievements" }
 ] %>
 <% about_sections = [
@@ -80,6 +82,17 @@
     grid_class: "aboutme-achievement-grid",
     partial: "aboutme/milestone_card",
     empty_text: "No certificates are listed yet."
+  },
+  {
+    id: "talks",
+    title: "Talks",
+    entries: @talks,
+    count: @talks.length,
+    singular: "talk",
+    plural: "talks",
+    grid_class: "aboutme-achievement-grid",
+    partial: "aboutme/milestone_card",
+    empty_text: "No talks are listed yet."
   },
   {
     id: "achievements",

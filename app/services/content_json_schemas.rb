@@ -156,6 +156,7 @@ class ContentJsonSchemas
     ApplicationController::ABOUTME_BUG_BOUNTIES_PATH.to_s => FINDING,
     ApplicationController::ABOUTME_CERTIFICATES_PATH.to_s => MILESTONE,
     ApplicationController::ABOUTME_CHALLENGES_PATH.to_s => MILESTONE,
+    ApplicationController::ABOUTME_TALKS_PATH.to_s => MILESTONE,
     ApplicationController::ABOUTME_ACHIEVEMENTS_PATH.to_s => ACHIEVEMENT
   }.freeze
 

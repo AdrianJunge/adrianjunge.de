@@ -61,6 +61,30 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
     assert_select ".aboutme-link-row", 0
   end
 
+  test "milestone card can link category tags to external references" do
+    render partial: "aboutme/milestone_card", locals: {
+      entry: {
+        "title" => "KITCTF Web Intro",
+        "title_url" => "https://kitctf.de/intro/",
+        "card_url" => "https://kitctf.de/intro/",
+        "category" => "Slides",
+        "category_url" => "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf",
+        "date" => "2026-05-07",
+        "summary" => "Introductory web security talk for KITCTF.",
+        "links" => [
+          { "label" => "Slides", "url" => "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf" }
+        ]
+      }
+    }
+
+    assert_select ".aboutme-achievement-meta a.aboutme-tag-slides[href=?][target=?][rel=?]",
+                  "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf",
+                  "_blank",
+                  "noopener noreferrer",
+                  text: "Slides"
+    assert_select ".aboutme-link-row", 0
+  end
+
   test "milestone card shows reading time for linked local posts" do
     render partial: "aboutme/milestone_card", locals: {
       entry: {

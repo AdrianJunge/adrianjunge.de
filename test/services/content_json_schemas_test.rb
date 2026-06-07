@@ -22,6 +22,7 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
       ApplicationController::ABOUTME_BUG_BOUNTIES_PATH,
       ApplicationController::ABOUTME_CERTIFICATES_PATH,
       ApplicationController::ABOUTME_CHALLENGES_PATH,
+      ApplicationController::ABOUTME_TALKS_PATH,
       ApplicationController::ABOUTME_ACHIEVEMENTS_PATH
     ].each do |path|
       ids = JSON.parse(File.read(path)).map { |entry| entry["id"] }
