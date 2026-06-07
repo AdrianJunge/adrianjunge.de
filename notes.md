@@ -1,4 +1,14 @@
 # TODOs
+- Scanwhich Station: betonen dass wir keinen Leak benötigen, weil mmap chunk direkt neben libc liegt
+
+- Filter tag adden in shiny Lila um nach meinen Autor self challenges filtern zu können
+
+- Falls etwas mehrere CTF Kategorien hat, dann sollte das Icon entsprechend aufgesplittet sein anstatt nur das Icon vom 1. Tag
+
+- Wenn es einen line wrap gibt bei dem CVE Proofs (wie aktuell auf der Landing page für die eine Joomla CVE), dann soll nicht ein 2. Startstrich displayed werden
+
+- Blog refactoren sodass die JSON files wegfallen und alles über Markdown headings (title muss added werden), directories/files gemacht wird
+
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
     => https://github.com/felixfbecker/dom-to-svg
 
