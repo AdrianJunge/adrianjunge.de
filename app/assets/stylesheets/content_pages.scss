@@ -2552,6 +2552,17 @@
     background: rgba(10, 16, 26, 0.4);
 }
 
+.landing-page .landing-affiliation-link-pgp {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.landing-page .landing-affiliation-link-pgp img {
+    filter: invert(1);
+}
+
 .landing-page .landing-affiliation-link img {
     width: 2.85rem;
     height: 2.85rem;

@@ -29,6 +29,7 @@
 <% about_link = about_path %>
 <% kit_link = "https://www.kit.edu" %>
 <% kitctf_link = "https://kitctf.de" %>
+<% pgp_link = "/pgp-vurlo.asc" %>
 <% landing_metrics = [
   { label: "Posts", value: @amount_posts, sublabel: @amount_post_reading_time, link: timeline_link },
   { label: "CVEs", value: @amount_cves, link: about_path(anchor: "cves") },
@@ -75,6 +76,10 @@
                 <a href="<%= kit_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift">
                     <%= image_tag("landing/kit.png", alt: "", aria: { hidden: true }) %>
                     <span>KIT</span>
+                </a>
+                <a href="<%= pgp_link %>" class="landing-affiliation-link landing-affiliation-link-pgp ui-hover-lift">
+                    <%= image_tag("task-bar/pgp.svg", alt: "", aria: { hidden: true }) %>
+                    <span>PGP key</span>
                 </a>
             </div>
         </aside>

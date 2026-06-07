@@ -1,6 +1,4 @@
 # TODOs
-- Do you have any suggestions for /ctf to show that the listed cards, are CTFs and not directly the writeups?
-
 - On small displays like a smarthphone, the font size in codeblocks is a bit too big (it should be equal or a bit smaller than the normal text font size). Moreover the Download button at the top of a post e.g. a writeup, should have more space to the first title.
 
 - Is the "year" attribute in the markdown headers obsolete because of the "publisehd" attribute?

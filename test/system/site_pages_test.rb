@@ -619,6 +619,10 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-action[href='/about']", text: "About me"
     assert_selector ".landing-affiliation-link[href='https://kitctf.de'] img"
     assert_selector ".landing-affiliation-link[href='https://www.kit.edu'] img"
+    assert_selector ".landing-affiliation-link-pgp[href='/pgp-vurlo.asc']", text: "PGP key"
+    assert_selector ".landing-affiliation-link-pgp img[src*='pgp']"
+    assert_selector "footer a[href='mailto:adjun37@gmail.com'] img[alt='Mail Icon']"
+    assert File.exist?(Rails.root.join("public", "pgp-vurlo.asc"))
     affiliation_image_size = page.evaluate_script(<<~JS)
       (() => {
         const image = document.querySelector(".landing-affiliation-link[href='https://kitctf.de'] img");
