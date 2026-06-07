@@ -57,13 +57,28 @@
       </svg>
     </button>
 
-    <h4 class="writeup-year text-white text-center"><%= @which.upcase %>-<%= @ctf_info["year"] %></h4>
+    <% writeup_ctf_label = "#{(@ctf_name.presence || @which).to_s.upcase}-#{@ctf_info["year"]}" %>
+    <h4 class="writeup-year text-white text-center">
+      <% if @ctf["website"].present? %>
+        <%= link_to writeup_ctf_label,
+                    @ctf["website"],
+                    class: "writeup-year-link",
+                    target: "_blank",
+                    rel: "noopener noreferrer" %>
+      <% else %>
+        <%= writeup_ctf_label %>
+      <% end %>
+    </h4>
     <h1 class="writeup-title text-white text-center"><%= @ctf_info["title"] %></h1>
     <%= render "shared/post_meta", items: [ @ctf_info["published"] ], reading_time: @ctf_info["reading_time_label"] %>
 
-    <% if (winner_badge = render_writeup_winner_badge(@ctf_info, context: :article)) %>
-      <div class="writeup-winner-article">
-        <%= winner_badge %>
+    <% article_badges = [
+         render_writeup_winner_badge(@ctf_info, context: :article),
+         render_writeup_authored_badge(@ctf_info, context: :article)
+       ].compact %>
+    <% if article_badges.any? %>
+      <div class="writeup-winner-article writeup-badges-article">
+        <%= safe_join(article_badges) %>
       </div>
     <% end %>
 

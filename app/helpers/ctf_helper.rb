@@ -21,13 +21,28 @@ module CtfHelper
     authors = writeup_authors(info)
     published_year = writeup_year(info)
     winner = writeup_winner(info)
+    authored_challenge = authored_challenge(info)
     winner_label = winner&.fetch(:label, nil)
     winner_filter_label = winner ? WriteupWinner::FILTER_LABEL : nil
-    filter_tags = ([ winner_filter_label ] + categories).compact
-    filter_text = ([ title, description, published, published_year, winner_label, winner_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
+    authored_filter_label = authored_challenge ? AuthoredChallenge::FILTER_LABEL : nil
+    filter_tags = ([ winner_filter_label, authored_filter_label ] + categories).compact
+    filter_text = ([ title, description, published, published_year, winner_label, winner_filter_label, authored_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
 
     tags = categories.map { |category| { label: category } }
-    tags.unshift({ label: winner[:label], url: winner[:proof_url], winner: true, context: :card }) if winner
+    if authored_challenge
+      tags.unshift({
+        label: authored_challenge[:label],
+        tag_value: AuthoredChallenge::FILTER_LABEL,
+        authored: true,
+        class_name: "authored-challenge-badge-card"
+      })
+    end
+    tags.unshift({
+      label: winner[:label],
+      tag_value: WriteupWinner::FILTER_LABEL,
+      winner: true,
+      class_name: "writeup-winner-badge-card"
+    }) if winner
     media_html = logo.present? ? nil : get_category_svg(first_category).html_safe
 
     render_content_card(
@@ -78,6 +93,18 @@ module CtfHelper
     content_winner_badge(label: winner[:label], url: winner[:proof_url], context: context)
   end
 
+  def render_writeup_authored_badge(info, context: :card)
+    authored = authored_challenge(info)
+    return nil unless authored && authored[:event_url].present?
+
+    content_authored_badge(
+      label: authored[:label],
+      url: authored[:event_url],
+      context: context,
+      aria_label: "Open #{authored[:event].presence || "CTF competition"}"
+    )
+  end
+
   private
 
   def category_icon_path(category)
@@ -104,6 +131,12 @@ module CtfHelper
 
   def writeup_winner(info)
     WriteupWinner.from_metadata(info)
+  end
+
+  def authored_challenge(info)
+    AuthoredChallenge.from_metadata(info).tap do |authored|
+      authored[:event_url] = info["ctf_event_url"].presence if authored && authored[:event_url].blank?
+    end
   end
 
   def writeup_year(info)

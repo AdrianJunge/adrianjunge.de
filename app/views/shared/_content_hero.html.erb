@@ -20,7 +20,9 @@
         <%= link_to local_assigns[:url],
                     class: "content-hero-title-cluster content-hero-title-link",
                     target: link_target,
-                    rel: link_rel do %>
+                    rel: link_rel,
+                    aria: { label: "Open #{title}" },
+                    title: "Open #{title}" do %>
           <%= title_cluster %>
         <% end %>
       <% else %>

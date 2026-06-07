@@ -41,7 +41,7 @@
 }
 
 .content-hero p {
-    max-width: 54rem;
+    max-width: 100%;
     margin: 1rem 0 0;
     color: rgba(226, 232, 240, 0.84);
     font-size: 1.08rem;
@@ -85,13 +85,52 @@
 }
 
 .content-hero-title-link {
+    position: relative;
     color: inherit;
     text-decoration: none;
-    transition: transform 0.18s ease;
+    transition: color 0.18s ease, transform 0.18s ease;
 }
 
-.content-hero-title-link:hover {
+.content-hero-title-link h1 {
+    text-decoration: underline;
+    text-decoration-color: rgba(125, 211, 252, 0.5);
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.14em;
+}
+
+.content-hero-title-link::after {
+    width: 0.72rem;
+    height: 0.72rem;
+    flex: 0 0 auto;
+    border-top: 3px solid currentColor;
+    border-right: 3px solid currentColor;
+    content: "";
+    opacity: 0.72;
+    transform: translateY(-0.08rem) rotate(45deg);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.content-hero-title-link:hover,
+.content-hero-title-link:focus-visible {
+    color: #7dd3fc;
     transform: translateY(-1px);
+}
+
+.content-hero-title-link:hover h1,
+.content-hero-title-link:focus-visible h1 {
+    text-decoration-color: #cffafe;
+}
+
+.content-hero-title-link:hover::after,
+.content-hero-title-link:focus-visible::after {
+    opacity: 1;
+    transform: translate(0.14rem, -0.08rem) rotate(45deg);
+}
+
+.content-hero-title-link:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 0.25rem;
+    border-radius: 0.35rem;
 }
 
 .content-hero-actions {
@@ -734,7 +773,9 @@
 .content-page .blog-post-author-link,
 .landing-page .landing-writeup-cards .blog-post-author-link,
 .content-page .writeup-winner-badge,
-.landing-page .landing-writeup-cards .writeup-winner-badge {
+.landing-page .landing-writeup-cards .writeup-winner-badge,
+.content-page .authored-challenge-badge,
+.landing-page .landing-writeup-cards .authored-challenge-badge {
     position: relative;
     z-index: 3;
     pointer-events: auto;
@@ -762,6 +803,62 @@
     isolation: isolate;
     cursor: pointer;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.content-page .authored-challenge-badge,
+.landing-page .landing-writeup-cards .authored-challenge-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    gap: 0.42rem;
+    overflow: hidden;
+    border: 1px solid rgba(244, 114, 182, 0.86);
+    border-radius: var(--radius-ui-pill);
+    color: #fdf2f8;
+    background:
+        linear-gradient(135deg, rgba(112, 26, 117, 0.92), rgba(219, 39, 119, 0.72) 48%, rgba(244, 114, 182, 0.45)),
+        rgba(24, 36, 58, 0.82);
+    box-shadow: 0 0.55rem 1.5rem rgba(236, 72, 153, 0.18);
+    font-weight: 900;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    isolation: isolate;
+    cursor: pointer;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.content-page .authored-challenge-badge::after,
+.landing-page .landing-writeup-cards .authored-challenge-badge::after {
+    position: absolute;
+    inset: -30% auto -30% -45%;
+    z-index: -1;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+    content: "";
+    transform: translateX(-130%) skewX(-18deg);
+    transition: transform 0.52s ease;
+}
+
+.content-page .authored-challenge-badge:focus-visible,
+.content-page .authored-challenge-badge.is-active,
+.landing-page .landing-writeup-cards .authored-challenge-badge:focus-visible,
+.landing-page .landing-writeup-cards .authored-challenge-badge.is-active {
+    border-color: rgba(251, 207, 232, 0.98);
+    box-shadow: 0 0.8rem 2rem rgba(236, 72, 153, 0.25);
+    color: #fff;
+    outline: none;
+}
+
+.content-page .authored-challenge-badge:focus-visible,
+.landing-page .landing-writeup-cards .authored-challenge-badge:focus-visible {
+    transform: translateY(-1px);
+}
+
+.content-page .authored-challenge-badge:focus-visible::after,
+.landing-page .landing-writeup-cards .authored-challenge-badge:focus-visible::after {
+    transform: translateX(420%) skewX(-18deg);
 }
 
 .content-page .writeup-winner-badge::after,
@@ -802,8 +899,22 @@
     letter-spacing: 0.03em;
 }
 
+.content-page .authored-challenge-badge-article {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+}
+
 .content-page .writeup-winner-badge-card,
 .landing-page .landing-writeup-cards .writeup-winner-badge-card {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .authored-challenge-badge-card,
+.landing-page .landing-writeup-cards .authored-challenge-badge-card {
     min-height: 1.7rem;
     padding: 0.22rem 0.58rem;
     font-size: 0.76rem;
@@ -817,16 +928,48 @@
     letter-spacing: 0.02em;
 }
 
+.content-page .authored-challenge-badge-filter {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
 .content-page .writeup-winner-icon,
 .landing-page .landing-writeup-cards .writeup-winner-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 1rem;
     height: 1rem;
     flex: 0 0 auto;
+    font-size: 0.95rem;
+    line-height: 1;
     filter: drop-shadow(0 0 0.35rem rgba(254, 243, 199, 0.55));
+}
+
+.content-page .authored-challenge-icon,
+.landing-page .landing-writeup-cards .authored-challenge-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+    font-size: 0.95rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 0.35rem rgba(251, 207, 232, 0.6));
 }
 
 .content-page .writeup-winner-label,
 .landing-page .landing-writeup-cards .writeup-winner-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.content-page .authored-challenge-label,
+.landing-page .landing-writeup-cards .authored-challenge-label {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -866,10 +1009,25 @@
         rgba(24, 36, 58, 0.82);
 }
 
+.content-page .filter-chip.authored-challenge-badge-filter {
+    border-color: rgba(244, 114, 182, 0.86);
+    color: #fdf2f8;
+    background:
+        linear-gradient(135deg, rgba(112, 26, 117, 0.92), rgba(219, 39, 119, 0.72) 48%, rgba(244, 114, 182, 0.45)),
+        rgba(24, 36, 58, 0.82);
+}
+
 .content-page .filter-chip.writeup-winner-badge-filter:focus-visible,
 .content-page .filter-chip.writeup-winner-badge-filter.is-active {
     border-color: rgba(254, 243, 199, 0.96);
     box-shadow: 0 0.8rem 2rem rgba(250, 204, 21, 0.22);
+    color: #fff;
+}
+
+.content-page .filter-chip.authored-challenge-badge-filter:focus-visible,
+.content-page .filter-chip.authored-challenge-badge-filter.is-active {
+    border-color: rgba(251, 207, 232, 0.98);
+    box-shadow: 0 0.8rem 2rem rgba(236, 72, 153, 0.25);
     color: #fff;
 }
 
@@ -883,8 +1041,19 @@
         transform: translateY(-1px);
     }
 
+    .content-page .authored-challenge-badge:hover,
+    .landing-page .landing-writeup-cards .authored-challenge-badge:hover {
+        border-color: rgba(251, 207, 232, 0.98);
+        box-shadow: 0 0.8rem 2rem rgba(236, 72, 153, 0.25);
+        color: #fff;
+        outline: none;
+        transform: translateY(-1px);
+    }
+
     .content-page .writeup-winner-badge:hover::after,
-    .landing-page .landing-writeup-cards .writeup-winner-badge:hover::after {
+    .landing-page .landing-writeup-cards .writeup-winner-badge:hover::after,
+    .content-page .authored-challenge-badge:hover::after,
+    .landing-page .landing-writeup-cards .authored-challenge-badge:hover::after {
         transform: translateX(420%) skewX(-18deg);
     }
 
@@ -898,6 +1067,12 @@
     .content-page .filter-chip.writeup-winner-badge-filter:hover {
         border-color: rgba(254, 243, 199, 0.96);
         box-shadow: 0 0.8rem 2rem rgba(250, 204, 21, 0.22);
+        color: #fff;
+    }
+
+    .content-page .filter-chip.authored-challenge-badge-filter:hover {
+        border-color: rgba(251, 207, 232, 0.98);
+        box-shadow: 0 0.8rem 2rem rgba(236, 72, 153, 0.25);
         color: #fff;
     }
 }
@@ -1034,6 +1209,25 @@
     text-transform: uppercase;
 }
 
+.content-page .writeup-year-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(125, 211, 252, 0.55);
+    transition: border-color 0.18s ease, color 0.18s ease;
+}
+
+.content-page .writeup-year-link:hover,
+.content-page .writeup-year-link:focus-visible {
+    color: #cffafe;
+    border-color: rgba(207, 250, 254, 0.95);
+}
+
+.content-page .writeup-year-link:focus-visible {
+    outline: 2px solid rgba(125, 211, 252, 0.85);
+    outline-offset: 0.2rem;
+    border-radius: 0.2rem;
+}
+
 .content-page .writeup-title {
     margin: 0 0 0.85rem;
     color: #fff;
@@ -1127,7 +1321,10 @@
 
 .content-page .writeup-winner-article {
     display: flex;
+    align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
     margin: -1rem 0 1.4rem;
 }
 
@@ -1594,16 +1791,19 @@
 }
 
 .timeline-page .timeline-card-hitbox {
+    display: block;
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 20;
+    width: 100%;
+    height: 100%;
     border-radius: var(--radius-ui);
 }
 
 .timeline-page .timeline-title {
     display: block;
     position: relative;
-    z-index: 2;
+    z-index: 30;
     color: #7dd3fc;
     font-size: 1.12rem;
     font-weight: 800;
@@ -1615,7 +1815,7 @@
 .timeline-page .timeline-meta {
     display: block;
     position: relative;
-    z-index: 2;
+    z-index: 30;
     min-width: 0;
     color: rgba(226, 232, 240, 0.84);
     font-size: 0.95rem;
@@ -1627,7 +1827,7 @@
 .timeline-page .timeline-source {
     display: flex;
     position: relative;
-    z-index: 2;
+    z-index: 30;
     flex-wrap: wrap;
     gap: 0.5rem;
     color: rgba(226, 232, 240, 0.7);
@@ -1641,7 +1841,7 @@
 .timeline-page .content-card-date {
     display: flex;
     position: relative;
-    z-index: 2;
+    z-index: 30;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.45rem;
@@ -1654,7 +1854,7 @@
 .timeline-page .timeline-tags {
     display: flex;
     position: relative;
-    z-index: 3;
+    z-index: 40;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.45rem;
@@ -1674,7 +1874,8 @@
     overflow-wrap: anywhere;
 }
 
-.content-page .writeup-winner-badge-timeline {
+.content-page .writeup-winner-badge-timeline,
+.content-page .authored-challenge-badge-timeline {
     min-height: 1.7rem;
     padding: 0.22rem 0.58rem;
     font-size: 0.76rem;

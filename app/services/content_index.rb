@@ -70,8 +70,10 @@ class ContentIndex
     repository.ctf_posts.map do |post|
       metadata = post[:metadata] || {}
       winner = WriteupWinner.from_metadata(metadata)
+      authored_challenge = AuthoredChallenge.from_metadata(metadata)
       filter_tags = Array(post[:categories]).map(&:to_s).reject(&:blank?)
       filter_tags << WriteupWinner::FILTER_LABEL if winner
+      filter_tags << AuthoredChallenge::FILTER_LABEL if authored_challenge
 
       content_item(
         id: "ctf-#{post[:directory].parameterize}-#{post[:slug].parameterize}",
@@ -88,7 +90,8 @@ class ContentIndex
         logo: post[:logo],
         reading_time_minutes: post[:reading_time_minutes],
         reading_time_label: post[:reading_time_label],
-        writeup_winner: winner
+        writeup_winner: winner,
+        authored_challenge: authored_challenge
       )
     end
   end
@@ -118,7 +121,7 @@ class ContentIndex
 
   def about_items
     ABOUT_COLLECTIONS.flat_map do |collection|
-      entries = repository.about_entries(collection[:path])
+      entries = about_collection_entries(collection)
 
       entries.flat_map do |entry|
         if collection[:kind] == "achievement"
@@ -211,7 +214,7 @@ class ContentIndex
 
   def featured_about_entry_items
     @featured_about_entry_items ||= ABOUT_COLLECTIONS.select { |collection| collection[:featured] }.flat_map do |collection|
-      repository.about_entries(collection[:path]).filter_map do |entry|
+      about_collection_entries(collection).filter_map do |entry|
         id = entry["id"].presence || entry["title"].to_s.parameterize
         next if id.blank?
 
@@ -238,6 +241,14 @@ class ContentIndex
     entry["short_summary"].presence ||
       entry["summary"].presence ||
       ""
+  end
+
+  def about_collection_entries(collection)
+    if collection[:kind] == "challenge"
+      repository.authored_challenges
+    else
+      repository.about_entries(collection[:path])
+    end
   end
 
   def about_tags(entry, label)

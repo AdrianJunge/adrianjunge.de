@@ -49,7 +49,7 @@
 
           <ul class="timeline-year-items">
             <% items.each do |item| %>
-              <% visible_tags = item[:tags].reject { |tag_name| [ WriteupWinner::FILTER_LABEL, item[:label] ].include?(tag_name) } %>
+              <% visible_tags = item[:tags].reject { |tag_name| [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL, item[:label] ].include?(tag_name) } %>
               <li
                 class="timeline-item"
                 data-filter-card="timeline"
@@ -76,6 +76,15 @@
                        winner: true,
                        class_name: "writeup-winner-badge-timeline",
                        title: item[:writeup_winner][:label]
+                     } %>
+                <% end %>
+                <% if item[:authored_challenge].present? %>
+                  <% timeline_tags << {
+                       label: item[:authored_challenge][:label],
+                       tag_value: AuthoredChallenge::FILTER_LABEL,
+                       authored: true,
+                       class_name: "authored-challenge-badge-timeline",
+                       title: AuthoredChallenge::FILTER_LABEL
                      } %>
                 <% end %>
                 <% visible_tags.first(6).each do |tag_name| %>

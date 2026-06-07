@@ -159,15 +159,15 @@ class ApplicationController < ActionController::Base
       .map(&:to_s)
       .reject(&:blank?)
       .uniq { |value| value.downcase }
-      .sort_by { |value| WriteupWinner.filter_sort_key(value) }
+      .sort_by { |value| AuthoredChallenge.filter_sort_key(value) }
   end
 
   def filter_tag_groups(values, content_labels: [], topic_label: "Topics")
     tags = sorted_filter_values(values)
     grouped = []
 
-    winner_tags, tags = tags.partition { |value| value == WriteupWinner::FILTER_LABEL }
-    grouped << { label: "Recognition", tags: winner_tags } if winner_tags.any?
+    recognition_tags, tags = tags.partition { |value| [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(value) }
+    grouped << { label: "Recognition", tags: recognition_tags } if recognition_tags.any?
 
     content_lookup = Array(content_labels).index_by(&:downcase)
     if content_lookup.any?

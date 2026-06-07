@@ -1,13 +1,26 @@
 # TODOs
-- Scanwhich Station: betonen dass wir keinen Leak benötigen, weil mmap chunk direkt neben libc liegt
+- Now for the ctf writeups add a new md-header attribute "difficulty". Thoroughly research for the ctfs and the dedicated challenge, to find out which was the difficulty for this challenge I created the writeup for. Moreover the difficulty should be shown in the overview and somewhere at the top on the writeup page itself and also for the self-created challenges on the /about page. There are 5 categories "Intro", "Easy", "Medium", "Hard", "Insane"/"0-day", so every of these categories should have their own tag-color-font-color combination fitting the difficulty. If the difficulty is unknown just use "unknown difficulty".
 
-- Filter tag adden in shiny Lila um nach meinen Autor self challenges filtern zu können
+- Ok and about the optional "hints" metadata, do you have suggestions on where to display these?
 
-- Falls etwas mehrere CTF Kategorien hat, dann sollte das Icon entsprechend aufgesplittet sein anstatt nur das Icon vom 1. Tag
+- Do you have any suggestions for /ctf to show that the listed cards, are CTFs and not directly the writeups?
 
-- Wenn es einen line wrap gibt bei dem CVE Proofs (wie aktuell auf der Landing page für die eine Joomla CVE), dann soll nicht ein 2. Startstrich displayed werden
+- On small displays like a smarthphone, the font size in codeblocks is a bit too big (it should be equal or a bit smaller than the normal text font size). Moreover the Download button at the top of a post e.g. a writeup, should have more space to the first title.
 
-- Blog refactoren sodass die JSON files wegfallen und alles über Markdown headings (title muss added werden), directories/files gemacht wird
+- Is the "year" attribute in the markdown headers obsolete because of the "publisehd" attribute?
+
+- Add new section "Talks" to the /about page and a new counter at the top
+    - The cards should be generic with "title", "date", "link to slides" etc
+    - KITCTF web intro 07.05.2026 (https://kitctf.de/intro/)
+        => link to slides (https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf)
+
+- If some writeup got multiple CTF challenge categories then the image icon should be displayed as a circle divided equally by the number of different categories (e.g. having a challenge with web & pwn means the left half is the left half of the web icon and the same for the right have with the pwn icon - same for 3 so every icon got a third of the circle)
+
+- Make the whole design of the sidebar more fitting to the whole website. Currently the sidebar looks too "easy" compared to the rest of the website
+
+- If there is a line wrap (e.g. for the CVE Proof links on the landing page for the Joomla CVE), there shouldn't be a new "line" at the start of the newline. Moreover when hovering the yellow at this line looks weird, use a different color that suits the color pallet and the context
+
+- Reduce the counters on the landing page so there are only “Posts, CVEs, bounties, & more...". I think this reduces the impression of me just wanting "to show off" or whats your opinion on this? What do you think could I change on my website to its not arrogant or superior of me showing what I've done so far? Or is it good how it currently is? Make suggestions what we could improve on my website
 
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
     => https://github.com/felixfbecker/dom-to-svg
@@ -33,8 +46,6 @@
     - Firedancer Audit Competition
     - SuiteCRM CVEs
     - Wordpress Bug Bounty + CVE
-- Talks held
-    - KITCTF web intro
 
 # Content Management
 - Writeups/Blogs erstellen/editieren/löschen

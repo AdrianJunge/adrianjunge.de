@@ -1,6 +1,7 @@
 <% years = Array(local_assigns.fetch(:years, [])).compact.map(&:to_s).reject(&:blank?).uniq.sort.reverse %>
 <% winner_filter_tag = WriteupWinner::FILTER_LABEL %>
-<% tags = Array(local_assigns.fetch(:tags, [])).compact.map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| WriteupWinner.filter_sort_key(tag) } %>
+<% authored_filter_tag = AuthoredChallenge::FILTER_LABEL %>
+<% tags = Array(local_assigns.fetch(:tags, [])).compact.map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| AuthoredChallenge.filter_sort_key(tag) } %>
 <% tag_groups = Array(local_assigns.fetch(:tag_groups, [])).filter_map do |group|
      next unless group.is_a?(Hash)
 
@@ -9,7 +10,7 @@
 
      {
        label: (group[:label] || group["label"]).to_s,
-       tags: group_tags.uniq { |tag| tag.downcase }.sort_by { |tag| WriteupWinner.filter_sort_key(tag) }
+       tags: group_tags.uniq { |tag| tag.downcase }.sort_by { |tag| AuthoredChallenge.filter_sort_key(tag) }
      }
    end %>
 <% tag_groups = [ { label: "", tags: tags } ] if tag_groups.empty? && tags.any? %>
@@ -105,7 +106,8 @@
             <div class="content-filter-tag-list">
               <% group[:tags].each do |filter_tag| %>
                 <% winner_filter = filter_tag == winner_filter_tag %>
-                <%= content_filter_chip(filter_tag, scope: scope, class_name: "content-filter-tag-chip", winner: winner_filter) %>
+                <% authored_filter = filter_tag == authored_filter_tag %>
+                <%= content_filter_chip(filter_tag, scope: scope, class_name: "content-filter-tag-chip", winner: winner_filter, authored: authored_filter) %>
               <% end %>
             </div>
           </div>

@@ -41,7 +41,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
 
     repository = ContentRepository.new
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
-    challenges = repository.about_entries(ApplicationController::ABOUTME_CHALLENGES_PATH)
+    challenges = repository.authored_challenges
     certificates = repository.about_entries(ApplicationController::ABOUTME_CERTIFICATES_PATH)
     achievements = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH)
     achievement_events = repository.achievement_event_count(achievements)
@@ -67,13 +67,14 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
   test "about me content files have expected shape" do
     cves = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
     bug_bounties = JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
-    challenges = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
+    challenge_records = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
+    challenges = ContentRepository.new.authored_challenges
     certificates = JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH))
     achievements = JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
 
     assert_kind_of Array, cves
     assert_kind_of Array, bug_bounties
-    assert_kind_of Array, challenges
+    assert_kind_of Array, challenge_records
     assert_kind_of Array, certificates
     assert_kind_of Array, achievements
     assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-39327" }
@@ -95,15 +96,19 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert bug_bounties.any? { |entry| entry["project"] == "Firedancer" && entry["cve_id"].blank? }
     assert bug_bounties.all? { |entry| entry["hidden"] }
     assert_empty ContentRepository.new.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
-    assert_equal 1, challenges.length
-    assert_equal [ "smile-at-me" ], challenges.map { |entry| entry["id"] }
-    assert_equal "Smile at me", challenges.first["title"]
+    assert_equal 2, challenges.length
+    assert_equal [ "scanwich-station", "smile-at-me" ], challenges.map { |entry| entry["id"] }
+    assert_equal "Scanwich Station", challenges.first["title"]
     assert_nil challenges.first["details"]
-    assert_includes challenges.first["summary"], "Published for GPNCTF 2025"
-    assert_equal "GPNCTF 2025", challenges.first["category"]
-    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.first["title_url"]
-    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.first["card_url"]
-    assert_equal "https://ctftime.org/ctf/854/", challenges.first["category_url"]
+    assert_includes challenges.first["summary"], "Published for GPNCTF 2026"
+    assert_equal "GPNCTF 2026", challenges.first["category"]
+    assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["title_url"]
+    assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["card_url"]
+    assert_equal "https://gpn24.ctf.kitctf.de/", challenges.first["category_url"]
+    assert_includes challenges.second["summary"], "Published for GPNCTF 2025"
+    assert_equal "GPNCTF 2025", challenges.second["category"]
+    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["title_url"]
+    assert_equal "https://gpn23.ctf.kitctf.de/", challenges.second["category_url"]
     assert_nil certificates.first["details"]
     assert_includes certificates.first["summary"], "full penetration-test report"
     assert_equal "/blog/htb-cpts", certificates.first["card_url"]
@@ -116,9 +121,9 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     ], achievements.map { |entry| entry["id"] }
     assert achievements.find { |entry| entry["id"] == "firedancer-v1-audit-competition" }["events"].all? { |event| event["hidden"] }
     assert_equal %w[
+      kitctf
       dhm
       cscg
-      kitctf
     ], ContentRepository.new.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).map { |entry| entry["id"] }
     dhm = achievements.find { |entry| entry["id"] == "dhm" }
     cscg = achievements.find { |entry| entry["id"] == "cscg" }

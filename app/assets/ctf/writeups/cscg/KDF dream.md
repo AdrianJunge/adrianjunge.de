@@ -10,9 +10,10 @@ categories:
 year: 2025
 challengefiles: kdf-dream
 published: "2025-05-02"
-writeup_winner:
-    label: Best challenge writeup
-    proof_url: /ctf/certifications/cscg25-best-writeup-kdfdream.pdf
+optional:
+    writeup_winner:
+        label: Best challenge writeup
+        proof_url: /ctf/certifications/cscg25-best-writeup-kdfdream.pdf
 ---
 
 # TL;DR<a id="TL;DR"></a>

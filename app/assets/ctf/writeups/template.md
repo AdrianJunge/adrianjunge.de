@@ -8,6 +8,7 @@
 ```
 
 ---
+# Required metadata
 ctf:
 title:
 authors:
@@ -19,9 +20,18 @@ categories:
 year:
 challengefiles:
 published: "2025-08-25"
-writeup_winner:
-    label:
-    proof_url:
+
+# Optional metadata. Omit this whole section, or omit any nested field, when unused.
+optional:
+    authored_challenge:
+        event:
+        event_url:
+        summary:
+    writeup_winner:
+        label:
+        proof_url:
+    hints:
+        -
 ---
 
 # TL;DR<a id="TL;DR"></a>

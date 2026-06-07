@@ -10,7 +10,7 @@
     "terminal_path": "gpnctf",
     "logo": "ctf/gpnctf.png",
     "writeups": "/ctf/gpnctf",
-    "website": "https://gpn23.ctf.kitctf.de/",
+    "website": "https://ctftime.org/ctf/854/",
     "description": "GPNCTF is an annual CTF competition hosted by KITCTF at the GPN chaos computer club event in Karlsruhe."
   },
   "SEKAICTF": {

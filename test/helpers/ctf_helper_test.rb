@@ -38,9 +38,33 @@ class CtfHelperTest < ActionView::TestCase
       }
     }
 
-    assert_select ".blog-post-meta-row > .writeup-winner-badge:first-child[href=?][target=?][rel=?]", "/ctf/certifications/example.pdf", "_blank", "noopener", text: "Contest win"
+    assert_select ".blog-post-meta-row > button.writeup-winner-badge:first-child[data-filter-tag=?]", "Writeup winner", text: /Contest win/
+    assert_select ".blog-post-meta-row > a.writeup-winner-badge", 0
+    assert_select ".writeup-winner-icon", text: "🏆"
     assert_select ".blog-post-card[data-filter-tags*='Writeup winner']"
     assert_select ".blog-post-card[data-filter-tags*='Contest win']", false
+  end
+
+  test "writeup cards render authored challenge badge from optional metadata" do
+    render inline: "<%= render_writeup_card('Authored', '/ctf/demo/Authored', info) %>", locals: {
+      info: {
+        "title" => "Authored",
+        "description" => "A challenge I authored.",
+        "categories" => [ "Web" ],
+        "published" => "2026-01-01",
+        "optional" => {
+          "authored_challenge" => {
+            "event" => "DemoCTF 2026",
+            "event_url" => "https://ctftime.org/event/demo"
+          }
+        }
+      }
+    }
+
+    assert_select ".blog-post-meta-row > button.authored-challenge-badge:first-child[data-filter-tag=?]", "Authored challenge", text: /Authored challenge/
+    assert_select ".blog-post-meta-row > a.authored-challenge-badge", 0
+    assert_select ".authored-challenge-icon", text: "✒️"
+    assert_select ".blog-post-card[data-filter-tags*='Authored challenge']"
   end
 
   test "writeup cards can render ctf organizer logos" do

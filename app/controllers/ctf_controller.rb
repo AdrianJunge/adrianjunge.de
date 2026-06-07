@@ -31,6 +31,7 @@ class CtfController < ApplicationController
 
     @ctf_name, @ctf = ctf_metadata_for(@which, @ctfs)
     @ctf_info = sort_writeups_by_published(content_repository.post_metadata(BASE_PATH, @which))
+                  .transform_values { |info| writeup_info_with_ctf_event_url(info) }
     @writeups = @ctf_info.keys
     @filter_years = @ctf_info.values.filter_map { |metadata| content_repository.metadata_year(metadata) }.uniq.sort.reverse
     @filter_tags = sorted_filter_values(@ctf_info.values.flat_map { |metadata| content_repository.metadata_tags(metadata) })
@@ -45,7 +46,7 @@ class CtfController < ApplicationController
     @markdown_content = safe_markdown_content(BASE_PATH, @which, @writeup, render_error: true)
     return unless @markdown_content
 
-    @ctf_info = content_repository.post_metadata_from(parse_markdown_content(@markdown_content))
+    @ctf_info = writeup_info_with_ctf_event_url(content_repository.post_metadata_from(parse_markdown_content(@markdown_content)))
     return render_error_page(:not_found) if content_repository.hidden_content?(@ctf_info)
 
     @headings = get_headings_from_content(@markdown_content)
@@ -147,5 +148,9 @@ class CtfController < ApplicationController
         0
       end
     end.to_h
+  end
+
+  def writeup_info_with_ctf_event_url(info)
+    info.merge("ctf_event_url" => @ctf["website"])
   end
 end

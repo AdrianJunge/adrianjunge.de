@@ -10,9 +10,10 @@ categories:
 year: 2025
 challengefiles: fancy-web
 published: "2025-09-06"
-hints:
-    - Taking a closer look at `in_array` might offer some inspiration on where to look next.
-    - The intended solution is to use `__toString` Gadget.
+optional:
+    hints:
+        - Taking a closer look at `in_array` might offer some inspiration on where to look next.
+        - The intended solution is to use `__toString` Gadget.
 ---
 
 # TL;DR<a id="TL;DR"></a>

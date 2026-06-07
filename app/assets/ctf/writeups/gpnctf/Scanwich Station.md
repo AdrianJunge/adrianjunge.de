@@ -11,6 +11,11 @@ categories:
 year: 2026
 challengefiles: scanwich-station
 published: "2026-06-05"
+optional:
+    authored_challenge:
+        event: GPNCTF 2026
+        event_url: https://gpn24.ctf.kitctf.de/
+        summary: Hybrid web and pwn challenge about mass assignment, QR-code decoding, signed integer overflow, and GLIBC dynamic symbol poisoning. Published for GPNCTF 2026.
 ---
 
 # TL;DR<a id="TL;DR"></a>
@@ -18,7 +23,7 @@ published: "2026-06-05"
     **- Challenge Setup:** A **Flask** web server, implementing a QR scanner, accepts PNG uploads, decodes ordinary guest tickets with a **Python** QR library, and has a faster alternative path backed by the C library [quirc](https://github.com/dlbeer/quirc) requiring some special authorization
     **- Key Discoveries:** User controlled form fields are passed into a dataclass constructor, allowing `station=kitchen`. The QR-code scanner accepts raw image dimensions where `width * height` fits neither signed 32-bit arithmetic nor several [quirc](https://github.com/dlbeer/quirc) indexing expressions
     **- Vulnerability:** A **signed integer overflow** in [quirc](https://github.com/dlbeer/quirc) lets a finder-pattern scan discover pixels at a high in-bounds offset, then re-use the same coordinates through signed arithmetic and write one byte before the **mmap**-backed image buffer
-    **- Exploitation:** Corrupt **GLIBC** **mmap** chunk size metadata, free the oversized mapping, reclaim the **LIBC** prefix, then use a **House-of-Muney**-style dynamic symbol poisoning chain to make lazy binding turn `puts(<payload>)` into `system(<payload>)`
+    **- Exploitation:** Corrupt **GLIBC** **mmap** chunk size metadata, free the oversized mapping, reclaim the **LIBC** prefix, then use a [House-of-Muney](https://maxwelldulin.com/BlogPost/House-of-Muney-Heap-Exploitation)-style dynamic symbol poisoning chain to make lazy binding turn `puts(<payload>)` into `system(<payload>)`
 
 # 1. Introduction<a id="introduction"></a>
 
@@ -499,7 +504,7 @@ PUTS_SYM_OFF = 0xabe8
 PUTS_SYM = bytes.fromhex("b56c00002200110050870500000000002602000000000000")
 ```
 
-This is a **House of Muney** style step. Instead of overwriting a **GOT** entry, the exploit poisons dynamic symbol lookup metadata used by the lazy resolver. It does not create a direct `puts -> system` function pointer. Instead, the overwritten `Elf64_Sym` entry changes the symbol's `st_value` so the resolver computes the libc-relative address of `system` when the binary asks for `puts`.
+This is a [House of Muney](https://maxwelldulin.com/BlogPost/House-of-Muney-Heap-Exploitation)-style step. Rather than overwriting a **GOT** entry directly, the exploit corrupts the dynamic symbol metadata consumed by the lazy resolver. In other words, it does not manually write a `puts -> system` function pointer. Instead, it modifies the `Elf64_Sym` entry for `puts`, changing its `st_value` to the libc-relative offset of `system`. When the program later resolves `puts`, the dynamic linker performs the normal lookup process but computes the resolved address as `libc_base + system_offset`, effectively binding `puts@plt` to `system`.
 
 Frame 3 also contains a real QR code whose decoded payload is `/read_flag`. After the frame is processed, the `qrscan.c` binary reaches its normal output path:
 

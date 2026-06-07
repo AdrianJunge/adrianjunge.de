@@ -39,7 +39,7 @@ class AboutmeTest < ApplicationSystemTestCase
     JS
     assert_equal "0px", reading_time_style["borderTopWidth"]
     assert_equal "rgba(0, 0, 0, 0)", reading_time_style["backgroundColor"]
-    assert_selector "#my-challenges .aboutme-card-tag[href='https://ctftime.org/ctf/854/']", text: "GPNCTF 2025"
+    assert_selector "#my-challenges .aboutme-card-tag[href='https://gpn23.ctf.kitctf.de/']", text: "GPNCTF 2025"
     assert_selector "#certificates .aboutme-card-link-overlay[href='/blog/htb-cpts']", visible: :all
     assert_selector "#certificates .aboutme-card-reading-time", text: /min read/
     assert_selector "#certificates .aboutme-tag-certification[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", text: "Certification"
@@ -125,7 +125,7 @@ class AboutmeTest < ApplicationSystemTestCase
     end
   end
 
-  test "about me entry cards use masonry columns on desktop" do
+  test "about me entry cards use row-wise two column grids on desktop" do
     page.current_window.resize_to(1280, 1400)
     visit about_path
 
@@ -138,11 +138,14 @@ class AboutmeTest < ApplicationSystemTestCase
 
           return {
             display: style.display,
-            columnCount: style.columnCount,
-            columnGap: style.columnGap,
+            columnCount: style.gridTemplateColumns.split(" ").length,
+            gap: style.gap,
             cardWidths: cards.map((card) => Math.round(card.getBoundingClientRect().width)),
             cardDisplays: cards.map((card) => window.getComputedStyle(card).display),
-            cardMargins: cards.map((card) => window.getComputedStyle(card).marginBottom)
+            cardPositions: cards.map((card) => {
+              const rect = card.getBoundingClientRect();
+              return { left: Math.round(rect.left), top: Math.round(rect.top) };
+            })
           };
         };
 
@@ -154,12 +157,17 @@ class AboutmeTest < ApplicationSystemTestCase
     JS
 
     [ "cves", "achievements" ].each do |section|
-      assert_equal "block", layout[section]["display"]
-      assert_equal "2", layout[section]["columnCount"]
-      assert_equal "16px", layout[section]["columnGap"]
+      positions = layout[section]["cardPositions"]
+
+      assert_equal "grid", layout[section]["display"]
+      assert_equal 2, layout[section]["columnCount"]
+      assert_equal "16px", layout[section]["gap"]
       assert layout[section]["cardWidths"].all? { |width| width < 600 }
-      assert layout[section]["cardDisplays"].all? { |display| display == "inline-block" }
-      assert layout[section]["cardMargins"].all? { |margin| margin == "16px" }
+      assert layout[section]["cardDisplays"].all? { |display| display == "block" }
+      assert_in_delta positions[0]["top"], positions[1]["top"], 2
+      assert_operator positions[0]["left"], :<, positions[1]["left"]
+      assert_operator positions[2]["top"], :>, positions[0]["top"]
+      assert_in_delta positions[0]["left"], positions[2]["left"], 2
     end
   end
 
@@ -365,7 +373,7 @@ class AboutmeTest < ApplicationSystemTestCase
       })()
     JS
 
-    assert_equal "https://ctftime.org/ctf/854/", hit_targets[0]["href"]
+    assert_equal "https://gpn23.ctf.kitctf.de/", hit_targets[0]["href"]
     assert_equal "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url", hit_targets[1]["href"]
     assert_equal "https://hacking-meisterschaft.de/", hit_targets[2]["href"]
     assert_equal "https://ctftime.org/event/2714", hit_targets[3]["href"]
@@ -401,7 +409,7 @@ class AboutmeTest < ApplicationSystemTestCase
     JS
 
     assert_equal "Privilege escalation through com_users batch task", first_cve_title
-    assert_equal [ "DHM", "CSCG", "KITCTF" ], achievement_titles
+    assert_equal [ "KITCTF", "DHM", "CSCG" ], achievement_titles
     assert_equal [ "DHM 2025 participation", "DHM 2024 #1" ], achievement_events["DHM"].map { |event| event["title"] }
     assert_equal [ "CSCG 2025 top 10 global", "CSCG 2024 DHM qualification" ], achievement_events["CSCG"].map { |event| event["title"] }
     assert_equal [

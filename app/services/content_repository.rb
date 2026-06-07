@@ -1,3 +1,5 @@
+require "cgi"
+
 class ContentRepository
   READING_WORDS_PER_MINUTE = 225
   HIDDEN_CONTENT_KEYS = %w[hidden draft wip].freeze
@@ -23,7 +25,7 @@ class ContentRepository
     cache_key = [ path.to_s, include_hidden ]
     about_entries_cache[cache_key] ||= begin
       entries = read_json_array(path)
-      include_hidden ? entries : visible_about_entries(entries, path)
+      include_hidden ? entries : sorted_about_entries(visible_about_entries(entries, path), fallback_path: path)
     end
   end
 
@@ -87,7 +89,7 @@ class ContentRepository
           word_count_label: meta["word_count_label"],
           reading_time_minutes: meta["reading_time_minutes"],
           reading_time_label: meta["reading_time_label"],
-          metadata: meta
+          metadata: meta.merge("ctf_event_url" => item_meta["website"])
         }
       end
     end.sort_by { |item| -item[:published].to_i }
@@ -139,6 +141,33 @@ class ContentRepository
     ctf_posts.length + blog_posts.length
   end
 
+  def authored_challenges(link_prefix: "/ctf")
+    authored_challenges_cache[link_prefix] ||= ctf_posts(link_prefix: link_prefix).filter_map do |post|
+      authored = AuthoredChallenge.from_metadata(post[:metadata] || {})
+      next unless authored
+
+      event = authored[:event].presence || authored_challenge_event(post)
+      event_url = authored[:event_url].presence || ctf_metadata.dig(post[:which], "website")
+      summary = authored[:summary].presence || authored_challenge_summary(post[:description], event)
+      date = authored[:date].presence || post[:published].strftime("%Y-%m-%d")
+      link = encoded_local_path(post[:link])
+
+      {
+        "id" => authored[:id].presence || post[:slug].parameterize,
+        "title" => post[:title],
+        "title_url" => link,
+        "card_url" => link,
+        "category" => event,
+        "category_url" => event_url,
+        "date" => date,
+        "summary" => summary,
+        "links" => [
+          { "label" => "Read writeup", "url" => link }
+        ]
+      }
+    end
+  end
+
   def total_post_reading_time_minutes
     post_reading_time_minutes(ctf_posts + blog_posts)
   end
@@ -173,7 +202,7 @@ class ContentRepository
   end
 
   def metadata_tags(metadata)
-    (Array(metadata["categories"]) + [ WriteupWinner.filter_label_for(metadata) ])
+    (Array(metadata["categories"]) + [ WriteupWinner.filter_label_for(metadata), AuthoredChallenge.filter_label_for(metadata) ])
       .map(&:to_s)
       .reject(&:blank?)
   end
@@ -186,6 +215,18 @@ class ContentRepository
       visible_events = events.reject { |event| hidden_content?(event) }
       events.any? ? visible_events.length : 1
     end
+  end
+
+  def sorted_about_entries(entries, fallback_path: nil)
+    Array(entries).sort_by.with_index do |entry, index|
+      [ -about_entry_time(entry, fallback_path: fallback_path).to_i, index ]
+    end
+  end
+
+  def about_entry_time(entry, fallback_path: nil)
+    latest_nested_entry_time(entry, "timeline") ||
+      latest_nested_entry_time(entry, "events") ||
+      parsed_time(entry["date"], fallback: fallback_path.present? ? file_time(fallback_path) : nil)
   end
 
   def hidden_content?(metadata)
@@ -272,7 +313,7 @@ class ContentRepository
         visible_events = Array(entry["events"]).reject { |event| hidden_content?(event) }
         next if visible_events.empty?
 
-        entry.merge("events" => visible_events)
+        entry.merge("events" => sorted_about_entries(visible_events, fallback_path: path))
       else
         entry
       end
@@ -298,6 +339,29 @@ class ContentRepository
 
   def reading_time_minutes_for_word_count(word_count)
     [ (word_count / READING_WORDS_PER_MINUTE.to_f).ceil, 1 ].max
+  end
+
+  def latest_nested_entry_time(entry, key)
+    Array(entry[key]).filter_map do |item|
+      next unless item.respond_to?(:[])
+
+      parsed_time(item["date"], fallback: nil)
+    end.max
+  end
+
+  def authored_challenge_event(post)
+    [ post.dig(:metadata, "ctf").presence || post[:which], post[:published]&.year ].compact.join(" ")
+  end
+
+  def authored_challenge_summary(description, event)
+    [ description.to_s.presence, ("Published for #{event}." if event.present?) ].compact.join(" ")
+  end
+
+  def encoded_local_path(path)
+    path = path.to_s
+    return path unless path.start_with?("/")
+
+    path.split("/").map { |segment| CGI.escape(segment).gsub("+", "%20") }.join("/")
   end
 
   def feed_post_from(post, source)
@@ -328,5 +392,9 @@ class ContentRepository
 
   def ctf_posts_cache
     @ctf_posts_cache ||= {}
+  end
+
+  def authored_challenges_cache
+    @authored_challenges_cache ||= {}
   end
 end

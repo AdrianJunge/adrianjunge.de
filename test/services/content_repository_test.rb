@@ -30,6 +30,31 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert_match(/\A\d+ min read\z/, repository.format_reading_time(repository.total_post_reading_time_minutes))
   end
 
+  test "authored challenges are derived from ctf markdown metadata" do
+    repository = ContentRepository.new
+    challenges = repository.authored_challenges
+
+    assert_equal [ "scanwich-station", "smile-at-me" ], challenges.map { |entry| entry["id"] }
+    assert_equal "GPNCTF 2026", challenges.first["category"]
+    assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["card_url"]
+    assert_equal "https://gpn24.ctf.kitctf.de/", challenges.first["category_url"]
+    assert_includes challenges.first["summary"], "Published for GPNCTF 2026"
+    assert_equal "GPNCTF 2025", challenges.second["category"]
+    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["card_url"]
+  end
+
+  test "metadata tags include authored challenge filters from optional section" do
+    repository = ContentRepository.new
+    metadata = {
+      "categories" => [ "web" ],
+      "optional" => {
+        "authored_challenge" => true
+      }
+    }
+
+    assert_equal [ "web", AuthoredChallenge::FILTER_LABEL ], repository.metadata_tags(metadata)
+  end
+
   test "generic feed posts merge configured content sources" do
     repository = ContentRepository.new
     items = repository.feed_posts

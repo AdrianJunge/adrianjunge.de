@@ -5,7 +5,7 @@ module WriteupWinner
   module_function
 
   def from_metadata(metadata)
-    raw = metadata["writeup_winner"].presence || metadata["writeup-winner"].presence || metadata["winner"].presence
+    raw = AuthoredChallenge.metadata_value(metadata, "writeup_winner", "writeup-winner", "winner")
     return nil if raw.blank?
 
     winner =
@@ -31,6 +31,6 @@ module WriteupWinner
   end
 
   def filter_sort_key(value)
-    [ value == FILTER_LABEL ? 0 : 1, value.downcase ]
+    AuthoredChallenge.filter_sort_key(value)
   end
 end

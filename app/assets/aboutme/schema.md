@@ -1,6 +1,6 @@
 # About me content
 
-CVEs live in `cves.json`, disclosed bounty entries live in `bug_bounties.json`, authored challenges live in `challenges.json`, certificates live in `certificates.json`, and achievements live in `achievements.json`.
+CVEs live in `cves.json`, disclosed bounty entries live in `bug_bounties.json`, certificates live in `certificates.json`, and achievements live in `achievements.json`. Authored challenges are derived from CTF writeup markdown front matter instead of `challenges.json`.
 
 Finding entries support these fields:
 
@@ -29,7 +29,19 @@ Finding entries support these fields:
 Finding cards are only collapsible when they contain real detail fields such as `summary` or `timeline`.
 Set `"hidden": true` on pending JSON records or achievement events that should remain in source but not render publicly. Markdown posts use `draft: true` in front matter for the same behavior.
 
-Challenge, certificate, and achievement entries support these fields:
+Authored CTF challenges are listed on `/about` when a writeup has `optional.authored_challenge` in its markdown front matter:
+
+```yaml
+optional:
+  authored_challenge:
+    event: GPNCTF 2026
+    event_url: https://ctftime.org/event/3041
+    summary: Summary shown on the about card.
+```
+
+The `optional` section may be omitted entirely. Inside `authored_challenge`, `event`, `event_url`, and `summary` are optional; missing values fall back to the CTF name/year, configured CTF website, and writeup description.
+
+Certificate and achievement entries support these fields:
 
 ```json
 {

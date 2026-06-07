@@ -164,6 +164,72 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
+  test "page intro copy uses the full content width" do
+    {
+      "/ctf" => [ ".content-hero-inner", ".content-hero p" ],
+      "/blog" => [ ".content-hero-inner", ".content-hero p" ],
+      "/about" => [ ".aboutme-hero-inner", ".aboutme-copy" ]
+    }.each do |path, (container_selector, copy_selector)|
+      page.current_window.resize_to(1280, 1200)
+      visit path
+
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const container = document.querySelector("#{container_selector}").getBoundingClientRect();
+          const copy = document.querySelector("#{copy_selector}").getBoundingClientRect();
+
+          return {
+            containerWidth: Math.round(container.width),
+            copyWidth: Math.round(copy.width)
+          };
+        })()
+      JS
+
+      assert_operator metrics["copyWidth"], :>=, metrics["containerWidth"] * 0.95
+    end
+  end
+
+  test "linked content hero titles show a subtle link cue" do
+    _, ctf = repository.ctf_metadata.find { |_, entry| entry["website"].present? }
+
+    visit ctf["writeups"]
+
+    assert_selector ".content-hero-title-link[href='#{ctf["website"]}'][target='_blank'][rel='noopener noreferrer'][title='Open #{ctf["terminal_path"].upcase}']"
+    assert_no_selector ".content-hero-title-link .content-hero-link-cue"
+
+    styles = page.evaluate_script(<<~JS)
+      (() => {
+        const link = document.querySelector(".content-hero-title-link");
+        const heading = link.querySelector("h1");
+        const linkStyle = window.getComputedStyle(link);
+        const headingStyle = window.getComputedStyle(heading);
+        const cueStyle = window.getComputedStyle(link, "::after");
+
+        return {
+          title: heading.innerText.trim(),
+          borderWidth: parseFloat(linkStyle.borderTopWidth),
+          textDecorationLine: headingStyle.textDecorationLine,
+          textDecorationColor: headingStyle.textDecorationColor,
+          cueContent: cueStyle.content,
+          cueWidth: parseFloat(cueStyle.width),
+          cueHeight: parseFloat(cueStyle.height),
+          cueBorderWidth: parseFloat(cueStyle.borderTopWidth),
+          cueOpacity: parseFloat(cueStyle.opacity)
+        };
+      })()
+    JS
+
+    assert_equal ctf["terminal_path"].upcase, styles["title"]
+    assert_equal 0, styles["borderWidth"]
+    assert_includes styles["textDecorationLine"], "underline"
+    assert_not_equal "rgba(0, 0, 0, 0)", styles["textDecorationColor"]
+    assert_not_equal "none", styles["cueContent"]
+    assert_operator styles["cueWidth"], :>, 0
+    assert_operator styles["cueHeight"], :>, 0
+    assert_operator styles["cueBorderWidth"], :>=, 2
+    assert_operator styles["cueOpacity"], :>, 0
+  end
+
   test "year filter uses a rounded custom dropdown" do
     [ "/ctf", "/blog" ].each do |path|
       visit path
@@ -559,7 +625,7 @@ class SitePagesTest < ApplicationSystemTestCase
     [
       [ "/about#cves", "CVEs", repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).length ],
       [ "/about#bug-bounties", "Bug bounties", repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH).length ],
-      [ "/about#my-challenges", "Created Challenges", repository.about_entries(ApplicationController::ABOUTME_CHALLENGES_PATH).length ],
+      [ "/about#my-challenges", "Created Challenges", repository.authored_challenges.length ],
       [ "/about#certificates", "Certificates", repository.about_entries(ApplicationController::ABOUTME_CERTIFICATES_PATH).length ],
       [
         "/about#achievements",
@@ -601,6 +667,7 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "timeline entries are full-card links" do
+    page.current_window.resize_to(1280, 1200)
     timeline_post = first_timeline_post_with_tags
     tag_name = first_visible_timeline_tag
 
@@ -618,14 +685,13 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_current_path timeline_post[:link]
 
     visit "/timeline"
-    empty_tag_row_target = page.evaluate_script(<<~JS)
+    empty_card_area_target = page.evaluate_script(<<~JS)
       (() => {
         const hitbox = document.querySelector(".timeline-card-hitbox[href='#{timeline_post[:link]}']");
         const card = hitbox.closest(".timeline-content");
-        const tags = card.querySelector(".timeline-tags");
         card.scrollIntoView({ block: "center", inline: "nearest" });
-        const rect = tags.getBoundingClientRect();
-        const target = document.elementFromPoint(rect.right - 4, rect.top + (rect.height / 2));
+        const rect = card.getBoundingClientRect();
+        const target = document.elementFromPoint(rect.right - 36, rect.bottom - 36);
 
         target.click();
 
@@ -636,8 +702,8 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
 
-    assert_includes empty_tag_row_target["className"], "timeline-card-hitbox"
-    assert_match %r{#{Regexp.escape(timeline_post[:link])}\z}, empty_tag_row_target["href"]
+    assert_includes empty_card_area_target["className"], "timeline-card-hitbox"
+    assert_match %r{#{Regexp.escape(timeline_post[:link])}\z}, empty_card_area_target["href"]
     assert_current_path timeline_post[:link]
 
     visit "/timeline"
@@ -805,11 +871,15 @@ class SitePagesTest < ApplicationSystemTestCase
       chip["data-filter-tag"]
     end
     assert_equal "Writeup winner", ctf_filter_tags.first
+    assert_equal "Authored challenge", ctf_filter_tags.second
     assert_equal 1, ctf_filter_tags.count("Writeup winner")
+    assert_equal 1, ctf_filter_tags.count("Authored challenge")
     assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
+    assert_selector ".content-filter-panel .filter-chip.authored-challenge-badge-filter", text: "Authored challenge"
     assert_selector ".content-filter-panel .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector ".ctf-card .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector ".ctf-card .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
+    assert_selector ".ctf-card .filter-chip.authored-challenge-badge-filter", text: "Authored challenge"
     find(".content-filter-panel .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i).click
     assert_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_tag_case[:items].length, ctf_total)
@@ -907,6 +977,8 @@ class SitePagesTest < ApplicationSystemTestCase
     click_card_link_area(find(".blog-post-card", text: writeup_post[:title]))
     assert_current_path writeup_post[:link]
     assert_selector ".writeup-title", text: writeup_post[:title]
+    assert_selector ".writeup-year-link[href='#{repository.ctf_metadata.dig(writeup_post[:which], "website")}'][target='_blank'][rel='noopener noreferrer']",
+                    text: /#{Regexp.escape(writeup_post[:which].upcase)}-#{writeup_post[:published].year}/
   end
 
   test "winning writeups show proof badges on overview cards and articles" do
@@ -917,7 +989,8 @@ class SitePagesTest < ApplicationSystemTestCase
     winner_case[:winner_posts].each do |post|
       winner = WriteupWinner.from_metadata(post[:metadata])
       within find(".blog-post-card", text: post[:title]) do
-        assert_selector ".blog-post-meta-row > .writeup-winner-badge:first-child[href='#{winner[:proof_url]}']", text: winner[:label]
+        assert_selector ".blog-post-meta-row > button.writeup-winner-badge:first-child[data-filter-tag='Writeup winner']", text: winner[:label]
+        assert_no_selector ".blog-post-meta-row > a.writeup-winner-badge"
       end
     end
 
@@ -945,6 +1018,22 @@ class SitePagesTest < ApplicationSystemTestCase
       visit external_winner[:link]
       assert_selector ".writeup-winner-article .writeup-winner-badge[href='#{external_badge[:proof_url]}']", text: external_badge[:label]
     end
+  end
+
+  test "authored writeups filter on overview cards and link event badges on articles" do
+    post = authored_writeup_with_event_url
+    authored = AuthoredChallenge.from_metadata(post[:metadata])
+
+    visit "/ctf/#{post[:directory]}"
+
+    within find(".blog-post-card", text: post[:title]) do
+      assert_selector ".blog-post-meta-row > button.authored-challenge-badge[data-filter-tag='Authored challenge']", text: /Authored challenge/
+      assert_no_selector ".blog-post-meta-row > a.authored-challenge-badge"
+      assert_selector ".authored-challenge-icon", text: "✒️"
+    end
+
+    visit post[:link]
+    assert_selector ".writeup-badges-article .authored-challenge-badge[href='#{authored[:event_url]}'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
   end
 
   test "terminal stays bounded on high resolution displays" do
@@ -1320,13 +1409,13 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   def sorted_filter_tags(values)
-    values.map(&:to_s).reject(&:blank?).uniq { |value| value.downcase }.sort_by { |value| WriteupWinner.filter_sort_key(value) }
+    values.map(&:to_s).reject(&:blank?).uniq { |value| value.downcase }.sort_by { |value| AuthoredChallenge.filter_sort_key(value) }
   end
 
   def ctf_overview_tag_case
     groups = {}
     ctf_overview_items.each do |item|
-      item[:tags].reject { |tag| tag == WriteupWinner::FILTER_LABEL }.each do |tag|
+      item[:tags].reject { |tag| special_filter_tag?(tag) }.each do |tag|
         key = tag.downcase
         groups[key] ||= { tag: tag, items: [] }
         groups[key][:items] << item
@@ -1387,7 +1476,7 @@ class SitePagesTest < ApplicationSystemTestCase
   def writeup_tag_case_for(posts)
     groups = {}
     posts.each do |post|
-      repository.metadata_tags(post[:metadata] || {}).reject { |tag| tag == WriteupWinner::FILTER_LABEL }.each do |tag|
+      repository.metadata_tags(post[:metadata] || {}).reject { |tag| special_filter_tag?(tag) }.each do |tag|
         key = tag.downcase
         groups[key] ||= { tag: tag, posts: [] }
         groups[key][:posts] << post
@@ -1477,7 +1566,11 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   def visible_timeline_tags(item)
-    Array(item[:tags]).reject { |tag| [ item[:label], WriteupWinner::FILTER_LABEL ].include?(tag) }
+    Array(item[:tags]).reject { |tag| tag == item[:label] || special_filter_tag?(tag) }
+  end
+
+  def special_filter_tag?(tag)
+    [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(tag)
   end
 
   def timeline_search_case
@@ -1588,6 +1681,12 @@ class SitePagesTest < ApplicationSystemTestCase
     ctf_posts.find do |post|
       WriteupWinner.from_metadata(post[:metadata])&.dig(:proof_url).to_s.match?(%r{\Ahttps?://}i)
     end
+  end
+
+  def authored_writeup_with_event_url
+    ctf_posts.find do |post|
+      AuthoredChallenge.from_metadata(post[:metadata])&.dig(:event_url).present?
+    end || flunk("expected an authored CTF writeup with an event URL")
   end
 
   def ctf_post_with_anchor_external_link_and_image
