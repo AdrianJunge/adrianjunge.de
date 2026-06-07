@@ -1383,6 +1383,21 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_in_delta metrics["containerCenter"], metrics["blockCenter"], 2
     assert_equal "pre-wrap", metrics["whiteSpace"]
     assert_equal "anywhere", metrics["overflowWrap"]
+
+    page.current_window.resize_to(390, 1200)
+    mobile_font_sizes = page.evaluate_script(<<~JS)
+      (() => {
+        const content = document.querySelector(".markdown-content");
+        const pre = document.querySelector(".code-block pre.highlight");
+
+        return {
+          content: parseFloat(window.getComputedStyle(content).fontSize),
+          code: parseFloat(window.getComputedStyle(pre).fontSize)
+        };
+      })()
+    JS
+
+    assert_operator mobile_font_sizes["code"], :<=, mobile_font_sizes["content"]
   end
 
   test "article markdown keeps readable heading typography" do

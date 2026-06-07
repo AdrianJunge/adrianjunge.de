@@ -86,38 +86,40 @@
 
     <%= render_writeup_hints(@ctf_info) %>
 
-    <div class="flex flex-col items-center gap-4">
-      <div class="writeup-challengefiles flex items-center gap-4">
-        <% if @challenge_file %>
-          <%= link_to ctf_file_download_path(@challenge_file[:relative_path]),
-                      class: "download-btn ui-article-action mt-3",
-                      target: "_blank",
-                      rel: "noopener",
-                      aria: { label: "Download #{@challenge_file[:basename]}" } do %>
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M12 3v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M8 11l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M21 21H3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <%= @challenge_file[:basename] %> - <%= number_to_human_size(@challenge_file[:size]) %>
+    <% if @challenge_file || @pdf_writeup %>
+      <div class="writeup-article-actions flex flex-col items-center gap-4">
+        <div class="writeup-challengefiles flex items-center gap-4">
+          <% if @challenge_file %>
+            <%= link_to ctf_file_download_path(@challenge_file[:relative_path]),
+                        class: "download-btn ui-article-action mt-3",
+                        target: "_blank",
+                        rel: "noopener",
+                        aria: { label: "Download #{@challenge_file[:basename]}" } do %>
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 3v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 11l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 21H3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <%= @challenge_file[:basename] %> - <%= number_to_human_size(@challenge_file[:size]) %>
+            <% end %>
           <% end %>
-        <% end %>
 
-        <% if @pdf_writeup %>
-          <%= link_to "/ctf/writeups/#{@pdf_writeup[:relative_path]}",
-                      class: "open-pdf-btn ui-article-action mt-3",
-                      target: "_blank",
-                      rel: "noopener",
-                      aria: { label: "PDF Writeup" } do %>
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M6 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h7l5 5v9a2 2 0 0 1-2 2H6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M13 7V2.5L18.5 8H14a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            PDF Writeup
+          <% if @pdf_writeup %>
+            <%= link_to "/ctf/writeups/#{@pdf_writeup[:relative_path]}",
+                        class: "open-pdf-btn ui-article-action mt-3",
+                        target: "_blank",
+                        rel: "noopener",
+                        aria: { label: "PDF Writeup" } do %>
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h7l5 5v9a2 2 0 0 1-2 2H6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M13 7V2.5L18.5 8H14a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              PDF Writeup
+            <% end %>
           <% end %>
-        <% end %>
+        </div>
       </div>
-    </div>
+    <% end %>
 
     <%= @html_content %>
 

@@ -1536,6 +1536,10 @@
     gap: 0.75rem;
 }
 
+.content-page .writeup-article-actions {
+    margin-bottom: 1.75rem;
+}
+
 .content-page .download-btn,
 .content-page .open-pdf-btn,
 .content-page .previous-writeup-btn,
@@ -2866,6 +2870,12 @@
     .content-page .previous-writeup-btn,
     .content-page .next-writeup-btn {
         justify-content: center;
+    }
+
+    .content-page .markdown-content pre.highlight,
+    .content-page .markdown-content .code-block pre {
+        font-size: 0.92rem;
+        line-height: 1.5;
     }
 }
 
