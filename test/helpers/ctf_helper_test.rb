@@ -1,6 +1,22 @@
 require "test_helper"
 
 class CtfHelperTest < ActionView::TestCase
+  test "content filter chips render shared severity classes" do
+    render inline: "<%= content_filter_chip('High', scope: 'timeline', severity_key: 'High') %>"
+
+    assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High']", text: "High"
+  end
+
+  test "content card tags auto style recognized category and severity labels" do
+    render inline: <<~ERB
+      <%= content_card_tag('Privilege Escalation', default_scope: 'blogs', default_interactive: true) %>
+      <%= content_card_tag('High', default_scope: 'timeline', default_interactive: true) %>
+    ERB
+
+    assert_select "button.filter-chip.category-badge.category-badge-privesc.category-badge-filter[data-filter-tag='Privilege Escalation']", text: "Privilege Escalation"
+    assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High']", text: "High"
+  end
+
   test "writeup cards support multiple authors with independent urls" do
     render inline: "<%= render_writeup_card('Example', '/ctf/demo/Example', info) %>", locals: {
       info: {
@@ -126,6 +142,43 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-meta-row > .difficulty-badge:first-child", text: "Medium"
     assert_select ".blog-post-meta-row > button.category-badge.category-badge-pwn.category-badge-filter[data-filter-tag='Pwn']", text: "Pwn"
     assert_select ".blog-post-meta-row > button.category-badge.category-badge-crypto.category-badge-filter[data-filter-tag='Crypto']", text: "Crypto"
+    assert_select ".writeup-post-card-logo .category-split-icon[data-category-count='2'][role='img'][aria-label='Pwn and Crypto categories']"
+    assert_select ".category-split-icon-slice[data-category='pwn'][style*='--category-index: 0; --category-count: 2; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/pwn-']"
+    assert_select ".category-split-icon-slice[data-category='crypto'][style*='--category-index: 1; --category-count: 2; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/crypto-']"
+    assert_select ".category-split-icon-divider[data-boundary]", 2
+  end
+
+  test "writeup cards split category icons into equal thirds for three categories" do
+    render inline: "<%= render_writeup_card('Categories', '/ctf/demo/Categories', info) %>", locals: {
+      info: {
+        "title" => "Categories",
+        "description" => "A writeup with three categories.",
+        "categories" => [ "Web", "Pwn", "Crypto" ],
+        "difficulty" => "Hard",
+        "published" => "2026-01-01"
+      }
+    }
+
+    assert_select ".writeup-post-card-logo .category-split-icon[data-category-count='3'][aria-label='Web, Pwn, and Crypto categories']"
+    assert_select ".category-split-icon-slice", 3
+    assert_select ".category-split-icon-slice[data-category='web'][style*='--category-index: 0; --category-count: 3; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/web-']"
+    assert_select ".category-split-icon-slice[data-category='pwn'][style*='--category-index: 1; --category-count: 3; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/pwn-']"
+    assert_select ".category-split-icon-slice[data-category='crypto'][style*='--category-index: 2; --category-count: 3; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/crypto-']"
+    assert_select ".category-split-icon-divider", 3
+  end
+
+  test "single category writeup cards keep the existing category icon" do
+    render inline: "<%= render_writeup_card('Single', '/ctf/demo/Single', info) %>", locals: {
+      info: {
+        "title" => "Single",
+        "description" => "A writeup with one category.",
+        "categories" => [ "Web" ],
+        "published" => "2026-01-01"
+      }
+    }
+
+    assert_select ".writeup-post-card-logo .category-split-icon", false
+    assert_select ".writeup-post-card-logo img.blog-logo[src*='categories/web-'][alt='Web category']"
   end
 
   test "writeup cards render optional hint counts without making them filters" do
@@ -189,12 +242,12 @@ class CtfHelperTest < ActionView::TestCase
   test "article category badges render colorful static badges" do
     render inline: "<%= safe_join(render_writeup_category_badges(info, context: :article)) %>", locals: {
       info: {
-        "categories" => [ "Web", "PrivEsc" ]
+        "categories" => [ "Web", "Privilege Escalation" ]
       }
     }
 
     assert_select ".category-badge.category-badge-web.category-badge-article", text: "Web"
-    assert_select ".category-badge.category-badge-privesc.category-badge-article", text: "PrivEsc"
+    assert_select ".category-badge.category-badge-privesc.category-badge-article", text: "Privilege Escalation"
     assert_select ".category-badge[data-filter-tag]", false
   end
 

@@ -750,6 +750,7 @@ class SitePagesTest < ApplicationSystemTestCase
     winner_items = timeline_items.select { |item| item[:tags].include?(WriteupWinner::FILTER_LABEL) }
     first_winner_label = winner_items.first&.dig(:writeup_winner, :label) || "Contest win"
     difficulty_case = timeline_difficulty_case
+    severity_case = timeline_severity_case
     tag_case = timeline_tag_case
 
     visit "/timeline"
@@ -779,8 +780,15 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".content-filter-panel .filter-chip", text: "CTF writeup"
     assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.difficulty-badge-#{difficulty_case[:key]}",
                     text: /^#{Regexp.escape(difficulty_case[:label])}$/
+    assert_selector ".content-filter-panel .filter-chip.severity-badge-filter.severity-badge-#{severity_case[:key]}",
+                    text: /^#{Regexp.escape(severity_case[:label])}$/
+    timeline_items.map { |item| item[:label] }.uniq.each do |label|
+      assert_selector ".content-filter-panel .filter-chip", text: /^#{Regexp.escape(label)}$/
+    end
     assert_selector ".timeline-tags .difficulty-badge-filter.difficulty-badge-#{difficulty_case[:key]}[data-filter-tag='#{difficulty_case[:label]}']",
                     text: /^#{Regexp.escape(difficulty_case[:label])}$/
+    assert_selector ".timeline-tags .severity-badge-filter.severity-badge-#{severity_case[:key]}[data-filter-tag='#{severity_case[:label]}']",
+                    text: /^#{Regexp.escape(severity_case[:label])}$/
     assert_selector ".timeline-tags .writeup-winner-badge-timeline[data-filter-tag='Writeup winner']", text: first_winner_label
 
     fill_in "timeline-search-input", with: search_case[:query]
@@ -889,6 +897,29 @@ class SitePagesTest < ApplicationSystemTestCase
     click_card_link_area(first_card)
 
     assert_current_path target_path
+  end
+
+  test "multi-category writeup cards split the category icon" do
+    visit "/ctf/gpnctf"
+
+    scanwich_post = ctf_posts.find { |post| post[:title] == "Scanwich Station" } || flunk("expected Scanwich Station writeup")
+    categories = Array(scanwich_post[:metadata]["categories"])
+    category_keys = categories.map { |category| ContentCategoryTag.css_key(category) }
+
+    scanwich_card = find(".writeup-post-card", text: "Scanwich Station")
+    within scanwich_card do
+      assert_selector ".writeup-post-card-logo .category-split-icon[data-category-count='#{category_keys.length}'][aria-label='#{categories.to_sentence} categories']"
+      category_keys.each_with_index do |category_key, index|
+        assert_selector ".category-split-icon-slice[data-category='#{category_key}'][style*='--category-index: #{index}; --category-count: #{category_keys.length}; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/#{category_key}-']", visible: :all
+      end
+      assert_selector ".category-split-icon-divider", count: category_keys.length, visible: :all
+    end
+
+    single_category_card = find(".writeup-post-card", text: "Smile at me")
+    within single_category_card do
+      assert_no_selector ".category-split-icon"
+      assert_selector ".writeup-post-card-logo img.blog-logo[src*='categories/web-'][alt='web category']"
+    end
   end
 
   test "content filters search by text tags and year" do
@@ -1046,6 +1077,15 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".blog-post-card", text: search_case[:post][:title]
     assert_selector ".blog-post-card[data-filter-tags*='#{tag_case[:tag]}']"
     assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo", minimum: logo_posts.length if logo_posts.any?
+    if (privilege_escalation_post = blog_posts.find { |post| Array(post[:categories]).include?("Privilege Escalation") })
+      within find(".blog-post-card", text: privilege_escalation_post[:title]) do
+        assert_selector ".category-badge.category-badge-privesc", text: "Privilege Escalation"
+      end
+      crown_content = page.evaluate_script(<<~JS)
+        window.getComputedStyle(document.querySelector(".blog-post-card .category-badge-privesc"), "::before").content
+      JS
+      assert_includes crown_content, "👑"
+    end
 
     fill_in "blog-search-input", with: search_case[:query]
     assert_selector "[data-filter-count='blogs']", text: filter_count_text(search_case[:items].length, blog_total)
@@ -1839,6 +1879,21 @@ class SitePagesTest < ApplicationSystemTestCase
     groups.values.find { |group| group[:items].length < timeline_items.length } ||
       groups.values.first ||
       flunk("expected at least one timeline difficulty tag")
+  end
+
+  def timeline_severity_case
+    groups = {}
+    timeline_items.each do |item|
+      Array(item[:tags]).select { |tag| ContentSeverityTag.recognized?(tag) && !WriteupDifficulty.filter_label?(tag) }.each do |tag|
+        key = tag.downcase
+        groups[key] ||= { label: tag, key: ContentSeverityTag.css_key(tag), items: [] }
+        groups[key][:items] << item
+      end
+    end
+
+    groups.values.find { |group| group[:items].length < timeline_items.length } ||
+      groups.values.first ||
+      flunk("expected at least one timeline severity tag")
   end
 
   def assert_hidden_timeline_item(visible_items)

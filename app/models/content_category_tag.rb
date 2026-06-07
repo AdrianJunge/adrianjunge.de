@@ -16,7 +16,6 @@ module ContentCategoryTag
     "web3" => "blockchain",
     ".net" => "dotnet",
     "dotnet" => "dotnet",
-    "privesc" => "privesc",
     "privilege escalation" => "privesc"
   }.freeze
 

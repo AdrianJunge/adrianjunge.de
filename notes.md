@@ -1,6 +1,4 @@
 # TODOs
-- If some writeup got multiple CTF challenge categories then the image icon should be displayed as a circle divided equally by the number of different categories (e.g. having a challenge with web & pwn means the left half is the left half of the web icon and the same for the right have with the pwn icon - same for 3 so every icon got a third of the circle)
-
 - Refactor again the tag colors, it still looks weird having just that small colored border - so maybe having a transparent color filling the tags is better? Or having different blue and green tones might work out better? e.g. for the difficulties going from light blue for the intro to very dark blue for the 0-day? Moreover in /blog having "Privilege escalation" as the only tag with an emoji is weird. So please remove this emoji
 
 - Make the whole design of the sidebar more fitting to the whole website. Currently the sidebar looks too "easy" compared to the rest of the website

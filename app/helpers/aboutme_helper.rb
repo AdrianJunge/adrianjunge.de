@@ -5,20 +5,7 @@ module AboutmeHelper
   CWE_ID_PATTERN = /\ACWE-(\d+)\z/i
 
   def aboutme_severity_class(severity)
-    case severity.to_s.downcase
-    when "critical"
-      "aboutme-severity-critical"
-    when "high"
-      "aboutme-severity-high"
-    when "medium", "moderate"
-      "aboutme-severity-medium"
-    when "low"
-      "aboutme-severity-low"
-    when "tba"
-      "aboutme-severity-tba"
-    else
-      "aboutme-severity-info"
-    end
+    ContentSeverityTag.css_class(severity) || "aboutme-severity-info"
   end
 
   def aboutme_optional_link(label, url, class_name: nil, aria_label: nil, title: nil)
@@ -170,7 +157,7 @@ module AboutmeHelper
 
   def aboutme_finding_tags(entry)
     [].tap do |tags|
-      tags << { label: entry["severity"], class_name: "aboutme-severity #{aboutme_severity_class(entry["severity"])}" } if entry["severity"].present?
+      tags << { label: entry["severity"], class_name: "aboutme-severity severity-badge #{aboutme_severity_class(entry["severity"])}" } if entry["severity"].present?
       tags << { label: entry["cve_id"], url: aboutme_cve_url(entry["cve_id"]), class_name: "aboutme-cve-id" } if entry["cve_id"].present?
       tags << { label: entry["cwe_id"], url: aboutme_cwe_url(entry["cwe_id"]), class_name: "aboutme-cwe-id" } if entry["cwe_id"].present?
     end

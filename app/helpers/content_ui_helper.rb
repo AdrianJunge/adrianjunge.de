@@ -5,11 +5,12 @@ module ContentUiHelper
     render "shared/content_card", card: card
   end
 
-  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, static_class: "blog-post-static-chip", title: nil)
+  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, static_class: "blog-post-static-chip", title: nil)
     label = label.to_s
     classes = [ "filter-chip", class_name ]
     difficulty_key = WriteupDifficulty.css_key(difficulty_key) if difficulty_key.present?
     category_key = ContentCategoryTag.css_key(category_key) if category_key.present?
+    severity_key = ContentSeverityTag.css_key(severity_key) if severity_key.present?
 
     if winner
       classes << "writeup-winner-badge"
@@ -25,6 +26,11 @@ module ContentUiHelper
       classes << "category-badge"
       classes << "category-badge-#{category_key}"
       classes << "category-badge-filter"
+    elsif severity_key.present?
+      classes << "severity-badge"
+      classes << "severity-badge-#{severity_key}"
+      classes << "aboutme-severity-#{severity_key}"
+      classes << "severity-badge-filter"
     end
 
     interactive = false if scope.blank?
@@ -42,7 +48,7 @@ module ContentUiHelper
       return content_tag(:span, content, class: classes.compact.join(" "), title: title)
     end
 
-    classes << "ui-hover-lift" unless winner || authored || difficulty_key.present? || category_key.present?
+    classes << "ui-hover-lift" unless winner || authored || difficulty_key.present? || category_key.present? || severity_key.present?
     content_tag(
       :button,
       content,
@@ -157,6 +163,9 @@ module ContentUiHelper
       )
     end
 
+    auto_category = !config[:category] && !config[:severity] && ContentCategoryTag.recognized?(config[:label])
+    auto_severity = !config[:category] && !config[:severity] && !WriteupDifficulty.filter_label?(config[:label]) && ContentSeverityTag.recognized?(config[:label])
+
     content_filter_chip(
       config[:label],
       scope: config.fetch(:scope, default_scope),
@@ -166,7 +175,8 @@ module ContentUiHelper
       winner: config[:winner],
       authored: config[:authored],
       difficulty_key: config[:difficulty_filter] ? config[:difficulty_key] || config[:label] : nil,
-      category_key: config[:category] ? config[:category_key] || config[:label] : nil,
+      category_key: (config[:category] || auto_category) ? config[:category_key] || config[:label] : nil,
+      severity_key: (config[:severity] || auto_severity) ? config[:severity_key] || config[:label] : nil,
       static_class: config[:static_class].presence || "blog-post-static-chip",
       title: config[:title]
     )

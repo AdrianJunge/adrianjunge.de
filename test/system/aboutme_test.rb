@@ -311,7 +311,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "Open advisory for Privilege escalation through com_users batch task", metrics["advisoryAriaLabel"]
     assert_equal "Open advisory source", metrics["advisoryTitle"]
     assert_includes metrics["cveTagClass"], "ui-hover-lift"
-    assert_equal "rgba(8, 145, 178, 0.16)", metrics["cveTagBackground"]
+    assert_equal "rgba(8, 145, 178, 0.32)", metrics["cveTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.32)", metrics["cveTagBorder"]
     assert_equal "pointer", metrics["cveTagCursor"]
     assert_equal '""', metrics["cveTagActionContent"]
@@ -321,7 +321,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "rgba(167, 139, 250, 0.4)", metrics["cweTagBorder"]
     assert_equal "pointer", metrics["cweTagCursor"]
     assert_includes metrics["challengeTagClass"], "ui-hover-lift"
-    assert_equal "rgba(8, 145, 178, 0.16)", metrics["challengeTagBackground"]
+    assert_equal "rgba(8, 145, 178, 0.32)", metrics["challengeTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.32)", metrics["challengeTagBorder"]
     assert_equal "pointer", metrics["challengeTagCursor"]
     assert_equal '""', metrics["challengeTagActionContent"]
@@ -332,7 +332,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_match(/rgba?\(250,\s*204,\s*21/, metrics["mediumSeverityBorder"])
     assert_includes metrics["mediumSeverityBackgroundImage"], "linear-gradient"
     assert_includes metrics["mediumSeverityShadow"], "inset"
-    assert_equal "rgba(8, 145, 178, 0.16)", metrics["achievementTagBackground"]
+    assert_equal "rgba(8, 145, 178, 0.32)", metrics["achievementTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.56)", metrics["achievementTagBorder"]
     assert_equal "default", metrics["achievementTagCursor"]
     assert_includes metrics["achievementTagShadow"], "inset"

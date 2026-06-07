@@ -12,9 +12,25 @@ module CtfHelper
     image_tag(category_icon_asset_name(icon_path), alt: "#{category} category", class: "blog-logo")
   end
 
+  def get_category_icon(categories)
+    icon_categories = distinct_categories(categories)
+    return get_category_svg(icon_categories.first) if icon_categories.length == 1
+
+    slices = icon_categories.each_with_index.map { |category, index| category_icon_slice(category, index, icon_categories.length) }
+    dividers = icon_categories.each_index.map { |index| category_icon_divider(index, icon_categories.length) }
+
+    content_tag(
+      :span,
+      safe_join(slices + dividers),
+      class: "category-split-icon blog-logo",
+      role: "img",
+      aria: { label: "#{icon_categories.to_sentence} categories" },
+      data: { category_count: icon_categories.length }
+    )
+  end
+
   def render_writeup_card(writeup, writeup_path, info, logo: nil, interactive_tags: true, show_hints: true)
     categories = Array(info["categories"]).presence || [ "Unknown category" ]
-    first_category = categories&.first || "unknown"
     title = info["title"].presence || writeup.capitalize
     description = info["description"] || "No description available"
     published = info["published"] || "Unknown date"
@@ -65,7 +81,7 @@ module CtfHelper
         title: pluralize(hints.length, "writeup hint")
       }
     end
-    media_html = logo.present? ? nil : get_category_svg(first_category).html_safe
+    media_html = logo.present? ? nil : get_category_icon(categories).html_safe
 
     render_content_card(
       url: writeup_path,
@@ -183,6 +199,70 @@ module CtfHelper
                            .sort_by { |path| path.basename.to_s }
                            .first ||
       CATEGORY_ICON_DIRECTORY.join(DEFAULT_CATEGORY_ICON)
+  end
+
+  def distinct_categories(categories)
+    Array(categories)
+      .map { |category| category.to_s.strip }
+      .reject(&:blank?)
+      .uniq { |category| category.downcase }
+      .presence || [ "Unknown category" ]
+  end
+
+  def category_icon_slice(category, index, count)
+    image = image_tag(
+      category_icon_asset_name(category_icon_path(category)),
+      alt: "",
+      class: "category-split-icon-image"
+    )
+
+    content_tag(
+      :span,
+      image,
+      class: "category-split-icon-slice",
+      style: "--category-index: #{index}; --category-count: #{count}; --category-clip: #{category_icon_clip_path(index, count)};",
+      data: { category: ContentCategoryTag.css_key(category) },
+      aria: { hidden: true }
+    )
+  end
+
+  def category_icon_divider(index, count)
+    start_angle = category_icon_slice_angles(index, count).first
+    content_tag(
+      :span,
+      "",
+      class: "category-split-icon-divider",
+      style: "--category-divider-angle: #{category_icon_css_number(start_angle - 90)}deg;",
+      data: { boundary: index },
+      aria: { hidden: true }
+    )
+  end
+
+  def category_icon_clip_path(index, count)
+    start_angle, end_angle = category_icon_slice_angles(index, count)
+    arc_steps = [ ((end_angle - start_angle).abs / 8.0).ceil, 2 ].max
+    points = [ "50% 50%" ]
+
+    (0..arc_steps).each do |step|
+      angle = start_angle + ((end_angle - start_angle) * step / arc_steps)
+      radians = angle * Math::PI / 180.0
+      x = 50.0 + (50.0 * Math.cos(radians))
+      y = 50.0 + (50.0 * Math.sin(radians))
+      points << "#{category_icon_css_number(x)}% #{category_icon_css_number(y)}%"
+    end
+
+    "polygon(#{points.join(", ")})"
+  end
+
+  def category_icon_slice_angles(index, count)
+    slice_angle = 360.0 / count
+    start_angle = -90.0 - (slice_angle / 2.0) + (index * slice_angle)
+
+    [ start_angle, start_angle + slice_angle ]
+  end
+
+  def category_icon_css_number(value)
+    format("%.3f", value).sub(/\.?0+\z/, "")
   end
 
   def inline_category_svg(icon_path)

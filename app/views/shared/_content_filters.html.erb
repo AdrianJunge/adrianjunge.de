@@ -114,7 +114,8 @@
                 <% winner_filter = filter_tag == winner_filter_tag %>
                 <% authored_filter = filter_tag == authored_filter_tag %>
                 <% difficulty_filter = WriteupDifficulty.filter_label?(filter_tag) %>
-                <% category_filter = !winner_filter && !authored_filter && !difficulty_filter && (ContentCategoryTag.recognized?(filter_tag) || %w[ctfs writeups].include?(scope.to_s)) %>
+                <% severity_filter = !difficulty_filter && ContentSeverityTag.recognized?(filter_tag) %>
+                <% category_filter = !winner_filter && !authored_filter && !difficulty_filter && !severity_filter && (ContentCategoryTag.recognized?(filter_tag) || %w[ctfs writeups].include?(scope.to_s)) %>
                 <%= content_filter_chip(
                       filter_tag,
                       scope: scope,
@@ -122,7 +123,8 @@
                       winner: winner_filter,
                       authored: authored_filter,
                       difficulty_key: difficulty_filter ? filter_tag : nil,
-                      category_key: category_filter ? filter_tag : nil
+                      category_key: category_filter ? filter_tag : nil,
+                      severity_key: severity_filter ? filter_tag : nil
                     ) %>
               <% end %>
             </div>

@@ -1,4 +1,4 @@
-<% timeline_description = "Security research, CVEs, bug bounties, certificates, achievements, blog posts, and CTF writeups ordered by date." %>
+<% timeline_description = "Security research, CTF writeups, blog posts, CVEs, bug bounties, authored challenges, certificates, talks, and achievements ordered by date." %>
 
 <% content_for :head do %>
   <%= seo_meta_tags(
@@ -33,7 +33,7 @@
              search_id: "timeline-search-input",
              clear_id: "timeline-search-clear",
              search_value: @initial_query,
-             placeholder: "Search writeups, CVEs, bounties, certificates...",
+             placeholder: "Search writeups, blog posts, CVEs, talks, achievements...",
              tag_label: "Filters" %>
 
   <div class="timeline-shell">
@@ -101,6 +101,13 @@
                          class_name: "timeline-tag-pill",
                          category: true,
                          category_key: tag_name
+                       } %>
+                  <% elsif ContentSeverityTag.recognized?(tag_name) %>
+                    <% timeline_tags << {
+                         label: tag_name,
+                         class_name: "timeline-tag-pill",
+                         severity: true,
+                         severity_key: tag_name
                        } %>
                   <% else %>
                     <% timeline_tags << { label: tag_name, class_name: "timeline-tag-pill" } %>

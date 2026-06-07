@@ -1,7 +1,7 @@
 .content-page,
 .landing-page {
-    --content-tag-fill: rgba(8, 145, 178, 0.16);
-    --content-tag-fill-active: rgba(8, 145, 178, 0.36);
+    --content-tag-fill: rgba(8, 145, 178, 0.32);
+    --content-tag-fill-active: rgba(8, 145, 178, 0.52);
     min-height: 100dvh;
     color: #f8fafc;
     background: linear-gradient(180deg, rgba(85, 170, 255, 0.08) 0%, rgba(10, 16, 26, 0) 24rem);
@@ -753,6 +753,53 @@
     max-height: 6.5rem;
 }
 
+.content-page .category-split-icon,
+.landing-page .landing-writeup-cards .category-split-icon {
+    position: relative;
+    display: block;
+    width: 6.5rem;
+    height: 6.5rem;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    border-radius: 50%;
+    background: rgba(10, 16, 26, 0.44);
+}
+
+.content-page .category-split-icon-slice,
+.landing-page .landing-writeup-cards .category-split-icon-slice {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    clip-path: var(--category-clip);
+}
+
+.content-page .category-split-icon-divider,
+.landing-page .landing-writeup-cards .category-split-icon-divider {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    width: 2px;
+    height: 50%;
+    background: rgba(125, 211, 252, 0.9);
+    box-shadow: 0 0 10px rgba(125, 211, 252, 0.55);
+    pointer-events: none;
+    transform: translateX(-50%) rotate(var(--category-divider-angle));
+    transform-origin: 50% 0;
+}
+
+.content-page .category-split-icon-image,
+.landing-page .landing-writeup-cards .category-split-icon-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: cover;
+}
+
 .content-page .blog-post-card-details,
 .landing-page .landing-writeup-cards .blog-post-card-details {
     padding: 1.25rem;
@@ -790,6 +837,8 @@
 .landing-page .landing-writeup-cards .difficulty-badge,
 .content-page .category-badge,
 .landing-page .landing-writeup-cards .category-badge,
+.content-page .severity-badge,
+.landing-page .landing-writeup-cards .severity-badge,
 .content-page .writeup-winner-badge,
 .landing-page .landing-writeup-cards .writeup-winner-badge,
 .content-page .authored-challenge-badge,
@@ -803,6 +852,8 @@
 .landing-page .landing-writeup-cards .difficulty-badge {
     --difficulty-border: rgba(148, 163, 184, 0.5);
     --difficulty-color: #e2e8f0;
+    --difficulty-bg: rgba(30, 41, 59, 0.32);
+    --difficulty-bg-active: rgba(51, 65, 85, 0.52);
     --difficulty-active-shadow: rgba(125, 211, 252, 0.22);
     display: inline-flex;
     align-items: center;
@@ -813,8 +864,8 @@
     border: 1px solid var(--difficulty-border);
     border-radius: var(--radius-ui-pill);
     color: var(--difficulty-color);
-    background: var(--content-tag-fill);
-    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--difficulty-active-shadow);
+    background: var(--difficulty-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.08), 0 0.42rem 1rem var(--difficulty-active-shadow);
     font-weight: 900;
     line-height: 1.1;
     text-decoration: none;
@@ -825,43 +876,55 @@
 
 .content-page .difficulty-badge-intro,
 .landing-page .landing-writeup-cards .difficulty-badge-intro {
-    --difficulty-border: rgba(45, 212, 191, 0.56);
-    --difficulty-color: #ccfbf1;
-    --difficulty-active-shadow: rgba(20, 184, 166, 0.16);
+    --difficulty-border: rgba(219, 234, 254, 0.74);
+    --difficulty-color: #eff6ff;
+    --difficulty-bg: rgba(191, 219, 254, 0.32);
+    --difficulty-bg-active: rgba(191, 219, 254, 0.52);
+    --difficulty-active-shadow: rgba(191, 219, 254, 0.2);
 }
 
 .content-page .difficulty-badge-easy,
 .landing-page .landing-writeup-cards .difficulty-badge-easy {
-    --difficulty-border: rgba(74, 222, 128, 0.52);
-    --difficulty-color: #dcfce7;
-    --difficulty-active-shadow: rgba(34, 197, 94, 0.15);
+    --difficulty-border: rgba(125, 211, 252, 0.7);
+    --difficulty-color: #e0f2fe;
+    --difficulty-bg: rgba(14, 165, 233, 0.32);
+    --difficulty-bg-active: rgba(14, 165, 233, 0.52);
+    --difficulty-active-shadow: rgba(14, 165, 233, 0.2);
 }
 
 .content-page .difficulty-badge-medium,
 .landing-page .landing-writeup-cards .difficulty-badge-medium {
-    --difficulty-border: rgba(251, 191, 36, 0.58);
-    --difficulty-color: #fef3c7;
-    --difficulty-active-shadow: rgba(245, 158, 11, 0.16);
+    --difficulty-border: rgba(96, 165, 250, 0.68);
+    --difficulty-color: #dbeafe;
+    --difficulty-bg: rgba(37, 99, 235, 0.32);
+    --difficulty-bg-active: rgba(37, 99, 235, 0.52);
+    --difficulty-active-shadow: rgba(37, 99, 235, 0.23);
 }
 
 .content-page .difficulty-badge-hard,
 .landing-page .landing-writeup-cards .difficulty-badge-hard {
-    --difficulty-border: rgba(251, 113, 133, 0.62);
-    --difficulty-color: #ffe4e6;
-    --difficulty-active-shadow: rgba(244, 63, 94, 0.18);
+    --difficulty-border: rgba(96, 165, 250, 0.62);
+    --difficulty-color: #bfdbfe;
+    --difficulty-bg: rgba(30, 64, 175, 0.32);
+    --difficulty-bg-active: rgba(30, 64, 175, 0.52);
+    --difficulty-active-shadow: rgba(30, 64, 175, 0.28);
 }
 
 .content-page .difficulty-badge-insane,
 .landing-page .landing-writeup-cards .difficulty-badge-insane {
-    --difficulty-border: rgba(232, 121, 249, 0.66);
-    --difficulty-color: #fae8ff;
-    --difficulty-active-shadow: rgba(192, 38, 211, 0.18);
+    --difficulty-border: rgba(147, 197, 253, 0.54);
+    --difficulty-color: #bfdbfe;
+    --difficulty-bg: rgba(15, 23, 42, 0.72);
+    --difficulty-bg-active: rgba(15, 23, 42, 0.88);
+    --difficulty-active-shadow: rgba(15, 23, 42, 0.46);
 }
 
 .content-page .difficulty-badge-unknown,
 .landing-page .landing-writeup-cards .difficulty-badge-unknown {
-    --difficulty-border: rgba(148, 163, 184, 0.54);
+    --difficulty-border: rgba(148, 163, 184, 0.5);
     --difficulty-color: #cbd5e1;
+    --difficulty-bg: rgba(51, 65, 85, 0.32);
+    --difficulty-bg-active: rgba(71, 85, 105, 0.52);
     --difficulty-active-shadow: rgba(148, 163, 184, 0.14);
 }
 
@@ -870,6 +933,8 @@
     --category-emoji: "🏷️";
     --category-border: rgba(125, 211, 252, 0.5);
     --category-color: #cffafe;
+    --category-bg: rgba(8, 145, 178, 0.32);
+    --category-bg-active: rgba(8, 145, 178, 0.52);
     --category-glow: rgba(14, 165, 233, 0.15);
     display: inline-flex;
     align-items: center;
@@ -881,8 +946,8 @@
     border: 1px solid var(--category-border);
     border-radius: var(--radius-ui-pill);
     color: var(--category-color);
-    background: var(--content-tag-fill);
-    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--category-glow);
+    background: var(--category-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.08), 0 0.42rem 1rem var(--category-glow);
     font-weight: 850;
     line-height: 1.1;
     text-decoration: none;
@@ -906,87 +971,109 @@
 .content-page .category-badge-web,
 .landing-page .landing-writeup-cards .category-badge-web {
     --category-emoji: "🌐";
-    --category-border: rgba(96, 165, 250, 0.54);
-    --category-color: #dbeafe;
-    --category-glow: rgba(14, 165, 233, 0.15);
+    --category-border: rgba(125, 211, 252, 0.58);
+    --category-color: #e0f2fe;
+    --category-bg: rgba(14, 116, 144, 0.32);
+    --category-bg-active: rgba(14, 116, 144, 0.52);
+    --category-glow: rgba(14, 165, 233, 0.16);
 }
 
 .content-page .category-badge-pwn,
 .landing-page .landing-writeup-cards .category-badge-pwn {
     --category-emoji: "🧨";
-    --category-border: rgba(248, 113, 113, 0.56);
-    --category-color: #fee2e2;
-    --category-glow: rgba(239, 68, 68, 0.16);
+    --category-border: rgba(94, 234, 212, 0.56);
+    --category-color: #ccfbf1;
+    --category-bg: rgba(15, 118, 110, 0.32);
+    --category-bg-active: rgba(15, 118, 110, 0.52);
+    --category-glow: rgba(20, 184, 166, 0.16);
 }
 
 .content-page .category-badge-crypto,
 .landing-page .landing-writeup-cards .category-badge-crypto {
     --category-emoji: "🔐";
-    --category-border: rgba(52, 211, 153, 0.52);
-    --category-color: #d1fae5;
-    --category-glow: rgba(16, 185, 129, 0.15);
+    --category-border: rgba(134, 239, 172, 0.54);
+    --category-color: #dcfce7;
+    --category-bg: rgba(22, 101, 52, 0.32);
+    --category-bg-active: rgba(22, 101, 52, 0.52);
+    --category-glow: rgba(34, 197, 94, 0.15);
 }
 
 .content-page .category-badge-reverse,
 .landing-page .landing-writeup-cards .category-badge-reverse {
     --category-emoji: "🛠️";
-    --category-border: rgba(167, 139, 250, 0.56);
-    --category-color: #ede9fe;
-    --category-glow: rgba(139, 92, 246, 0.15);
+    --category-border: rgba(147, 197, 253, 0.54);
+    --category-color: #dbeafe;
+    --category-bg: rgba(30, 64, 175, 0.32);
+    --category-bg-active: rgba(30, 64, 175, 0.52);
+    --category-glow: rgba(59, 130, 246, 0.15);
 }
 
 .content-page .category-badge-misc,
 .landing-page .landing-writeup-cards .category-badge-misc {
     --category-emoji: "🧰";
-    --category-border: rgba(251, 191, 36, 0.54);
-    --category-color: #fef3c7;
-    --category-glow: rgba(245, 158, 11, 0.14);
+    --category-border: rgba(148, 163, 184, 0.5);
+    --category-color: #e2e8f0;
+    --category-bg: rgba(51, 65, 85, 0.32);
+    --category-bg-active: rgba(71, 85, 105, 0.52);
+    --category-glow: rgba(148, 163, 184, 0.12);
 }
 
 .content-page .category-badge-forensics,
 .landing-page .landing-writeup-cards .category-badge-forensics {
     --category-emoji: "🔬";
-    --category-border: rgba(45, 212, 191, 0.52);
+    --category-border: rgba(45, 212, 191, 0.56);
     --category-color: #ccfbf1;
+    --category-bg: rgba(19, 78, 74, 0.32);
+    --category-bg-active: rgba(19, 78, 74, 0.52);
     --category-glow: rgba(20, 184, 166, 0.14);
 }
 
 .content-page .category-badge-osint,
 .landing-page .landing-writeup-cards .category-badge-osint {
     --category-emoji: "🛰️";
-    --category-border: rgba(56, 189, 248, 0.52);
+    --category-border: rgba(56, 189, 248, 0.56);
     --category-color: #e0f2fe;
+    --category-bg: rgba(12, 74, 110, 0.32);
+    --category-bg-active: rgba(12, 74, 110, 0.52);
     --category-glow: rgba(56, 189, 248, 0.14);
 }
 
 .content-page .category-badge-blockchain,
 .landing-page .landing-writeup-cards .category-badge-blockchain {
     --category-emoji: "⛓️";
-    --category-border: rgba(251, 146, 60, 0.54);
-    --category-color: #ffedd5;
-    --category-glow: rgba(249, 115, 22, 0.14);
+    --category-border: rgba(74, 222, 128, 0.52);
+    --category-color: #dcfce7;
+    --category-bg: rgba(21, 128, 61, 0.32);
+    --category-bg-active: rgba(21, 128, 61, 0.52);
+    --category-glow: rgba(34, 197, 94, 0.14);
 }
 
 .content-page .category-badge-dotnet,
 .landing-page .landing-writeup-cards .category-badge-dotnet {
     --category-emoji: "🧩";
-    --category-border: rgba(192, 132, 252, 0.54);
-    --category-color: #f3e8ff;
-    --category-glow: rgba(168, 85, 247, 0.14);
+    --category-border: rgba(129, 140, 248, 0.52);
+    --category-color: #e0e7ff;
+    --category-bg: rgba(49, 46, 129, 0.32);
+    --category-bg-active: rgba(49, 46, 129, 0.52);
+    --category-glow: rgba(99, 102, 241, 0.14);
 }
 
 .content-page .category-badge-privesc,
 .landing-page .landing-writeup-cards .category-badge-privesc {
     --category-emoji: "👑";
-    --category-border: rgba(244, 114, 182, 0.54);
-    --category-color: #fce7f3;
-    --category-glow: rgba(236, 72, 153, 0.14);
+    --category-border: rgba(96, 165, 250, 0.54);
+    --category-color: #dbeafe;
+    --category-bg: rgba(30, 64, 175, 0.32);
+    --category-bg-active: rgba(30, 64, 175, 0.52);
+    --category-glow: rgba(59, 130, 246, 0.14);
 }
 
 .content-page .writeup-winner-badge,
 .landing-page .landing-writeup-cards .writeup-winner-badge {
     --recognition-border: rgba(252, 211, 77, 0.58);
     --recognition-color: #fef3c7;
+    --recognition-bg: rgba(113, 63, 18, 0.32);
+    --recognition-bg-active: rgba(146, 64, 14, 0.52);
     --recognition-glow: rgba(250, 204, 21, 0.14);
     display: inline-flex;
     align-items: center;
@@ -997,7 +1084,7 @@
     border: 1px solid var(--recognition-border);
     border-radius: var(--radius-ui-pill);
     color: var(--recognition-color);
-    background: var(--content-tag-fill);
+    background: var(--recognition-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.48rem 1.15rem var(--recognition-glow);
     font-weight: 900;
     line-height: 1.1;
@@ -1010,9 +1097,11 @@
 
 .content-page .authored-challenge-badge,
 .landing-page .landing-writeup-cards .authored-challenge-badge {
-    --recognition-border: rgba(244, 114, 182, 0.58);
-    --recognition-color: #fce7f3;
-    --recognition-glow: rgba(236, 72, 153, 0.14);
+    --recognition-border: rgba(129, 140, 248, 0.58);
+    --recognition-color: #e0e7ff;
+    --recognition-bg: rgba(49, 46, 129, 0.32);
+    --recognition-bg-active: rgba(67, 56, 202, 0.52);
+    --recognition-glow: rgba(99, 102, 241, 0.16);
     display: inline-flex;
     align-items: center;
     width: fit-content;
@@ -1022,7 +1111,7 @@
     border: 1px solid var(--recognition-border);
     border-radius: var(--radius-ui-pill);
     color: var(--recognition-color);
-    background: var(--content-tag-fill);
+    background: var(--recognition-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.48rem 1.15rem var(--recognition-glow);
     font-weight: 900;
     line-height: 1.1;
@@ -1049,10 +1138,10 @@
 .content-page .authored-challenge-badge.is-active,
 .landing-page .landing-writeup-cards .authored-challenge-badge:focus-visible,
 .landing-page .landing-writeup-cards .authored-challenge-badge.is-active {
-    border-color: rgba(251, 207, 232, 0.82);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0.75rem 1.8rem rgba(236, 72, 153, 0.18);
+    border-color: rgba(199, 210, 254, 0.82);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0.75rem 1.8rem rgba(99, 102, 241, 0.22);
     color: #fff;
-    background: var(--content-tag-fill-active);
+    background: var(--recognition-bg-active);
     outline: none;
 }
 
@@ -1085,7 +1174,7 @@
     border-color: rgba(254, 243, 199, 0.82);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0.75rem 1.8rem rgba(250, 204, 21, 0.16);
     color: #fff;
-    background: var(--content-tag-fill-active);
+    background: var(--recognition-bg-active);
     outline: none;
 }
 
@@ -1211,7 +1300,7 @@
     flex: 0 0 auto;
     font-size: 0.95rem;
     line-height: 1;
-    filter: drop-shadow(0 0 0.35rem rgba(251, 207, 232, 0.6));
+    filter: drop-shadow(0 0 0.35rem rgba(199, 210, 254, 0.58));
 }
 
 .content-page .writeup-winner-label,
@@ -1257,14 +1346,14 @@
 .content-page .filter-chip.writeup-winner-badge-filter {
     border-color: var(--recognition-border);
     color: var(--recognition-color);
-    background: var(--content-tag-fill);
+    background: var(--recognition-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.48rem 1.15rem var(--recognition-glow);
 }
 
 .content-page .filter-chip.authored-challenge-badge-filter {
     border-color: var(--recognition-border);
     color: var(--recognition-color);
-    background: var(--content-tag-fill);
+    background: var(--recognition-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.48rem 1.15rem var(--recognition-glow);
 }
 
@@ -1272,7 +1361,7 @@
 .landing-page .landing-writeup-cards .filter-chip.category-badge-filter {
     border-color: var(--category-border);
     color: var(--category-color);
-    background: var(--content-tag-fill);
+    background: var(--category-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--category-glow);
 }
 
@@ -1281,20 +1370,28 @@
     cursor: default;
 }
 
+.content-page .filter-chip.severity-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter {
+    border-color: var(--severity-border, var(--aboutme-static-tag-border, rgba(125, 211, 252, 0.32)));
+    color: var(--severity-color, #cffafe);
+    background: var(--severity-bg, var(--content-tag-fill));
+    box-shadow: inset 0 0 0 1px var(--aboutme-static-tag-ring, rgba(226, 232, 240, 0.06)), var(--severity-shadow, 0 0.42rem 1rem rgba(14, 165, 233, 0.14));
+}
+
 .content-page .filter-chip.writeup-winner-badge-filter:focus-visible,
 .content-page .filter-chip.writeup-winner-badge-filter.is-active {
     border-color: rgba(254, 243, 199, 0.82);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0.75rem 1.8rem rgba(250, 204, 21, 0.16);
     color: #fff;
-    background: var(--content-tag-fill-active);
+    background: var(--recognition-bg-active);
 }
 
 .content-page .filter-chip.authored-challenge-badge-filter:focus-visible,
 .content-page .filter-chip.authored-challenge-badge-filter.is-active {
-    border-color: rgba(251, 207, 232, 0.82);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0.75rem 1.8rem rgba(236, 72, 153, 0.18);
+    border-color: rgba(199, 210, 254, 0.82);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0.75rem 1.8rem rgba(99, 102, 241, 0.22);
     color: #fff;
-    background: var(--content-tag-fill-active);
+    background: var(--recognition-bg-active);
 }
 
 .content-page .filter-chip.difficulty-badge-filter {
@@ -1305,42 +1402,42 @@
 .content-page .filter-chip.difficulty-badge-intro {
     border-color: var(--difficulty-border);
     color: var(--difficulty-color);
-    background: var(--content-tag-fill);
+    background: var(--difficulty-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--difficulty-active-shadow);
 }
 
 .content-page .filter-chip.difficulty-badge-easy {
     border-color: var(--difficulty-border);
     color: var(--difficulty-color);
-    background: var(--content-tag-fill);
+    background: var(--difficulty-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--difficulty-active-shadow);
 }
 
 .content-page .filter-chip.difficulty-badge-medium {
     border-color: var(--difficulty-border);
     color: var(--difficulty-color);
-    background: var(--content-tag-fill);
+    background: var(--difficulty-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--difficulty-active-shadow);
 }
 
 .content-page .filter-chip.difficulty-badge-hard {
     border-color: var(--difficulty-border);
     color: var(--difficulty-color);
-    background: var(--content-tag-fill);
+    background: var(--difficulty-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--difficulty-active-shadow);
 }
 
 .content-page .filter-chip.difficulty-badge-insane {
     border-color: var(--difficulty-border);
     color: var(--difficulty-color);
-    background: var(--content-tag-fill);
+    background: var(--difficulty-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--difficulty-active-shadow);
 }
 
 .content-page .filter-chip.difficulty-badge-unknown {
     border-color: var(--difficulty-border);
     color: var(--difficulty-color);
-    background: var(--content-tag-fill);
+    background: var(--difficulty-bg);
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--difficulty-active-shadow);
 }
 
@@ -1351,7 +1448,7 @@
         inset 0 0 0 1px rgba(255, 255, 255, 0.28),
         0 0.8rem 2rem var(--difficulty-active-shadow, rgba(148, 163, 184, 0.28));
     color: #fff;
-    background: var(--content-tag-fill-active);
+    background: var(--difficulty-bg-active);
     outline: none;
     transform: translateY(-1px);
 }
@@ -1363,7 +1460,19 @@
         inset 0 0 0 1px rgba(255, 255, 255, 0.24),
         0 0.8rem 2rem var(--category-glow, rgba(14, 165, 233, 0.24));
     color: #fff;
-    background: var(--content-tag-fill-active);
+    background: var(--category-bg-active);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.content-page .content-filter-panel .filter-chip.severity-badge-filter:focus-visible,
+.content-page .content-filter-panel .filter-chip.severity-badge-filter.is-active {
+    border-color: rgba(255, 255, 255, 0.86);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+        var(--severity-shadow, 0 0.8rem 2rem rgba(14, 165, 233, 0.22));
+    color: #fff;
+    background: var(--severity-bg-active, var(--severity-bg, var(--content-tag-fill-active)));
     outline: none;
     transform: translateY(-1px);
 }
@@ -1374,17 +1483,17 @@
         border-color: rgba(254, 243, 199, 0.96);
         box-shadow: 0 0.8rem 2rem rgba(250, 204, 21, 0.22);
         color: #fff;
-        background: var(--content-tag-fill-active);
+        background: var(--recognition-bg-active);
         outline: none;
         transform: translateY(-1px);
     }
 
     .content-page .authored-challenge-badge:hover,
     .landing-page .landing-writeup-cards .authored-challenge-badge:hover {
-        border-color: rgba(251, 207, 232, 0.98);
-        box-shadow: 0 0.8rem 2rem rgba(236, 72, 153, 0.25);
+        border-color: rgba(199, 210, 254, 0.98);
+        box-shadow: 0 0.8rem 2rem rgba(99, 102, 241, 0.25);
         color: #fff;
-        background: var(--content-tag-fill-active);
+        background: var(--recognition-bg-active);
         outline: none;
         transform: translateY(-1px);
     }
@@ -1407,19 +1516,19 @@
         border-color: rgba(254, 243, 199, 0.96);
         box-shadow: 0 0.8rem 2rem rgba(250, 204, 21, 0.22);
         color: #fff;
-        background: var(--content-tag-fill-active);
+        background: var(--recognition-bg-active);
     }
 
     .content-page .filter-chip.authored-challenge-badge-filter:hover {
-        border-color: rgba(251, 207, 232, 0.98);
-        box-shadow: 0 0.8rem 2rem rgba(236, 72, 153, 0.25);
+        border-color: rgba(199, 210, 254, 0.98);
+        box-shadow: 0 0.8rem 2rem rgba(99, 102, 241, 0.25);
         color: #fff;
-        background: var(--content-tag-fill-active);
+        background: var(--recognition-bg-active);
     }
 
     .content-page .filter-chip.difficulty-badge-filter:hover {
         color: #fff;
-        background: var(--content-tag-fill-active);
+        background: var(--difficulty-bg-active);
         transform: translateY(-1px);
     }
 
@@ -1427,7 +1536,14 @@
         border-color: rgba(255, 255, 255, 0.76);
         box-shadow: 0 0.7rem 1.6rem var(--category-glow, rgba(14, 165, 233, 0.22));
         color: #fff;
-        background: var(--content-tag-fill-active);
+        background: var(--category-bg-active);
+        transform: translateY(-1px);
+    }
+
+    .content-page .filter-chip.severity-badge-filter:hover {
+        border-color: rgba(255, 255, 255, 0.76);
+        color: #fff;
+        background: var(--severity-bg-active, var(--severity-bg, var(--content-tag-fill-active)));
         transform: translateY(-1px);
     }
 }

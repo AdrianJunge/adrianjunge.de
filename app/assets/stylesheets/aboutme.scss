@@ -1,6 +1,6 @@
 .aboutme-page {
-    --aboutme-tag-fill: rgba(8, 145, 178, 0.16);
-    --aboutme-tag-fill-active: rgba(8, 145, 178, 0.36);
+    --aboutme-tag-fill: rgba(8, 145, 178, 0.32);
+    --aboutme-tag-fill-active: rgba(8, 145, 178, 0.52);
     min-height: 100dvh;
     color: #f8fafc;
     background: linear-gradient(180deg, rgba(85, 170, 255, 0.08) 0%, rgba(10, 16, 26, 0) 24rem);
@@ -526,48 +526,48 @@ a.aboutme-cwe-id:focus-visible {
 }
 
 .aboutme-difficulty-tag-intro {
-    --aboutme-static-tag-border: rgba(45, 212, 191, 0.82);
-    --aboutme-static-tag-ring: rgba(204, 251, 241, 0.18);
-    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(20, 184, 166, 0.18);
-    color: #ccfbf1;
-    border: 1px solid rgba(45, 212, 191, 0.78);
-    background: var(--aboutme-tag-fill);
+    --aboutme-static-tag-border: rgba(219, 234, 254, 0.82);
+    --aboutme-static-tag-ring: rgba(239, 246, 255, 0.18);
+    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(191, 219, 254, 0.18);
+    color: #eff6ff;
+    border: 1px solid rgba(219, 234, 254, 0.78);
+    background: rgba(191, 219, 254, 0.32);
 }
 
 .aboutme-difficulty-tag-easy {
-    --aboutme-static-tag-border: rgba(74, 222, 128, 0.8);
-    --aboutme-static-tag-ring: rgba(220, 252, 231, 0.18);
-    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(34, 197, 94, 0.18);
-    color: #dcfce7;
-    border: 1px solid rgba(74, 222, 128, 0.76);
-    background: var(--aboutme-tag-fill);
+    --aboutme-static-tag-border: rgba(125, 211, 252, 0.8);
+    --aboutme-static-tag-ring: rgba(224, 242, 254, 0.18);
+    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(14, 165, 233, 0.18);
+    color: #e0f2fe;
+    border: 1px solid rgba(125, 211, 252, 0.76);
+    background: rgba(14, 165, 233, 0.32);
 }
 
 .aboutme-difficulty-tag-medium {
-    --aboutme-static-tag-border: rgba(251, 191, 36, 0.9);
-    --aboutme-static-tag-ring: rgba(254, 243, 199, 0.18);
-    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(245, 158, 11, 0.2);
-    color: #fef3c7;
-    border: 1px solid rgba(251, 191, 36, 0.86);
-    background: var(--aboutme-tag-fill);
+    --aboutme-static-tag-border: rgba(96, 165, 250, 0.86);
+    --aboutme-static-tag-ring: rgba(219, 234, 254, 0.18);
+    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(37, 99, 235, 0.2);
+    color: #dbeafe;
+    border: 1px solid rgba(96, 165, 250, 0.82);
+    background: rgba(37, 99, 235, 0.32);
 }
 
 .aboutme-difficulty-tag-hard {
-    --aboutme-static-tag-border: rgba(251, 113, 133, 0.94);
-    --aboutme-static-tag-ring: rgba(255, 228, 230, 0.18);
-    --aboutme-static-tag-shadow: 0 0.5rem 1.2rem rgba(244, 63, 94, 0.22);
-    color: #ffe4e6;
-    border: 1px solid rgba(251, 113, 133, 0.9);
-    background: var(--aboutme-tag-fill);
+    --aboutme-static-tag-border: rgba(96, 165, 250, 0.76);
+    --aboutme-static-tag-ring: rgba(191, 219, 254, 0.18);
+    --aboutme-static-tag-shadow: 0 0.5rem 1.2rem rgba(30, 64, 175, 0.22);
+    color: #bfdbfe;
+    border: 1px solid rgba(96, 165, 250, 0.72);
+    background: rgba(30, 64, 175, 0.32);
 }
 
 .aboutme-difficulty-tag-insane {
-    --aboutme-static-tag-border: rgba(232, 121, 249, 0.96);
-    --aboutme-static-tag-ring: rgba(250, 232, 255, 0.2);
-    --aboutme-static-tag-shadow: 0 0.55rem 1.35rem rgba(192, 38, 211, 0.24);
-    color: #fae8ff;
-    border: 1px solid rgba(232, 121, 249, 0.94);
-    background: var(--aboutme-tag-fill);
+    --aboutme-static-tag-border: rgba(147, 197, 253, 0.66);
+    --aboutme-static-tag-ring: rgba(191, 219, 254, 0.16);
+    --aboutme-static-tag-shadow: 0 0.55rem 1.35rem rgba(15, 23, 42, 0.28);
+    color: #bfdbfe;
+    border: 1px solid rgba(147, 197, 253, 0.62);
+    background: rgba(15, 23, 42, 0.72);
 }
 
 .aboutme-difficulty-tag-unknown {
@@ -605,57 +605,90 @@ a.aboutme-cwe-id:focus-visible {
 }
 
 .aboutme-severity-critical {
+    --severity-color: #fee2e2;
+    --severity-border: rgba(248, 113, 113, 0.75);
+    --severity-bg: linear-gradient(135deg, rgba(127, 29, 29, 0.82), rgba(220, 38, 38, 0.46));
+    --severity-bg-active: linear-gradient(135deg, rgba(127, 29, 29, 0.92), rgba(220, 38, 38, 0.62));
+    --severity-shadow: 0 0.45rem 1rem rgba(248, 113, 113, 0.12);
     --aboutme-static-tag-border: rgba(248, 113, 113, 0.9);
     --aboutme-static-tag-ring: rgba(254, 226, 226, 0.18);
-    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(248, 113, 113, 0.12);
-    color: #fee2e2;
-    border: 1px solid rgba(248, 113, 113, 0.75);
-    background: linear-gradient(135deg, rgba(127, 29, 29, 0.82), rgba(220, 38, 38, 0.46));
-    box-shadow: 0 0.45rem 1rem rgba(248, 113, 113, 0.12);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
+    box-shadow: var(--severity-shadow);
 }
 
 .aboutme-severity-high {
+    --severity-color: #ffedd5;
+    --severity-border: rgba(251, 146, 60, 0.78);
+    --severity-bg: linear-gradient(135deg, rgba(154, 52, 18, 0.78), rgba(249, 115, 22, 0.38));
+    --severity-bg-active: linear-gradient(135deg, rgba(154, 52, 18, 0.9), rgba(249, 115, 22, 0.54));
+    --severity-shadow: 0 0.45rem 1rem rgba(251, 146, 60, 0.12);
     --aboutme-static-tag-border: rgba(251, 146, 60, 0.88);
     --aboutme-static-tag-ring: rgba(255, 237, 213, 0.16);
-    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(251, 146, 60, 0.12);
-    color: #ffedd5;
-    border: 1px solid rgba(251, 146, 60, 0.78);
-    background: linear-gradient(135deg, rgba(154, 52, 18, 0.78), rgba(249, 115, 22, 0.38));
-    box-shadow: 0 0.45rem 1rem rgba(251, 146, 60, 0.12);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
+    box-shadow: var(--severity-shadow);
 }
 
 .aboutme-severity-medium {
+    --severity-color: #fef3c7;
+    --severity-border: rgba(250, 204, 21, 0.7);
+    --severity-bg: linear-gradient(135deg, rgba(113, 63, 18, 0.72), rgba(234, 179, 8, 0.34));
+    --severity-bg-active: linear-gradient(135deg, rgba(113, 63, 18, 0.84), rgba(234, 179, 8, 0.5));
+    --severity-shadow: 0 0.45rem 1rem rgba(250, 204, 21, 0.11);
     --aboutme-static-tag-border: rgba(250, 204, 21, 0.82);
     --aboutme-static-tag-ring: rgba(254, 243, 199, 0.16);
-    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(250, 204, 21, 0.11);
-    color: #fef3c7;
-    border: 1px solid rgba(250, 204, 21, 0.7);
-    background: linear-gradient(135deg, rgba(113, 63, 18, 0.72), rgba(234, 179, 8, 0.34));
-    box-shadow: 0 0.45rem 1rem rgba(250, 204, 21, 0.11);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
+    box-shadow: var(--severity-shadow);
 }
 
 .aboutme-severity-low {
+    --severity-color: #bbf7d0;
+    --severity-border: rgba(74, 222, 128, 0.52);
+    --severity-bg: rgba(21, 128, 61, 0.28);
+    --severity-bg-active: rgba(21, 128, 61, 0.44);
+    --severity-shadow: 0 0 0 rgba(0, 0, 0, 0);
     --aboutme-static-tag-border: rgba(74, 222, 128, 0.68);
     --aboutme-static-tag-ring: rgba(187, 247, 208, 0.14);
-    color: #bbf7d0;
-    border: 1px solid rgba(74, 222, 128, 0.52);
-    background: rgba(21, 128, 61, 0.28);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
 }
 
 .aboutme-severity-info {
+    --severity-color: #bae6fd;
+    --severity-border: rgba(56, 189, 248, 0.48);
+    --severity-bg: rgba(2, 132, 199, 0.26);
+    --severity-bg-active: rgba(2, 132, 199, 0.42);
+    --severity-shadow: 0 0 0 rgba(0, 0, 0, 0);
     --aboutme-static-tag-border: rgba(56, 189, 248, 0.64);
     --aboutme-static-tag-ring: rgba(186, 230, 253, 0.14);
-    color: #bae6fd;
-    border: 1px solid rgba(56, 189, 248, 0.48);
-    background: rgba(2, 132, 199, 0.26);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
 }
 
 .aboutme-severity-tba {
+    --severity-color: #ddd6fe;
+    --severity-border: rgba(167, 139, 250, 0.46);
+    --severity-bg: rgba(109, 40, 217, 0.24);
+    --severity-bg-active: rgba(109, 40, 217, 0.4);
+    --severity-shadow: 0 0 0 rgba(0, 0, 0, 0);
     --aboutme-static-tag-border: rgba(167, 139, 250, 0.62);
     --aboutme-static-tag-ring: rgba(221, 214, 254, 0.14);
-    color: #ddd6fe;
-    border: 1px solid rgba(167, 139, 250, 0.46);
-    background: rgba(109, 40, 217, 0.24);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
 }
 
 :not(a).aboutme-card-tag {

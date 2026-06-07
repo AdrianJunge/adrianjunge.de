@@ -6,7 +6,7 @@ authors:
       url:
 description: You gained access to a Linux server. Can you also gain privileges?
 categories:
-    - PrivEsc
+    - Privilege Escalation
 difficulty: Medium
 ctf_year: 2024
 challengefiles: hoster
