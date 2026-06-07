@@ -1,13 +1,13 @@
 <% content_for :head do %>
-  <% ctf_description = "Competition notes, challenge writeups, and security research practice grouped by event." %>
+  <% ctf_description = "Capture The Flag competition events with published challenge writeups and security research notes." %>
   <% ctf_items = @ctfs.map { |name, ctf| { title: name, link: ctf["writeups"] } } %>
   <%= seo_meta_tags(
-        title: "CTF writeups",
+        title: "CTF events",
         description: ctf_description,
         canonical_path: ctf_path,
         image: "ctf/kitctf.png",
         json_ld: seo_collection_schema(
-          title: "CTF writeups",
+          title: "CTF events",
           description: ctf_description,
           canonical_path: ctf_path,
           items: ctf_items
@@ -23,8 +23,8 @@
   <%= render "shared/content_hero",
              icon_path: "task-bar/flag.svg",
              icon_alt: "CTF",
-             title: "CTF writeups",
-             description: "Competition notes, challenge writeups, and security research practice grouped by event.",
+             title: "CTF events",
+             description: "Capture The Flag competitions grouped by event. Open an event to browse its challenge writeups.",
              actions: feed_actions_for(:ctf, feed_url: feed_path, atom_url: feed_path(format: :atom), label: "Website") %>
 
   <%= render "shared/content_filters",
@@ -40,6 +40,8 @@
   <div class="ctf-cards-container">
     <% @ctfs.each do |name, ctf| %>
       <% ctf_tags = Array(@ctf_tags[name]) %>
+      <% writeup_count = @ctf_writeup_counts[name].to_i %>
+      <% writeup_count_label = pluralize(writeup_count, "writeup") %>
       <% ctf_card_tags = ctf_tags.map do |tag|
            {
              label: tag,
@@ -51,7 +53,7 @@
              category_key: tag
            }
          end %>
-      <% filter_text = [name, ctf["description"], ctf["terminal_path"], ctf_tags].flatten.compact.join(" ") %>
+      <% filter_text = [name, ctf["description"], ctf["terminal_path"], writeup_count_label, ctf_tags].flatten.compact.join(" ") %>
       <%= render_content_card(
             url: ctf["writeups"],
             class_name: "blog-post-card ctf-card",
@@ -74,9 +76,11 @@
             description: ctf["description"],
             description_class: "ctf-description",
             description_tag: :p,
-            date: @ctf_reading_times[name],
-            date_class: "ctf-reading-time",
-            date_text_class: "ctf-reading-time-text",
+            date: writeup_count_label,
+            date_class: "ctf-event-summary",
+            date_text_class: "ctf-writeup-count-text",
+            reading_time: @ctf_reading_times[name],
+            reading_time_class: "ctf-total-reading-time",
             data: {
               expandable: false,
               filter_card: "ctfs",

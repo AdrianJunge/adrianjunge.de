@@ -594,14 +594,29 @@
     -webkit-mask-image: none;
 }
 
+.content-page .ctf-event-summary,
 .content-page .ctf-reading-time {
     display: inline-flex;
     align-items: center;
+    gap: 0.5rem;
     width: fit-content;
     margin-top: -0.15rem;
 }
 
-.content-page .ctf-reading-time-text {
+.content-page .ctf-writeup-count-text {
+    min-height: 1.8rem;
+    padding: 0.25rem 0.65rem;
+    border: 1px solid rgba(125, 211, 252, 0.32);
+    border-radius: var(--radius-ui-pill);
+    color: #cffafe;
+    background: var(--content-tag-fill);
+    font-size: 0.8rem;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.content-page .ctf-reading-time-text,
+.content-page .ctf-total-reading-time {
     color: rgba(226, 232, 240, 0.72);
     font-size: 0.82rem;
     font-weight: 800;

@@ -11,11 +11,13 @@ class CtfController < ApplicationController
       [ name, {
         years: metadata.filter_map { |entry| content_repository.metadata_year(entry) }.uniq.sort.reverse,
         tags: sorted_filter_values(metadata.flat_map { |entry| content_repository.metadata_tags(entry) }),
+        writeup_count: metadata.length,
         reading_time_minutes: metadata.sum { |entry| entry["reading_time_minutes"].to_i }
       } ]
     end
     @ctf_years = @ctf_filters.transform_values { |filters| filters[:years] }
     @ctf_tags = @ctf_filters.transform_values { |filters| filters[:tags] }
+    @ctf_writeup_counts = @ctf_filters.transform_values { |filters| filters[:writeup_count] }
     @ctf_reading_times = @ctf_filters.transform_values do |filters|
       content_repository.format_reading_time(filters[:reading_time_minutes])
     end

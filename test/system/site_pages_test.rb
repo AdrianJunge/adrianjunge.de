@@ -877,20 +877,10 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".ctf-card.ui-hover-scale"
 
     first_card = find(".ctf-card", match: :first)
-    assert_selector ".ctf-card .ctf-reading-time", minimum: 1, text: /min read/
-    ctf_reading_time_style = page.evaluate_script(<<~JS)
-      (() => {
-        const element = document.querySelector(".ctf-card .ctf-reading-time");
-        const style = window.getComputedStyle(element);
-
-        return {
-          borderTopWidth: style.borderTopWidth,
-          backgroundColor: style.backgroundColor
-        };
-      })()
-    JS
-    assert_equal "0px", ctf_reading_time_style["borderTopWidth"]
-    assert_equal "rgba(0, 0, 0, 0)", ctf_reading_time_style["backgroundColor"]
+    assert_no_selector ".ctf-card .ctf-event-chip"
+    assert_no_selector ".ctf-card .ctf-card-cta"
+    assert_selector ".ctf-card .ctf-writeup-count-text", minimum: 1, text: /writeups?/
+    assert_selector ".ctf-card .ctf-total-reading-time", minimum: 1, text: /min read/
     target_path = URI.parse(first_card.find(".blog-post-card-hitbox", visible: :all)[:href]).path
     click_card_link_area(first_card)
 
@@ -1472,7 +1462,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
     {
       "/" => "Welcome to my bug collection 🐛",
-      "/ctf" => "CTF writeups",
+      "/ctf" => "CTF events",
       "/ctf/#{ctf_post[:directory]}" => ctf_event_label(ctf_post[:directory]),
       ctf_post[:link] => ctf_post[:title],
       "/blog" => "Blog",
