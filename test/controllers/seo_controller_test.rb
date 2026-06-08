@@ -30,7 +30,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_select "meta[property='article:published_time']", 1
     assert_select "meta[property='article:section'][content=?]", "KITCTF Intro CTF"
     assert_select "meta[property='article:author'][content=?]", "ju256"
-    assert_select "meta[property='article:tag'][content=?]", "pwn"
+    assert_select "meta[property='article:tag'][content=?]", "Pwn"
     assert_select "meta[property='article:tag'][content=?]", "KITCTF"
     assert_select "meta[property='og:image'][content*='ctf/kitctf']"
     assert_select "script[type='application/ld+json']", text: /"@type":"TechArticle"/

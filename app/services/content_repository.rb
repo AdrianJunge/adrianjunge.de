@@ -18,20 +18,7 @@ class ContentRepository
   ].freeze
 
   def self.filter_tag_sort_key(value)
-    recognition_key = AuthoredChallenge.filter_sort_key(value)
-    return recognition_key if recognition_key.first < 2
-
-    if WriteupDifficulty.filter_label?(value)
-      [ 2, *WriteupDifficulty.filter_sort_key(value) ]
-    elsif ContentSeverityTag.recognized?(value)
-      [ 3, *ContentSeverityTag.sort_key(value) ]
-    elsif ContentVulnerabilityTag.cve?(value)
-      [ 4, *ContentVulnerabilityTag.sort_key(value) ]
-    elsif ContentVulnerabilityTag.cwe?(value)
-      [ 5, *ContentVulnerabilityTag.sort_key(value) ]
-    else
-      [ 6, value.to_s.downcase ]
-    end
+    ContentTagTaxonomy.sort_key(value)
   end
 
   def about_markdown
@@ -99,7 +86,7 @@ class ContentRepository
           published: published,
           link: "#{link_prefix}/#{dir_name}/#{slug}",
           description: meta["description"].to_s,
-          categories: Array(meta["categories"]),
+          categories: normalized_metadata_categories(meta),
           logo: item_meta["logo"],
           content: content,
           word_count: meta["word_count"],
@@ -142,7 +129,7 @@ class ContentRepository
           link: "/blog/#{slug}",
           description: meta["description"].to_s,
           topic: meta["topic"].to_s,
-          categories: Array(meta["categories"]),
+          categories: normalized_metadata_categories(meta),
           content: content,
           word_count: meta["word_count"],
           word_count_label: meta["word_count_label"],
@@ -273,9 +260,7 @@ class ContentRepository
   end
 
   def sort_metadata_tags(values)
-    values
-      .map(&:to_s)
-      .reject(&:blank?)
+    ContentTagTaxonomy.canonical_values(values)
       .uniq { |value| value.downcase }
       .sort_by { |value| self.class.filter_tag_sort_key(value) }
   end
@@ -288,6 +273,7 @@ class ContentRepository
 
   def post_metadata_from(parsed)
     metadata = (parsed&.front_matter || {}).dup
+    metadata["categories"] = normalized_metadata_categories(metadata) if metadata.key?("categories")
     body = parsed&.content.to_s
     word_count = markdown_word_count(body)
     reading_time_minutes = reading_time_minutes_for_word_count(word_count)
@@ -402,6 +388,10 @@ class ContentRepository
 
   def authored_challenge_summary(description, event)
     [ description.to_s.presence, ("Published for #{event}." if event.present?) ].compact.join(" ")
+  end
+
+  def normalized_metadata_categories(metadata)
+    ContentTagTaxonomy.canonical_values(Array(metadata["categories"]))
   end
 
   def encoded_local_path(path)

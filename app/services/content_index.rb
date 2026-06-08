@@ -116,7 +116,7 @@ class ContentIndex
         published: post[:published],
         display_date: post[:published].strftime("%Y-%m-%d"),
         link: post[:link],
-        tags: repository.metadata_tags(metadata),
+        tags: [ post[:which] ] + repository.metadata_tags(metadata),
         search_parts: [ post[:which], post[:title], metadata, post[:content] ],
         logo: blog_metadata.dig(post[:slug], "logo"),
         reading_time_minutes: post[:reading_time_minutes],
@@ -204,7 +204,7 @@ class ContentIndex
   end
 
   def content_item(**attrs)
-    tags = ([ attrs[:label] ] + Array(attrs[:tags])).map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }
+    tags = ContentTagTaxonomy.canonical_values([ attrs[:label] ] + Array(attrs[:tags]))
 
     attrs.merge(
       tags: tags,

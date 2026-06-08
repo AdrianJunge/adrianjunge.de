@@ -71,14 +71,21 @@ module AboutmeHelper
   def aboutme_tag(label:, url: nil, class_name: nil, datetime: nil)
     return nil if label.blank?
 
-    tag_classes = [ "aboutme-card-tag", class_name, ("ui-hover-lift" if url.present?) ].compact.join(" ")
+    label = ContentTagTaxonomy.canonical_label(label)
+    linked = url.present?
+    tag_classes = [
+      "aboutme-card-tag",
+      (linked ? "aboutme-tag-action" : "aboutme-tag-static"),
+      *aboutme_tag_style_classes(label, class_name),
+      ("ui-hover-lift" if linked)
+    ].compact.uniq.join(" ")
     if datetime.present?
-      return aboutme_optional_link(label, url, class_name: tag_classes) if url.present?
+      return aboutme_optional_link(label, url, class_name: tag_classes) if linked
 
       return content_tag(:time, label, datetime: datetime, class: tag_classes)
     end
 
-    url.present? ? aboutme_optional_link(label, url, class_name: tag_classes) : content_tag(:span, label, class: tag_classes)
+    linked ? aboutme_optional_link(label, url, class_name: tag_classes) : content_tag(:span, label, class: tag_classes)
   end
 
   def aboutme_ordered_tags(tags)
@@ -155,6 +162,27 @@ module AboutmeHelper
     url.to_s.start_with?("/") ? {} : { target: "_blank", rel: "noopener noreferrer" }
   end
 
+  def aboutme_tag_style_classes(label, class_name)
+    classes = class_name.to_s.split
+    label = ContentTagTaxonomy.canonical_label(label)
+    class_text = classes.join(" ")
+
+    if ContentVulnerabilityTag.cve?(label) || classes.include?("aboutme-cve-id")
+      classes << "cve-badge"
+    elsif ContentVulnerabilityTag.cwe?(label) || classes.include?("aboutme-cwe-id")
+      classes << "cwe-badge"
+    elsif (difficulty_key = WriteupDifficulty.css_key(label) || class_text[/\baboutme-difficulty-tag-([a-z0-9-]+)\b/, 1])
+      classes.push("difficulty-badge", "difficulty-badge-#{difficulty_key}")
+    elsif (severity_key = ContentSeverityTag.css_key(label) || class_text[/\baboutme-severity-([a-z0-9-]+)\b/, 1])
+      classes.push("severity-badge", "severity-badge-#{severity_key}", "aboutme-severity-#{severity_key}")
+    elsif ContentCategoryTag.recognized?(label)
+      category_key = ContentCategoryTag.css_key(label)
+      classes.push("category-badge", "category-badge-#{category_key}")
+    end
+
+    classes
+  end
+
   def aboutme_finding_tags(entry)
     [].tap do |tags|
       tags << { label: entry["severity"], class_name: "aboutme-severity severity-badge #{aboutme_severity_class(entry["severity"])}" } if entry["severity"].present?
@@ -166,7 +194,8 @@ module AboutmeHelper
   def aboutme_milestone_tags(entry, events)
     [].tap do |tags|
       if entry["category"].present?
-        tags << { label: entry["category"], url: entry["category_url"], class_name: "aboutme-tag-#{entry["category"].parameterize}" }
+        category_label = ContentTagTaxonomy.canonical_label(entry["category"])
+        tags << { label: category_label, url: entry["category_url"], class_name: "aboutme-tag-#{category_label.parameterize}" }
       end
       tags.concat(aboutme_extra_tags(entry["tags"]))
       tags << { label: entry["date"], datetime: entry["date"], class_name: "aboutme-tag-date" } if entry["date"].present? && events.empty?

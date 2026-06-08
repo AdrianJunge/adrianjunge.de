@@ -5,89 +5,92 @@ module ContentUiHelper
     render "shared/content_card", card: card
   end
 
-  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, cve: false, cwe: false, static_class: "blog-post-static-chip", title: nil)
-    label = label.to_s
-    classes = [ "filter-chip", class_name ]
-    difficulty_key = WriteupDifficulty.css_key(difficulty_key) if difficulty_key.present?
-    category_key = ContentCategoryTag.css_key(category_key) if category_key.present?
-    severity_key = ContentSeverityTag.css_key(severity_key) if severity_key.present?
-    cve = cve || ContentVulnerabilityTag.cve?(label)
-    cwe = cwe || ContentVulnerabilityTag.cwe?(label)
+  def content_tag_badge(label, classes:, title: nil, url: nil, filter_scope: nil, filter_tag: label, aria_label: nil, static_class: nil, label_class: nil, arrow: nil, link_target: "_blank")
+    label = ContentTagTaxonomy.canonical_label(label)
+    filter_tag = ContentTagTaxonomy.canonical_label(filter_tag.presence || label)
+    action = url.present? || filter_scope.present?
+    classes = [ "content-tag", *Array(classes) ]
+    classes << (url.present? ? "content-tag-link" : nil)
+    classes << (filter_scope.present? ? "content-tag-filter" : nil)
+    classes << (action ? "content-tag-action" : "content-tag-static")
+    classes << static_class if !action && static_class.present?
+    content = content_tag_badge_content(label, label_class: label_class, arrow: arrow.nil? ? url.present? : arrow)
 
-    if winner
-      classes << "writeup-winner-badge"
-      classes << "writeup-winner-badge-filter"
-    elsif authored
-      classes << "authored-challenge-badge"
-      classes << "authored-challenge-badge-filter"
-    elsif difficulty_key.present?
-      classes << "difficulty-badge"
-      classes << "difficulty-badge-#{difficulty_key}"
-      classes << "difficulty-badge-filter"
-    elsif category_key.present?
-      classes << "category-badge"
-      classes << "category-badge-#{category_key}"
-      classes << "category-badge-filter"
-    elsif severity_key.present?
-      classes << "severity-badge"
-      classes << "severity-badge-#{severity_key}"
-      classes << "aboutme-severity-#{severity_key}"
-      classes << "severity-badge-filter"
-    elsif cve
-      classes << "cve-badge"
-      classes << "cve-badge-filter"
-    elsif cwe
-      classes << "cwe-badge"
-      classes << "cwe-badge-filter"
+    if url.present?
+      link_options = content_link_options(url).merge(target: link_target)
+      link_options[:rel] ||= "noopener"
+
+      return link_to(url, link_options.merge(class: classes.compact.join(" "), aria: { label: aria_label }, title: title)) do
+        content
+      end
     end
+
+    if filter_scope.present?
+      return content_tag(
+        :button,
+        content,
+        type: "button",
+        class: classes.compact.join(" "),
+        data: { filter_scope: filter_scope, filter_tag: filter_tag },
+        aria: { pressed: "false", label: aria_label.presence || "Filter by #{filter_tag}" },
+        title: title
+      )
+    end
+
+    content_tag(:span, content, class: classes.compact.join(" "), title: title)
+  end
+
+  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, cve: false, cwe: false, static_class: "blog-post-static-chip", title: nil)
+    raw_label = label.to_s
+    style = content_tag_style(
+      raw_label,
+      winner: winner,
+      authored: authored,
+      difficulty_key: difficulty_key,
+      category_key: category_key,
+      severity_key: severity_key,
+      cve: cve,
+      cwe: cwe
+    )
+    label = style[:label]
+    tag_value = ContentTagTaxonomy.canonical_label(tag_value.presence || raw_label)
+    classes = [ "filter-chip", class_name, *style[:classes] ]
 
     interactive = false if scope.blank?
-    content =
-      if winner
-        content_tag(:span, label, class: "writeup-winner-label")
-      elsif authored
-        content_tag(:span, label, class: "authored-challenge-label")
-      else
-        label
-      end
 
-    unless interactive
-      classes << static_class
-      return content_tag(:span, content, class: classes.compact.join(" "), title: title)
-    end
-
-    classes << "ui-hover-lift" unless winner || authored || difficulty_key.present? || category_key.present? || severity_key.present? || cve || cwe
-    content_tag(
-      :button,
-      content,
-      type: "button",
-      class: classes.compact.join(" "),
-      data: { filter_scope: scope, filter_tag: tag_value },
-      aria: { pressed: "false", label: "Filter by #{tag_value}" },
-      title: title
+    content_tag_badge(
+      label,
+      classes: classes,
+      filter_scope: interactive ? scope : nil,
+      filter_tag: tag_value,
+      static_class: static_class,
+      title: title,
+      label_class: style[:label_class]
     )
   end
 
   def content_winner_badge(label:, url:, context: :card, aria_label: "Open contest win proof")
     return nil if label.blank? || url.blank?
 
-    link_options = content_link_options(url).merge(target: "_blank")
-    link_options[:rel] ||= "noopener"
-
-    link_to(url, link_options.merge(class: "writeup-winner-badge writeup-winner-badge-#{context}", aria: { label: aria_label })) do
-      content_tag(:span, label, class: "writeup-winner-label")
-    end
+    content_tag_badge(
+      label,
+      classes: [ "writeup-winner-badge", "writeup-winner-badge-#{context}" ],
+      url: url,
+      aria_label: aria_label,
+      label_class: "writeup-winner-label"
+    )
   end
 
   def content_authored_badge(label:, url:, context: :card, aria_label: "Open CTF competition")
     return nil if label.blank? || url.blank?
 
-    link_options = content_link_options(url).merge(target: "_blank")
-    link_options[:rel] ||= "noopener"
-
-    link_to(url, link_options.merge(class: "authored-challenge-badge authored-challenge-badge-#{context}", aria: { label: aria_label })) do
-      content_tag(:span, label, class: "authored-challenge-label")
-    end
+    content_tag_badge(
+      label,
+      classes: [ "authored-challenge-badge", "authored-challenge-badge-#{context}" ],
+      url: url,
+      aria_label: aria_label,
+      label_class: "authored-challenge-label"
+    )
   end
 
   def content_difficulty_badge(label:, key:, context: :card, title: nil)
@@ -95,23 +98,21 @@ module ContentUiHelper
     key = WriteupDifficulty.css_key(key)
     classes = [ "difficulty-badge", "difficulty-badge-#{key}", "difficulty-badge-#{context}" ]
 
-    content_tag(
-      :span,
+    content_tag_badge(
       label,
-      class: classes.join(" "),
+      classes: classes,
       title: title.presence || "Challenge difficulty: #{label}"
     )
   end
 
   def content_category_badge(label:, context: :card, title: nil)
-    label = label.to_s
+    label = ContentTagTaxonomy.canonical_label(label)
     key = ContentCategoryTag.css_key(label)
     classes = [ "category-badge", "category-badge-#{key}", "category-badge-#{context}" ]
 
-    content_tag(
-      :span,
+    content_tag_badge(
       label,
-      class: classes.join(" "),
+      classes: classes,
       title: title.presence || "Challenge category: #{label}"
     )
   end
@@ -197,5 +198,44 @@ module ContentUiHelper
     return { target: "_blank", rel: "noopener noreferrer" } if url.to_s.match?(%r{\Ahttps?://}i)
 
     {}
+  end
+
+  def content_tag_style(label, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, cve: false, cwe: false)
+    label = ContentTagTaxonomy.canonical_label(label)
+    classes = []
+    label_class = nil
+    difficulty_key = WriteupDifficulty.css_key(difficulty_key) if difficulty_key.present?
+    category_key = ContentCategoryTag.css_key(category_key) if category_key.present?
+    severity_key = ContentSeverityTag.css_key(severity_key) if severity_key.present?
+    cve = cve || ContentVulnerabilityTag.cve?(label)
+    cwe = cwe || ContentVulnerabilityTag.cwe?(label)
+
+    if winner
+      classes.push("writeup-winner-badge", "writeup-winner-badge-filter")
+      label_class = "writeup-winner-label"
+    elsif authored
+      classes.push("authored-challenge-badge", "authored-challenge-badge-filter")
+      label_class = "authored-challenge-label"
+    elsif difficulty_key.present?
+      classes.push("difficulty-badge", "difficulty-badge-#{difficulty_key}", "difficulty-badge-filter")
+    elsif category_key.present?
+      classes.push("category-badge", "category-badge-#{category_key}", "category-badge-filter")
+    elsif severity_key.present?
+      classes.push("severity-badge", "severity-badge-#{severity_key}", "aboutme-severity-#{severity_key}", "severity-badge-filter")
+    elsif cve
+      classes.push("cve-badge", "cve-badge-filter")
+    elsif cwe
+      classes.push("cwe-badge", "cwe-badge-filter")
+    end
+
+    { label: label, classes: classes, label_class: label_class }
+  end
+
+  def content_tag_badge_content(label, label_class:, arrow:)
+    label_node = content_tag(:span, label, class: [ "content-tag-label", label_class ].compact.join(" "))
+    nodes = [ label_node ]
+    nodes << content_tag(:span, ">", class: "content-tag-arrow", aria: { hidden: "true" }) if arrow
+
+    safe_join(nodes)
   end
 end

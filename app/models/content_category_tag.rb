@@ -1,6 +1,7 @@
 module ContentCategoryTag
   CATEGORY_KEYS = {
     "web" => "web",
+    "web exploitation" => "web",
     "pwn" => "pwn",
     "pwnable" => "pwn",
     "binary exploitation" => "pwn",

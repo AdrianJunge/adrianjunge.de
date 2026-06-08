@@ -84,7 +84,7 @@ body {
     background: var(--glass-control-bg-hover);
     box-shadow: var(--glass-control-shadow-hover);
     outline: none;
-    transform: translateY(-0.5px);
+    transform: translateY(-1px);
 }
 
 .content-page .filter-chip,
@@ -157,24 +157,6 @@ body {
 :not(a).aboutme-cve-id,
 :not(a).aboutme-cwe-id {
     cursor: default;
-    transition: none;
-}
-
-.content-page span.blog-post-static-chip,
-.landing-page .landing-writeup-cards span.blog-post-static-chip {
-    pointer-events: none;
-}
-
-.content-page .blog-post-static-chip:hover,
-.content-page .blog-post-static-chip:focus-visible,
-.content-page .blog-post-static-chip.is-active,
-.landing-page .landing-writeup-cards .blog-post-static-chip:hover,
-.landing-page .landing-writeup-cards .blog-post-static-chip:focus-visible,
-.landing-page .landing-writeup-cards .blog-post-static-chip.is-active {
-    border-color: rgba(125, 211, 252, 0.32);
-    color: #cffafe;
-    background: var(--glass-tag-highlight), rgba(8, 145, 178, 0.16);
-    transform: none;
 }
 
 html {
@@ -374,7 +356,7 @@ body.site-background::before {
     background:
         linear-gradient(180deg, rgba(38, 170, 232, 0.25), rgba(27, 54, 85, 0.94));
     box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.08), 0 0.5rem 1.05rem rgba(14, 165, 233, 0.12);
-    transform: translateY(-0.5px);
+    transform: translateY(-1px);
 }
 
 .taskbar-link:hover,

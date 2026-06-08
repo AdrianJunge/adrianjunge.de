@@ -3,9 +3,7 @@ function initBlogTOC() {
   const article = document.querySelector(".writeup-container > .markdown-content") || document.querySelector(".markdown-content");
   const headings = article ? article.querySelectorAll("h1, h2, h3") : [];
 
-  if (tocLinks.length === 0) return;
-
-  tocLinks[0].classList.add("active-anchor");
+  if (tocLinks.length > 0) tocLinks[0].classList.add("active-anchor");
 
   function highlightCurrentSection() {
     let scrollPosition = window.scrollY + 10;
@@ -28,8 +26,10 @@ function initBlogTOC() {
     }
   }
 
-  window.addEventListener("scroll", highlightCurrentSection);
-  highlightCurrentSection();
+  if (tocLinks.length > 0) {
+    window.addEventListener("scroll", highlightCurrentSection);
+    highlightCurrentSection();
+  }
 
   function updateTocState(targetId, collapsed) {
     const toc = document.getElementById(targetId);

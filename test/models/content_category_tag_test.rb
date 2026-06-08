@@ -7,4 +7,9 @@ class ContentCategoryTagTest < ActiveSupport::TestCase
 
     refute ContentCategoryTag::CATEGORY_KEYS.key?("privesc")
   end
+
+  test "treats web exploitation as the web category" do
+    assert_equal "web", ContentCategoryTag.css_key("Web Exploitation")
+    assert ContentCategoryTag.recognized?("Web Exploitation")
+  end
 end

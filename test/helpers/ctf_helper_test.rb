@@ -4,7 +4,7 @@ class CtfHelperTest < ActionView::TestCase
   test "content filter chips render shared severity classes" do
     render inline: "<%= content_filter_chip('High', scope: 'timeline', severity_key: 'High') %>"
 
-    assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High']", text: "High"
+    assert_select "button.content-tag.content-tag-filter.content-tag-action.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High']", text: "High"
   end
 
   test "content filter chips auto render CVE and CWE classes" do
@@ -97,6 +97,8 @@ class CtfHelperTest < ActionView::TestCase
 
     assert_select ".blog-post-meta-row > a.writeup-winner-badge[href='https://example.com/proof'][target='_blank'][rel='noopener noreferrer']", text: /Contest win/
     assert_select ".blog-post-meta-row > a.authored-challenge-badge[href='https://example.com/ctf'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
+    assert_select ".blog-post-meta-row > a.writeup-winner-badge.content-tag-link.content-tag-action .content-tag-arrow", text: ">"
+    assert_select ".blog-post-meta-row > a.authored-challenge-badge.content-tag-link.content-tag-action .content-tag-arrow", text: ">"
     assert_select ".blog-post-meta-row > button.writeup-winner-badge", false
     assert_select ".blog-post-meta-row > button.authored-challenge-badge", false
     assert_select ".blog-post-meta-row > .filter-chip.blog-post-static-chip", text: "Web"
@@ -135,7 +137,7 @@ class CtfHelperTest < ActionView::TestCase
       }
     }
 
-    assert_select ".blog-post-meta-row > .difficulty-badge.difficulty-badge-hard.difficulty-badge-card", text: "Hard"
+    assert_select ".blog-post-meta-row > .difficulty-badge.content-tag-static.difficulty-badge-hard.difficulty-badge-card", text: "Hard"
     assert_select ".blog-post-meta-row > .difficulty-badge[data-filter-tag]", false
     assert_select ".blog-post-card[data-filter-text*='Hard']"
     assert_select ".blog-post-card[data-filter-tags*='Hard']"

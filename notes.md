@@ -1,4 +1,6 @@
 # TODOs
+- make Table-of-Contents and hints-drop-down smoothly open/close as well as CVE drop downs
+
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
     => https://github.com/felixfbecker/dom-to-svg
 

@@ -65,9 +65,9 @@ class ContentRepositoryTest < ActiveSupport::TestCase
       }
     }
 
-    assert_equal [ AuthoredChallenge::FILTER_LABEL, "Hard", "web" ], repository.metadata_tags(metadata)
-    assert_equal [ AuthoredChallenge::FILTER_LABEL, "web" ], repository.metadata_tags(metadata, include_difficulty: false)
-    assert_equal [ "web" ], repository.metadata_tags("categories" => [ "web" ])
+    assert_equal [ AuthoredChallenge::FILTER_LABEL, "Hard", "Web" ], repository.metadata_tags(metadata)
+    assert_equal [ AuthoredChallenge::FILTER_LABEL, "Web" ], repository.metadata_tags(metadata, include_difficulty: false)
+    assert_equal [ "Web" ], repository.metadata_tags("categories" => [ "web" ])
   end
 
   test "ctf event year is separate from published year" do

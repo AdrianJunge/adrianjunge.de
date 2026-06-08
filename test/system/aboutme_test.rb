@@ -46,7 +46,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_no_selector "#my-challenges .aboutme-difficulty-tag-unknown"
     assert_selector "#certificates .aboutme-card-link-overlay[href='/blog/htb-cpts']", visible: :all
     assert_selector "#certificates .aboutme-card-reading-time", text: /min read/
-    assert_selector "#certificates .aboutme-tag-certification[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", text: "Certification"
+    assert_selector "#certificates .aboutme-tag-certificate[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", text: "Certificate"
     certificate_tags = page.evaluate_script(<<~JS)
       Array.from(document.querySelectorAll("#certificates .aboutme-card-tags > *")).map((tag) => ({
         text: tag.innerText.trim(),
@@ -55,7 +55,7 @@ class AboutmeTest < ApplicationSystemTestCase
     JS
     assert_equal [
       { "text" => "2026-03-23", "linked" => false },
-      { "text" => "Certification", "linked" => true }
+      { "text" => "Certificate", "linked" => true }
     ], certificate_tags
     assert_selector "#talks #kitctf-web-intro-2026.aboutme-achievement-card"
     assert_selector "#talks .aboutme-card-link-overlay[href='https://kitctf.de/intro/']", visible: :all
@@ -309,7 +309,9 @@ class AboutmeTest < ApplicationSystemTestCase
           achievementTagBackground: achievementTagStyle.backgroundColor,
           achievementTagBorder: achievementTagStyle.borderTopColor,
           achievementTagCursor: achievementTagStyle.cursor,
+          achievementTagPointerEvents: achievementTagStyle.pointerEvents,
           achievementTagShadow: achievementTagStyle.boxShadow,
+          achievementTagTransform: achievementTagStyle.transform,
           achievementTagActionContent: achievementTagActionStyle.content,
           visibleActionRows: document.querySelectorAll(".aboutme-link-row").length
         };
@@ -326,18 +328,20 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "Open advisory for Privilege escalation through com_users batch task", metrics["advisoryAriaLabel"]
     assert_equal "Open advisory source", metrics["advisoryTitle"]
     assert_includes metrics["cveTagClass"], "ui-hover-lift"
-    assert_equal "rgba(109, 40, 217, 0.36)", metrics["cveTagBackground"]
-    assert_equal "rgba(167, 139, 250, 0.56)", metrics["cveTagBorder"]
+    assert_includes metrics["cveTagClass"], "cve-badge"
+    assert_equal "rgba(49, 46, 129, 0.52)", metrics["cveTagBackground"]
+    assert_equal "rgba(129, 140, 248, 0.78)", metrics["cveTagBorder"]
     assert_equal "pointer", metrics["cveTagCursor"]
     assert_equal '""', metrics["cveTagActionContent"]
     assert_not_equal "0px", metrics["cveTagActionWidth"]
     assert_includes metrics["cweTagClass"], "ui-hover-lift"
+    assert_includes metrics["cweTagClass"], "cwe-badge"
     assert_equal "rgba(14, 132, 170, 0.46)", metrics["cweTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.5)", metrics["cweTagBorder"]
     assert_equal "pointer", metrics["cweTagCursor"]
     assert_includes metrics["challengeTagClass"], "ui-hover-lift"
     assert_equal "rgba(14, 132, 170, 0.46)", metrics["challengeTagBackground"]
-    assert_equal "rgba(125, 211, 252, 0.5)", metrics["challengeTagBorder"]
+    assert_equal "rgba(125, 211, 252, 0.32)", metrics["challengeTagBorder"]
     assert_equal "pointer", metrics["challengeTagCursor"]
     assert_equal '""', metrics["challengeTagActionContent"]
     assert_not_equal "0px", metrics["challengeTagActionWidth"]
@@ -348,12 +352,34 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_includes metrics["mediumSeverityBackgroundImage"], "linear-gradient"
     assert_includes metrics["mediumSeverityShadow"], "inset"
     assert_equal "rgba(14, 132, 170, 0.46)", metrics["achievementTagBackground"]
-    assert_equal "rgba(125, 211, 252, 0.68)", metrics["achievementTagBorder"]
+    assert_equal "rgba(125, 211, 252, 0.32)", metrics["achievementTagBorder"]
     assert_equal "default", metrics["achievementTagCursor"]
+    assert_equal "auto", metrics["achievementTagPointerEvents"]
     assert_includes metrics["achievementTagShadow"], "inset"
     assert_not_equal '""', metrics["achievementTagActionContent"]
     assert_not_includes metrics["achievementTagClass"], "ui-hover-lift"
     assert_equal 0, metrics["visibleActionRows"]
+
+    find("#achievements .aboutme-achievement-meta .aboutme-card-tag", match: :first).hover
+    hovered_static_tag = page.evaluate_script(<<~JS)
+      (() => {
+        const tag = document.querySelector("#achievements .aboutme-achievement-meta .aboutme-card-tag");
+        const style = window.getComputedStyle(tag);
+
+        return {
+          backgroundColor: style.backgroundColor,
+          borderColor: style.borderTopColor,
+          boxShadow: style.boxShadow,
+          transform: style.transform
+        };
+      })()
+    JS
+    assert_equal({
+      "backgroundColor" => metrics["achievementTagBackground"],
+      "borderColor" => metrics["achievementTagBorder"],
+      "boxShadow" => metrics["achievementTagShadow"],
+      "transform" => metrics["achievementTagTransform"]
+    }, hovered_static_tag)
   end
 
   test "my challenges link to their writeups" do
@@ -393,7 +419,7 @@ class AboutmeTest < ApplicationSystemTestCase
 
         return [
           linkAtCenter("#my-challenges .aboutme-tag-gpnctf-2025"),
-          linkAtCenter("#certificates .aboutme-tag-certification"),
+          linkAtCenter("#certificates .aboutme-tag-certificate"),
           linkAtCenter("#talks .aboutme-tag-slides"),
           linkAtCenter("#achievements #dhm-2025 .aboutme-card-link-overlay"),
           linkAtCenter("#achievements #kitctf-glacierctf-2025 .aboutme-card-link-overlay")

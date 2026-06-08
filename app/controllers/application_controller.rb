@@ -13,16 +13,7 @@ class ApplicationController < ActionController::Base
   ABOUTME_CERTIFICATES_PATH = ABOUTME_BASE_PATH.join("certificates.json")
   ABOUTME_TALKS_PATH = ABOUTME_BASE_PATH.join("talks.json")
   ABOUTME_ACHIEVEMENTS_PATH = ABOUTME_BASE_PATH.join("achievements.json")
-  CONTENT_FILTER_KIND_LABELS = [
-    "CTF writeup",
-    "Blog post",
-    "CVE",
-    "Bug bounty",
-    "Created challenge",
-    "Certificate",
-    "Talk",
-    "Achievement"
-  ].freeze
+  CONTENT_FILTER_KIND_LABELS = ContentTagTaxonomy::CONTENT_TYPE_LABELS.freeze
   ERROR_CONTENT = {
     bad_request: {
       status: :bad_request,
@@ -156,59 +147,40 @@ class ApplicationController < ActionController::Base
     File.read(file_path)
   end
 
-  def sorted_filter_values(values)
-    values
-      .map(&:to_s)
-      .reject(&:blank?)
-      .uniq { |value| value.downcase }
-      .sort_by { |value| ContentRepository.filter_tag_sort_key(value) }
+  def sorted_filter_values(values, ctf_labels: [], repository_labels: [])
+    ContentTagTaxonomy.canonical_values(values)
+                      .sort_by do |value|
+                        ContentTagTaxonomy.sort_key(
+                          value,
+                          content_labels: CONTENT_FILTER_KIND_LABELS,
+                          ctf_labels: ctf_labels,
+                          repository_labels: repository_labels
+                        )
+                      end
   end
 
-  def filter_tag_groups(values, content_labels: [], ctf_labels: [], topic_label: "Topics")
-    tags = sorted_filter_values(values)
-    grouped = []
+  def filter_tag_groups(values, content_labels: CONTENT_FILTER_KIND_LABELS, ctf_labels: [], repository_labels: [], topic_label: "Topics")
+    ContentTagTaxonomy.filter_groups(
+      values,
+      content_labels: content_labels,
+      ctf_labels: ctf_labels,
+      repository_labels: repository_labels,
+      topic_label: topic_label
+    )
+  end
 
-    recognition_tags, tags = tags.partition { |value| [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(value) }
-    grouped << { label: "Recognition", tags: recognition_tags } if recognition_tags.any?
-
-    difficulty_tags, tags = tags.partition { |value| WriteupDifficulty.filter_label?(value) }
-    if difficulty_tags.any?
-      grouped << {
-        label: "Difficulty",
-        tags: difficulty_tags,
-        sort: "difficulty"
-      }
+  def filter_ctf_labels
+    achievement_competitions = content_repository.about_entries(ABOUTME_ACHIEVEMENTS_PATH).filter_map do |entry|
+      entry["title"] if entry["category"].to_s.casecmp?("CTF Competition")
     end
 
-    severity_tags, tags = tags.partition { |value| !WriteupDifficulty.filter_label?(value) && ContentSeverityTag.recognized?(value) }
-    if severity_tags.any?
-      grouped << {
-        label: "Severity",
-        tags: severity_tags,
-        sort: "severity"
-      }
+    content_repository.ctf_metadata.keys + achievement_competitions
+  end
+
+  def filter_repository_labels
+    [ ABOUTME_CVES_PATH, ABOUTME_BUG_BOUNTIES_PATH ].flat_map do |path|
+      content_repository.about_entries(path).filter_map { |entry| entry["project"] }
     end
-
-    content_lookup = Array(content_labels).index_by(&:downcase)
-    if content_lookup.any?
-      content_tags, tags = tags.partition { |value| content_lookup.key?(value.downcase) }
-      grouped << { label: "Content type", tags: content_tags } if content_tags.any?
-    end
-
-    ctf_lookup = Array(ctf_labels).map(&:to_s).reject(&:blank?).index_by(&:downcase)
-    if ctf_lookup.any?
-      ctf_tags, tags = tags.partition { |value| ctf_lookup.key?(value.downcase) }
-      grouped << { label: "CTF competitions", tags: ctf_tags } if ctf_tags.any?
-    end
-
-    cve_tags, tags = tags.partition { |value| ContentVulnerabilityTag.cve?(value) }
-    grouped << { label: "CVEs", tags: cve_tags, sort: "cve" } if cve_tags.any?
-
-    cwe_tags, tags = tags.partition { |value| ContentVulnerabilityTag.cwe?(value) }
-    grouped << { label: "CWEs", tags: cwe_tags, sort: "cwe" } if cwe_tags.any?
-
-    grouped << { label: topic_label, tags: tags } if tags.any?
-    grouped
   end
 
   def sanitize_which(which)

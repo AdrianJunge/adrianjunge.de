@@ -452,6 +452,7 @@ class SitePagesTest < ApplicationSystemTestCase
       within find(".landing-writeup-cards .blog-post-card", text: authored_post[:title]) do
         assert_selector ".blog-post-meta-row > a.authored-challenge-badge[href='#{event_url}'][target='_blank'][rel='noopener noreferrer']",
                         text: /Authored challenge/
+        assert_selector ".blog-post-meta-row > a.authored-challenge-badge.content-tag-link.content-tag-action .content-tag-arrow", text: ">"
         assert_no_selector ".blog-post-meta-row > button.authored-challenge-badge"
         assert_no_selector ".blog-post-meta-row > .authored-challenge-badge.blog-post-static-chip"
       end
@@ -467,6 +468,7 @@ class SitePagesTest < ApplicationSystemTestCase
       within find(".landing-writeup-cards .blog-post-card", text: winner_post[:title]) do
         assert_selector ".blog-post-meta-row > a.writeup-winner-badge[href='#{winner[:proof_url]}'][target='_blank'][rel='noopener noreferrer']",
                         text: winner[:label]
+        assert_selector ".blog-post-meta-row > a.writeup-winner-badge.content-tag-link.content-tag-action .content-tag-arrow", text: ">"
         assert_no_selector ".blog-post-meta-row > button.writeup-winner-badge"
         assert_no_selector ".blog-post-meta-row > .writeup-winner-badge.blog-post-static-chip"
       end
@@ -485,16 +487,78 @@ class SitePagesTest < ApplicationSystemTestCase
 
         return {
           cursor: style.cursor,
+          className: chip.className,
           pointerEvents: style.pointerEvents,
+          backgroundColor: style.backgroundColor,
+          borderColor: style.borderTopColor,
+          boxShadow: style.boxShadow,
           transitionDuration: style.transitionDuration,
           transform: style.transform
         };
       })()
     JS
     assert_equal "default", static_chip_styles["cursor"]
-    assert_equal "none", static_chip_styles["pointerEvents"]
-    assert_equal "0s", static_chip_styles["transitionDuration"]
+    assert_includes static_chip_styles["className"], "content-tag-static"
+    assert_not_includes static_chip_styles["className"], "content-tag-action"
+    assert_equal "auto", static_chip_styles["pointerEvents"]
+    assert_not_equal "0s", static_chip_styles["transitionDuration"]
     assert_equal "none", static_chip_styles["transform"]
+    find(".landing-writeup-cards .blog-post-static-chip", match: :first).hover
+    static_chip_hover_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const chip = document.querySelector(".landing-writeup-cards .blog-post-static-chip");
+        const style = window.getComputedStyle(chip);
+
+        return {
+          backgroundColor: style.backgroundColor,
+          borderColor: style.borderTopColor,
+          boxShadow: style.boxShadow,
+          transform: style.transform
+        };
+      })()
+    JS
+    assert_equal static_chip_styles.slice("backgroundColor", "borderColor", "boxShadow", "transform"),
+                 static_chip_hover_styles
+
+    landing_difficulty_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const chip = document.querySelector(".landing-writeup-cards .difficulty-badge");
+        if (!chip) return null;
+        const style = window.getComputedStyle(chip);
+
+        return {
+          className: chip.className,
+          cursor: style.cursor,
+          pointerEvents: style.pointerEvents,
+          backgroundColor: style.backgroundColor,
+          borderColor: style.borderTopColor,
+          boxShadow: style.boxShadow,
+          transform: style.transform
+        };
+      })()
+    JS
+    if landing_difficulty_styles
+      assert_includes landing_difficulty_styles["className"], "content-tag-static"
+      assert_not_includes landing_difficulty_styles["className"], "content-tag-action"
+      assert_equal "default", landing_difficulty_styles["cursor"]
+      assert_equal "auto", landing_difficulty_styles["pointerEvents"]
+      find(".landing-writeup-cards .difficulty-badge", match: :first).hover
+      landing_difficulty_hover_styles = page.evaluate_script(<<~JS)
+        (() => {
+          const chip = document.querySelector(".landing-writeup-cards .difficulty-badge");
+          const style = window.getComputedStyle(chip);
+
+          return {
+            backgroundColor: style.backgroundColor,
+            borderColor: style.borderTopColor,
+            boxShadow: style.boxShadow,
+            transform: style.transform
+          };
+        })()
+      JS
+      assert_equal landing_difficulty_styles.slice("backgroundColor", "borderColor", "boxShadow", "transform"),
+                   landing_difficulty_hover_styles
+    end
 
     landing_styles = post_card_styles(".landing-writeup-cards .blog-post-card")
 
@@ -518,6 +582,8 @@ class SitePagesTest < ApplicationSystemTestCase
 
     visit blog_post[:link]
     assert_selector ".post-meta-line", text: /min read/
+    assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all
+    assert_no_selector "#toc[hidden]", visible: :all
     assert_selector "#toc .article-progress[data-word-total]", text: %r{\d+\s*/\s*[\d,.]+\s+words}
     assert_selector ".article-progress-percent", text: /\d+%/
     progress_metrics = page.evaluate_script(<<~JS)
@@ -549,6 +615,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
     visit ctf_post[:link]
     assert_selector ".post-meta-line", text: /min read/
+    assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all
     assert_selector "#toc .article-progress[data-word-total]", text: %r{\d+\s*/\s*[\d,.]+\s+words}
     assert_selector ".article-progress-percent", text: /\d+%/
 
@@ -681,6 +748,42 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".landing-featured-topline"
     assert_selector ".landing-featured-card", text: "CVE"
     assert_selector ".landing-featured-card", text: /Certificate/i
+    selected_static_tag_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const tag = document.querySelector(".landing-featured-card .aboutme-tag-static");
+        const style = window.getComputedStyle(tag);
+
+        return {
+          className: tag.className,
+          cursor: style.cursor,
+          pointerEvents: style.pointerEvents,
+          backgroundColor: style.backgroundColor,
+          borderColor: style.borderTopColor,
+          boxShadow: style.boxShadow,
+          transform: style.transform
+        };
+      })()
+    JS
+    assert_includes selected_static_tag_styles["className"], "aboutme-tag-static"
+    assert_not_includes selected_static_tag_styles["className"], "aboutme-tag-action"
+    assert_equal "default", selected_static_tag_styles["cursor"]
+    assert_equal "auto", selected_static_tag_styles["pointerEvents"]
+    find(".landing-featured-card .aboutme-tag-static", match: :first).hover
+    selected_static_tag_hover_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const tag = document.querySelector(".landing-featured-card .aboutme-tag-static");
+        const style = window.getComputedStyle(tag);
+
+        return {
+          backgroundColor: style.backgroundColor,
+          borderColor: style.borderTopColor,
+          boxShadow: style.boxShadow,
+          transform: style.transform
+        };
+      })()
+    JS
+    assert_equal selected_static_tag_styles.slice("backgroundColor", "borderColor", "boxShadow", "transform"),
+                 selected_static_tag_hover_styles
   end
 
   test "hidden TBA findings stay out of public finding sections" do
@@ -782,17 +885,25 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".content-filter-tag-group-label", text: "DIFFICULTY"
     assert_selector ".content-filter-tag-group-label", text: "SEVERITY"
     assert_selector ".content-filter-tag-group-label", text: "CTF COMPETITIONS"
+    assert_selector ".content-filter-tag-group-label", text: "REPOSITORIES"
     assert_selector ".content-filter-tag-group-label", text: "CVES"
     assert_selector ".content-filter-tag-group-label", text: "CWES"
+    assert_selector ".content-filter-tag-group-label", text: "CATEGORIES"
     assert_selector ".content-filter-tag-group-label", text: "TOPICS, PROJECTS, AND SOURCES"
     assert_selector ".content-filter-panel .filter-chip", text: "CVE"
     assert_selector ".content-filter-panel .filter-chip", text: "CTF writeup"
+    within find(".content-filter-tag-group", text: "CONTENT TYPE") do
+      assert_selector ".filter-chip", text: /^Security Research$/
+      assert_selector ".filter-chip", text: /^Slides$/
+    end
     assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.difficulty-badge-#{difficulty_case[:key]}",
                     text: /^#{Regexp.escape(difficulty_case[:label])}$/
     assert_selector ".content-filter-panel .filter-chip.severity-badge-filter.severity-badge-#{severity_case[:key]}",
                     text: /^#{Regexp.escape(severity_case[:label])}$/
     assert_selector ".content-filter-panel .filter-chip",
                     text: /^#{Regexp.escape(ctf_competition_case[:label])}$/
+    assert_selector ".content-filter-panel .filter-chip", text: /^Joomla CMS$/
+    assert_selector ".content-filter-panel .filter-chip", text: /^ChurchCRM$/
     assert_selector ".content-filter-panel .filter-chip.cve-badge-filter",
                     text: /^#{Regexp.escape(cve_case[:label])}$/
     assert_selector ".content-filter-panel .filter-chip.cwe-badge-filter",
@@ -813,7 +924,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".timeline-tags .writeup-winner-badge-timeline[data-filter-tag='Writeup winner']", text: first_winner_label
     difficulty_backgrounds = page.evaluate_script(<<~JS)
       [...document.querySelectorAll(".content-filter-panel .difficulty-badge-filter")]
-        .map((chip) => window.getComputedStyle(chip).backgroundColor)
+        .map((chip) => window.getComputedStyle(chip).getPropertyValue("--difficulty-bg").trim())
         .filter((value, index, values) => values.indexOf(value) === index)
     JS
     assert_operator difficulty_backgrounds.length, :>, 1
@@ -851,6 +962,27 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_timeline_year_counts_match_visible_cards
 
     find("[data-filter-reset='timeline']").click
+    find(".timeline-tags .cve-badge-filter", text: /^#{Regexp.escape(cve_case[:label])}$/).click
+    assert_selector ".timeline-tags .cve-badge-filter.is-active", text: cve_case[:label]
+    assert_selector ".content-filter-panel .cve-badge-filter.is-active", text: cve_case[:label]
+    active_timeline_cve_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const chip = document.querySelector(".timeline-tags .cve-badge-filter.is-active");
+        const style = window.getComputedStyle(chip);
+        return {
+          backgroundColor: style.backgroundColor,
+          backgroundActive: style.getPropertyValue("--vulnerability-bg-active").trim(),
+          borderColor: style.borderTopColor
+        };
+      })()
+    JS
+    assert_equal "rgba(67, 56, 202, 0.7)", active_timeline_cve_styles["backgroundActive"]
+    refute_includes active_timeline_cve_styles["borderColor"], "125, 211, 252"
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(cve_case[:items].length, total_items)
+    assert_hidden_timeline_item cve_case[:items]
+    assert_timeline_year_counts_match_visible_cards
+
+    find("[data-filter-reset='timeline']").click
     find(".timeline-tags .timeline-tag-pill", text: tag_case[:tag], match: :first).click
     assert_selector ".timeline-tags .timeline-tag-pill.is-active", text: tag_case[:tag]
     assert_selector ".content-filter-panel .filter-chip.is-active", text: tag_case[:tag]
@@ -876,6 +1008,7 @@ class SitePagesTest < ApplicationSystemTestCase
     post, top_heading, nested_heading = ctf_post_with_nested_headings
 
     visit post[:link]
+    assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all
 
     assert_selector "#toc-body .toc-depth-#{top_heading[:level] - 1}", text: top_heading[:text]
     assert_selector "#toc-body .toc-depth-#{nested_heading[:level] - 1}", text: nested_heading[:text]
@@ -945,7 +1078,7 @@ class SitePagesTest < ApplicationSystemTestCase
     single_category_card = find(".writeup-post-card", text: "Smile at me")
     within single_category_card do
       assert_no_selector ".category-split-icon"
-      assert_selector ".writeup-post-card-logo img.blog-logo[src*='categories/web-'][alt='web category']"
+      assert_selector ".writeup-post-card-logo img.blog-logo[src*='categories/web-'][alt='Web category']"
     end
   end
 
@@ -973,6 +1106,33 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".content-filter-panel .filter-chip.authored-challenge-badge-filter", text: "Authored challenge"
     assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.difficulty-badge-#{ctf_difficulty_case[:key]}",
                     text: /^#{Regexp.escape(ctf_difficulty_case[:label])}$/
+    colored_filter_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const winner = document.querySelector(".content-filter-panel .writeup-winner-badge-filter");
+        const authored = document.querySelector(".content-filter-panel .authored-challenge-badge-filter");
+        const difficulty = document.querySelector(".content-filter-panel .difficulty-badge-filter.difficulty-badge-#{ctf_difficulty_case[:key]}");
+        const winnerStyle = window.getComputedStyle(winner);
+        const authoredStyle = window.getComputedStyle(authored);
+        const difficultyStyle = window.getComputedStyle(difficulty);
+
+        return {
+          winnerBackgroundImage: winnerStyle.backgroundImage,
+          winnerBorder: winnerStyle.borderTopColor,
+          authoredBackground: authoredStyle.backgroundColor,
+          authoredBorder: authoredStyle.borderTopColor,
+          difficultyBackground: difficultyStyle.backgroundColor,
+          difficultyExpectedBackground: difficultyStyle.getPropertyValue("--difficulty-bg").trim(),
+          difficultyBorder: difficultyStyle.borderTopColor,
+          difficultyExpectedBorder: difficultyStyle.getPropertyValue("--difficulty-border").trim()
+        };
+      })()
+    JS
+    assert_match(/rgba?\(234,\s*179,\s*8/, colored_filter_styles["winnerBackgroundImage"])
+    assert_match(/rgba?\(250,\s*204,\s*21/, colored_filter_styles["winnerBorder"])
+    assert_equal "rgba(49, 46, 129, 0.52)", colored_filter_styles["authoredBackground"]
+    assert_equal "rgba(129, 140, 248, 0.78)", colored_filter_styles["authoredBorder"]
+    assert_equal colored_filter_styles["difficultyExpectedBackground"], colored_filter_styles["difficultyBackground"]
+    assert_equal colored_filter_styles["difficultyExpectedBorder"], colored_filter_styles["difficultyBorder"]
     assert_selector ".content-filter-panel .filter-chip.category-badge-filter.category-badge-#{ContentCategoryTag.css_key(ctf_tag_case[:tag])}",
                     text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector ".ctf-card .filter-chip.category-badge-filter.category-badge-#{ContentCategoryTag.css_key(ctf_tag_case[:tag])}",
@@ -1119,8 +1279,13 @@ class SitePagesTest < ApplicationSystemTestCase
 
     visit "/blog"
 
+    assert_selector ".content-filter-tag-group-label", text: "CONTENT TYPE"
+    within find(".content-filter-tag-group", text: "CONTENT TYPE") do
+      assert_selector ".filter-chip", text: /^Security Research$/
+    end
     assert_selector ".content-filter-panel .filter-chip", text: tag_case[:tag]
     assert_selector ".blog-post-card", text: search_case[:post][:title]
+    assert_selector ".blog-post-card[data-filter-tags*='Security Research']"
     assert_selector ".blog-post-card[data-filter-tags*='#{tag_case[:tag]}']"
     assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo", minimum: logo_posts.length if logo_posts.any?
     if (privilege_escalation_post = blog_posts.find { |post| Array(post[:categories]).include?("Privilege Escalation") })
@@ -1184,7 +1349,7 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
     assert static_article_tag_styles.any?
     assert static_article_tag_styles.all? { |styles| styles["cursor"] == "default" }
-    assert static_article_tag_styles.all? { |styles| styles["transitionDuration"] == "0s" }
+    assert static_article_tag_styles.all? { |styles| styles["transitionDuration"] != "0s" }
     assert static_article_tag_styles.all? { |styles| styles["transform"] == "none" }
   end
 
@@ -1207,6 +1372,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".writeup-hints-summary", text: "Hints"
     assert_selector ".writeup-hints-count", text: hint_count_label
     assert_no_selector ".writeup-hints-list", visible: true
+    assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all
     assert_selector ".article-progress-percent"
     progress_state = page.evaluate_script(<<~JS)
       (() => {
@@ -1271,6 +1437,7 @@ class SitePagesTest < ApplicationSystemTestCase
     first_winner_badge = WriteupWinner.from_metadata(first_winner[:metadata])
     visit first_winner[:link]
     assert_selector ".writeup-winner-article .writeup-winner-badge[href='#{first_winner_badge[:proof_url]}']", text: first_winner_badge[:label]
+    assert_selector ".writeup-recognition-badges-article .writeup-winner-badge .content-tag-arrow", text: ">"
 
     if (external_winner = first_external_winning_writeup)
       external_badge = WriteupWinner.from_metadata(external_winner[:metadata])
@@ -1295,6 +1462,7 @@ class SitePagesTest < ApplicationSystemTestCase
     visit post[:link]
     assert_selector ".writeup-badges-article .difficulty-badge-hard", text: "Hard"
     assert_selector ".writeup-badges-article .authored-challenge-badge[href='#{authored[:event_url]}'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
+    assert_selector ".writeup-recognition-badges-article .authored-challenge-badge .content-tag-arrow", text: ">"
     Array(post[:metadata]["categories"]).each do |category|
       assert_selector ".writeup-badges-article .category-badge.category-badge-#{ContentCategoryTag.css_key(category)}.category-badge-article",
                       text: /^#{Regexp.escape(category)}$/i
@@ -1494,6 +1662,9 @@ class SitePagesTest < ApplicationSystemTestCase
 
     width_script = "Math.round(document.querySelector('.writeup-container').getBoundingClientRect().width)"
     original_width = page.evaluate_script(width_script)
+    assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all
+    assert_no_selector "#toc[hidden]", visible: :all
+    assert_selector "#toc-toggle[aria-expanded='true']"
     expanded_button_metrics = page.evaluate_script("#{button_metrics_script}('#toc-toggle')")
 
     page.execute_script("window.scrollTo(0, 700)")

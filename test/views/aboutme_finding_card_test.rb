@@ -36,8 +36,8 @@ class AboutmeFindingCardTest < ActionView::TestCase
                   "Open advisory for Example advisory title",
                   "Open advisory source",
                   text: "Example advisory title"
-    assert_select ".aboutme-cve-id[href=?]", "https://www.cve.org/CVERecord?id=CVE-2026-0001", text: "CVE-2026-0001"
-    assert_select ".aboutme-cwe-id[href=?]", "https://cwe.mitre.org/data/definitions/79.html", text: "CWE-79"
+    assert_select ".aboutme-cve-id.cve-badge[href=?]", "https://www.cve.org/CVERecord?id=CVE-2026-0001", text: "CVE-2026-0001"
+    assert_select ".aboutme-cwe-id.cwe-badge[href=?]", "https://cwe.mitre.org/data/definitions/79.html", text: "CWE-79"
     assert_select ".aboutme-detail-block", text: /allowing session actions/
     assert_select "dt", 0
     assert_no_match(/Status/, rendered)

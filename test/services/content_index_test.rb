@@ -58,6 +58,16 @@ class ContentIndexTest < ActiveSupport::TestCase
     assert_includes item[:tags], "Slides"
   end
 
+  test "blog source categories are indexed as content type tags" do
+    item = @items.find { |candidate| candidate[:id] == "blog-java-strings" }
+
+    assert item
+    assert_equal "blog", item[:kind]
+    assert_equal "Security Research", item[:source]
+    assert_includes item[:tags], "Blog post"
+    assert_includes item[:tags], "Security Research"
+  end
+
   private
 
   def about_entry_ids(kind, path)

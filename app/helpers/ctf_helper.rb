@@ -30,7 +30,7 @@ module CtfHelper
   end
 
   def render_writeup_card(writeup, writeup_path, info, logo: nil, interactive_tags: true, show_hints: true)
-    categories = Array(info["categories"]).presence || [ "Unknown category" ]
+    categories = normalized_categories(info["categories"]).presence || [ "Unknown category" ]
     title = info["title"].presence || writeup.capitalize
     description = info["description"] || "No description available"
     published = info["published"] || "Unknown date"
@@ -154,7 +154,7 @@ module CtfHelper
   end
 
   def render_writeup_category_badges(info, context: :card)
-    Array(info["categories"]).filter_map do |category|
+    normalized_categories(info["categories"]).filter_map do |category|
       next if category.to_s.blank?
 
       content_category_badge(
@@ -211,10 +211,7 @@ module CtfHelper
   end
 
   def distinct_categories(categories)
-    Array(categories)
-      .map { |category| category.to_s.strip }
-      .reject(&:blank?)
-      .uniq { |category| category.downcase }
+    normalized_categories(categories)
       .presence || [ "Unknown category" ]
   end
 
@@ -312,12 +309,18 @@ module CtfHelper
   end
 
   def category_tag_config(category)
+    label = ContentTagTaxonomy.canonical_label(category)
+
     {
-      label: category,
+      label: label,
       category: true,
-      category_key: category,
-      title: "Challenge category: #{category}"
+      category_key: label,
+      title: "Challenge category: #{label}"
     }
+  end
+
+  def normalized_categories(categories)
+    ContentTagTaxonomy.canonical_values(Array(categories))
   end
 
   def writeup_year(info)
