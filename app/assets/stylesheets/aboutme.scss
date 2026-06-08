@@ -82,21 +82,36 @@
 }
 
 .aboutme-stats {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 1px;
+    gap: 0;
     margin-top: 1.65rem;
     overflow: hidden;
     border: 1px solid var(--glass-control-border);
     border-radius: var(--radius-ui);
-    background: rgba(70, 96, 136, 0.66);
+    background:
+        radial-gradient(circle at 10% 0%, rgba(125, 211, 252, 0.18), transparent 18rem),
+        radial-gradient(circle at 90% 20%, rgba(96, 165, 250, 0.12), transparent 18rem),
+        linear-gradient(180deg, rgba(23, 48, 76, 0.97), rgba(9, 35, 58, 0.92));
     box-shadow: var(--glass-control-shadow);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+    isolation: isolate;
+}
+
+.aboutme-stats::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 32%, rgba(125, 211, 252, 0.08));
+    content: "";
+    pointer-events: none;
 }
 
 .aboutme-stat {
     position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -107,13 +122,29 @@
     color: inherit;
     border: 0;
     border-radius: 0;
-    background: var(--glass-control-bg);
-    box-shadow: none;
+    background: transparent;
+    box-shadow: inset 1px 0 0 rgba(125, 211, 252, 0.18);
     text-decoration: none;
     text-align: center;
     overflow: hidden;
     isolation: isolate;
-    transition: background-color var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast);
+    transition: color var(--motion-fast), transform var(--motion-fast);
+}
+
+.aboutme-stat:first-child {
+    box-shadow: none;
+}
+
+.aboutme-stat::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 62%),
+        rgba(125, 211, 252, 0.08);
+    content: "";
+    opacity: 0;
+    transition: opacity var(--motion-fast);
 }
 
 .aboutme-stat::after {
@@ -129,14 +160,14 @@
     transition: opacity 0.18s ease;
 }
 
-.aboutme-stat + .aboutme-stat::before {
-    display: none;
-}
-
 .aboutme-stat:hover,
 .aboutme-stat:focus-visible {
-    background: var(--glass-control-bg-hover);
     outline: none;
+}
+
+.aboutme-stat:hover::before,
+.aboutme-stat:focus-visible::before {
+    opacity: 1;
 }
 
 .aboutme-stat:hover::after,
@@ -244,6 +275,10 @@
     overflow: hidden;
 }
 
+details.aboutme-card.ui-card-surface.details-is-animating {
+    transition: height 0.24s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
 .aboutme-finding-card::after,
 .aboutme-achievement-card::after,
 .aboutme-achievement-event::after {
@@ -251,7 +286,7 @@
     inset: 0 auto 0 0;
     z-index: 2;
     width: 4px;
-    background: linear-gradient(180deg, var(--aboutme-section-accent), transparent 82%);
+    background: linear-gradient(180deg, var(--profile-card-accent, var(--aboutme-section-accent, #7dd3fc)), transparent 82%);
     content: "";
     pointer-events: none;
 }
@@ -281,6 +316,16 @@
     display: none;
 }
 
+.aboutme-finding-card summary::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-color: transparent;
+    content: "";
+    pointer-events: none;
+    transition: background-color 0.18s ease;
+}
+
 .aboutme-finding-card summary::after {
     content: "";
     position: absolute;
@@ -291,13 +336,13 @@
     flex: 0 0 auto;
     border-right: 2px solid #7dd3fc;
     border-bottom: 2px solid #7dd3fc;
+    z-index: 1;
     transform: rotate(45deg);
     transition: transform 0.18s ease;
 }
 
 .aboutme-finding-card[open] summary {
     border-bottom: 1px solid rgba(93, 116, 158, 0.55);
-    background: var(--aboutme-section-accent-soft);
 }
 
 .aboutme-finding-card[open] summary::after {
@@ -307,6 +352,11 @@
 .aboutme-finding-card summary:focus-visible {
     outline: 2px solid #7dd3fc;
     outline-offset: -4px;
+}
+
+.aboutme-finding-card summary > * {
+    position: relative;
+    z-index: 1;
 }
 
 .aboutme-card-main,
@@ -757,10 +807,19 @@ a.aboutme-cwe-id:focus-visible {
 
 .aboutme-card-body {
     padding: 1rem 1.15rem 1.15rem;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
 .aboutme-card-header + .aboutme-card-body {
     padding-top: 0;
+}
+
+details.aboutme-card.details-is-opening .aboutme-card-body,
+details.aboutme-card.details-is-closing .aboutme-card-body {
+    opacity: 0;
+    transform: translateY(-0.3rem);
 }
 
 .aboutme-detail-block {
@@ -1050,12 +1109,6 @@ a.aboutme-cwe-id:focus-visible {
     color: rgba(226, 232, 240, 0.8);
 }
 
-@media (hover: hover) and (pointer: fine) {
-    .aboutme-finding-card summary:hover {
-        background: rgba(51, 68, 97, 0.28);
-    }
-}
-
 @media (min-width: 920px) {
     .aboutme-finding-grid,
     .aboutme-achievement-grid {
@@ -1209,6 +1262,14 @@ a.aboutme-cwe-id:focus-visible {
 
     .aboutme-stats {
         grid-template-columns: 1fr;
+    }
+
+    .aboutme-stat {
+        box-shadow: none;
+    }
+
+    .aboutme-stat + .aboutme-stat {
+        border-top: 1px solid rgba(125, 211, 252, 0.22);
     }
 
     .aboutme-severity,

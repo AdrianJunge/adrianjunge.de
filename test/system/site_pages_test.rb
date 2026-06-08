@@ -648,6 +648,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-featured-card.ui-card-surface", minimum: 1
     assert_selector ".landing-writeup-cards .blog-post-card.ui-card-surface", count: landing_latest_posts.length
     featured_styles = card_surface_styles(".landing-featured-card")
+    featured_profile_highlight_styles = profile_card_highlight_styles(".landing-featured-card.aboutme-finding-card")
     latest_styles = card_surface_styles(".landing-writeup-cards .blog-post-card")
     assert_equal featured_styles, latest_styles
 
@@ -675,6 +676,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".aboutme-finding-card.ui-card-surface", minimum: 1
     assert_selector ".aboutme-achievement-card.ui-card-surface", minimum: 1
     assert_equal featured_styles, card_surface_styles(".aboutme-finding-card")
+    assert_equal featured_profile_highlight_styles, profile_card_highlight_styles("#cves .aboutme-finding-card")
   end
 
   test "landing page exposes about section counters as direct links" do
@@ -686,6 +688,34 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_text "Welcome to my flag collection"
     assert_selector ".landing-action[href='/timeline']", text: "Timeline"
     assert_selector ".landing-action[href='/about']", text: "About me"
+    assert_selector ".landing-typed-line .typed-cursor"
+    typed_cursor_layout = page.evaluate_script(<<~JS)
+      (() => {
+        const line = document.querySelector(".landing-typed-line");
+        const typing = document.getElementById("typing");
+        const cursor = line.querySelector(".typed-cursor");
+
+        typing.textContent = "";
+
+        const lineStyle = window.getComputedStyle(line);
+        const cursorStyle = window.getComputedStyle(cursor);
+        const lineRect = line.getBoundingClientRect();
+        const cursorRect = cursor.getBoundingClientRect();
+
+        return {
+          lineDisplay: lineStyle.display,
+          lineAlignItems: lineStyle.alignItems,
+          cursorMarginLeft: cursorStyle.marginLeft,
+          cursorWithinLine: cursorRect.top >= lineRect.top - 1 && cursorRect.bottom <= lineRect.bottom + 1,
+          cursorStartsAtLine: cursorRect.left >= lineRect.left - 1 && cursorRect.left <= lineRect.left + 12
+        };
+      })()
+    JS
+    assert_equal "flex", typed_cursor_layout["lineDisplay"]
+    assert_equal "center", typed_cursor_layout["lineAlignItems"]
+    assert_equal "0px", typed_cursor_layout["cursorMarginLeft"]
+    assert_equal true, typed_cursor_layout["cursorWithinLine"]
+    assert_equal true, typed_cursor_layout["cursorStartsAtLine"]
     assert_selector ".landing-affiliation-link[href='https://kitctf.de'] img"
     assert_selector ".landing-affiliation-link[href='https://www.kit.edu'] img"
     assert_selector ".landing-affiliation-link-pgp[href='/pgp-vurlo.asc']", text: "PGP key"
@@ -706,6 +736,25 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-metric.aboutme-stat", count: 4
     assert_selector ".landing-metric:first-child[href='/timeline']", text: "Posts"
     assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.landing-metric')).justifyContent")
+    landing_metric_surface = page.evaluate_script(<<~JS)
+      (() => {
+        const group = document.querySelector(".landing-metrics");
+        const first = document.querySelector(".landing-metric");
+        const groupStyle = window.getComputedStyle(group);
+        const firstStyle = window.getComputedStyle(first);
+
+        return {
+          groupGap: groupStyle.gap,
+          groupBackground: groupStyle.backgroundImage,
+          firstBackground: firstStyle.backgroundColor,
+          firstBackgroundImage: firstStyle.backgroundImage
+        };
+      })()
+    JS
+    assert_equal "0px", landing_metric_surface["groupGap"]
+    assert_includes landing_metric_surface["groupBackground"], "linear-gradient"
+    assert_equal "rgba(0, 0, 0, 0)", landing_metric_surface["firstBackground"]
+    assert_equal "none", landing_metric_surface["firstBackgroundImage"]
     assert_selector ".landing-metric:first-child .landing-metric-sublabel", text: /min read/
     metric_order = page.evaluate_script(<<~JS)
       (() => {
@@ -748,6 +797,36 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".landing-featured-topline"
     assert_selector ".landing-featured-card", text: "CVE"
     assert_selector ".landing-featured-card", text: /Certificate/i
+    featured_disclosure_animation = page.evaluate_script(<<~JS)
+      (() => {
+        const details = document.querySelector(".landing-featured-card.aboutme-finding-card[data-animated-details='true']");
+        if (!details) return null;
+
+        details.open = true;
+        const summary = details.querySelector("summary");
+        summary.click();
+        const style = window.getComputedStyle(details);
+        const metrics = {
+          animating: details.classList.contains("details-is-animating"),
+          closing: details.classList.contains("details-is-closing"),
+          transitionProperty: style.transitionProperty,
+          transitionDuration: style.transitionDuration,
+          inlineHeight: details.style.height
+        };
+
+        details.open = false;
+        details.classList.remove("details-is-animating", "details-is-opening", "details-is-closing");
+        details.style.height = "";
+        details.style.overflow = "";
+
+        return metrics;
+      })()
+    JS
+    assert featured_disclosure_animation, "expected a collapsible selected work card"
+    assert_equal true, featured_disclosure_animation["animating"]
+    assert_equal true, featured_disclosure_animation["closing"]
+    assert_includes featured_disclosure_animation["transitionProperty"], "height"
+    assert_not_equal "", featured_disclosure_animation["inlineHeight"]
     selected_static_tag_styles = page.evaluate_script(<<~JS)
       (() => {
         const tag = document.querySelector(".landing-featured-card .aboutme-tag-static");
@@ -2461,6 +2540,36 @@ class SitePagesTest < ApplicationSystemTestCase
           backgroundImage: style.backgroundImage,
           boxShadow: style.boxShadow
         };
+      })()
+    JS
+  end
+
+  def profile_card_highlight_styles(selector)
+    page.evaluate_async_script(<<~JS)
+      const done = arguments[arguments.length - 1];
+      (() => {
+        const card = document.querySelector(#{selector.to_json});
+        const summary = card.querySelector("summary");
+        const wasOpen = card.open;
+
+        card.open = true;
+
+        window.setTimeout(() => {
+          const cardStyle = window.getComputedStyle(card);
+          const summaryStyle = window.getComputedStyle(summary);
+          const summaryHighlightStyle = window.getComputedStyle(summary, "::before");
+          const accentStyle = window.getComputedStyle(card, "::after");
+          const result = {
+            accent: cardStyle.getPropertyValue("--profile-card-accent").trim(),
+            accentSoft: cardStyle.getPropertyValue("--profile-card-accent-soft").trim(),
+            leftAccent: accentStyle.backgroundImage,
+            summaryBackground: summaryHighlightStyle.backgroundColor,
+            summaryBorder: summaryStyle.borderBottomColor
+          };
+
+          card.open = wasOpen;
+          done(result);
+        }, 360);
       })()
     JS
   end

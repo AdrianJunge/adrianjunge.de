@@ -118,17 +118,7 @@
 
             <div class="landing-featured-grid">
                 <% @featured_items.each do |item| %>
-                    <% featured_card =
-                        case item[:kind]
-                        when "cve", "bug-bounty"
-                            aboutme_finding_card(item[:entry], kind: item[:kind])
-                        else
-                            aboutme_milestone_card(item[:entry])
-                        end %>
-                    <% featured_card[:class_name] = [featured_card[:class_name], "landing-featured-card"].compact.join(" ") %>
-                    <% featured_card[:kicker] = item[:label] %>
-
-                    <%= render "aboutme/profile_card", card: featured_card %>
+                    <%= render_profile_card(profile_card_for_featured_item(item)) %>
                 <% end %>
             </div>
         </section>

@@ -86,6 +86,25 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector ".aboutme-stat[href='#talks']", text: "Talks"
     assert_selector ".aboutme-stat[href='#achievements']", text: "Achievements"
     assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.aboutme-stat')).justifyContent")
+    counter_surface = page.evaluate_script(<<~JS)
+      (() => {
+        const group = document.querySelector(".aboutme-stats");
+        const first = document.querySelector(".aboutme-stat");
+        const groupStyle = window.getComputedStyle(group);
+        const firstStyle = window.getComputedStyle(first);
+
+        return {
+          groupGap: groupStyle.gap,
+          groupBackground: groupStyle.backgroundImage,
+          firstBackground: firstStyle.backgroundColor,
+          firstBackgroundImage: firstStyle.backgroundImage
+        };
+      })()
+    JS
+    assert_equal "0px", counter_surface["groupGap"]
+    assert_includes counter_surface["groupBackground"], "linear-gradient"
+    assert_equal "rgba(0, 0, 0, 0)", counter_surface["firstBackground"]
+    assert_equal "none", counter_surface["firstBackgroundImage"]
     assert_selector "#cves .aboutme-section-count", text: /entries/
     assert_selector "#bug-bounties .aboutme-section-count", text: "0 findings"
     assert_selector "#my-challenges .aboutme-section-count", text: /challenge/

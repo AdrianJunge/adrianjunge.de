@@ -151,6 +151,35 @@ body {
     }
 }
 
+.profile-card {
+    --profile-card-accent: var(--aboutme-section-accent, #7dd3fc);
+    --profile-card-accent-soft: var(--aboutme-section-accent-soft, rgba(125, 211, 252, 0.16));
+    --profile-card-border: rgba(88, 122, 166, 0.7);
+    --profile-card-bg: rgba(18, 34, 56, 0.88);
+    --profile-card-shadow: 0 1rem 2rem rgba(2, 12, 24, 0.25);
+}
+
+.profile-card.aboutme-finding-card[open] > summary::before {
+    background-color: var(--profile-card-accent-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .profile-card.aboutme-finding-card:not([open]) > summary:hover::before {
+        background-color: rgba(51, 68, 97, 0.28);
+    }
+
+    .profile-card.ui-card-surface[open]:hover {
+        border-color: var(--profile-card-border);
+        background-color: var(--profile-card-bg);
+        box-shadow: var(--profile-card-shadow);
+        transform: none;
+    }
+
+    .profile-card.ui-card-surface[open]:hover::before {
+        opacity: 0;
+    }
+}
+
 .content-page .blog-post-static-chip,
 .landing-page .landing-writeup-cards .blog-post-static-chip,
 :not(a).aboutme-card-tag,

@@ -31,7 +31,12 @@ function initYearDropdown(panel, scope, select, onChange) {
   const label = panel.querySelector(`[data-year-dropdown-label="${scope}"]`);
   const menu = panel.querySelector(`[data-year-dropdown-menu="${scope}"]`);
   const options = Array.from(panel.querySelectorAll(`[data-year-dropdown-option="${scope}"]`));
+  const animationDuration = 180;
   if (!wrap || !button || !label || !menu || !select || options.length === 0) return null;
+
+  function prefersReducedMotion() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
 
   function sync() {
     const selectedOption = select.selectedOptions[0];
@@ -44,15 +49,40 @@ function initYearDropdown(panel, scope, select, onChange) {
   }
 
   function close() {
-    menu.hidden = true;
+    window.clearTimeout(menu.yearDropdownTimer);
     wrap.classList.remove('is-open');
     button.setAttribute('aria-expanded', 'false');
+    menu.classList.remove('is-opening');
+
+    if (menu.hidden) return;
+
+    if (prefersReducedMotion()) {
+      menu.hidden = true;
+      menu.classList.remove('is-closing');
+      return;
+    }
+
+    menu.classList.add('is-closing');
+    menu.yearDropdownTimer = window.setTimeout(() => {
+      menu.hidden = true;
+      menu.classList.remove('is-closing');
+    }, animationDuration);
   }
 
   function open() {
+    window.clearTimeout(menu.yearDropdownTimer);
     menu.hidden = false;
+    menu.classList.remove('is-closing');
     wrap.classList.add('is-open');
     button.setAttribute('aria-expanded', 'true');
+
+    if (!prefersReducedMotion()) {
+      menu.classList.add('is-opening');
+      window.requestAnimationFrame(() => {
+        menu.classList.remove('is-opening');
+      });
+    }
+
     (options.find(option => option.dataset.yearValue === select.value) || options[0]).focus();
   }
 
@@ -66,7 +96,7 @@ function initYearDropdown(panel, scope, select, onChange) {
 
   button.addEventListener('click', event => {
     event.stopPropagation();
-    if (menu.hidden) {
+    if (button.getAttribute('aria-expanded') !== 'true') {
       open();
     } else {
       close();
