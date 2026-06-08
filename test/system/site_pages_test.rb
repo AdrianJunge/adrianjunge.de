@@ -865,6 +865,30 @@ class SitePagesTest < ApplicationSystemTestCase
                  selected_static_tag_hover_styles
   end
 
+  test "landing metrics add row separators on mobile two-column layouts" do
+    page.current_window.resize_to(390, 1200)
+    visit "/"
+
+    separators = page.evaluate_script(<<~JS)
+      Array.from(document.querySelectorAll(".landing-metric")).map((metric) => {
+        const style = window.getComputedStyle(metric);
+
+        return {
+          borderTopWidth: style.borderTopWidth,
+          borderTopStyle: style.borderTopStyle
+        };
+      })
+    JS
+
+    assert_equal 4, separators.length
+    assert_equal "0px", separators[0]["borderTopWidth"]
+    assert_equal "0px", separators[1]["borderTopWidth"]
+    assert_equal "1px", separators[2]["borderTopWidth"]
+    assert_equal "solid", separators[2]["borderTopStyle"]
+    assert_equal "1px", separators[3]["borderTopWidth"]
+    assert_equal "solid", separators[3]["borderTopStyle"]
+  end
+
   test "hidden TBA findings stay out of public finding sections" do
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
     bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)

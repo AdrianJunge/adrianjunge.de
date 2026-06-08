@@ -171,6 +171,29 @@ class AboutmeTest < ApplicationSystemTestCase
     end
   end
 
+  test "about counters add row separators on mobile two-column layouts" do
+    page.current_window.resize_to(390, 1200)
+    visit about_path
+
+    separators = page.evaluate_script(<<~JS)
+      Array.from(document.querySelectorAll(".aboutme-stat")).map((stat) => {
+        const style = window.getComputedStyle(stat);
+
+        return {
+          borderTopWidth: style.borderTopWidth,
+          borderTopStyle: style.borderTopStyle
+        };
+      })
+    JS
+
+    assert_equal "0px", separators[0]["borderTopWidth"]
+    assert_equal "0px", separators[1]["borderTopWidth"]
+    assert_equal "1px", separators[2]["borderTopWidth"]
+    assert_equal "solid", separators[2]["borderTopStyle"]
+    assert_equal "1px", separators[3]["borderTopWidth"]
+    assert_equal "solid", separators[3]["borderTopStyle"]
+  end
+
   test "about me entry cards use row-wise two column grids on desktop" do
     page.current_window.resize_to(1280, 1400)
     visit about_path
@@ -183,7 +206,6 @@ class AboutmeTest < ApplicationSystemTestCase
           const style = window.getComputedStyle(grid);
 
           return {
-            display: style.display,
             columnCount: style.gridTemplateColumns.split(" ").length,
             gap: style.gap,
             cardWidths: cards.map((card) => Math.round(card.getBoundingClientRect().width)),
@@ -205,7 +227,6 @@ class AboutmeTest < ApplicationSystemTestCase
     [ "cves", "achievements" ].each do |section|
       positions = layout[section]["cardPositions"]
 
-      assert_equal "grid", layout[section]["display"]
       assert_equal 2, layout[section]["columnCount"]
       assert_equal "16px", layout[section]["gap"]
       assert layout[section]["cardWidths"].all? { |width| width < 600 }

@@ -232,15 +232,14 @@ body.site-background::before {
     cursor: pointer;
 }
 
-.MathJax {
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
+.MathJax,
+mjx-container {
+    max-width: 100%;
 }
-.MathJax.has-scroll {
-    border-radius: var(--radius-ui);
-    border: 1px solid var(--color-accent);
-    padding: 3vmin;
+
+.MathJax,
+mjx-container[display="true"] {
+    overflow: visible;
 }
 
 #taskbar-left {

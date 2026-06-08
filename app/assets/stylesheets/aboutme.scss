@@ -1170,7 +1170,20 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
     }
 
     .aboutme-stat {
+        border-top: 0;
         padding: 0.95rem 1rem;
+    }
+
+    .aboutme-stat:nth-child(odd) {
+        box-shadow: none;
+    }
+
+    .aboutme-stat:nth-child(even) {
+        box-shadow: inset 1px 0 0 rgba(125, 211, 252, 0.18);
+    }
+
+    .aboutme-stat:nth-child(n + 3) {
+        border-top: 1px solid rgba(125, 211, 252, 0.22);
     }
 
     .aboutme-stat:last-child:nth-child(odd) {
