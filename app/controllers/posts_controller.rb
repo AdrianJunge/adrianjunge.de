@@ -7,6 +7,7 @@ class PostsController < ApplicationController
     @filter_tag_groups = filter_tag_groups(
       @filter_tags,
       content_labels: CONTENT_FILTER_KIND_LABELS,
+      ctf_labels: content_repository.ctf_metadata.keys,
       topic_label: "Topics, projects, and sources"
     )
     @initial_query = params[:q].to_s

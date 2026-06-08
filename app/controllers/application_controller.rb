@@ -164,7 +164,7 @@ class ApplicationController < ActionController::Base
       .sort_by { |value| ContentRepository.filter_tag_sort_key(value) }
   end
 
-  def filter_tag_groups(values, content_labels: [], topic_label: "Topics")
+  def filter_tag_groups(values, content_labels: [], ctf_labels: [], topic_label: "Topics")
     tags = sorted_filter_values(values)
     grouped = []
 
@@ -180,11 +180,32 @@ class ApplicationController < ActionController::Base
       }
     end
 
+    severity_tags, tags = tags.partition { |value| !WriteupDifficulty.filter_label?(value) && ContentSeverityTag.recognized?(value) }
+    if severity_tags.any?
+      grouped << {
+        label: "Severity",
+        tags: severity_tags,
+        sort: "severity"
+      }
+    end
+
     content_lookup = Array(content_labels).index_by(&:downcase)
     if content_lookup.any?
       content_tags, tags = tags.partition { |value| content_lookup.key?(value.downcase) }
       grouped << { label: "Content type", tags: content_tags } if content_tags.any?
     end
+
+    ctf_lookup = Array(ctf_labels).map(&:to_s).reject(&:blank?).index_by(&:downcase)
+    if ctf_lookup.any?
+      ctf_tags, tags = tags.partition { |value| ctf_lookup.key?(value.downcase) }
+      grouped << { label: "CTF competitions", tags: ctf_tags } if ctf_tags.any?
+    end
+
+    cve_tags, tags = tags.partition { |value| ContentVulnerabilityTag.cve?(value) }
+    grouped << { label: "CVEs", tags: cve_tags, sort: "cve" } if cve_tags.any?
+
+    cwe_tags, tags = tags.partition { |value| ContentVulnerabilityTag.cwe?(value) }
+    grouped << { label: "CWEs", tags: cwe_tags, sort: "cwe" } if cwe_tags.any?
 
     grouped << { label: topic_label, tags: tags } if tags.any?
     grouped

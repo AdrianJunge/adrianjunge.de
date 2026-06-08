@@ -29,6 +29,8 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
                     "expected #{path} to render the sidebar open control as a fixed icon"
       assert_select ".flex-grow > #menu-icon-left", 1,
                     "expected #{path} to render the sidebar close control as a fixed icon"
+      assert_select "button#menu-icon-right.menu-icon[type=button][aria-label=?]", "Open sidebar navigation", 1
+      assert_select "button#menu-icon-left.menu-icon[type=button][aria-label=?]", "Close sidebar navigation", 1
 
       MAIN_NAV_LINKS.each do |label, href|
         assert_select ".taskbar-link[href=?]", href, { text: /#{Regexp.escape(label)}/, count: 1 },
@@ -36,6 +38,15 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
       end
 
       assert_select "#terminal-taskbar-button", 1, "expected #{path} to include the terminal sidebar button"
+    end
+  end
+
+  test "sidebar marks the current main section" do
+    MAIN_NAV_LINKS.each_value do |href|
+      get href
+
+      assert_response :success
+      assert_select ".taskbar-link.is-active[aria-current=page][href=?]", href, 1
     end
   end
 

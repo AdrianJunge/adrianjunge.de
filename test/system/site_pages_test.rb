@@ -104,7 +104,7 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
-  test "feed controls render as flat hero actions outside the filters" do
+  test "feed controls render as glass hero actions outside the filters" do
     {
       "/ctf" => [ ".ctf-rss-feed", ".ctf-atom-feed", ".ctf-rss-icon" ],
       "/blog" => [ ".blog-rss-feed", ".blog-atom-feed", ".blog-rss-icon" ]
@@ -138,7 +138,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
       assert_not_equal "none", styles["buttonTransform"]
       assert_equal "none", styles["iconTransform"]
-      assert_equal "none", styles["boxShadow"]
+      assert_not_equal "none", styles["boxShadow"]
 
       metrics = page.evaluate_script(<<~JS)
         (() => {
@@ -259,7 +259,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
       assert_equal styles["buttonRadius"], styles["menuRadius"]
       assert_not_equal "0px", styles["menuRadius"]
-      assert_equal "none", styles["menuBoxShadow"]
+      assert_not_equal "none", styles["menuBoxShadow"]
       assert_equal "0", styles["nativeOpacity"]
       assert_equal "none", styles["nativePointerEvents"]
     end
@@ -486,12 +486,14 @@ class SitePagesTest < ApplicationSystemTestCase
         return {
           cursor: style.cursor,
           pointerEvents: style.pointerEvents,
+          transitionDuration: style.transitionDuration,
           transform: style.transform
         };
       })()
     JS
     assert_equal "default", static_chip_styles["cursor"]
     assert_equal "none", static_chip_styles["pointerEvents"]
+    assert_equal "0s", static_chip_styles["transitionDuration"]
     assert_equal "none", static_chip_styles["transform"]
 
     landing_styles = post_card_styles(".landing-writeup-cards .blog-post-card")
@@ -751,6 +753,9 @@ class SitePagesTest < ApplicationSystemTestCase
     first_winner_label = winner_items.first&.dig(:writeup_winner, :label) || "Contest win"
     difficulty_case = timeline_difficulty_case
     severity_case = timeline_severity_case
+    ctf_competition_case = timeline_ctf_competition_case
+    cve_case = timeline_cve_case
+    cwe_case = timeline_cwe_case
     tag_case = timeline_tag_case
 
     visit "/timeline"
@@ -775,6 +780,10 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_text "Timeline"
     assert_selector ".content-filter-tag-group-label", text: "CONTENT TYPE"
     assert_selector ".content-filter-tag-group-label", text: "DIFFICULTY"
+    assert_selector ".content-filter-tag-group-label", text: "SEVERITY"
+    assert_selector ".content-filter-tag-group-label", text: "CTF COMPETITIONS"
+    assert_selector ".content-filter-tag-group-label", text: "CVES"
+    assert_selector ".content-filter-tag-group-label", text: "CWES"
     assert_selector ".content-filter-tag-group-label", text: "TOPICS, PROJECTS, AND SOURCES"
     assert_selector ".content-filter-panel .filter-chip", text: "CVE"
     assert_selector ".content-filter-panel .filter-chip", text: "CTF writeup"
@@ -782,6 +791,12 @@ class SitePagesTest < ApplicationSystemTestCase
                     text: /^#{Regexp.escape(difficulty_case[:label])}$/
     assert_selector ".content-filter-panel .filter-chip.severity-badge-filter.severity-badge-#{severity_case[:key]}",
                     text: /^#{Regexp.escape(severity_case[:label])}$/
+    assert_selector ".content-filter-panel .filter-chip",
+                    text: /^#{Regexp.escape(ctf_competition_case[:label])}$/
+    assert_selector ".content-filter-panel .filter-chip.cve-badge-filter",
+                    text: /^#{Regexp.escape(cve_case[:label])}$/
+    assert_selector ".content-filter-panel .filter-chip.cwe-badge-filter",
+                    text: /^#{Regexp.escape(cwe_case[:label])}$/
     timeline_items.map { |item| item[:label] }.uniq.each do |label|
       assert_selector ".content-filter-panel .filter-chip", text: /^#{Regexp.escape(label)}$/
     end
@@ -789,7 +804,19 @@ class SitePagesTest < ApplicationSystemTestCase
                     text: /^#{Regexp.escape(difficulty_case[:label])}$/
     assert_selector ".timeline-tags .severity-badge-filter.severity-badge-#{severity_case[:key]}[data-filter-tag='#{severity_case[:label]}']",
                     text: /^#{Regexp.escape(severity_case[:label])}$/
+    assert_selector ".timeline-tags .timeline-tag-pill[data-filter-tag='#{ctf_competition_case[:label]}']",
+                    text: /^#{Regexp.escape(ctf_competition_case[:label])}$/
+    assert_selector ".timeline-tags .cve-badge-filter[data-filter-tag='#{cve_case[:label]}']",
+                    text: /^#{Regexp.escape(cve_case[:label])}$/
+    assert_selector ".timeline-tags .cwe-badge-filter[data-filter-tag='#{cwe_case[:label]}']",
+                    text: /^#{Regexp.escape(cwe_case[:label])}$/
     assert_selector ".timeline-tags .writeup-winner-badge-timeline[data-filter-tag='Writeup winner']", text: first_winner_label
+    difficulty_backgrounds = page.evaluate_script(<<~JS)
+      [...document.querySelectorAll(".content-filter-panel .difficulty-badge-filter")]
+        .map((chip) => window.getComputedStyle(chip).backgroundColor)
+        .filter((value, index, values) => values.indexOf(value) === index)
+    JS
+    assert_operator difficulty_backgrounds.length, :>, 1
 
     fill_in "timeline-search-input", with: search_case[:query]
     assert_selector "[data-filter-count='timeline']", text: filter_count_text(search_case[:items].length, total_items)
@@ -950,11 +977,10 @@ class SitePagesTest < ApplicationSystemTestCase
                     text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector ".ctf-card .filter-chip.category-badge-filter.category-badge-#{ContentCategoryTag.css_key(ctf_tag_case[:tag])}",
                     text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
-    category_emoji_content = page.evaluate_script(<<~JS)
+    category_before_content = page.evaluate_script(<<~JS)
       window.getComputedStyle(document.querySelector(".content-filter-panel .filter-chip.category-badge-filter"), "::before").content
     JS
-    assert_not_equal "none", category_emoji_content
-    assert_not_equal "\"\"", category_emoji_content
+    assert_includes [ "none", "\"\"" ], category_before_content
     assert_selector ".ctf-card .filter-chip.writeup-winner-badge-filter", text: "Writeup winner"
     assert_selector ".ctf-card .filter-chip.authored-challenge-badge-filter", text: "Authored challenge"
     assert_selector ".ctf-card .filter-chip.difficulty-badge-filter.difficulty-badge-#{ctf_difficulty_case[:key]}",
@@ -1008,6 +1034,26 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_total, ctf_total)
     fill_in "ctf-search-input", with: ctf_search_case[:query]
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_search_case[:items].length, ctf_total)
+    assert_selector ".content-filter-panel .search-wrapper.is-filled #ctf-search-clear"
+    search_visual_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const input = document.getElementById("ctf-search-input");
+        const wrapper = input.closest(".search-wrapper");
+        const clearButton = document.getElementById("ctf-search-clear");
+        const inputStyle = window.getComputedStyle(input);
+        const wrapperBefore = window.getComputedStyle(wrapper, "::before");
+        const clearStyle = window.getComputedStyle(clearButton);
+
+        return {
+          inputBoxShadow: inputStyle.boxShadow,
+          wrapperBeforeOpacity: parseFloat(wrapperBefore.opacity),
+          clearButtonBackground: clearStyle.backgroundColor
+        };
+      })()
+    JS
+    assert_not_equal "none", search_visual_styles["inputBoxShadow"]
+    assert_operator search_visual_styles["wrapperBeforeOpacity"], :>, 0
+    assert_not_equal "rgba(0, 0, 0, 0)", search_visual_styles["clearButtonBackground"]
     assert_equal ctf_search_case[:items].map { |item| item[:name] }, visible_ctf_names
 
     find("[data-filter-reset='ctfs']").click
@@ -1081,10 +1127,10 @@ class SitePagesTest < ApplicationSystemTestCase
       within find(".blog-post-card", text: privilege_escalation_post[:title]) do
         assert_selector ".category-badge.category-badge-privesc", text: "Privilege Escalation"
       end
-      crown_content = page.evaluate_script(<<~JS)
+      category_before_content = page.evaluate_script(<<~JS)
         window.getComputedStyle(document.querySelector(".blog-post-card .category-badge-privesc"), "::before").content
       JS
-      assert_includes crown_content, "👑"
+      assert_includes [ "none", "\"\"" ], category_before_content
     end
 
     fill_in "blog-search-input", with: search_case[:query]
@@ -1125,6 +1171,21 @@ class SitePagesTest < ApplicationSystemTestCase
                     text: /#{Regexp.escape(writeup_post[:which].upcase)}-#{ctf_event_year}/
     difficulty = WriteupDifficulty.from_metadata(writeup_post[:metadata])
     assert_selector ".writeup-badges-article .difficulty-badge-#{difficulty[:key]}.difficulty-badge-article", text: difficulty[:label]
+    assert_selector ".writeup-badges-article .category-badge", minimum: 1
+    static_article_tag_styles = page.evaluate_script(<<~JS)
+      [...document.querySelectorAll(".writeup-badges-article .difficulty-badge, .writeup-badges-article .category-badge")].map((tag) => {
+        const style = window.getComputedStyle(tag);
+        return {
+          cursor: style.cursor,
+          transitionDuration: style.transitionDuration,
+          transform: style.transform
+        };
+      })
+    JS
+    assert static_article_tag_styles.any?
+    assert static_article_tag_styles.all? { |styles| styles["cursor"] == "default" }
+    assert static_article_tag_styles.all? { |styles| styles["transitionDuration"] == "0s" }
+    assert static_article_tag_styles.all? { |styles| styles["transform"] == "none" }
   end
 
   test "writeup optional hints render as overview counts and collapsed article details" do
@@ -1228,7 +1289,7 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_selector ".blog-post-meta-row > button.authored-challenge-badge[data-filter-tag='Authored challenge']", text: /Authored challenge/
       assert_selector ".blog-post-meta-row > .difficulty-badge.difficulty-badge-hard", text: "Hard"
       assert_no_selector ".blog-post-meta-row > a.authored-challenge-badge"
-      assert_selector ".authored-challenge-icon", text: "✒️"
+      assert_no_selector ".authored-challenge-icon"
     end
 
     visit post[:link]
@@ -1250,39 +1311,107 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_operator article_badge_order.index("difficulty"), :<, article_badge_order.index("category")
   end
 
-  test "terminal stays bounded on high resolution displays" do
-    page.current_window.resize_to(2560, 1440)
-    visit "/"
+  test "terminal stays bounded and padded across viewport sizes" do
+    [
+      { width: 390, height: 844 },
+      { width: 1024, height: 768 },
+      { width: 2560, height: 1440 }
+    ].each do |viewport|
+      page.current_window.resize_to(viewport[:width], viewport[:height])
+      visit "/"
 
-    page.execute_script("localStorage.removeItem('terminal-open')")
-    page.execute_script("document.getElementById('terminal-taskbar-button').click()")
-    assert_selector ".xterm", visible: :all
+      page.execute_script(<<~JS)
+        localStorage.setItem('terminal-open', 'false');
+        const terminal = document.getElementById('terminal-container');
+        terminal.classList.add('terminal-minimized');
+        terminal.style.transition = 'none';
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        window.scrollTo(0, Math.min(420, Math.max(0, maxScroll)));
+      JS
+      page.execute_script("document.getElementById('terminal-taskbar-button').click()")
+      assert_selector ".xterm", visible: :all
+      assert_selector ".xterm-viewport", visible: :all
 
-    metrics = page.evaluate_script(<<~JS)
-      (() => {
-        const terminal = document.querySelector("#terminal-container");
-        const button = document.querySelector(".terminal-button");
-        const xterm = terminal.querySelector(".xterm");
-        const terminalRect = terminal.getBoundingClientRect();
-        const buttonRect = button.getBoundingClientRect();
-        const terminalStyle = window.getComputedStyle(terminal);
-        const xtermStyle = window.getComputedStyle(xterm);
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const terminal = document.querySelector("#terminal-container");
+          const button = document.querySelector(".terminal-button");
+          const xterm = terminal.querySelector(".xterm");
+          const viewport = terminal.querySelector(".xterm-viewport");
+          const terminalRect = terminal.getBoundingClientRect();
+          const buttonRect = button.getBoundingClientRect();
+          const viewportRect = viewport.getBoundingClientRect();
+          const terminalStyle = window.getComputedStyle(terminal);
+          const xtermStyle = window.getComputedStyle(xterm);
+          const viewportStyle = window.getComputedStyle(viewport);
+          const bodyStyle = window.getComputedStyle(document.body);
+          const openingScrollY = window.scrollY;
+          const currentScrollY = window.scrollY;
 
-        return {
-          width: Math.round(terminalRect.width),
-          height: Math.round(terminalRect.height),
-          maxWidth: terminalStyle.width,
-          buttonWidth: Math.round(buttonRect.width),
-          fontSize: parseFloat(xtermStyle.fontSize)
-        };
-      })()
-    JS
+          window.scrollTo(1000, currentScrollY);
+          const horizontalScrollAfterAttempt = window.scrollX;
+          window.scrollTo(0, currentScrollY + 120);
+          const outsideScrollDelta = window.scrollY - currentScrollY;
+          window.scrollTo(0, currentScrollY);
 
-    assert_operator metrics["width"], :<=, 1320
-    assert_operator metrics["height"], :<=, 750
-    assert_operator metrics["buttonWidth"], :<=, 48
-    assert_operator metrics["fontSize"], :>=, 13
-    assert_operator metrics["fontSize"], :<=, 18
+          let terminalWheelReachedPage = false;
+          let outsideWheelReachedPage = false;
+          const terminalWheelPageListener = () => { terminalWheelReachedPage = true; };
+          document.body.addEventListener("wheel", terminalWheelPageListener);
+          terminal.dispatchEvent(new WheelEvent("wheel", { bubbles: true, deltaY: 120 }));
+          document.body.removeEventListener("wheel", terminalWheelPageListener);
+          document.body.addEventListener("wheel", () => { outsideWheelReachedPage = true; }, { once: true });
+          document.body.dispatchEvent(new WheelEvent("wheel", { bubbles: true, deltaY: 120 }));
+
+          return {
+            width: Math.round(terminalRect.width),
+            height: Math.round(terminalRect.height),
+            maxWidth: terminalStyle.width,
+            buttonWidth: Math.round(buttonRect.width),
+            fontSize: parseFloat(xtermStyle.fontSize),
+            terminalLeft: Math.round(terminalRect.left),
+            terminalRight: Math.round(terminalRect.right),
+            viewportWidth: Math.round(window.innerWidth),
+            contentInsetLeft: Math.round(viewportRect.left - terminalRect.left),
+            contentInsetTop: Math.round(viewportRect.top - terminalRect.top),
+            horizontalScrollAfterAttempt,
+            openingScrollY,
+            outsideScrollDelta,
+            terminalWheelReachedPage,
+            outsideWheelReachedPage,
+            bodyScrollLocked: document.body.classList.contains("terminal-scroll-locked"),
+            htmlScrollLocked: document.documentElement.classList.contains("terminal-scroll-locked"),
+            bodyPosition: bodyStyle.position,
+            bodyTop: document.body.style.top,
+            viewportOverflowY: viewportStyle.overflowY,
+            terminalHorizontalOverflow: terminal.scrollWidth - terminal.clientWidth,
+            viewportHorizontalOverflow: viewport.scrollWidth - viewport.clientWidth
+          };
+        })()
+      JS
+
+      assert_operator metrics["width"], :<=, 1320
+      assert_operator metrics["height"], :<=, 750
+      assert_operator metrics["buttonWidth"], :<=, 48
+      assert_operator metrics["fontSize"], :>=, 13
+      assert_operator metrics["fontSize"], :<=, 18
+      assert_operator metrics["terminalLeft"], :>=, 0
+      assert_operator metrics["terminalRight"], :<=, metrics["viewportWidth"]
+      assert_operator metrics["contentInsetLeft"], :>=, 12
+      assert_operator metrics["contentInsetTop"], :>=, 48
+      assert_operator metrics["horizontalScrollAfterAttempt"], :<=, 1
+      assert_operator metrics["openingScrollY"], :>=, 0
+      assert_operator metrics["outsideScrollDelta"], :>, 0
+      assert_equal false, metrics["terminalWheelReachedPage"]
+      assert_equal true, metrics["outsideWheelReachedPage"]
+      assert_equal false, metrics["bodyScrollLocked"]
+      assert_equal false, metrics["htmlScrollLocked"]
+      assert_not_equal "fixed", metrics["bodyPosition"]
+      assert_equal "", metrics["bodyTop"]
+      assert_equal "scroll", metrics["viewportOverflowY"]
+      assert_operator metrics["terminalHorizontalOverflow"], :<=, 1
+      assert_operator metrics["viewportHorizontalOverflow"], :<=, 1
+    end
   end
 
   test "ctf writeups are ordered from latest to oldest" do
@@ -1894,6 +2023,45 @@ class SitePagesTest < ApplicationSystemTestCase
     groups.values.find { |group| group[:items].length < timeline_items.length } ||
       groups.values.first ||
       flunk("expected at least one timeline severity tag")
+  end
+
+  def timeline_ctf_competition_case
+    ctf_labels = repository.ctf_metadata.keys.map(&:to_s)
+    groups = {}
+    timeline_items.each do |item|
+      Array(item[:tags]).select { |tag| ctf_labels.include?(tag.to_s) }.each do |tag|
+        key = tag.downcase
+        groups[key] ||= { label: tag, items: [] }
+        groups[key][:items] << item
+      end
+    end
+
+    groups.values.find { |group| group[:items].length < timeline_items.length } ||
+      groups.values.first ||
+      flunk("expected at least one timeline CTF competition tag")
+  end
+
+  def timeline_cve_case
+    timeline_vulnerability_case(:cve?)
+  end
+
+  def timeline_cwe_case
+    timeline_vulnerability_case(:cwe?)
+  end
+
+  def timeline_vulnerability_case(predicate)
+    groups = {}
+    timeline_items.each do |item|
+      Array(item[:tags]).select { |tag| ContentVulnerabilityTag.public_send(predicate, tag) }.each do |tag|
+        key = tag.downcase
+        groups[key] ||= { label: tag, items: [] }
+        groups[key][:items] << item
+      end
+    end
+
+    groups.values.find { |group| group[:items].length < timeline_items.length } ||
+      groups.values.first ||
+      flunk("expected at least one timeline vulnerability tag")
   end
 
   def assert_hidden_timeline_item(visible_items)

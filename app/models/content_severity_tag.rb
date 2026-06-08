@@ -25,6 +25,12 @@ module ContentSeverityTag
     "#{prefix}-#{key}" if key
   end
 
+  def sort_key(value)
+    key = css_key(value)
+    order = SEVERITY_KEYS.values.uniq
+    [ order.index(key) || order.length, normalized(value) ]
+  end
+
   def normalized(value)
     value.to_s.strip.downcase.gsub(/\s+/, " ")
   end

@@ -7,14 +7,28 @@ class CtfHelperTest < ActionView::TestCase
     assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High']", text: "High"
   end
 
+  test "content filter chips auto render CVE and CWE classes" do
+    render inline: <<~ERB
+      <%= content_filter_chip('CVE-2026-48898', scope: 'timeline') %>
+      <%= content_filter_chip('CWE-284', scope: 'timeline') %>
+    ERB
+
+    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2026-48898']", text: "CVE-2026-48898"
+    assert_select "button.filter-chip.cwe-badge.cwe-badge-filter[data-filter-tag='CWE-284']", text: "CWE-284"
+  end
+
   test "content card tags auto style recognized category and severity labels" do
     render inline: <<~ERB
       <%= content_card_tag('Privilege Escalation', default_scope: 'blogs', default_interactive: true) %>
       <%= content_card_tag('High', default_scope: 'timeline', default_interactive: true) %>
+      <%= content_card_tag('CVE-2026-48898', default_scope: 'timeline', default_interactive: true) %>
+      <%= content_card_tag('CWE-284', default_scope: 'timeline', default_interactive: true) %>
     ERB
 
     assert_select "button.filter-chip.category-badge.category-badge-privesc.category-badge-filter[data-filter-tag='Privilege Escalation']", text: "Privilege Escalation"
     assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High']", text: "High"
+    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2026-48898']", text: "CVE-2026-48898"
+    assert_select "button.filter-chip.cwe-badge.cwe-badge-filter[data-filter-tag='CWE-284']", text: "CWE-284"
   end
 
   test "writeup cards support multiple authors with independent urls" do
@@ -56,7 +70,7 @@ class CtfHelperTest < ActionView::TestCase
 
     assert_select ".blog-post-meta-row > button.writeup-winner-badge:first-child[data-filter-tag=?]", "Writeup winner", text: /Contest win/
     assert_select ".blog-post-meta-row > a.writeup-winner-badge", 0
-    assert_select ".writeup-winner-icon", text: "🏆"
+    assert_select ".writeup-winner-icon", 0
     assert_select ".blog-post-card[data-filter-tags*='Writeup winner']"
     assert_select ".blog-post-card[data-filter-tags*='Contest win']", false
   end
@@ -106,7 +120,7 @@ class CtfHelperTest < ActionView::TestCase
 
     assert_select ".blog-post-meta-row > button.authored-challenge-badge:first-child[data-filter-tag=?]", "Authored challenge", text: /Authored challenge/
     assert_select ".blog-post-meta-row > a.authored-challenge-badge", 0
-    assert_select ".authored-challenge-icon", text: "✒️"
+    assert_select ".authored-challenge-icon", 0
     assert_select ".blog-post-card[data-filter-tags*='Authored challenge']"
   end
 
@@ -179,6 +193,14 @@ class CtfHelperTest < ActionView::TestCase
 
     assert_select ".writeup-post-card-logo .category-split-icon", false
     assert_select ".writeup-post-card-logo img.blog-logo[src*='categories/web-'][alt='Web category']"
+  end
+
+  test "category icons use normalized aliases for dotnet" do
+    html = get_category_svg(".NET")
+
+    assert_includes html, "categories/dotnet"
+    assert_includes html, ".NET category"
+    refute_includes html, CtfHelper::DEFAULT_CATEGORY_ICON
   end
 
   test "writeup cards render optional hint counts without making them filters" do

@@ -5,12 +5,14 @@ module ContentUiHelper
     render "shared/content_card", card: card
   end
 
-  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, static_class: "blog-post-static-chip", title: nil)
+  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, cve: false, cwe: false, static_class: "blog-post-static-chip", title: nil)
     label = label.to_s
     classes = [ "filter-chip", class_name ]
     difficulty_key = WriteupDifficulty.css_key(difficulty_key) if difficulty_key.present?
     category_key = ContentCategoryTag.css_key(category_key) if category_key.present?
     severity_key = ContentSeverityTag.css_key(severity_key) if severity_key.present?
+    cve = cve || ContentVulnerabilityTag.cve?(label)
+    cwe = cwe || ContentVulnerabilityTag.cwe?(label)
 
     if winner
       classes << "writeup-winner-badge"
@@ -31,14 +33,20 @@ module ContentUiHelper
       classes << "severity-badge-#{severity_key}"
       classes << "aboutme-severity-#{severity_key}"
       classes << "severity-badge-filter"
+    elsif cve
+      classes << "cve-badge"
+      classes << "cve-badge-filter"
+    elsif cwe
+      classes << "cwe-badge"
+      classes << "cwe-badge-filter"
     end
 
     interactive = false if scope.blank?
     content =
       if winner
-        safe_join([ content_winner_icon, content_tag(:span, label, class: "writeup-winner-label") ])
+        content_tag(:span, label, class: "writeup-winner-label")
       elsif authored
-        safe_join([ content_authored_icon, content_tag(:span, label, class: "authored-challenge-label") ])
+        content_tag(:span, label, class: "authored-challenge-label")
       else
         label
       end
@@ -48,7 +56,7 @@ module ContentUiHelper
       return content_tag(:span, content, class: classes.compact.join(" "), title: title)
     end
 
-    classes << "ui-hover-lift" unless winner || authored || difficulty_key.present? || category_key.present? || severity_key.present?
+    classes << "ui-hover-lift" unless winner || authored || difficulty_key.present? || category_key.present? || severity_key.present? || cve || cwe
     content_tag(
       :button,
       content,
@@ -67,10 +75,7 @@ module ContentUiHelper
     link_options[:rel] ||= "noopener"
 
     link_to(url, link_options.merge(class: "writeup-winner-badge writeup-winner-badge-#{context}", aria: { label: aria_label })) do
-      safe_join([
-        content_winner_icon,
-        content_tag(:span, label, class: "writeup-winner-label")
-      ])
+      content_tag(:span, label, class: "writeup-winner-label")
     end
   end
 
@@ -81,10 +86,7 @@ module ContentUiHelper
     link_options[:rel] ||= "noopener"
 
     link_to(url, link_options.merge(class: "authored-challenge-badge authored-challenge-badge-#{context}", aria: { label: aria_label })) do
-      safe_join([
-        content_authored_icon,
-        content_tag(:span, label, class: "authored-challenge-label")
-      ])
+      content_tag(:span, label, class: "authored-challenge-label")
     end
   end
 
@@ -112,14 +114,6 @@ module ContentUiHelper
       class: classes.join(" "),
       title: title.presence || "Challenge category: #{label}"
     )
-  end
-
-  def content_winner_icon
-    content_tag(:span, "🏆", class: "writeup-winner-icon", aria: { hidden: true })
-  end
-
-  def content_authored_icon
-    content_tag(:span, "✒️", class: "authored-challenge-icon", aria: { hidden: true })
   end
 
   def content_author_node(author)
@@ -163,8 +157,10 @@ module ContentUiHelper
       )
     end
 
-    auto_category = !config[:category] && !config[:severity] && ContentCategoryTag.recognized?(config[:label])
-    auto_severity = !config[:category] && !config[:severity] && !WriteupDifficulty.filter_label?(config[:label]) && ContentSeverityTag.recognized?(config[:label])
+    auto_cve = !config[:category] && !config[:severity] && ContentVulnerabilityTag.cve?(config[:label])
+    auto_cwe = !config[:category] && !config[:severity] && ContentVulnerabilityTag.cwe?(config[:label])
+    auto_category = !config[:category] && !config[:severity] && !auto_cve && !auto_cwe && ContentCategoryTag.recognized?(config[:label])
+    auto_severity = !config[:category] && !config[:severity] && !auto_cve && !auto_cwe && !WriteupDifficulty.filter_label?(config[:label]) && ContentSeverityTag.recognized?(config[:label])
 
     content_filter_chip(
       config[:label],
@@ -177,6 +173,8 @@ module ContentUiHelper
       difficulty_key: config[:difficulty_filter] ? config[:difficulty_key] || config[:label] : nil,
       category_key: (config[:category] || auto_category) ? config[:category_key] || config[:label] : nil,
       severity_key: (config[:severity] || auto_severity) ? config[:severity_key] || config[:label] : nil,
+      cve: config[:cve] || auto_cve,
+      cwe: config[:cwe] || auto_cwe,
       static_class: config[:static_class].presence || "blog-post-static-chip",
       title: config[:title]
     )

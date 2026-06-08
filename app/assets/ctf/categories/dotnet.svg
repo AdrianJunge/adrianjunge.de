@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="dotnet-title" id="dotnet-category-icon">
+  <title id="dotnet-title">.NET category</title>
+  <defs>
+    <linearGradient id="dotnet-bg" x1="86" y1="58" x2="424" y2="452" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#67e8f9"/>
+      <stop offset="0.36" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#312e81"/>
+    </linearGradient>
+    <radialGradient id="dotnet-glow" cx="158" cy="116" r="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f0f9ff" stop-opacity=".58"/>
+      <stop offset=".44" stop-color="#7dd3fc" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#0f172a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="dotnet-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#020617" flood-opacity=".35"/>
+    </filter>
+  </defs>
+
+  <circle cx="256" cy="256" r="228" fill="#0f172a"/>
+  <circle cx="256" cy="256" r="214" fill="url(#dotnet-bg)"/>
+  <circle cx="256" cy="256" r="214" fill="url(#dotnet-glow)"/>
+  <circle cx="256" cy="256" r="198" fill="none" stroke="#bfdbfe" stroke-opacity=".22" stroke-width="4"/>
+
+  <path d="M122 216 82 256l40 40" fill="none" stroke="#cffafe" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" opacity=".88"/>
+  <path d="M390 216 430 256l-40 40" fill="none" stroke="#cffafe" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" opacity=".88"/>
+
+  <g filter="url(#dotnet-shadow)">
+    <rect x="92" y="156" width="328" height="200" rx="40" fill="#10172f" fill-opacity=".76" stroke="#e0f2fe" stroke-opacity=".26" stroke-width="6"/>
+    <text x="256" y="287" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="90" font-weight="900" letter-spacing="2" fill="#eff6ff">.NET</text>
+  </g>
+
+  <path d="M154 362c38 34 72 50 104 50 38 0 64-24 92-74" fill="none" stroke="#a5f3fc" stroke-width="10" stroke-linecap="round" opacity=".76"/>
+  <circle cx="154" cy="362" r="14" fill="#ecfeff"/>
+  <circle cx="258" cy="412" r="14" fill="#ecfeff"/>
+  <circle cx="350" cy="338" r="14" fill="#ecfeff"/>
+  <circle cx="154" cy="362" r="6" fill="#2563eb"/>
+  <circle cx="258" cy="412" r="6" fill="#2563eb"/>
+  <circle cx="350" cy="338" r="6" fill="#2563eb"/>
+</svg>

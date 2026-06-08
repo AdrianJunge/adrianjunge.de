@@ -1,10 +1,4 @@
 # TODOs
-- Refactor again the tag colors, it still looks weird having just that small colored border - so maybe having a transparent color filling the tags is better? Or having different blue and green tones might work out better? e.g. for the difficulties going from light blue for the intro to very dark blue for the 0-day? Moreover in /blog having "Privilege escalation" as the only tag with an emoji is weird. So please remove this emoji
-
-- Make the whole design of the sidebar more fitting to the whole website. Currently the sidebar looks too "easy" compared to the rest of the website
-
-- If there is a line wrap (e.g. for the CVE Proof links on the landing page for the Joomla CVE), there shouldn't be a new "line" at the start of the newline. Moreover when hovering the yellow at this line looks weird, use a different color that suits the color pallet and the context
-
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
     => https://github.com/felixfbecker/dom-to-svg
 
@@ -35,6 +29,7 @@
     - live Rendering des Markdowns
 
 # Misc
+- Auf Raspberry Pi Server hosten und bei Heroku canceln (auto build pipeline aufbauen für pushes zu main branch)
 - `vurlo.de` sichern und DNS einrichten sodass sowohl `adrianjunge.de` als auch `vurlo.de` auf dieselbe IP zeigen
 - Email einrichten für Domaine
     - Forwarding

@@ -8,6 +8,7 @@ pin "terminal", to: "terminal.js"
 pin "ctf", to: "ctf.js"
 pin "blog", to: "blog.js"
 pin "content_filters", to: "content_filters.js"
+pin "aboutme", to: "aboutme.js"
 pin "page_background", to: "page_background.js"
 pin "mathjax_loader", to: "mathjax_loader.js"
 

@@ -193,12 +193,21 @@ module CtfHelper
   private
 
   def category_icon_path(category)
-    category_name = category.to_s.downcase
+    category_name = ContentCategoryTag.normalized(category)
+    icon_names = [ category_name, ContentCategoryTag.css_key(category) ].reject(&:blank?).uniq
+
     CATEGORY_ICON_DIRECTORY.children
-                           .select { |path| path.file? && path.basename(".*").to_s == category_name }
-                           .sort_by { |path| path.basename.to_s }
+                           .select { |path| path.file? && icon_names.include?(category_icon_file_key(path)) }
+                           .sort_by do |path|
+                             file_key = category_icon_file_key(path)
+                             [ icon_names.index(file_key) || icon_names.length, path.basename.to_s ]
+                           end
                            .first ||
       CATEGORY_ICON_DIRECTORY.join(DEFAULT_CATEGORY_ICON)
+  end
+
+  def category_icon_file_key(path)
+    path.basename(".*").to_s.downcase
   end
 
   def distinct_categories(categories)

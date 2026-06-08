@@ -116,6 +116,7 @@ function initFilterPanel(panel) {
   if (!scope) return;
 
   const search = panel.querySelector(`[data-filter-search="${scope}"]`);
+  const searchWrapper = search && search.closest('.search-wrapper');
   const year = panel.querySelector(`[data-filter-year="${scope}"]`);
   const clear = panel.querySelector(`[data-filter-clear="${scope}"]`);
   const reset = panel.querySelector(`[data-filter-reset="${scope}"]`);
@@ -166,6 +167,7 @@ function initFilterPanel(panel) {
       count.textContent = `${visible} / ${cards.length} ${label}`;
     }
 
+    if (searchWrapper) searchWrapper.classList.toggle('is-filled', query !== '');
     if (empty) empty.hidden = visible !== 0;
     if (reset) reset.hidden = query === '' && selectedYear === '' && activeTags.size === 0;
     if (yearDropdown) yearDropdown.sync();

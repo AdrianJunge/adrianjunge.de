@@ -3,16 +3,16 @@
 /* @config "./../../../tailwind.config.js"; */
 
 @theme static {
-  --color-default: #0a101a;
-  --color-primary: #18243a;
-  --color-secondary: #334461;
+  --color-default: #091a2d;
+  --color-primary: #19395a;
+  --color-secondary: #3d628b;
   --color-tertiary: #55aaff;
   --color-accent: #ccffff;
-  --color-border: #5d749e;
-  --color-chrome: #4c566a;
-  --color-page-start: #101f33;
-  --color-page-mid: #0a101a;
-  --color-page-end: #020611;
+  --color-border: #658dbb;
+  --color-chrome: #607b9d;
+  --color-page-start: #163f63;
+  --color-page-mid: #0c2a44;
+  --color-page-end: #041626;
 }
 
 @layer base {

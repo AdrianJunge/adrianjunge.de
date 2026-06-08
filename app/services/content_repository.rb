@@ -23,8 +23,14 @@ class ContentRepository
 
     if WriteupDifficulty.filter_label?(value)
       [ 2, *WriteupDifficulty.filter_sort_key(value) ]
+    elsif ContentSeverityTag.recognized?(value)
+      [ 3, *ContentSeverityTag.sort_key(value) ]
+    elsif ContentVulnerabilityTag.cve?(value)
+      [ 4, *ContentVulnerabilityTag.sort_key(value) ]
+    elsif ContentVulnerabilityTag.cwe?(value)
+      [ 5, *ContentVulnerabilityTag.sort_key(value) ]
     else
-      [ 3, value.to_s.downcase ]
+      [ 6, value.to_s.downcase ]
     end
   end
 

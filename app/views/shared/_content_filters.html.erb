@@ -10,7 +10,16 @@
 
      sort = (group[:sort] || group["sort"]).to_s
      sorted_group_tags = group_tags.uniq { |tag| tag.downcase }.sort_by do |tag|
-       sort == "difficulty" ? WriteupDifficulty.filter_sort_key(tag) : ContentRepository.filter_tag_sort_key(tag)
+       case sort
+       when "difficulty"
+         WriteupDifficulty.filter_sort_key(tag)
+       when "severity"
+         ContentSeverityTag.sort_key(tag)
+       when "cve", "cwe"
+         ContentVulnerabilityTag.sort_key(tag)
+       else
+         ContentRepository.filter_tag_sort_key(tag)
+       end
      end
 
      {
@@ -115,7 +124,9 @@
                 <% authored_filter = filter_tag == authored_filter_tag %>
                 <% difficulty_filter = WriteupDifficulty.filter_label?(filter_tag) %>
                 <% severity_filter = !difficulty_filter && ContentSeverityTag.recognized?(filter_tag) %>
-                <% category_filter = !winner_filter && !authored_filter && !difficulty_filter && !severity_filter && (ContentCategoryTag.recognized?(filter_tag) || %w[ctfs writeups].include?(scope.to_s)) %>
+                <% cve_filter = ContentVulnerabilityTag.cve?(filter_tag) %>
+                <% cwe_filter = ContentVulnerabilityTag.cwe?(filter_tag) %>
+                <% category_filter = !winner_filter && !authored_filter && !difficulty_filter && !severity_filter && !cve_filter && !cwe_filter && (ContentCategoryTag.recognized?(filter_tag) || %w[ctfs writeups].include?(scope.to_s)) %>
                 <%= content_filter_chip(
                       filter_tag,
                       scope: scope,
@@ -124,7 +135,9 @@
                       authored: authored_filter,
                       difficulty_key: difficulty_filter ? filter_tag : nil,
                       category_key: category_filter ? filter_tag : nil,
-                      severity_key: severity_filter ? filter_tag : nil
+                      severity_key: severity_filter ? filter_tag : nil,
+                      cve: cve_filter,
+                      cwe: cwe_filter
                     ) %>
               <% end %>
             </div>

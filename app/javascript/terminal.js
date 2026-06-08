@@ -306,6 +306,7 @@ function generateLsOutput(pathsArray) {
 function openTerminal(terminal) {
     terminal.classList.toggle("terminal-minimized");
     const nowMinimized = terminal.classList.contains("terminal-minimized");
+
     try {
         localStorage.setItem(terminalOpenKey, (!nowMinimized).toString());
     } catch(e) {
@@ -348,6 +349,12 @@ function minimizeTerminal() {
     terminalTaskbarIcon.addEventListener("click", function () {
         openTerminal(terminal);
     });
+    terminal.addEventListener("wheel", function (event) {
+        if (!terminal.classList.contains("terminal-minimized")) event.stopPropagation();
+    }, { passive: true });
+    terminal.addEventListener("touchmove", function (event) {
+        if (!terminal.classList.contains("terminal-minimized")) event.stopPropagation();
+    }, { passive: true });
 
     let isProcessingShortcut = false;
     const handleCtrlEnter = () => {

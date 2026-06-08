@@ -89,7 +89,7 @@ class ContentIndex
         published: post[:published],
         display_date: post[:published].strftime("%Y-%m-%d"),
         link: post[:link],
-        tags: repository.metadata_tags(metadata),
+        tags: [ post[:which] ] + repository.metadata_tags(metadata),
         search_parts: [ post[:which], post[:title], metadata, post[:content] ],
         logo: post[:logo],
         reading_time_minutes: post[:reading_time_minutes],

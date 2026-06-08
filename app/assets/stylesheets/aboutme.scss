@@ -1,9 +1,9 @@
 .aboutme-page {
-    --aboutme-tag-fill: rgba(8, 145, 178, 0.32);
-    --aboutme-tag-fill-active: rgba(8, 145, 178, 0.52);
+    --aboutme-tag-fill: rgba(14, 132, 170, 0.46);
+    --aboutme-tag-fill-active: rgba(14, 165, 233, 0.68);
     min-height: 100dvh;
     color: #f8fafc;
-    background: linear-gradient(180deg, rgba(85, 170, 255, 0.08) 0%, rgba(10, 16, 26, 0) 24rem);
+    background: linear-gradient(180deg, rgba(110, 197, 250, 0.07) 0%, rgba(4, 22, 38, 0) 25rem);
 }
 
 .aboutme-page * {
@@ -37,7 +37,7 @@
     flex: 0 0 auto;
     border: var(--default-border);
     border-radius: var(--radius-ui);
-    background: rgba(24, 36, 58, 0.86);
+    background: rgba(18, 34, 56, 0.9);
 }
 
 .aboutme-hero-icon {
@@ -83,9 +83,12 @@
     gap: 1px;
     margin-top: 1.65rem;
     overflow: hidden;
-    border: 1px solid rgba(93, 116, 158, 0.65);
+    border: 1px solid var(--glass-control-border);
     border-radius: var(--radius-ui);
-    background: rgba(93, 116, 158, 0.65);
+    background: rgba(70, 96, 136, 0.66);
+    box-shadow: var(--glass-control-shadow);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
 .aboutme-stat {
@@ -98,9 +101,15 @@
     min-height: 4.35rem;
     padding: 0.8rem 0.9rem;
     color: inherit;
-    background: rgba(24, 36, 58, 0.84);
+    border: 0;
+    border-radius: 0;
+    background: var(--glass-control-bg);
+    box-shadow: none;
     text-decoration: none;
     text-align: center;
+    overflow: hidden;
+    isolation: isolate;
+    transition: background-color var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast);
 }
 
 .aboutme-stat::after {
@@ -110,30 +119,25 @@
     left: 0.85rem;
     height: 2px;
     border-radius: var(--radius-ui-pill);
-    background: rgba(125, 211, 252, 0.52);
+    background: rgba(125, 211, 252, 0.38);
     content: "";
     opacity: 0;
     transition: opacity 0.18s ease;
 }
 
 .aboutme-stat + .aboutme-stat::before {
-    position: absolute;
-    top: 0.85rem;
-    bottom: 0.85rem;
-    left: -1px;
-    width: 1px;
-    background: rgba(125, 211, 252, 0.18);
-    content: "";
+    display: none;
 }
 
 .aboutme-stat:hover,
 .aboutme-stat:focus-visible {
-    background: rgba(8, 145, 178, 0.22);
+    background: var(--glass-control-bg-hover);
+    outline: none;
 }
 
 .aboutme-stat:hover::after,
 .aboutme-stat:focus-visible::after {
-    opacity: 1;
+    opacity: 0.7;
 }
 
 .aboutme-stat:focus-visible {
@@ -150,7 +154,7 @@
 
 .aboutme-stat-label {
     color: rgba(226, 232, 240, 0.78);
-    font-size: 0.84rem;
+    font-size: 0.94rem;
     font-weight: 800;
     line-height: 1.2;
 }
@@ -225,10 +229,10 @@
 
 .aboutme-card,
 .aboutme-empty-state {
-    border: 1px solid rgba(93, 116, 158, 0.7);
+    border: 1px solid rgba(88, 122, 166, 0.7);
     border-radius: var(--radius-ui);
-    background: rgba(24, 36, 58, 0.82);
-    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.18);
+    background: rgba(18, 34, 56, 0.9);
+    box-shadow: 0 1rem 2rem rgba(2, 12, 24, 0.26);
     transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 
@@ -371,33 +375,33 @@
 }
 
 .aboutme-cve-id {
-    --aboutme-static-tag-border: rgba(125, 211, 252, 0.56);
-    --aboutme-static-tag-ring: rgba(207, 250, 254, 0.14);
+    --aboutme-static-tag-border: rgba(196, 181, 253, 0.74);
+    --aboutme-static-tag-ring: rgba(245, 243, 255, 0.18);
     --aboutme-static-tag-shadow: 0 0 0 rgba(0, 0, 0, 0);
-    color: #cffafe;
-    border: 1px solid rgba(125, 211, 252, 0.32);
-    background: var(--aboutme-tag-fill);
+    color: #ddd6fe;
+    border: 1px solid rgba(167, 139, 250, 0.56);
+    background: rgba(109, 40, 217, 0.36);
     text-decoration: none;
     transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
 
 .aboutme-cwe-id {
-    --aboutme-static-tag-border: rgba(196, 181, 253, 0.64);
-    --aboutme-static-tag-ring: rgba(245, 243, 255, 0.14);
+    --aboutme-static-tag-border: rgba(125, 211, 252, 0.68);
+    --aboutme-static-tag-ring: rgba(207, 250, 254, 0.18);
     --aboutme-static-tag-shadow: 0 0 0 rgba(0, 0, 0, 0);
-    color: #ddd6fe;
-    border: 1px solid rgba(167, 139, 250, 0.4);
-    background: rgba(109, 40, 217, 0.2);
+    color: #cffafe;
+    border: 1px solid rgba(125, 211, 252, 0.5);
+    background: var(--aboutme-tag-fill);
     text-decoration: none;
     transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
 
 .aboutme-card-tag {
-    --aboutme-static-tag-border: rgba(125, 211, 252, 0.56);
-    --aboutme-static-tag-ring: rgba(207, 250, 254, 0.14);
+    --aboutme-static-tag-border: rgba(125, 211, 252, 0.68);
+    --aboutme-static-tag-ring: rgba(207, 250, 254, 0.18);
     --aboutme-static-tag-shadow: 0 0 0 rgba(0, 0, 0, 0);
     color: #cffafe;
-    border: 1px solid rgba(125, 211, 252, 0.32);
+    border: 1px solid rgba(125, 211, 252, 0.5);
     background: var(--aboutme-tag-fill);
     text-decoration: none;
     transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
@@ -406,7 +410,7 @@
 a.aboutme-card-tag {
     gap: 0.35rem;
     color: #cffafe;
-    border-color: rgba(125, 211, 252, 0.32);
+    border-color: rgba(125, 211, 252, 0.5);
     background: var(--aboutme-tag-fill);
     cursor: pointer;
 }
@@ -426,7 +430,7 @@ a.aboutme-card-tag::after {
 a.aboutme-card-tag:focus-visible {
     border-color: rgba(125, 211, 252, 0.85);
     color: #fff;
-    background: var(--aboutme-tag-fill-active);
+    background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
 }
 
 a.aboutme-card-tag:focus-visible::after {
@@ -486,39 +490,39 @@ a.aboutme-card-tag:focus-visible::after {
 }
 
 a.aboutme-card-tag.aboutme-cve-id {
-    color: #cffafe;
-    border-color: rgba(125, 211, 252, 0.32);
-    background: var(--aboutme-tag-fill);
+    color: #f5f3ff;
+    border-color: rgba(167, 139, 250, 0.56);
+    background: rgba(109, 40, 217, 0.36);
 }
 
 :not(a).aboutme-card-tag.aboutme-cve-id {
-    color: #cffafe;
-    border-color: rgba(125, 211, 252, 0.32);
-    background: var(--aboutme-tag-fill);
+    color: #ddd6fe;
+    border-color: rgba(167, 139, 250, 0.56);
+    background: rgba(109, 40, 217, 0.36);
 }
 
 a.aboutme-card-tag.aboutme-cwe-id {
-    color: #f5f3ff;
-    border-color: rgba(167, 139, 250, 0.4);
-    background: rgba(109, 40, 217, 0.2);
+    color: #cffafe;
+    border-color: rgba(125, 211, 252, 0.5);
+    background: var(--aboutme-tag-fill);
 }
 
 :not(a).aboutme-card-tag.aboutme-cwe-id {
-    color: #ddd6fe;
-    border-color: rgba(167, 139, 250, 0.4);
-    background: rgba(109, 40, 217, 0.2);
+    color: #cffafe;
+    border-color: rgba(125, 211, 252, 0.5);
+    background: var(--aboutme-tag-fill);
 }
 
 a.aboutme-cve-id:focus-visible {
-    border-color: rgba(125, 211, 252, 0.85);
-    color: #fff;
-    background: var(--aboutme-tag-fill-active);
+    color: #f5f3ff;
+    border-color: rgba(196, 181, 253, 0.86);
+    background: var(--glass-tag-highlight), rgba(109, 40, 217, 0.58);
 }
 
 a.aboutme-cwe-id:focus-visible {
-    color: #f5f3ff;
-    border-color: rgba(196, 181, 253, 0.86);
-    background: rgba(109, 40, 217, 0.42);
+    color: #fff;
+    border-color: rgba(125, 211, 252, 0.85);
+    background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
 }
 
 .aboutme-card-tag.aboutme-difficulty-tag {
@@ -526,57 +530,57 @@ a.aboutme-cwe-id:focus-visible {
 }
 
 .aboutme-difficulty-tag-intro {
-    --aboutme-static-tag-border: rgba(219, 234, 254, 0.82);
-    --aboutme-static-tag-ring: rgba(239, 246, 255, 0.18);
-    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(191, 219, 254, 0.18);
-    color: #eff6ff;
-    border: 1px solid rgba(219, 234, 254, 0.78);
-    background: rgba(191, 219, 254, 0.32);
+    --aboutme-static-tag-border: rgba(186, 230, 253, 0.7);
+    --aboutme-static-tag-ring: rgba(224, 242, 254, 0.14);
+    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(14, 165, 233, 0.16);
+    color: #e0f2fe;
+    border: 1px solid rgba(186, 230, 253, 0.64);
+    background: rgba(8, 145, 178, 0.32);
 }
 
 .aboutme-difficulty-tag-easy {
-    --aboutme-static-tag-border: rgba(125, 211, 252, 0.8);
-    --aboutme-static-tag-ring: rgba(224, 242, 254, 0.18);
-    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(14, 165, 233, 0.18);
-    color: #e0f2fe;
-    border: 1px solid rgba(125, 211, 252, 0.76);
-    background: rgba(14, 165, 233, 0.32);
+    --aboutme-static-tag-border: rgba(125, 211, 252, 0.76);
+    --aboutme-static-tag-ring: rgba(224, 242, 254, 0.16);
+    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(14, 165, 233, 0.2);
+    color: #dff7ff;
+    border: 1px solid rgba(125, 211, 252, 0.7);
+    background: rgba(14, 116, 144, 0.42);
 }
 
 .aboutme-difficulty-tag-medium {
-    --aboutme-static-tag-border: rgba(96, 165, 250, 0.86);
-    --aboutme-static-tag-ring: rgba(219, 234, 254, 0.18);
-    --aboutme-static-tag-shadow: 0 0.45rem 1.1rem rgba(37, 99, 235, 0.2);
+    --aboutme-static-tag-border: rgba(96, 165, 250, 0.78);
+    --aboutme-static-tag-ring: rgba(219, 234, 254, 0.16);
+    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(37, 99, 235, 0.24);
     color: #dbeafe;
-    border: 1px solid rgba(96, 165, 250, 0.82);
-    background: rgba(37, 99, 235, 0.32);
+    border: 1px solid rgba(96, 165, 250, 0.72);
+    background: rgba(37, 99, 235, 0.46);
 }
 
 .aboutme-difficulty-tag-hard {
-    --aboutme-static-tag-border: rgba(96, 165, 250, 0.76);
-    --aboutme-static-tag-ring: rgba(191, 219, 254, 0.18);
-    --aboutme-static-tag-shadow: 0 0.5rem 1.2rem rgba(30, 64, 175, 0.22);
-    color: #bfdbfe;
-    border: 1px solid rgba(96, 165, 250, 0.72);
-    background: rgba(30, 64, 175, 0.32);
+    --aboutme-static-tag-border: rgba(129, 140, 248, 0.78);
+    --aboutme-static-tag-ring: rgba(224, 231, 255, 0.16);
+    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(99, 102, 241, 0.24);
+    color: #e0e7ff;
+    border: 1px solid rgba(129, 140, 248, 0.72);
+    background: rgba(49, 46, 129, 0.52);
 }
 
 .aboutme-difficulty-tag-insane {
-    --aboutme-static-tag-border: rgba(147, 197, 253, 0.66);
-    --aboutme-static-tag-ring: rgba(191, 219, 254, 0.16);
-    --aboutme-static-tag-shadow: 0 0.55rem 1.35rem rgba(15, 23, 42, 0.28);
-    color: #bfdbfe;
-    border: 1px solid rgba(147, 197, 253, 0.62);
-    background: rgba(15, 23, 42, 0.72);
+    --aboutme-static-tag-border: rgba(196, 181, 253, 0.72);
+    --aboutme-static-tag-ring: rgba(237, 233, 254, 0.16);
+    --aboutme-static-tag-shadow: 0 0.5rem 1.15rem rgba(124, 58, 237, 0.28);
+    color: #ede9fe;
+    border: 1px solid rgba(196, 181, 253, 0.66);
+    background: rgba(76, 29, 149, 0.68);
 }
 
 .aboutme-difficulty-tag-unknown {
-    --aboutme-static-tag-border: rgba(148, 163, 184, 0.7);
+    --aboutme-static-tag-border: rgba(148, 163, 184, 0.62);
     --aboutme-static-tag-ring: rgba(226, 232, 240, 0.12);
-    --aboutme-static-tag-shadow: 0 0.4rem 1rem rgba(148, 163, 184, 0.12);
-    color: #cbd5e1;
-    border: 1px solid rgba(148, 163, 184, 0.66);
-    background: var(--aboutme-tag-fill);
+    --aboutme-static-tag-shadow: 0 0.4rem 1rem rgba(148, 163, 184, 0.16);
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.58);
+    background: rgba(51, 65, 85, 0.46);
 }
 
 a.aboutme-cve-id:focus-visible,
@@ -589,7 +593,7 @@ a.aboutme-cwe-id:focus-visible {
     a.aboutme-card-tag:hover {
         border-color: rgba(125, 211, 252, 0.85);
         color: #fff;
-        background: var(--aboutme-tag-fill-active);
+        background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
     }
 
     a.aboutme-card-tag:hover::after {
@@ -597,19 +601,25 @@ a.aboutme-cwe-id:focus-visible {
         transform: translate(0.08rem, -0.06rem) rotate(45deg);
     }
 
-    a.aboutme-card-tag.aboutme-cwe-id:hover {
+    a.aboutme-card-tag.aboutme-cve-id:hover {
         color: #f5f3ff;
         border-color: rgba(196, 181, 253, 0.86);
-        background: rgba(109, 40, 217, 0.42);
+        background: var(--glass-tag-highlight), rgba(109, 40, 217, 0.58);
+    }
+
+    a.aboutme-card-tag.aboutme-cwe-id:hover {
+        color: #fff;
+        border-color: rgba(125, 211, 252, 0.85);
+        background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
     }
 }
 
 .aboutme-severity-critical {
     --severity-color: #fee2e2;
-    --severity-border: rgba(248, 113, 113, 0.75);
-    --severity-bg: linear-gradient(135deg, rgba(127, 29, 29, 0.82), rgba(220, 38, 38, 0.46));
-    --severity-bg-active: linear-gradient(135deg, rgba(127, 29, 29, 0.92), rgba(220, 38, 38, 0.62));
-    --severity-shadow: 0 0.45rem 1rem rgba(248, 113, 113, 0.12);
+    --severity-border: rgba(248, 113, 113, 0.88);
+    --severity-bg: linear-gradient(135deg, rgba(127, 29, 29, 0.9), rgba(220, 38, 38, 0.58));
+    --severity-bg-active: linear-gradient(135deg, rgba(127, 29, 29, 0.96), rgba(220, 38, 38, 0.72));
+    --severity-shadow: 0 0.45rem 1rem rgba(248, 113, 113, 0.18);
     --aboutme-static-tag-border: rgba(248, 113, 113, 0.9);
     --aboutme-static-tag-ring: rgba(254, 226, 226, 0.18);
     --aboutme-static-tag-shadow: var(--severity-shadow);
@@ -621,10 +631,10 @@ a.aboutme-cwe-id:focus-visible {
 
 .aboutme-severity-high {
     --severity-color: #ffedd5;
-    --severity-border: rgba(251, 146, 60, 0.78);
-    --severity-bg: linear-gradient(135deg, rgba(154, 52, 18, 0.78), rgba(249, 115, 22, 0.38));
-    --severity-bg-active: linear-gradient(135deg, rgba(154, 52, 18, 0.9), rgba(249, 115, 22, 0.54));
-    --severity-shadow: 0 0.45rem 1rem rgba(251, 146, 60, 0.12);
+    --severity-border: rgba(251, 146, 60, 0.9);
+    --severity-bg: linear-gradient(135deg, rgba(154, 52, 18, 0.86), rgba(249, 115, 22, 0.52));
+    --severity-bg-active: linear-gradient(135deg, rgba(154, 52, 18, 0.96), rgba(249, 115, 22, 0.68));
+    --severity-shadow: 0 0.45rem 1rem rgba(251, 146, 60, 0.18);
     --aboutme-static-tag-border: rgba(251, 146, 60, 0.88);
     --aboutme-static-tag-ring: rgba(255, 237, 213, 0.16);
     --aboutme-static-tag-shadow: var(--severity-shadow);
@@ -636,10 +646,10 @@ a.aboutme-cwe-id:focus-visible {
 
 .aboutme-severity-medium {
     --severity-color: #fef3c7;
-    --severity-border: rgba(250, 204, 21, 0.7);
-    --severity-bg: linear-gradient(135deg, rgba(113, 63, 18, 0.72), rgba(234, 179, 8, 0.34));
-    --severity-bg-active: linear-gradient(135deg, rgba(113, 63, 18, 0.84), rgba(234, 179, 8, 0.5));
-    --severity-shadow: 0 0.45rem 1rem rgba(250, 204, 21, 0.11);
+    --severity-border: rgba(250, 204, 21, 0.84);
+    --severity-bg: linear-gradient(135deg, rgba(113, 63, 18, 0.82), rgba(234, 179, 8, 0.48));
+    --severity-bg-active: linear-gradient(135deg, rgba(113, 63, 18, 0.94), rgba(234, 179, 8, 0.64));
+    --severity-shadow: 0 0.45rem 1rem rgba(250, 204, 21, 0.16);
     --aboutme-static-tag-border: rgba(250, 204, 21, 0.82);
     --aboutme-static-tag-ring: rgba(254, 243, 199, 0.16);
     --aboutme-static-tag-shadow: var(--severity-shadow);
@@ -651,9 +661,9 @@ a.aboutme-cwe-id:focus-visible {
 
 .aboutme-severity-low {
     --severity-color: #bbf7d0;
-    --severity-border: rgba(74, 222, 128, 0.52);
-    --severity-bg: rgba(21, 128, 61, 0.28);
-    --severity-bg-active: rgba(21, 128, 61, 0.44);
+    --severity-border: rgba(74, 222, 128, 0.68);
+    --severity-bg: rgba(21, 128, 61, 0.44);
+    --severity-bg-active: rgba(21, 128, 61, 0.62);
     --severity-shadow: 0 0 0 rgba(0, 0, 0, 0);
     --aboutme-static-tag-border: rgba(74, 222, 128, 0.68);
     --aboutme-static-tag-ring: rgba(187, 247, 208, 0.14);
@@ -665,9 +675,9 @@ a.aboutme-cwe-id:focus-visible {
 
 .aboutme-severity-info {
     --severity-color: #bae6fd;
-    --severity-border: rgba(56, 189, 248, 0.48);
-    --severity-bg: rgba(2, 132, 199, 0.26);
-    --severity-bg-active: rgba(2, 132, 199, 0.42);
+    --severity-border: rgba(56, 189, 248, 0.66);
+    --severity-bg: rgba(2, 132, 199, 0.42);
+    --severity-bg-active: rgba(2, 132, 199, 0.62);
     --severity-shadow: 0 0 0 rgba(0, 0, 0, 0);
     --aboutme-static-tag-border: rgba(56, 189, 248, 0.64);
     --aboutme-static-tag-ring: rgba(186, 230, 253, 0.14);
@@ -679,9 +689,9 @@ a.aboutme-cwe-id:focus-visible {
 
 .aboutme-severity-tba {
     --severity-color: #ddd6fe;
-    --severity-border: rgba(167, 139, 250, 0.46);
-    --severity-bg: rgba(109, 40, 217, 0.24);
-    --severity-bg-active: rgba(109, 40, 217, 0.4);
+    --severity-border: rgba(167, 139, 250, 0.64);
+    --severity-bg: rgba(109, 40, 217, 0.4);
+    --severity-bg-active: rgba(109, 40, 217, 0.6);
     --severity-shadow: 0 0 0 rgba(0, 0, 0, 0);
     --aboutme-static-tag-border: rgba(167, 139, 250, 0.62);
     --aboutme-static-tag-ring: rgba(221, 214, 254, 0.14);
@@ -749,9 +759,9 @@ a.aboutme-cwe-id:focus-visible {
     border-left: 3px solid rgba(125, 211, 252, 0.72);
     border-radius: 0.42rem;
     color: #e0f2fe;
-    background: linear-gradient(90deg, rgba(8, 145, 178, 0.22), rgba(15, 23, 42, 0.06));
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
+    background: linear-gradient(90deg, rgba(10, 150, 200, 0.2), rgba(110, 197, 250, 0.05));
+    box-decoration-break: slice;
+    -webkit-box-decoration-break: slice;
     font-weight: 800;
     text-decoration: none;
     transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
@@ -772,9 +782,9 @@ a.aboutme-cwe-id:focus-visible {
 
 .aboutme-finding-summary a.aboutme-finding-advisory-link:hover,
 .aboutme-finding-summary a.aboutme-finding-advisory-link:focus-visible {
-    border-left-color: rgba(251, 191, 36, 0.78);
+    border-left-color: rgba(165, 243, 252, 0.86);
     color: #7dd3fc;
-    background: linear-gradient(90deg, rgba(8, 145, 178, 0.34), rgba(15, 23, 42, 0.08));
+    background: linear-gradient(90deg, rgba(10, 150, 200, 0.3), rgba(110, 197, 250, 0.08));
     text-decoration: none;
 }
 
@@ -947,9 +957,9 @@ a.aboutme-cwe-id:focus-visible {
     display: block;
     gap: 0.45rem;
     padding: 0;
-    border: 1px solid rgba(93, 116, 158, 0.5);
+    border: 1px solid rgba(88, 122, 166, 0.58);
     border-radius: var(--radius-ui-control);
-    background: rgba(15, 23, 42, 0.24);
+    background: rgba(13, 32, 54, 0.42);
 }
 
 .aboutme-achievement-event::before {
