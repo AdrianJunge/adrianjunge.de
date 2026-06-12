@@ -450,26 +450,36 @@ class SitePagesTest < ApplicationSystemTestCase
         page.current_window.resize_to(width, 900)
         visit path
 
-        metrics = page.evaluate_script(<<~JS)
-          (() => {
-            const taskbar = document.getElementById("top-taskbar");
-            const taskbarRect = taskbar.getBoundingClientRect();
-            const content = document.querySelector("#{selector}").getBoundingClientRect();
-            const viewportWidth = document.documentElement.clientWidth;
+        metrics = nil
+        deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
 
-            return {
-              taskbarPosition: window.getComputedStyle(taskbar).position,
-              taskbarTop: Math.round(taskbarRect.top),
-              taskbarLeft: Math.round(taskbarRect.left),
-              taskbarRight: Math.round(taskbarRect.right),
-              viewportWidth,
-              contentTop: Math.round(content.top),
-              taskbarBottom: Math.round(taskbarRect.bottom),
-              contentLeft: Math.round(content.left),
-              contentRightGap: Math.round(viewportWidth - content.right)
-            };
-          })()
-        JS
+        loop do
+          metrics = page.evaluate_script(<<~JS)
+            (() => {
+              const taskbar = document.getElementById("top-taskbar");
+              const taskbarRect = taskbar.getBoundingClientRect();
+              const content = document.querySelector("#{selector}").getBoundingClientRect();
+              const viewportWidth = document.documentElement.clientWidth;
+
+              return {
+                taskbarPosition: window.getComputedStyle(taskbar).position,
+                taskbarTop: Math.round(taskbarRect.top),
+                taskbarLeft: Math.round(taskbarRect.left),
+                taskbarRight: Math.round(taskbarRect.right),
+                viewportWidth,
+                contentTop: Math.round(content.top),
+                taskbarBottom: Math.round(taskbarRect.bottom),
+                contentLeft: Math.round(content.left),
+                contentRightGap: Math.round(viewportWidth - content.right)
+              };
+            })()
+          JS
+
+          break if metrics["taskbarPosition"] == "sticky" && metrics["taskbarBottom"].positive?
+          break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+          sleep 0.05
+        end
 
         assert_equal "sticky", metrics["taskbarPosition"]
         assert_equal 0, metrics["taskbarTop"], "top taskbar drifted away from the viewport top on #{path} at #{width}px"

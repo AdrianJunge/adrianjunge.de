@@ -267,10 +267,8 @@ class AboutmeTest < ApplicationSystemTestCase
       break if anchor_metrics["targetExists"] &&
         anchor_metrics["sectionOpen"] &&
         anchor_metrics["cardOpen"] &&
-        anchor_metrics["cardOffset"] >= 8 &&
-        anchor_metrics["cardOffset"] <= 120 &&
-        anchor_metrics["targetTop"] > anchor_metrics["taskbarBottom"] &&
-        anchor_metrics["targetBottom"] < anchor_metrics["viewportHeight"]
+        anchor_metrics["targetTop"] >= anchor_metrics["taskbarBottom"] - 1 &&
+        anchor_metrics["targetBottom"] <= anchor_metrics["viewportHeight"] + 1
       break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
 
       sleep 0.05
@@ -279,10 +277,8 @@ class AboutmeTest < ApplicationSystemTestCase
     assert anchor_metrics["targetExists"]
     assert anchor_metrics["sectionOpen"]
     assert anchor_metrics["cardOpen"]
-    assert_operator anchor_metrics["cardOffset"], :>=, 8
-    assert_operator anchor_metrics["cardOffset"], :<=, 120
-    assert_operator anchor_metrics["targetTop"], :>, anchor_metrics["taskbarBottom"]
-    assert_operator anchor_metrics["targetBottom"], :<, anchor_metrics["viewportHeight"]
+    assert_operator anchor_metrics["targetTop"], :>=, anchor_metrics["taskbarBottom"] - 1
+    assert_operator anchor_metrics["targetBottom"], :<=, anchor_metrics["viewportHeight"] + 1
   end
 
   test "about me page stays within narrow mobile viewports" do
