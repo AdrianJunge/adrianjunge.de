@@ -202,7 +202,7 @@
 .content-page .content-filter-input {
     position: relative;
     z-index: 1;
-    padding: 0.65rem 2.6rem 0.65rem 0.85rem;
+    padding: 0.65rem 3.05rem 0.65rem 0.85rem;
     background:
         radial-gradient(circle at 12% 0%, rgba(125, 211, 252, 0.13), transparent 70%),
         linear-gradient(180deg, rgba(23, 48, 76, 0.86), rgba(9, 35, 58, 0.82));
@@ -542,18 +542,24 @@
 }
 
 .content-page .search-clear-btn {
-    position: relative;
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
     z-index: 2;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: -2.35rem;
-    padding: 0.5rem;
+    width: 1.85rem;
+    height: 1.85rem;
+    margin-left: 0;
+    padding: 0.35rem;
     border: 1px solid transparent;
     border-radius: var(--radius-ui-control);
     color: var(--button-color-muted);
     background: transparent;
+    box-sizing: border-box;
     cursor: pointer;
+    transform: translateY(-50%);
     visibility: hidden;
     opacity: 0;
     transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease, visibility 0.18s ease;

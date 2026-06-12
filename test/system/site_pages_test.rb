@@ -793,10 +793,13 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal true, typed_cursor_layout["cursorWithinLine"]
     assert_equal true, typed_cursor_layout["cursorStartsAtLine"]
     discord_profile = "https://discord.com/users/305624492221267968/"
+    kitctf_link = "https://kitctf.de/"
+    kit_link = "https://www.kit.edu/"
     assert_selector ".landing-profile-link[href='#{discord_profile}'][target='_blank'][rel='noopener noreferrer'] .landing-profile-image"
-    assert_selector ".landing-affiliation-link[href='#{discord_profile}']", text: "KITCTF"
-    assert_selector ".landing-affiliation-link[href='#{discord_profile}']", text: "KIT"
-    assert_selector ".landing-affiliation-link[href='#{discord_profile}'] img", minimum: 2
+    assert_selector ".landing-affiliation-link[href='#{kitctf_link}'][target='_blank'][rel='noopener noreferrer']", text: "KITCTF"
+    assert_selector ".landing-affiliation-link[href='#{kit_link}'][target='_blank'][rel='noopener noreferrer']", text: "KIT"
+    assert_selector ".landing-affiliation-link[href='#{kitctf_link}'] img"
+    assert_selector ".landing-affiliation-link[href='#{kit_link}'] img"
     assert_selector ".landing-affiliation-link-pgp[href='/pgp-vurlo.asc']", text: "PGP key"
     assert_selector ".landing-affiliation-link-pgp img[src*='pgp']"
     assert_selector "footer a[href='mailto:todo@adrianjunge.de'] img[alt='Mail Icon']"
@@ -804,7 +807,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert File.exist?(Rails.root.join("public", "pgp-vurlo.asc"))
     affiliation_image_size = page.evaluate_script(<<~JS)
       (() => {
-        const image = document.querySelector(".landing-affiliation-link[href='#{discord_profile}'] img");
+        const image = document.querySelector(".landing-affiliation-link[href='#{kitctf_link}'] img");
         const rect = image.getBoundingClientRect();
 
         return Math.round(rect.width);
@@ -1591,17 +1594,35 @@ class SitePagesTest < ApplicationSystemTestCase
         const inputStyle = window.getComputedStyle(input);
         const wrapperBefore = window.getComputedStyle(wrapper, "::before");
         const clearStyle = window.getComputedStyle(clearButton);
+        const inputRect = input.getBoundingClientRect();
+        const clearRect = clearButton.getBoundingClientRect();
+        const inputCenterY = inputRect.top + (inputRect.height / 2);
+        const clearCenterY = clearRect.top + (clearRect.height / 2);
 
         return {
           inputBoxShadow: inputStyle.boxShadow,
           wrapperBeforeOpacity: parseFloat(wrapperBefore.opacity),
-          clearButtonBackground: clearStyle.backgroundColor
+          clearButtonBackground: clearStyle.backgroundColor,
+          clearButtonPosition: clearStyle.position,
+          clearButtonMarginLeft: clearStyle.marginLeft,
+          clearButtonRightInset: Math.round(inputRect.right - clearRect.right),
+          clearButtonCenterDelta: Math.abs(clearCenterY - inputCenterY),
+          clearButtonWithinInput:
+            clearRect.left >= inputRect.left &&
+            clearRect.right <= inputRect.right &&
+            clearRect.top >= inputRect.top &&
+            clearRect.bottom <= inputRect.bottom
         };
       })()
     JS
     assert_not_equal "none", search_visual_styles["inputBoxShadow"]
     assert_operator search_visual_styles["wrapperBeforeOpacity"], :>, 0
     assert_not_equal "rgba(0, 0, 0, 0)", search_visual_styles["clearButtonBackground"]
+    assert_equal "absolute", search_visual_styles["clearButtonPosition"]
+    assert_equal "0px", search_visual_styles["clearButtonMarginLeft"]
+    assert_operator search_visual_styles["clearButtonRightInset"], :>=, 6
+    assert_operator search_visual_styles["clearButtonCenterDelta"], :<=, 1
+    assert_equal true, search_visual_styles["clearButtonWithinInput"]
     assert_equal ctf_search_case[:items].map { |item| item[:name] }, visible_ctf_names
 
     find("[data-filter-reset='ctfs']").click

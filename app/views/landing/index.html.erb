@@ -31,6 +31,8 @@
 <% timeline_link = timeline_path %>
 <% about_link = about_path %>
 <% discord_link = "https://discord.com/users/305624492221267968/" %>
+<% kitctf_link = "https://kitctf.de/" %>
+<% kit_link = "https://www.kit.edu/" %>
 <% pgp_link = "/pgp-vurlo.asc" %>
 <% landing_metrics = [
   { label: "Posts", value: @amount_posts, sublabel: @amount_post_reading_time, link: timeline_link },
@@ -71,11 +73,11 @@
             </a>
 
             <div class="landing-affiliation-links">
-                <a href="<%= discord_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift" title="Open Discord profile">
+                <a href="<%= kitctf_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift" title="Open KITCTF">
                     <%= image_tag("landing/kitctf.png", alt: "", aria: { hidden: true }) %>
                     <span>KITCTF</span>
                 </a>
-                <a href="<%= discord_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift" title="Open Discord profile">
+                <a href="<%= kit_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift" title="Open KIT">
                     <%= image_tag("landing/kit.png", alt: "", aria: { hidden: true }) %>
                     <span>KIT</span>
                 </a>
