@@ -1,7 +1,3 @@
-- for some reason the /about page has less space towards the header bar and the icon at the top at the very start got a darker background than the icons on e.g. /blog or /timeline - there should be only one single source of truth for all the headings of the different pages
-- add telegram contact
-- replace all adjun37 emails with a placeholder email like todo@adrianjunge.de
-
 # Content
 - Next Blog
     - Firedancer Bug Bounty overrun race condition
@@ -29,6 +25,8 @@
     - live Rendering des Markdowns
 
 # Misc
+- global search e.g. as gear icon drop down together with scroll up/down buttons
+    => the problem is should the global search be backend or frontend sided
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
     => https://github.com/felixfbecker/dom-to-svg
 - Implement Webmention.io
@@ -37,6 +35,7 @@
 - Email einrichten für Domaine
     - Email redirect von cloud flare
     - referenced emails (todo@adrianjunge.de) replacen
+    - obfuscated email (no static email addresses present on the page but instead JS only loads the email address at rendering time - antiscraping)
     - Andere email Adresse auf Website verlinken
     - Forwarding
     - als contact angeben in Terminal + Footer

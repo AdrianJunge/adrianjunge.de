@@ -799,7 +799,8 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-affiliation-link[href='#{discord_profile}'] img", minimum: 2
     assert_selector ".landing-affiliation-link-pgp[href='/pgp-vurlo.asc']", text: "PGP key"
     assert_selector ".landing-affiliation-link-pgp img[src*='pgp']"
-    assert_selector "footer a[href='mailto:adjun37@gmail.com'] img[alt='Mail Icon']"
+    assert_selector "footer a[href='mailto:todo@adrianjunge.de'] img[alt='Mail Icon']"
+    assert_selector "footer a[href='https://t.me/FullyIncredibleCreativeUsername'][target='_blank'][rel='noopener noreferrer'] img[alt='Telegram Icon']"
     assert File.exist?(Rails.root.join("public", "pgp-vurlo.asc"))
     affiliation_image_size = page.evaluate_script(<<~JS)
       (() => {
@@ -910,6 +911,8 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".xterm-rows", text: "GitHub:"
     assert_selector ".xterm-rows", text: "LinkedIn:"
     assert_selector ".xterm-rows", text: "Discord"
+    assert_selector ".xterm-rows", text: "Telegram:"
+    assert_selector ".xterm-rows", text: "@FullyIncredibleCreativeUsername"
     terminal_contact_order = page.evaluate_script(<<~JS)
       (() => {
         const text = document.querySelector(".xterm-rows").innerText;
@@ -919,7 +922,8 @@ class SitePagesTest < ApplicationSystemTestCase
           pgp: text.indexOf("PGP:"),
           github: text.indexOf("GitHub:"),
           linkedin: text.indexOf("LinkedIn:"),
-          discord: text.indexOf("Discord:")
+          discord: text.indexOf("Discord:"),
+          telegram: text.indexOf("Telegram:")
         };
       })()
     JS
@@ -928,6 +932,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_operator terminal_contact_order["pgp"], :<, terminal_contact_order["github"]
     assert_operator terminal_contact_order["github"], :<, terminal_contact_order["linkedin"]
     assert_operator terminal_contact_order["linkedin"], :<, terminal_contact_order["discord"]
+    assert_operator terminal_contact_order["discord"], :<, terminal_contact_order["telegram"]
     find("#minimize-terminal").click
     assert_selector "#terminal-container.terminal-minimized", visible: :all
     expected_featured_count = content_index.featured_items.length

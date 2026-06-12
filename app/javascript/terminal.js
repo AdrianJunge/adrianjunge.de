@@ -9,11 +9,12 @@ const fastFetchInfo = `  _____                          _
  |_|  \\_\\  \\___|  \\__,_|  \\___| |_| |_|   |_| |_| |_|  \\___|    \\ \\__,_|
                                                                  \\____/
 `
-const aboutMe = `\tEmail:\t\t${createHyperlink('adjun37@gmail.com', 'mailto:adjun37@gmail.com')}
+const aboutMe = `\tEmail:\t\t${createHyperlink('todo@adrianjunge.de', 'mailto:todo@adrianjunge.de')}
 \tPGP:\t\t${createHyperlink('PGP key', '/pgp-vurlo.asc')}
 \tGitHub:\t\t${createHyperlink('GitHub', 'https://github.com/AdrianJunge/')}
 \tLinkedIn:\t${createHyperlink('LinkedIn', 'https://www.linkedin.com/in/adrian-junge-998a63296/')}
 \tDiscord:\t${createHyperlink('Discord', 'https://discord.com/users/305624492221267968/')}
+\tTelegram:\t${createHyperlink('@FullyIncredibleCreativeUsername', 'https://t.me/FullyIncredibleCreativeUsername')}
 `
 
 const firstHelp = `\tNavigation via taskbar, 'cd' command or listed hyperlinks
