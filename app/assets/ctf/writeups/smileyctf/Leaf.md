@@ -9,6 +9,9 @@ categories:
     - web
 difficulty: Hard
 ctf_year: 2025
+event_url: https://play.ctf.gg/
+solves: 3
+points: 469
 challengefiles: leaf
 published: "2025-06-09"
 ---

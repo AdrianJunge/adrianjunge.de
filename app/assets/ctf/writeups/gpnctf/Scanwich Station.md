@@ -10,13 +10,14 @@ categories:
     - web
 difficulty: Hard
 ctf_year: 2026
+event_url: https://gpn24.ctf.kitctf.de/
 challengefiles: scanwich-station
 solves: 5
+points: 405
 published: "2026-06-05"
 optional:
     authored_challenge:
         event: GPNCTF 2026
-        event_url: https://gpn24.ctf.kitctf.de/
         summary: Hybrid web and pwn challenge about mass assignment, QR-code decoding, signed integer overflow, and GLIBC dynamic symbol poisoning. Published for GPNCTF 2026.
 ---
 

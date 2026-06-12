@@ -498,8 +498,7 @@ class SitePagesTest < ApplicationSystemTestCase
     landing_authored_posts = landing_latest_posts.select { |post| post[:type] == "ctf" && AuthoredChallenge.from_metadata(post[:metadata] || {}) }
     if landing_authored_posts.any?
       authored_post = landing_authored_posts.first
-      authored = AuthoredChallenge.from_metadata(authored_post[:metadata] || {})
-      event_url = authored[:event_url].presence || repository.ctf_metadata.dig(authored_post[:which], "website")
+      event_url = writeup_event_url_for(authored_post)
 
       within find(".landing-writeup-cards .blog-post-card", text: authored_post[:title]) do
         assert_selector ".blog-post-meta-row > a.authored-challenge-badge[href='#{event_url}'][target='_blank'][rel='noopener noreferrer']",
@@ -676,25 +675,33 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".article-progress", visible: :visible
   end
 
-  test "ctf solve counts appear after reading time" do
+  test "ctf solve counts and points appear after reading time" do
     visit "/ctf/gpnctf"
 
     scanwich_card = find(".writeup-post-card", text: "Scanwich Station")
     within scanwich_card do
-      assert_selector ".blog-post-solve-count", text: "5 solves"
-      assert_match(/min read\s*·\s*5 solves/, find(".blog-post-date").text.squish)
+      assert_selector ".blog-post-challenge-stats", text: "5 solves / 405 points"
+      assert_match(/min read\s*·\s*5 solves \/ 405 points/, find(".blog-post-date").text.squish)
     end
 
     smile_card = find(".writeup-post-card", text: "Smile at me")
     within smile_card do
-      assert_selector ".blog-post-solve-count", text: "1 solve"
-      assert_match(/min read\s*·\s*1 solve/, find(".blog-post-date").text.squish)
+      assert_selector ".blog-post-challenge-stats", text: "1 solve / 500 points"
+      assert_match(/min read\s*·\s*1 solve \/ 500 points/, find(".blog-post-date").text.squish)
     end
 
     visit "/ctf/gpnctf/Scanwich%20Station"
 
-    assert_selector ".post-meta-line", text: /5 solves/
-    assert_match(/min read\s*·\s*5 solves/, find(".post-meta-line").text.squish)
+    assert_selector ".post-meta-line", text: /5 solves \/ 405 points/
+    assert_match(/min read\s*·\s*5 solves \/ 405 points/, find(".post-meta-line").text.squish)
+    assert_selector ".writeup-year-link[href='https://gpn24.ctf.kitctf.de/'][target='_blank'][rel='noopener noreferrer']",
+                    text: /GPNCTF-2026/
+
+    visit "/ctf/gpnctf/Smile%20at%20me"
+
+    assert_selector ".post-meta-line", text: /1 solve \/ 500 points/
+    assert_selector ".writeup-year-link[href='https://gpn23.ctf.kitctf.de/'][target='_blank'][rel='noopener noreferrer']",
+                    text: /GPNCTF-2025/
   end
 
   test "post card author links stay clickable above full card hitboxes" do
@@ -1769,7 +1776,8 @@ class SitePagesTest < ApplicationSystemTestCase
     ctf_event_year = writeup_post[:metadata]["ctf_year"].presence ||
                      writeup_post[:metadata]["year"].presence ||
                      writeup_post[:published].year
-    assert_selector ".writeup-year-link[href='#{repository.ctf_metadata.dig(writeup_post[:which], "website")}'][target='_blank'][rel='noopener noreferrer']",
+    expected_ctf_url = writeup_event_url_for(writeup_post)
+    assert_selector ".writeup-year-link[href='#{expected_ctf_url}'][target='_blank'][rel='noopener noreferrer']",
                     text: /#{Regexp.escape(writeup_post[:which].upcase)}-#{ctf_event_year}/
     difficulty = WriteupDifficulty.from_metadata(writeup_post[:metadata])
     assert_selector ".writeup-badges-article .difficulty-badge-#{difficulty[:key]}.difficulty-badge-article", text: difficulty[:label]
@@ -1885,7 +1893,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
   test "authored writeups filter on overview cards and link event badges on articles" do
     post = authored_writeup_with_event_url
-    authored = AuthoredChallenge.from_metadata(post[:metadata])
+    event_url = writeup_event_url_for(post)
 
     visit "/ctf/#{post[:directory]}"
 
@@ -1898,7 +1906,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
     visit post[:link]
     assert_selector ".writeup-badges-article .difficulty-badge-hard", text: "Hard"
-    assert_selector ".writeup-badges-article .authored-challenge-badge[href='#{authored[:event_url]}'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
+    assert_selector ".writeup-badges-article .authored-challenge-badge[href='#{event_url}'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
     assert_selector ".writeup-recognition-badges-article .authored-challenge-badge .content-tag-arrow", text: ">"
     Array(post[:metadata]["categories"]).each do |category|
       assert_selector ".writeup-badges-article .category-badge.category-badge-#{ContentCategoryTag.css_key(category)}.category-badge-article",
@@ -2762,8 +2770,17 @@ class SitePagesTest < ApplicationSystemTestCase
 
   def authored_writeup_with_event_url
     ctf_posts.find do |post|
-      AuthoredChallenge.from_metadata(post[:metadata])&.dig(:event_url).present?
+      AuthoredChallenge.from_metadata(post[:metadata]).present? && writeup_event_url_for(post).present?
     end || flunk("expected an authored CTF writeup with an event URL")
+  end
+
+  def writeup_event_url_for(post)
+    metadata = post[:metadata] || {}
+    authored = AuthoredChallenge.from_metadata(metadata)
+
+    AuthoredChallenge.metadata_value(metadata, "event_url", "event-url", "event_link", "event-link").presence ||
+      authored&.fetch(:event_url, nil).presence ||
+      repository.ctf_metadata.dig(post[:which], "website")
   end
 
   def ctf_post_with_hints

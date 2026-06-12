@@ -9,6 +9,9 @@ categories:
     - web
 difficulty: Medium
 ctf_year: 2025
+event_url: https://2025.ctf.sekai.team/
+solves: 0
+points: 500
 challengefiles: fancy-web
 published: "2025-09-06"
 optional:

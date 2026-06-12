@@ -9,6 +9,9 @@ categories:
     - PWN
 difficulty: Medium
 ctf_year: 2025
+event_url: https://platform.2025.lac.tf/
+solves: 108
+points: 331
 challengefiles: gamedev
 published: "2025-02-15"
 ---

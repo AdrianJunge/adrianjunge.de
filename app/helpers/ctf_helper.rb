@@ -45,8 +45,10 @@ module CtfHelper
     winner_filter_label = winner ? WriteupWinner::FILTER_LABEL : nil
     authored_filter_label = authored_challenge ? AuthoredChallenge::FILTER_LABEL : nil
     solve_count_label = writeup_solve_count_label(info)
+    points_label = writeup_points_label(info)
+    challenge_stats_label = writeup_challenge_stats_label(info)
     filter_tags = ([ winner_filter_label, authored_filter_label, difficulty_label ] + categories).compact
-    filter_text = ([ title, description, published, published_year, solve_count_label, difficulty_label, winner_label, winner_filter_label, authored_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
+    filter_text = ([ title, description, published, published_year, solve_count_label, points_label, challenge_stats_label, difficulty_label, winner_label, winner_filter_label, authored_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
 
     tags = []
     if winner
@@ -107,8 +109,10 @@ module CtfHelper
       date_text_class: "blog-post-date-text",
       reading_time: info["reading_time_label"],
       reading_time_class: "blog-post-reading-time",
-      meta_items: [ solve_count_label ],
-      meta_item_class: "blog-post-reading-time blog-post-solve-count",
+      meta_items: [
+        { label: challenge_stats_label, class_name: "blog-post-challenge-stats" }
+      ],
+      meta_item_class: "blog-post-reading-time",
       tags_outer_class: "blog-post-meta",
       tags_class: "blog-post-meta-row",
       tags: tags,
@@ -173,6 +177,23 @@ module CtfHelper
     return nil unless count
 
     "#{count} #{count == 1 ? "solve" : "solves"}"
+  end
+
+  def writeup_challenge_stats_label(info)
+    [ writeup_solve_count_label(info), writeup_points_label(info) ].compact.join(" / ").presence
+  end
+
+  def writeup_points_label(info)
+    points = writeup_points(info)
+    return nil unless points
+
+    "#{points} #{points == 1 ? "point" : "points"}"
+  end
+
+  def writeup_event_url(info, fallback: nil)
+    writeup_metadata_event_url(info).presence ||
+      authored_challenge(info)&.fetch(:event_url, nil).presence ||
+      fallback.presence
   end
 
   def render_writeup_hints(info)
@@ -300,8 +321,14 @@ module CtfHelper
 
   def authored_challenge(info)
     AuthoredChallenge.from_metadata(info).tap do |authored|
-      authored[:event_url] = info["ctf_event_url"].presence if authored && authored[:event_url].blank?
+      next unless authored && authored[:event_url].blank?
+
+      authored[:event_url] = writeup_metadata_event_url(info).presence || info["ctf_event_url"].presence
     end
+  end
+
+  def writeup_metadata_event_url(info)
+    AuthoredChallenge.metadata_value(info, "event_url", "event-url", "event_link", "event-link")
   end
 
   def writeup_difficulty(info)
@@ -324,7 +351,16 @@ module CtfHelper
     return nil unless normalized.match?(/\A\d+\z/)
 
     count = normalized.to_i
-    count.positive? ? count : nil
+    count >= 0 ? count : nil
+  end
+
+  def writeup_points(info)
+    raw = AuthoredChallenge.metadata_value(info, "points", "point_count", "points_count", "challenge_points", "score")
+    normalized = raw.to_s.strip
+    return nil unless normalized.match?(/\A\d+\z/)
+
+    points = normalized.to_i
+    points.positive? ? points : nil
   end
 
   def category_tag_config(category)

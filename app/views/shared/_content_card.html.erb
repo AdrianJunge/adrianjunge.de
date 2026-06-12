@@ -17,8 +17,21 @@
 <% date_classes = [ card.fetch(:date_class, "content-card-date") ].compact.join(" ") %>
 <% date_text_classes = [ card.fetch(:date_text_class, "content-card-date-text") ].compact.join(" ") %>
 <% reading_time_classes = [ card.fetch(:reading_time_class, "content-card-reading-time") ].compact.join(" ") %>
-<% meta_items = Array(card[:meta_items]).map(&:to_s).reject(&:blank?) %>
 <% meta_item_classes = [ card.fetch(:meta_item_class, "content-card-meta-item") ].compact.join(" ") %>
+<% meta_items = Array(card[:meta_items]).filter_map do |meta_item|
+     if meta_item.is_a?(Hash)
+       meta_item = meta_item.symbolize_keys if meta_item.respond_to?(:symbolize_keys)
+       label = meta_item[:label].to_s.presence
+       next unless label
+
+       { label: label, class_name: [ meta_item_classes, meta_item[:class_name] ].compact.join(" ") }
+     else
+       label = meta_item.to_s.presence
+       next unless label
+
+       { label: label, class_name: meta_item_classes }
+     end
+   end %>
 <% hitbox_classes = [ "content-card-hitbox", card[:hitbox_class] ].compact.join(" ") %>
 <% card_tags = Array(card[:tags]).compact %>
 <% authors = Array(card[:authors]).compact %>
@@ -111,7 +124,7 @@
         <% if card[:date].present? || card[:reading_time].present? || index.positive? %>
           <span class="content-card-meta-separator" aria-hidden="true">·</span>
         <% end %>
-        <span class="<%= meta_item_classes %>"><%= meta_item %></span>
+        <span class="<%= meta_item[:class_name] %>"><%= meta_item[:label] %></span>
       <% end %>
     </span>
   <% end %>

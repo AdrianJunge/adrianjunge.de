@@ -55,7 +55,7 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-author-name", text: "No Link"
   end
 
-  test "writeup cards render optional solve counts next to reading time" do
+  test "writeup cards render optional solve counts and points next to reading time" do
     render inline: "<%= render_writeup_card('Example', '/ctf/demo/Example', info) %>", locals: {
       info: {
         "title" => "Example",
@@ -63,14 +63,42 @@ class CtfHelperTest < ActionView::TestCase
         "categories" => [ "Web" ],
         "published" => "2026-01-01",
         "reading_time_label" => "4 min read",
-        "solves" => 7
+        "solves" => 7,
+        "points" => 405
       }
     }
 
-    assert_select ".blog-post-solve-count", text: "7 solves"
-    assert_equal "2026-01-01 · 4 min read · 7 solves", css_select(".blog-post-date").first.text.squish
+    assert_select ".blog-post-challenge-stats", text: "7 solves / 405 points"
+    assert_equal "2026-01-01 · 4 min read · 7 solves / 405 points", css_select(".blog-post-date").first.text.squish
     assert_equal "1 solve", writeup_solve_count_label("solve_count" => "1")
-    assert_nil writeup_solve_count_label("solves" => "0")
+    assert_equal "1 point", writeup_points_label("points" => "1")
+    assert_equal "1 solve / 1 point", writeup_challenge_stats_label("solve_count" => "1", "points" => "1")
+    assert_equal "0 solves", writeup_solve_count_label("solves" => "0")
+    assert_equal "0 solves / 500 points", writeup_challenge_stats_label("solves" => "0", "points" => "500")
+    assert_nil writeup_points_label("points" => "0")
+  end
+
+  test "writeup event urls prefer top-level metadata" do
+    assert_equal "https://event.example/2026",
+                 writeup_event_url(
+                   {
+                     "event_url" => "https://event.example/2026",
+                     "ctf_event_url" => "https://collection.example/"
+                   },
+                   fallback: "https://fallback.example/"
+                 )
+
+    assert_equal "https://authored.example/ctf",
+                 writeup_event_url(
+                   {
+                     "optional" => {
+                       "authored_challenge" => {
+                         "event_url" => "https://authored.example/ctf"
+                       }
+                     }
+                   },
+                   fallback: "https://fallback.example/"
+                 )
   end
 
   test "writeup cards render contest win badge from metadata" do
@@ -101,14 +129,14 @@ class CtfHelperTest < ActionView::TestCase
         "description" => "A winning authored writeup.",
         "categories" => [ "Web" ],
         "published" => "2026-01-01",
+        "event_url" => "https://example.com/ctf",
         "writeup_winner" => {
           "label" => "Contest win",
           "proof_url" => "https://example.com/proof"
         },
         "optional" => {
           "authored_challenge" => {
-            "event" => "DemoCTF 2026",
-            "event_url" => "https://example.com/ctf"
+            "event" => "DemoCTF 2026"
           }
         }
       }

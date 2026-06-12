@@ -26,8 +26,26 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert repository.ctf_posts.all? { |post| post[:reading_time_label].present? }
     assert repository.blog_posts.all? { |post| post[:word_count].positive? }
     assert repository.ctf_posts.all? { |post| post[:word_count].positive? }
-    assert_equal 5, repository.ctf_posts.find { |post| post[:title] == "Scanwich Station" }[:metadata]["solves"]
-    assert_equal 1, repository.ctf_posts.find { |post| post[:title] == "Smile at me" }[:metadata]["solves"]
+
+    researched_values = {
+      "Scanwich Station" => { "solves" => 5, "points" => 405, "event_url" => "https://gpn24.ctf.kitctf.de/" },
+      "Smile at me" => { "solves" => 1, "points" => 500, "event_url" => "https://gpn23.ctf.kitctf.de/" },
+      "Gamedev" => { "solves" => 108, "points" => 331, "event_url" => "https://platform.2025.lac.tf/" },
+      "CORS Playground" => { "solves" => 20, "points" => 451, "event_url" => "https://hackropole.fr/fr/challenges/web/fcsc2024-web-cors-playground/" },
+      "My Flask App" => { "solves" => 451, "points" => 100, "event_url" => "https://2025.ctf.sekai.team/" },
+      "Fancy Web" => { "solves" => 0, "points" => 500, "event_url" => "https://2025.ctf.sekai.team/" },
+      "Leaf" => { "solves" => 3, "points" => 469, "event_url" => "https://play.ctf.gg/" },
+      "A Minecraft Movie" => { "solves" => 58 },
+      "xmalloc" => { "solves" => 4, "points" => 500, "event_url" => "https://2022.ctf.kitctf.de/" }
+    }
+
+    researched_values.each do |title, expected_metadata|
+      metadata = repository.ctf_posts.find { |post| post[:title] == title }[:metadata]
+      expected_metadata.each do |key, expected_value|
+        assert_equal expected_value, metadata[key], "expected #{title} #{key}"
+      end
+    end
+
     assert_operator repository.total_post_reading_time_minutes, :>, 0
     assert_match(/\A\d+ min read\z/, repository.format_reading_time(repository.total_post_reading_time_minutes))
   end
@@ -49,6 +67,7 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert_includes challenges.first["summary"], "Published for GPNCTF 2026"
     assert_equal "GPNCTF 2025", challenges.second["category"]
     assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["card_url"]
+    assert_equal "https://gpn23.ctf.kitctf.de/", challenges.second["category_url"]
     assert_equal [
       {
         "label" => "Hard",

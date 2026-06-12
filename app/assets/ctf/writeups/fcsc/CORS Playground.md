@@ -9,6 +9,9 @@ categories:
     - Web
 difficulty: Easy
 ctf_year: 2024
+event_url: https://hackropole.fr/fr/challenges/web/fcsc2024-web-cors-playground/
+solves: 20
+points: 451
 challengefiles: cors-playground
 published: "2024-09-07"
 ---

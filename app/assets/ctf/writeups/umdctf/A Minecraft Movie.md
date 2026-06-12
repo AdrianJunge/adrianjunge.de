@@ -9,6 +9,7 @@ categories:
     - Web
 difficulty: Medium
 ctf_year: 2025
+solves: 58
 challengefiles: a-minecraft-movie
 published: "2025-02-04"
 optional:

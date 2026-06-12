@@ -151,7 +151,9 @@ class ContentRepository
       next unless authored
 
       event = authored[:event].presence || authored_challenge_event(post)
-      event_url = authored[:event_url].presence || ctf_metadata.dig(post[:which], "website")
+      event_url = authored[:event_url].presence ||
+                  metadata_event_url(post[:metadata]) ||
+                  ctf_metadata.dig(post[:which], "website")
       summary = authored[:summary].presence || authored_challenge_summary(post[:description], event)
       date = authored[:date].presence || post[:published].strftime("%Y-%m-%d")
       link = encoded_local_path(post[:link])
@@ -384,6 +386,10 @@ class ContentRepository
 
   def authored_challenge_event(post)
     [ post.dig(:metadata, "ctf").presence || post[:which], ctf_event_year(post[:metadata] || {}) ].compact.join(" ")
+  end
+
+  def metadata_event_url(metadata)
+    AuthoredChallenge.metadata_value(metadata || {}, "event_url", "event-url", "event_link", "event-link").presence
   end
 
   def authored_challenge_summary(description, event)

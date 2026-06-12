@@ -19,6 +19,9 @@ categories:
     -
 difficulty: unknown difficulty
 ctf_year:
+event_url:
+solves:
+points:
 challengefiles:
 published: "2025-08-25"
 
@@ -26,7 +29,6 @@ published: "2025-08-25"
 optional:
     authored_challenge:
         event:
-        event_url:
         summary:
     writeup_winner:
         label:

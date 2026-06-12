@@ -1,5 +1,5 @@
 ---
-ctf: KITCTF Intro CTF
+ctf: KITCTFCTF
 title: xmalloc
 authors:
     - name: ju256
@@ -8,7 +8,10 @@ description: All of our slot machines switched from using the very insecure libc
 categories:
     - pwn
 difficulty: Medium
-ctf_year: 2025
+ctf_year: 2022
+event_url: https://2022.ctf.kitctf.de/
+solves: 4
+points: 500
 challengefiles: xmalloc
 published: "2026-05-25"
 ---

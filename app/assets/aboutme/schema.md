@@ -32,14 +32,16 @@ Set `"hidden": true` on pending JSON records or achievement events that should r
 Authored CTF challenges are listed on `/about` when a writeup has `optional.authored_challenge` in its markdown front matter:
 
 ```yaml
+event_url: https://gpn24.ctf.kitctf.de/
+solves: 5
+points: 405
 optional:
   authored_challenge:
     event: GPNCTF 2026
-    event_url: https://ctftime.org/event/3041
     summary: Summary shown on the about card.
 ```
 
-The `optional` section may be omitted entirely. Inside `authored_challenge`, `event`, `event_url`, and `summary` are optional; missing values fall back to the CTF name plus `ctf_year`, configured CTF website, and writeup description.
+The `optional` section may be omitted entirely. Use top-level `event_url` for the original event platform shown in writeup titles and authored-challenge badges. Inside `authored_challenge`, `event` and `summary` are optional; missing values fall back to the CTF name plus `ctf_year` and writeup description.
 
 Certificate, talk, and achievement entries support these fields:
 

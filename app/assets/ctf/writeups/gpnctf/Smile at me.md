@@ -9,13 +9,14 @@ categories:
     - web
 difficulty: Hard
 ctf_year: 2025
+event_url: https://gpn23.ctf.kitctf.de/
 challengefiles: smile-at-me
 solves: 1
+points: 500
 published: "2025-08-21"
 optional:
     authored_challenge:
         event: GPNCTF 2025
-        event_url: https://gpn23.ctf.kitctf.de/
         summary: Web challenge about URL parser differentials, strict CSP, and an XS-Leak using Scroll-to-Text Fragment behavior with lazy-loaded images. Published for GPNCTF 2025.
 ---
 

@@ -9,6 +9,9 @@ categories:
     - web
 difficulty: Easy
 ctf_year: 2025
+event_url: https://2025.ctf.sekai.team/
+solves: 451
+points: 100
 challengefiles: my-flask-app
 published: "2025-09-11"
 ---

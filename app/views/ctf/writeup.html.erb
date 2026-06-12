@@ -64,10 +64,11 @@
     </button>
 
     <% writeup_ctf_label = [ (@ctf_name.presence || @which).to_s.upcase, writeup_ctf_year(@ctf_info) ].compact.join("-") %>
+    <% writeup_ctf_url = writeup_event_url(@ctf_info, fallback: @ctf["website"]) %>
     <h4 class="writeup-year text-white text-center">
-      <% if @ctf["website"].present? %>
+      <% if writeup_ctf_url.present? %>
         <%= link_to writeup_ctf_label,
-                    @ctf["website"],
+                    writeup_ctf_url,
                     class: "writeup-year-link",
                     target: "_blank",
                     rel: "noopener noreferrer" %>
@@ -79,7 +80,7 @@
     <%= render "shared/post_meta",
                items: [ @ctf_info["published"] ],
                reading_time: @ctf_info["reading_time_label"],
-               extra_items: [ writeup_solve_count_label(@ctf_info) ] %>
+               extra_items: [ writeup_challenge_stats_label(@ctf_info) ] %>
 
     <% recognition_badges = [
          render_writeup_winner_badge(@ctf_info, context: :article),
