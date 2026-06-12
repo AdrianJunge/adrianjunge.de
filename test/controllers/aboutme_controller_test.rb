@@ -19,7 +19,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".aboutme-achievement-card", minimum: 1
     assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#cves", text: cves.length.to_s
     assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#bug-bounties", text: "0"
-    assert_select ".aboutme-stat[href=?]", "#my-challenges", text: /Created Challenges/
+    assert_select ".aboutme-stat[href=?]", "#my-challenges", text: /Created CTF Challenges/
     assert_select ".aboutme-stat[href=?]", "#certificates", text: /Certificates/
     assert_select ".aboutme-stat[href=?]", "#talks", text: /Talks/
     assert_select ".aboutme-stat[href=?]", "#achievements", text: /Achievements/

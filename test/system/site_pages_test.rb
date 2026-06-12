@@ -782,7 +782,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-metric[href='/timeline'] .landing-metric-value", text: repository.post_count.to_s
     assert_selector ".landing-metric[href='/about']", text: "& more..."
     assert_no_selector ".landing-metric[href='/about'] .landing-metric-value"
-    assert_no_selector ".landing-metric", text: "Created Challenges"
+    assert_no_selector ".landing-metric", text: "Created CTF Challenges"
     assert_no_selector ".landing-metric", text: "Certificates"
     assert_no_selector ".landing-metric", text: "Achievements"
     assert_no_selector ".landing-metric[href='/ctf']", text: "CTFs"

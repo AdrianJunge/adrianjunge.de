@@ -81,7 +81,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector ".aboutme-stat[href='#cves']", text: "CVEs"
     assert_selector ".aboutme-stat[href='#bug-bounties']", text: "0"
     assert_selector ".aboutme-stat[href='#bug-bounties']", text: "Bug bounties"
-    assert_selector ".aboutme-stat[href='#my-challenges']", text: "Created Challenges"
+    assert_selector ".aboutme-stat[href='#my-challenges']", text: "Created CTF Challenges"
     assert_selector ".aboutme-stat[href='#certificates']", text: "Certificates"
     assert_selector ".aboutme-stat[href='#talks']", text: "Talks"
     assert_selector ".aboutme-stat[href='#achievements']", text: "Achievements"

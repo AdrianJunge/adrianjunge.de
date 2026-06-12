@@ -1,0 +1,22 @@
+/goal refactor the whole code of the website and implement the following new features very thoroughly. Keep reiterating over the following points (which are also in /home/vurlo/stuff/adrianjunge.de/TODO.md listed), make a plan for every single task of these on how to approach and implement/refactor the code and thoroughly test everything
+- [ ] Completely rework the visuals so the website looks a bit simpler
+    - to do this do thorough research on best practices of website visuals and apply these
+    - especially for all the buttons, the (clickable) cards (e.g. in /about, /ctf, /ctf/<which>, landing page, /blog etc), the drop down cards, buttons with the counters etc these have to be in a single color without transitions
+    - the hovering effects should still be present, its mostly about the color transitions that have to be removed completely
+    - anything else that you think is worth editing, go ahead for it
+    - the color palet stays blue
+- [ ] Reduce the amount of immediate links visible/clickable
+    - to achieve this put e.g. for the CVE cards the links in the collapsable body
+    - all the surface that is clickable due to links, should be visually presenting this character (e.g. just like the clickable tags having the ">")
+- [ ] Tags that are not clickable should be greyed out
+    - this applies e.g. for tags on the landing page, /about etc as there is no filtering going on on these pages
+- [ ] The toggle ToC button should have same spacing to top as to right to the border of the whole content area
+- [ ] Rss Feeds buttons should redirect to the xml page instead of immediate download
+- [ ] Add Json Feed in addition to RSS
+- [ ] The difficulty filtering tags are for whatever reason not clickable in the cards e.g. in /ctf
+- [ ] When you are filtering which gives back 0 results, there are two areas shown - one empty and one telling me that there is nothing - this is redundant, there should only be an area telling me there is nothing
+- [ ] Add SEO breadcrumbs
+- [ ] The sidebar should be completely replaced by a taskbar like bar on top of the webpage - there is no option to (un)collapse, just a plain heading bar with the buttons as currently
+    - the description for the buttons should be in small text font below the button icons
+- [ ] On the landing page the icon above "KIT" and "KITCTF" should refer to the discord link
+- [ ] If not already fixed, currently when filtering via the tags, due to the blue border appearing when having it clicked, the filter area expands minimally and thus everything moves a bit down. Prevent this!

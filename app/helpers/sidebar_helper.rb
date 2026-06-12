@@ -26,7 +26,7 @@ module SidebarHelper
           end
         )
       else
-        content_tag(:div, class: control_classes, id: id) do
+        content_tag(:button, type: "button", class: control_classes, id: id, aria: { label: label }) do
           concat(icon)
           concat(content_tag(:span, label, class: label_class))
         end

@@ -324,6 +324,7 @@ function openTerminal(terminal) {
 
 function minimizeTerminal() {
     const minimizeButton = document.getElementById("minimize-terminal");
+    const maximizeButton = document.getElementById("maximize-terminal");
 	const closeButton = document.getElementById("close-terminal");
 	const terminal = document.getElementById("terminal-container");
 	const terminalTaskbarIcon = document.getElementById("terminal-taskbar-button");
@@ -336,6 +337,10 @@ function minimizeTerminal() {
             console.error("Error accessing localStorage:", e);
         }
         if (terminalOpened) term.blur();
+    });
+    maximizeButton.addEventListener("click", function () {
+        terminal.classList.toggle("terminal-maximized");
+        if (terminalOpened) fitTerminal();
     });
     closeButton.addEventListener("click", function () {
         terminal.classList.add("terminal-minimized");

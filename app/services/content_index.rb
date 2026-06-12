@@ -17,7 +17,7 @@ class ContentIndex
     {
       path: ApplicationController::ABOUTME_CHALLENGES_PATH,
       kind: "challenge",
-      label: "Created challenge",
+      label: "Created CTF challenges",
       section: "my-challenges",
       featured: true
     },

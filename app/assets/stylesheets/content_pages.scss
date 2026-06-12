@@ -355,10 +355,14 @@
 .content-page .content-filter-year-option:focus-visible,
 .content-page .content-filter-year-option.is-active {
     color: #fff;
-    border-color: rgba(125, 211, 252, 0.38);
-    background: var(--glass-control-bg-hover);
-    outline: none;
-    transform: translateY(-1px);
+    border-color: rgba(125, 211, 252, 0.46);
+    background: rgba(29, 72, 106, 0.7);
+    transform: none;
+}
+
+.content-page .content-filter-year-option:focus-visible {
+    outline: 2px solid rgba(125, 211, 252, 0.7);
+    outline-offset: 2px;
 }
 
 .content-page .content-filter-tags {
@@ -411,14 +415,24 @@
 }
 
 .content-page .content-filter-reset {
+    padding: 0.2rem 0;
+    border: 0;
     color: #7dd3fc;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
     font-weight: 800;
     text-decoration: none;
     transition: color 0.18s ease;
 }
 
-.content-page .content-filter-reset:hover {
+.content-page .content-filter-reset:hover,
+.content-page .content-filter-reset:focus-visible {
     color: #f8fafc;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+    outline: 2px solid transparent;
 }
 
 .content-page .content-filter-empty {
@@ -524,14 +538,14 @@
     justify-content: center;
     margin-left: -2.35rem;
     padding: 0.5rem;
-    border: 0;
+    border: 1px solid transparent;
     border-radius: var(--radius-ui-control);
-    color: #fed7aa;
+    color: var(--button-color-muted);
     background: transparent;
     cursor: pointer;
     visibility: hidden;
     opacity: 0;
-    transition: background-color 0.18s ease, color 0.18s ease, opacity 0.18s ease, visibility 0.18s ease;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease, visibility 0.18s ease;
 }
 
 .content-page .search-wrapper.is-filled .search-clear-btn,
@@ -543,9 +557,11 @@
 
 .content-page .search-clear-btn:hover,
 .content-page .search-clear-btn:focus-visible {
-    background: rgba(14, 116, 144, 0.34);
+    border-color: rgba(125, 211, 252, 0.34);
+    background: rgba(25, 62, 93, 0.82);
     color: #fff;
-    outline: none;
+    outline: 2px solid rgba(125, 211, 252, 0.7);
+    outline-offset: 2px;
 }
 
 .content-page .ctf-rss-feed,
@@ -1281,7 +1297,8 @@
     box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.16),
         0 0.55rem 1.25rem var(--tag-shadow-hover);
-    outline: none;
+    outline: 2px solid rgba(125, 211, 252, 0.7);
+    outline-offset: 2px;
     transform: translateY(-1px);
 }
 
@@ -1444,11 +1461,11 @@
         border-color: var(--tag-border-hover);
         box-shadow:
             inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-            0 0.55rem 1.25rem var(--tag-shadow-hover);
+            0 0.45rem 1rem var(--tag-shadow-hover);
         color: var(--tag-color-hover);
         background: var(--glass-tag-highlight), var(--tag-bg-hover);
         outline: none;
-        transform: translateY(-2px) scale(1.02);
+        transform: translateY(-1px);
     }
 
     .content-page .content-tag-action:hover .content-tag-arrow,
@@ -1463,11 +1480,12 @@
     border-color: var(--tag-border-hover);
     box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-        0 0.55rem 1.25rem var(--tag-shadow-hover);
+        0 0.45rem 1rem var(--tag-shadow-hover);
     color: var(--tag-color-hover);
     background: var(--glass-tag-highlight), var(--tag-bg-hover);
-    outline: none;
-    transform: translateY(-2px) scale(1.02);
+    outline: 2px solid rgba(125, 211, 252, 0.7);
+    outline-offset: 2px;
+    transform: translateY(-1px);
 }
 
 .content-page .content-tag-link:focus-visible .content-tag-arrow,
@@ -1595,16 +1613,14 @@
     line-height: 1.35;
     text-align: center;
     white-space: normal;
-    transform: scale(1);
-    transition: transform 0.18s ease, background-color 0.18s ease;
+    transition: var(--button-transition);
 }
 
 .content-page .download-btn:hover,
 .content-page .open-pdf-btn:hover,
 .content-page .previous-writeup-btn:hover,
 .content-page .next-writeup-btn:hover {
-    transform: translateY(-1px) scale(1.03);
-    background-color: var(--color-accent);
+    transform: var(--button-hover-transform);
 }
 
 .content-page .writeup-year {
@@ -2026,9 +2042,9 @@
     justify-content: center;
     width: 1.75rem;
     height: 1.75rem;
-    border: 1px solid transparent;
+    border: 1px solid rgba(125, 211, 252, 0.16);
     border-radius: var(--radius-ui-control);
-    background: transparent;
+    background: rgba(10, 31, 54, 0.54);
     color: rgba(226, 232, 240, 0.72);
     cursor: pointer;
     line-height: 1;
@@ -2038,9 +2054,11 @@
 
 .content-page .copy-btn:hover,
 .content-page .copy-btn:focus-visible {
-    border-color: rgba(125, 211, 252, 0.35);
-    background: rgba(51, 68, 97, 0.78);
+    border-color: rgba(125, 211, 252, 0.48);
+    background: rgba(29, 72, 106, 0.82);
     color: #e2e8f0;
+    outline: 2px solid rgba(125, 211, 252, 0.7);
+    outline-offset: 2px;
 }
 
 .content-page .markdown-content a {

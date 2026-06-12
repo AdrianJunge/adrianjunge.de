@@ -10,14 +10,14 @@ module TerminalHelper
       safe_join([
         content_tag(:div, class: "terminal-header") do
           safe_join([
-            content_tag(:div, id: "minimize-terminal", class: "terminal-button") do
-              image_tag("terminal/minimize-icon.svg", alt: "Minimize", class: "button-icon")
+            content_tag(:button, type: "button", id: "minimize-terminal", class: "terminal-button", aria: { label: "Minimize terminal" }) do
+              image_tag("terminal/minimize-icon.svg", alt: "", class: "button-icon", aria: { hidden: true })
             end,
-            content_tag(:div, id: "maximize-terminal", class: "terminal-button") do
-              image_tag("terminal/maximize-icon.svg", alt: "Maximize", class: "button-icon")
+            content_tag(:button, type: "button", id: "maximize-terminal", class: "terminal-button", aria: { label: "Maximize terminal" }) do
+              image_tag("terminal/maximize-icon.svg", alt: "", class: "button-icon", aria: { hidden: true })
             end,
-            content_tag(:div, id: "close-terminal", class: "terminal-button") do
-              image_tag("terminal/close-icon.svg", alt: "Close", class: "button-icon")
+            content_tag(:button, type: "button", id: "close-terminal", class: "terminal-button", aria: { label: "Close terminal" }) do
+              image_tag("terminal/close-icon.svg", alt: "", class: "button-icon", aria: { hidden: true })
             end
           ])
         end,

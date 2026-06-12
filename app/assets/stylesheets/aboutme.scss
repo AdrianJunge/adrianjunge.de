@@ -487,8 +487,10 @@ a.aboutme-card-tag.aboutme-tag-action:focus-visible {
     background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
     box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-        0 0.55rem 1.25rem rgba(14, 165, 233, 0.18);
-    transform: translateY(-2px) scale(1.02);
+        0 0.45rem 1rem rgba(14, 165, 233, 0.18);
+    outline: 2px solid rgba(125, 211, 252, 0.7);
+    outline-offset: 2px;
+    transform: translateY(-1px);
 }
 
 a.aboutme-card-tag.aboutme-tag-action:focus-visible::after {
@@ -599,8 +601,8 @@ a.aboutme-cve-id:focus-visible {
     background: var(--glass-tag-highlight), rgba(67, 56, 202, 0.7);
     box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-        0 0.55rem 1.25rem rgba(99, 102, 241, 0.24);
-    transform: translateY(-2px) scale(1.02);
+        0 0.45rem 1rem rgba(99, 102, 241, 0.24);
+    transform: translateY(-1px);
 }
 
 a.aboutme-cwe-id:focus-visible {
@@ -609,8 +611,8 @@ a.aboutme-cwe-id:focus-visible {
     background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
     box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-        0 0.55rem 1.25rem rgba(14, 165, 233, 0.18);
-    transform: translateY(-2px) scale(1.02);
+        0 0.45rem 1rem rgba(14, 165, 233, 0.18);
+    transform: translateY(-1px);
 }
 
 .aboutme-card-tag.aboutme-difficulty-tag {
@@ -684,8 +686,8 @@ a.aboutme-cwe-id:focus-visible {
         background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
         box-shadow:
             inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-            0 0.55rem 1.25rem rgba(14, 165, 233, 0.18);
-        transform: translateY(-2px) scale(1.02);
+            0 0.45rem 1rem rgba(14, 165, 233, 0.18);
+        transform: translateY(-1px);
     }
 
     a.aboutme-card-tag.aboutme-tag-action:hover::after {
@@ -699,7 +701,7 @@ a.aboutme-cwe-id:focus-visible {
         background: var(--glass-tag-highlight), rgba(67, 56, 202, 0.7);
         box-shadow:
             inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-            0 0.55rem 1.25rem rgba(99, 102, 241, 0.24);
+            0 0.45rem 1rem rgba(99, 102, 241, 0.24);
     }
 
     .aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id:hover {
@@ -708,7 +710,7 @@ a.aboutme-cwe-id:focus-visible {
         background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
         box-shadow:
             inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-            0 0.55rem 1.25rem rgba(14, 165, 233, 0.18);
+            0 0.45rem 1rem rgba(14, 165, 233, 0.18);
     }
 }
 
