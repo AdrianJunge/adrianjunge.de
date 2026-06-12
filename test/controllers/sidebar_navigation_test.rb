@@ -69,46 +69,71 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
 
       assert_response :success
       assert_equal labels, terminal_labels_for_response, "unexpected terminal entries for #{path}"
+      assert_equal path, terminal_entry_for(".").fetch("url"), "unexpected current terminal URL for #{path}"
     end
 
     get "/ctf"
     assert_response :success
+    assert_equal "/ctf", terminal_entry_for(".").fetch("url")
+    assert_equal "/", terminal_entry_for("..").fetch("url")
     ctf_labels = terminal_labels_for_response
     assert_includes ctf_labels, "cscg"
     assert_includes ctf_labels, "gpnctf"
+    assert_equal "/ctf/cscg", terminal_entry_for("cscg").fetch("url")
+    assert_equal "/ctf/gpnctf", terminal_entry_for("gpnctf").fetch("url")
     assert_not_includes ctf_labels, "about"
     assert_not_includes ctf_labels, "blog"
 
     get "/blog"
     assert_response :success
+    assert_equal "/blog", terminal_entry_for(".").fetch("url")
+    assert_equal "/", terminal_entry_for("..").fetch("url")
     blog_labels = terminal_labels_for_response
     assert_includes blog_labels, "htb-cpts"
     assert_includes blog_labels, "java-strings"
+    assert_equal "/blog/htb-cpts", terminal_entry_for("htb-cpts").fetch("url")
+    assert_equal "/blog/java-strings", terminal_entry_for("java-strings").fetch("url")
     assert_not_includes blog_labels, "about"
     assert_not_includes blog_labels, "ctf"
 
     get "/ctf/cscg"
     assert_response :success
+    assert_equal "/ctf/cscg", terminal_entry_for(".").fetch("url")
+    assert_equal "/ctf", terminal_entry_for("..").fetch("url")
     writeup_labels = terminal_labels_for_response
     assert_includes writeup_labels, "KDF dream"
+    assert_equal "/ctf/cscg/KDF%20dream", terminal_entry_for("KDF dream").fetch("url")
     assert_not_includes writeup_labels, "blog"
     assert_not_includes writeup_labels, "about"
 
     get "/ctf/cscg/KDF%20dream"
     assert_response :success
     assert_equal %w[~ . ..], terminal_labels_for_response
+    assert_equal "/ctf/cscg/KDF%20dream", terminal_entry_for(".").fetch("url")
+    assert_equal "/ctf/cscg", terminal_entry_for("..").fetch("url")
 
     get "/blog/htb-cpts"
     assert_response :success
     assert_equal %w[~ . ..], terminal_labels_for_response
+    assert_equal "/blog/htb-cpts", terminal_entry_for(".").fetch("url")
+    assert_equal "/blog", terminal_entry_for("..").fetch("url")
   end
 
   private
 
+  def terminal_entry_for(label)
+    terminal_entries_for_response.find { |entry| entry["label"] == label } ||
+      flunk("expected terminal entry #{label.inspect}")
+  end
+
   def terminal_labels_for_response
+    terminal_entries_for_response.map { |entry| entry["label"] }
+  end
+
+  def terminal_entries_for_response
     terminal = css_select("#terminal-container").first
     assert terminal, "expected response to include terminal data"
 
-    JSON.parse(terminal["data-terminal-text"]).map { |entry| entry["label"] }
+    JSON.parse(terminal["data-terminal-text"])
   end
 end

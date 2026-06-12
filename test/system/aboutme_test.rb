@@ -95,9 +95,10 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_no_selector "#achievements #firedancer-v1-audit-competition"
     assert_no_selector "#achievements .aboutme-card-link-overlay", visible: :all
     assert_no_selector "#achievements #kitctf .aboutme-reference-link[href='https://ctftime.org/team/7221/']", visible: :all
-    assert_selector "#achievements #kitctf .aboutme-tag-event[href='https://ctftime.org/team/7221/']", text: "KITCTF on CTFtime", visible: :all
-    assert_selector "#achievements #kitctf .aboutme-timeline-title", text: "KITCTF #3 at GlacierCTF 2025"
-    assert_selector "#achievements #kitctf .aboutme-timeline-event-tag[href='https://ctftime.org/event/2714']", text: "Event", visible: :all
+    assert_selector "#achievements #kitctf .aboutme-tag-event[href='https://ctftime.org/team/7221/']", text: "KITCTF", visible: :all
+    assert_no_text "KITCTF on CTFtime"
+    assert_no_selector "#achievements #kitctf .aboutme-timeline-event-tag", visible: :all
+    assert_selector "#achievements #kitctf .aboutme-timeline-event-link[href='https://ctftime.org/event/2714']", text: "KITCTF #3 at GlacierCTF 2025", visible: :all
     assert_no_text "Public advisories"
     assert_no_text "Responsible disclosure"
     assert_no_text "Credentials"
@@ -176,7 +177,10 @@ class AboutmeTest < ApplicationSystemTestCase
           afterContent: afterStyle.content,
           afterBorderRightWidth: afterStyle.borderRightWidth,
           afterWidth: afterStyle.width,
-          titleBeforeCount: titleRect.right < countRect.left
+          titleSeparatedFromCount:
+            titleRect.right < countRect.left ||
+            titleRect.bottom <= countRect.top ||
+            countRect.bottom <= titleRect.top
         };
       })()
     JS
@@ -185,7 +189,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal '""', section_arrow["afterContent"]
     assert_equal "2px", section_arrow["afterBorderRightWidth"]
     assert_not_equal "0px", section_arrow["afterWidth"]
-    assert_equal true, section_arrow["titleBeforeCount"]
+    assert_equal true, section_arrow["titleSeparatedFromCount"]
   end
 
   test "about counters scroll to their sections" do
@@ -397,10 +401,18 @@ class AboutmeTest < ApplicationSystemTestCase
         const cweTagStyle = window.getComputedStyle(cweTag);
         const cweTagActionStyle = window.getComputedStyle(cweTag, "::after");
         const projectLink = finding.querySelector(".aboutme-finding-project-link");
+        const referenceList = finding.querySelector(".aboutme-card-body .aboutme-card-details");
+        const referenceListStyle = window.getComputedStyle(referenceList);
+        const referenceListItem = referenceList.querySelector("li");
+        const referenceListItemStyle = window.getComputedStyle(referenceListItem);
+        const referenceListItemMarkerStyle = window.getComputedStyle(referenceListItem, "::marker");
         const referenceLinks = [...finding.querySelectorAll(".aboutme-card-body .aboutme-reference-link")];
         const advisoryLink = finding.querySelector(".aboutme-card-body .aboutme-finding-advisory-link");
-        const highSeverityStyle = window.getComputedStyle(document.querySelector(".aboutme-severity-high"));
-        const mediumSeverityStyle = window.getComputedStyle(document.querySelector(".aboutme-severity-medium"));
+        const advisoryLinkStyle = window.getComputedStyle(advisoryLink);
+        const highSeverity = document.querySelector(".aboutme-severity-high");
+        const highSeverityStyle = window.getComputedStyle(highSeverity);
+        const mediumSeverity = document.querySelector(".aboutme-severity-medium");
+        const mediumSeverityStyle = window.getComputedStyle(mediumSeverity);
         const challengeTag = document.querySelector("#my-challenges .aboutme-tag-gpnctf-2025");
         const challengeTagStyle = window.getComputedStyle(challengeTag);
         const challengeTagActionStyle = window.getComputedStyle(challengeTag, "::after");
@@ -411,6 +423,14 @@ class AboutmeTest < ApplicationSystemTestCase
         const achievementTag = achievement.querySelector(".aboutme-achievement-meta .aboutme-card-tag");
         const achievementTagStyle = window.getComputedStyle(achievementTag);
         const achievementTagActionStyle = window.getComputedStyle(achievementTag, "::after");
+        const achievementEventTag = document.querySelector("#achievements #kitctf .aboutme-achievement-meta .aboutme-tag-event");
+        const achievementEventTagStyle = window.getComputedStyle(achievementEventTag);
+        const achievementEventTagActionStyle = window.getComputedStyle(achievementEventTag, "::after");
+        const timelinePlainTitle = document.querySelector("#achievements #dhm .aboutme-timeline-title");
+        const timelinePlainTitleStyle = window.getComputedStyle(timelinePlainTitle);
+        const timelineEventTag = document.querySelector("#achievements #kitctf .aboutme-timeline-event-link");
+        const timelineEventTagStyle = window.getComputedStyle(timelineEventTag);
+        const timelineEventTagActionStyle = window.getComputedStyle(timelineEventTag, "::after");
 
         return {
           findingTagsBelowTitle: findingTags.top >= findingTitle.bottom,
@@ -423,6 +443,12 @@ class AboutmeTest < ApplicationSystemTestCase
           advisoryClass: advisoryLink.className,
           advisoryAriaLabel: advisoryLink.getAttribute("aria-label"),
           advisoryTitle: advisoryLink.getAttribute("title"),
+          advisoryColor: advisoryLinkStyle.color,
+          advisoryTextDecorationLine: advisoryLinkStyle.textDecorationLine,
+          referenceListDisplay: referenceListStyle.display,
+          referenceListStyleType: referenceListStyle.listStyleType,
+          referenceListItemDisplay: referenceListItemStyle.display,
+          referenceListMarkerColor: referenceListItemMarkerStyle.color,
           referenceTexts: referenceLinks.map((link) => link.textContent.trim()),
           referenceHrefs: referenceLinks.map((link) => link.href),
           achievementTagsBelowTitle: achievementTags.top >= achievementTitle.bottom,
@@ -444,12 +470,21 @@ class AboutmeTest < ApplicationSystemTestCase
           challengeTagCursor: challengeTagStyle.cursor,
           challengeTagActionContent: challengeTagActionStyle.content,
           challengeTagActionWidth: challengeTagActionStyle.width,
+          highSeverityTagName: highSeverity.tagName,
+          highSeverityHref: highSeverity.getAttribute("href"),
+          highSeverityClass: highSeverity.className,
+          highSeverityCursor: highSeverityStyle.cursor,
           highSeverityBorder: highSeverityStyle.borderTopColor,
           highSeverityBackgroundImage: highSeverityStyle.backgroundImage,
           highSeverityShadow: highSeverityStyle.boxShadow,
+          mediumSeverityTagName: mediumSeverity.tagName,
+          mediumSeverityHref: mediumSeverity.getAttribute("href"),
+          mediumSeverityClass: mediumSeverity.className,
+          mediumSeverityCursor: mediumSeverityStyle.cursor,
           mediumSeverityBorder: mediumSeverityStyle.borderTopColor,
           mediumSeverityBackgroundImage: mediumSeverityStyle.backgroundImage,
           mediumSeverityShadow: mediumSeverityStyle.boxShadow,
+          achievementTagHref: achievementTag.getAttribute("href"),
           achievementTagClass: achievementTag.className,
           achievementTagBackground: achievementTagStyle.backgroundColor,
           achievementTagBorder: achievementTagStyle.borderTopColor,
@@ -458,6 +493,29 @@ class AboutmeTest < ApplicationSystemTestCase
           achievementTagShadow: achievementTagStyle.boxShadow,
           achievementTagTransform: achievementTagStyle.transform,
           achievementTagActionContent: achievementTagActionStyle.content,
+          achievementEventTagClass: achievementEventTag.className,
+          achievementEventTagColor: achievementEventTagStyle.color,
+          achievementEventTagBackground: achievementEventTagStyle.backgroundColor,
+          achievementEventTagBorder: achievementEventTagStyle.borderTopColor,
+          achievementEventTagCursor: achievementEventTagStyle.cursor,
+          achievementEventTagShadow: achievementEventTagStyle.boxShadow,
+          achievementEventTagTextDecorationLine: achievementEventTagStyle.textDecorationLine,
+          achievementEventTagActionContent: achievementEventTagActionStyle.content,
+          achievementEventTagActionWidth: achievementEventTagActionStyle.width,
+          timelineEventTagClass: timelineEventTag.className,
+          timelineEventTagText: timelineEventTag.textContent.trim(),
+          timelineEventTagColor: timelineEventTagStyle.color,
+          timelineEventTagBackground: timelineEventTagStyle.backgroundColor,
+          timelineEventTagBorderWidth: timelineEventTagStyle.borderTopWidth,
+          timelineEventTagShadow: timelineEventTagStyle.boxShadow,
+          timelineEventTagTextDecorationLine: timelineEventTagStyle.textDecorationLine,
+          timelineEventTagActionContent: timelineEventTagActionStyle.content,
+          timelineEventTagFontSize: timelineEventTagStyle.fontSize,
+          timelineEventTagFontWeight: timelineEventTagStyle.fontWeight,
+          timelineEventTagLineHeight: timelineEventTagStyle.lineHeight,
+          timelinePlainTitleFontSize: timelinePlainTitleStyle.fontSize,
+          timelinePlainTitleFontWeight: timelinePlainTitleStyle.fontWeight,
+          timelinePlainTitleLineHeight: timelinePlainTitleStyle.lineHeight,
           visibleActionRows: document.querySelectorAll(".aboutme-link-row").length
         };
       })()
@@ -474,6 +532,12 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_includes metrics["advisoryClass"], "aboutme-finding-advisory-link"
     assert_equal "Open advisory for Privilege escalation through com_users batch task", metrics["advisoryAriaLabel"]
     assert_equal "Open advisory source", metrics["advisoryTitle"]
+    assert_equal "rgb(96, 165, 250)", metrics["advisoryColor"]
+    assert_equal "underline", metrics["advisoryTextDecorationLine"]
+    assert_equal "block", metrics["referenceListDisplay"]
+    assert_equal "disc", metrics["referenceListStyleType"]
+    assert_equal "list-item", metrics["referenceListItemDisplay"]
+    assert_equal "rgba(96, 165, 250, 0.82)", metrics["referenceListMarkerColor"]
     assert_includes metrics["referenceTexts"], "Repository"
     assert_includes metrics["referenceTexts"], "Advisory source"
     assert_includes metrics["referenceHrefs"], "https://github.com/joomla/joomla-cms"
@@ -499,23 +563,53 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "pointer", metrics["challengeTagCursor"]
     assert_equal '""', metrics["challengeTagActionContent"]
     assert_not_equal "0px", metrics["challengeTagActionWidth"]
-    assert_equal "rgba(96, 165, 250, 0.26)", metrics["highSeverityBorder"]
+    assert_equal "A", metrics["highSeverityTagName"]
+    assert_equal "/timeline?tag=High", metrics["highSeverityHref"]
+    assert_includes metrics["highSeverityClass"], "aboutme-tag-timeline"
+    assert_equal "pointer", metrics["highSeverityCursor"]
     assert_equal "none", metrics["highSeverityBackgroundImage"]
-    assert_equal "none", metrics["highSeverityShadow"]
-    assert_equal "rgba(96, 165, 250, 0.26)", metrics["mediumSeverityBorder"]
+    assert_not_equal "none", metrics["highSeverityShadow"]
+    assert_equal "A", metrics["mediumSeverityTagName"]
+    assert_equal "/timeline?tag=Moderate", metrics["mediumSeverityHref"]
+    assert_includes metrics["mediumSeverityClass"], "aboutme-tag-timeline"
+    assert_equal "pointer", metrics["mediumSeverityCursor"]
     assert_equal "none", metrics["mediumSeverityBackgroundImage"]
-    assert_equal "none", metrics["mediumSeverityShadow"]
-    assert_equal "rgba(22, 52, 79, 0.56)", metrics["achievementTagBackground"]
-    assert_equal "rgba(96, 165, 250, 0.26)", metrics["achievementTagBorder"]
-    assert_equal "default", metrics["achievementTagCursor"]
+    assert_not_equal "none", metrics["mediumSeverityShadow"]
+    assert_match %r{\A/timeline\?tag=}, metrics["achievementTagHref"]
+    assert_includes metrics["achievementTagClass"], "aboutme-tag-timeline"
+    assert_includes metrics["achievementTagClass"], "aboutme-tag-action"
+    assert_includes metrics["achievementTagClass"], "ui-hover-lift"
+    assert_equal "rgba(14, 116, 144, 0.42)", metrics["achievementTagBackground"]
+    assert_equal "rgba(125, 211, 252, 0.34)", metrics["achievementTagBorder"]
+    assert_equal "pointer", metrics["achievementTagCursor"]
     assert_equal "auto", metrics["achievementTagPointerEvents"]
-    assert_equal "none", metrics["achievementTagShadow"]
+    assert_not_equal "none", metrics["achievementTagShadow"]
     assert_equal "none", metrics["achievementTagActionContent"]
-    assert_not_includes metrics["achievementTagClass"], "ui-hover-lift"
+    assert_includes metrics["achievementEventTagClass"], "aboutme-card-tag"
+    assert_includes metrics["achievementEventTagClass"], "ui-hover-lift"
+    assert_equal "rgb(223, 247, 255)", metrics["achievementEventTagColor"]
+    assert_equal "rgba(14, 116, 144, 0.42)", metrics["achievementEventTagBackground"]
+    assert_equal "rgba(125, 211, 252, 0.34)", metrics["achievementEventTagBorder"]
+    assert_equal "pointer", metrics["achievementEventTagCursor"]
+    assert_not_equal "none", metrics["achievementEventTagShadow"]
+    assert_equal "none", metrics["achievementEventTagTextDecorationLine"]
+    assert_equal '""', metrics["achievementEventTagActionContent"]
+    assert_not_equal "0px", metrics["achievementEventTagActionWidth"]
+    assert_not_includes metrics["timelineEventTagClass"], "aboutme-card-tag"
+    assert_equal "KITCTF #3 at GlacierCTF 2025", metrics["timelineEventTagText"]
+    assert_equal "rgb(96, 165, 250)", metrics["timelineEventTagColor"]
+    assert_equal "rgba(0, 0, 0, 0)", metrics["timelineEventTagBackground"]
+    assert_equal "0px", metrics["timelineEventTagBorderWidth"]
+    assert_equal "none", metrics["timelineEventTagShadow"]
+    assert_equal "underline", metrics["timelineEventTagTextDecorationLine"]
+    assert_equal "none", metrics["timelineEventTagActionContent"]
+    assert_equal metrics["timelinePlainTitleFontSize"], metrics["timelineEventTagFontSize"]
+    assert_equal metrics["timelinePlainTitleFontWeight"], metrics["timelineEventTagFontWeight"]
+    assert_equal metrics["timelinePlainTitleLineHeight"], metrics["timelineEventTagLineHeight"]
     assert_equal 0, metrics["visibleActionRows"]
 
     find("#achievements .aboutme-achievement-meta .aboutme-card-tag", match: :first).hover
-    hovered_static_tag = page.evaluate_script(<<~JS)
+    hovered_timeline_tag = page.evaluate_script(<<~JS)
       (() => {
         const tag = document.querySelector("#achievements .aboutme-achievement-meta .aboutme-card-tag");
         const style = window.getComputedStyle(tag);
@@ -528,12 +622,8 @@ class AboutmeTest < ApplicationSystemTestCase
         };
       })()
     JS
-    assert_equal({
-      "backgroundColor" => metrics["achievementTagBackground"],
-      "borderColor" => metrics["achievementTagBorder"],
-      "boxShadow" => metrics["achievementTagShadow"],
-      "transform" => metrics["achievementTagTransform"]
-    }, hovered_static_tag)
+    assert_not_equal metrics["achievementTagShadow"], hovered_timeline_tag["boxShadow"]
+    assert_not_equal metrics["achievementTagTransform"], hovered_timeline_tag["transform"]
   end
 
   test "my challenges link to their writeups" do
@@ -584,7 +674,7 @@ class AboutmeTest < ApplicationSystemTestCase
           linkAtCenter("#certificates .aboutme-tag-certificate"),
           linkAtCenter("#talks .aboutme-tag-slides"),
           linkAtCenter("#achievements #dhm .aboutme-tag-event[href='https://hacking-meisterschaft.de/']"),
-          linkAtCenter("#achievements #kitctf .aboutme-timeline-event-tag[href='https://ctftime.org/event/2714']")
+          linkAtCenter("#achievements #kitctf .aboutme-timeline-event-link[href='https://ctftime.org/event/2714']")
         ];
       })()
     JS
@@ -618,7 +708,7 @@ class AboutmeTest < ApplicationSystemTestCase
             title: event.querySelector(".aboutme-timeline-link, .aboutme-timeline-title").innerText.trim(),
             date: event.querySelector("time").innerText.trim(),
             summary: event.querySelector(".aboutme-timeline-summary") ? event.querySelector(".aboutme-timeline-summary").innerText.trim() : "",
-            href: event.querySelector(".aboutme-timeline-link, .aboutme-timeline-event-tag") ? event.querySelector(".aboutme-timeline-link, .aboutme-timeline-event-tag").href : null
+            href: event.querySelector(".aboutme-timeline-link") ? event.querySelector(".aboutme-timeline-link").href : null
           }))
         ])
       )

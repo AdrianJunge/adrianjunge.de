@@ -1,5 +1,3 @@
-- thoroughly test and fix if necessary
-
 # Content
 - Next Blog
     - Firedancer Bug Bounty overrun race condition

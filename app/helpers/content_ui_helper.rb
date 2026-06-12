@@ -5,24 +5,35 @@ module ContentUiHelper
     render "shared/content_card", card: card
   end
 
-  def content_tag_badge(label, classes:, title: nil, url: nil, filter_scope: nil, filter_tag: label, aria_label: nil, static_class: nil, label_class: nil, arrow: nil, link_target: "_blank")
+  def content_tag_badge(label, classes:, title: nil, url: nil, filter_scope: nil, filter_tag: label, aria_label: nil, static_class: nil, label_class: nil, arrow: nil, link_target: "_blank", timeline_redirect: true)
     label = ContentTagTaxonomy.canonical_label(label)
     filter_tag = ContentTagTaxonomy.canonical_label(filter_tag.presence || label)
+    timeline_link = url.blank? && filter_scope.blank? && timeline_redirect && filter_tag.present?
+    url = timeline_filter_path(tag: filter_tag) if timeline_link
     action = url.present? || filter_scope.present?
     classes = [ "content-tag", *Array(classes) ]
     classes << (url.present? ? "content-tag-link" : nil)
     classes << (filter_scope.present? ? "content-tag-filter" : nil)
+    classes << (timeline_link ? "content-tag-timeline-link" : nil)
     classes << (action ? "content-tag-action" : "content-tag-static")
     classes << static_class if !action && static_class.present?
-    content = content_tag_badge_content(label, label_class: label_class, arrow: arrow.nil? ? url.present? : arrow)
+    content = content_tag_badge_content(label, label_class: label_class, arrow: arrow.nil? ? (url.present? && !timeline_link) : arrow)
 
     if url.present?
-      link_options = content_link_options(url).merge(target: link_target)
+      link_options = content_link_options(url)
+      link_options[:target] = link_target if link_target.present?
       link_options[:rel] ||= "noopener"
 
-      return link_to(url, link_options.merge(class: classes.compact.join(" "), aria: { label: aria_label }, title: title)) do
-        content
-      end
+      return content_tag(
+        :a,
+        content,
+        link_options.merge(
+          href: url,
+          class: classes.compact.join(" "),
+          aria: { label: aria_label.presence || (timeline_link ? "Filter timeline by #{filter_tag}" : nil) },
+          title: title
+        )
+      )
     end
 
     if filter_scope.present?
@@ -40,7 +51,7 @@ module ContentUiHelper
     content_tag(:span, content, class: classes.compact.join(" "), title: title)
   end
 
-  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, cve: false, cwe: false, static_class: "blog-post-static-chip", title: nil)
+  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, cve: false, cwe: false, static_class: "blog-post-static-chip", title: nil, timeline_redirect: true)
     raw_label = label.to_s
     style = content_tag_style(
       raw_label,
@@ -65,7 +76,9 @@ module ContentUiHelper
       filter_tag: tag_value,
       static_class: static_class,
       title: title,
-      label_class: style[:label_class]
+      label_class: style[:label_class],
+      link_target: nil,
+      timeline_redirect: timeline_redirect
     )
   end
 
@@ -192,7 +205,8 @@ module ContentUiHelper
       cve: config[:cve] || auto_cve,
       cwe: config[:cwe] || auto_cwe,
       static_class: config[:static_class].presence || "blog-post-static-chip",
-      title: config[:title]
+      title: config[:title],
+      timeline_redirect: config.key?(:timeline_redirect) ? config[:timeline_redirect] : true
     )
   end
 

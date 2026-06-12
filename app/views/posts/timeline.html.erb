@@ -53,7 +53,8 @@
 
           <ul class="timeline-year-items">
             <% items.each do |item| %>
-              <% visible_tags = item[:tags].reject { |tag_name| [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL, item[:label] ].include?(tag_name) } %>
+              <% timeline_content_type_tags = Array(item[:kind_labels]).map { |kind_label| kind_label[:tag_value].presence || kind_label[:label] } %>
+              <% visible_tags = item[:tags].reject { |tag_name| [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(tag_name) || timeline_content_type_tags.include?(tag_name) } %>
               <li
                 class="timeline-item"
                 data-filter-card="timeline"
@@ -65,7 +66,14 @@
                   <time datetime="<%= item[:published].iso8601 %>">
                     <%= item[:display_date] %>
                   </time>
-                  <%= content_filter_chip(item[:label], scope: "timeline", class_name: "timeline-kind-pill") %>
+                  <% Array(item[:kind_labels]).presence&.each do |kind_label| %>
+                    <%= content_filter_chip(
+                          kind_label[:label],
+                          scope: "timeline",
+                          tag_value: kind_label[:tag_value].presence || kind_label[:label],
+                          class_name: "timeline-kind-pill"
+                        ) %>
+                  <% end %>
                 </div>
 
                 <div class="timeline-connector">
@@ -134,8 +142,6 @@
                       description_class: "timeline-meta",
                       reading_time: item[:reading_time_label],
                       reading_time_class: "timeline-reading-time",
-                      source: item[:source],
-                      source_class: "timeline-source",
                       aria_label: "Open #{item[:title]}"
                     ) %>
               </li>

@@ -5,7 +5,6 @@ module ContentTagTaxonomy
     "Security Research",
     "CVE",
     "Bug bounty",
-    "Created CTF challenges",
     "Certificate",
     "Talk",
     "Slides",

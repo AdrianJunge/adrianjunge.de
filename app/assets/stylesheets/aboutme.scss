@@ -2,6 +2,9 @@
 .landing-page {
     --aboutme-tag-fill: rgba(14, 132, 170, 0.46);
     --aboutme-tag-fill-active: rgba(14, 165, 233, 0.68);
+    --aboutme-reference-link: #60a5fa;
+    --aboutme-reference-link-hover: #93c5fd;
+    --aboutme-reference-focus: rgba(96, 165, 250, 0.42);
 }
 
 .aboutme-page {
@@ -1006,14 +1009,26 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
 }
 
 .aboutme-card-details {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
+    display: block;
     margin: 0 0 1rem;
-    padding-left: 1.1rem;
+    padding-left: 1.35rem;
     color: rgba(226, 232, 240, 0.82);
     font-size: 0.95rem;
     line-height: 1.5;
+    list-style: disc outside;
+}
+
+.aboutme-card-details li {
+    display: list-item;
+    padding-left: 0.1rem;
+}
+
+.aboutme-card-details li + li {
+    margin-top: 0.4rem;
+}
+
+.aboutme-card-details li::marker {
+    color: rgba(96, 165, 250, 0.82);
 }
 
 .aboutme-card-children {
@@ -1290,7 +1305,10 @@ a.aboutme-card-tag.aboutme-tag-action:focus-visible {
     color: #dff7ff;
     border-color: rgba(125, 211, 252, 0.34);
     background: rgba(14, 116, 144, 0.42);
+    background-image: none;
     box-shadow: 0 0.35rem 0.8rem rgba(2, 12, 24, 0.18);
+    cursor: pointer;
+    pointer-events: auto;
     transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
 }
 
@@ -1303,9 +1321,11 @@ a.aboutme-card-tag.aboutme-tag-action:focus-visible {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    color: #dff7ff;
+    color: var(--aboutme-reference-link);
     font-weight: 850;
-    text-decoration: none;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.22em;
 }
 
 .aboutme-reference-link::after {
@@ -1317,11 +1337,14 @@ a.aboutme-card-tag.aboutme-tag-action:focus-visible {
 
 .aboutme-reference-link:hover,
 .aboutme-reference-link:focus-visible {
-    color: #dff7ff;
+    color: var(--aboutme-reference-link-hover);
     text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.22em;
-    outline: none;
+}
+
+.aboutme-reference-link:focus-visible {
+    border-radius: 0.2rem;
+    outline: 2px solid var(--aboutme-reference-focus);
+    outline-offset: 0.18rem;
 }
 
 .aboutme-reference-link:hover::after,
@@ -1423,10 +1446,6 @@ details.aboutme-card:not(.aboutme-finding-card)[open] > summary::after {
     gap: 0.4rem;
 }
 
-.aboutme-timeline-event-tag {
-    justify-self: start;
-}
-
 .aboutme-timeline-title,
 .aboutme-timeline-link {
     color: #f8fafc;
@@ -1441,6 +1460,47 @@ details.aboutme-card:not(.aboutme-finding-card)[open] > summary::after {
     text-decoration-thickness: 2px;
     text-underline-offset: 0.22em;
     outline: none;
+}
+
+.aboutme-timeline-event-link {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    width: fit-content;
+    min-height: 0;
+    padding: 0;
+    color: var(--aboutme-reference-link);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    background-image: none;
+    box-shadow: none;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.22em;
+    cursor: pointer;
+    transition: color 140ms ease, opacity 140ms ease;
+}
+
+.aboutme-timeline-event-link::after {
+    display: none;
+    content: none;
+}
+
+.aboutme-timeline-event-link:hover,
+.aboutme-timeline-event-link:focus-visible {
+    color: var(--aboutme-reference-link-hover);
+    border: 0;
+    background: transparent;
+    background-image: none;
+    box-shadow: none;
+    text-decoration: underline;
+    transform: none;
+}
+
+.aboutme-timeline-event-link:focus-visible {
+    outline: 2px solid var(--aboutme-reference-focus);
+    outline-offset: 0.2rem;
 }
 
 .aboutme-timeline-summary {

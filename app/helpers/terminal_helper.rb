@@ -28,7 +28,7 @@ module TerminalHelper
   end
 
   def normalized_terminal_paths(paths)
-    ([ terminal_path("~", root_path, "home"), terminal_path(".", nil, "current"), terminal_path("..", nil, "parent") ] +
+    ([ terminal_path("~", root_path, "home"), terminal_path(".", terminal_current_path, "current"), terminal_path("..", terminal_parent_path, "parent") ] +
       Array(paths).map { |path| normalize_terminal_path(path) })
       .uniq { |path| path[:label] }
   end
@@ -44,5 +44,17 @@ module TerminalHelper
     url = path[:url] || path["url"]
     description = path[:description] || path["description"]
     terminal_path(label, url, description)
+  end
+
+  def terminal_current_path
+    request.fullpath.presence || root_path
+  end
+
+  def terminal_parent_path
+    path = request.path.to_s.chomp("/")
+    return root_path if path.blank? || path == root_path
+
+    parent = File.dirname(path)
+    parent == "." ? root_path : parent
   end
 end

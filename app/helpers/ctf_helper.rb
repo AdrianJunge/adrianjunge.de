@@ -81,7 +81,8 @@ module CtfHelper
         label: "💡 #{pluralize(hints.length, "hint")}",
         interactive: false,
         class_name: "writeup-hints-chip",
-        title: pluralize(hints.length, "writeup hint")
+        title: pluralize(hints.length, "writeup hint"),
+        timeline_redirect: false
       }
     end
     media_html = logo.present? ? nil : get_category_icon(categories).html_safe

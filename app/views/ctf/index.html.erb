@@ -20,7 +20,7 @@
 <% end %>
 
 <%= render_taskbar_items %>
-<% terminal_paths = @ctfs.map { |name, ctf| ctf["terminal_path"] } %>
+<% terminal_paths = @ctfs.map { |name, ctf| { label: ctf["terminal_path"], url: ctf["writeups"] } } %>
 <%= render_terminal(terminal_paths, true) %>
 
 <main class="content-page ctf-overview">

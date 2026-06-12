@@ -12,7 +12,6 @@ class ContentIndexTest < ActiveSupport::TestCase
     expected_ids.concat(@repository.blog_posts.map { |post| "blog-#{post[:slug].parameterize}" })
     expected_ids.concat(about_entry_ids("cve", ApplicationController::ABOUTME_CVES_PATH))
     expected_ids.concat(about_entry_ids("bug-bounty", ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
-    expected_ids.concat(@repository.authored_challenges.map { |entry| about_id("challenge", entry) })
     expected_ids.concat(about_entry_ids("certificate", ApplicationController::ABOUTME_CERTIFICATES_PATH))
     expected_ids.concat(about_entry_ids("talk", ApplicationController::ABOUTME_TALKS_PATH))
     expected_ids.concat(achievement_event_ids)
@@ -24,7 +23,6 @@ class ContentIndexTest < ActiveSupport::TestCase
       "blog" => @repository.blog_posts.length,
       "cve" => @repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).length,
       "bug-bounty" => @repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH).length,
-      "challenge" => @repository.authored_challenges.length,
       "certificate" => @repository.about_entries(ApplicationController::ABOUTME_CERTIFICATES_PATH).length,
       "talk" => @repository.about_entries(ApplicationController::ABOUTME_TALKS_PATH).length,
       "achievement" => achievement_event_ids.length
@@ -35,6 +33,35 @@ class ContentIndexTest < ActiveSupport::TestCase
       assert_equal count, actual_counts.fetch(kind, 0), "Expected #{count} #{kind} timeline items"
     end
     assert_equal expected_counts.select { |_kind, count| count.positive? }.keys.sort, actual_counts.keys.sort
+  end
+
+  test "authored challenge timeline entries merge into their writeups" do
+    ids = @items.map { |item| item[:id] }
+
+    @repository.authored_challenges.each do |entry|
+      about_challenge_id = about_id("challenge", entry)
+      item = @items.find { |candidate| Array(candidate[:merged_item_ids]).include?(about_challenge_id) }
+
+      assert_not_includes ids, about_challenge_id
+      assert item, "Expected #{about_challenge_id} to be represented by a merged writeup timeline item"
+      assert_equal "writeup", item[:kind]
+      assert_equal entry["card_url"], item[:link]
+      assert_includes item[:kind_labels], { label: "CTF writeup", tag_value: "CTF writeup" }
+      assert_not_includes item[:kind_labels], { label: "Created CTF challenge", tag_value: AuthoredChallenge::FILTER_LABEL }
+      assert_includes item[:tags], AuthoredChallenge::FILTER_LABEL
+      assert_not_includes item[:tags], "Created CTF challenges"
+      assert_includes item[:search_text], "authored challenge"
+    end
+  end
+
+  test "timeline side labels are exactly the content type tags" do
+    @items.each do |item|
+      expected_labels = item[:tags]
+        .select { |tag| ContentTagTaxonomy.content_type?(tag) }
+        .map { |tag| { label: tag, tag_value: tag } }
+
+      assert_equal expected_labels, item[:kind_labels], "Unexpected side labels for #{item[:id]}"
+    end
   end
 
   test "timeline index excludes hidden and draft source entries" do

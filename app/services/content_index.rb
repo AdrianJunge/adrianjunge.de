@@ -1,3 +1,5 @@
+require "cgi"
+
 class ContentIndex
   ABOUT_COLLECTIONS = [
     {
@@ -17,7 +19,7 @@ class ContentIndex
     {
       path: ApplicationController::ABOUTME_CHALLENGES_PATH,
       kind: "challenge",
-      label: "Created CTF challenges",
+      label: AuthoredChallenge::FILTER_LABEL,
       section: "my-challenges",
       featured: true
     },
@@ -49,7 +51,7 @@ class ContentIndex
   end
 
   def all_items
-    @all_items ||= (post_items + about_items).sort_by { |item| -item[:published].to_i }
+    @all_items ||= merged_timeline_items(post_items + about_items).sort_by { |item| -item[:published].to_i }
   end
 
   def featured_items(limit = 3)
@@ -148,6 +150,7 @@ class ContentIndex
     title = entry["title"].presence || entry["cve_id"].presence || entry["project"].presence || collection[:label]
     description = about_description(entry)
     tags = about_tags(entry, collection[:label])
+    link = about_entry_timeline_link(entry, id, collection)
 
     [
       content_item(
@@ -159,7 +162,7 @@ class ContentIndex
         description: description,
         published: published,
         display_date: display_date,
-        link: "/about##{id}",
+        link: link,
         tags: tags,
         search_parts: [ collection[:label], entry ],
         cve_id: entry["cve_id"].presence,
@@ -205,11 +208,65 @@ class ContentIndex
 
   def content_item(**attrs)
     tags = ContentTagTaxonomy.canonical_values([ attrs[:label] ] + Array(attrs[:tags]))
+    kind_labels = timeline_content_type_labels(tags)
 
     attrs.merge(
+      kind_labels: kind_labels,
       tags: tags,
-      search_text: search_text_for(attrs.values + tags)
+      search_text: search_text_for(attrs.values + kind_labels + tags)
     )
+  end
+
+  def merged_timeline_items(items)
+    grouped = {}
+    unmergeable = []
+
+    items.each do |item|
+      key = timeline_merge_key(item)
+      if key.present?
+        grouped[key] ||= []
+        grouped[key] << item
+      else
+        unmergeable << item
+      end
+    end
+
+    unmergeable + grouped.values.map { |group| merge_timeline_item_group(group) }
+  end
+
+  def merge_timeline_item_group(group)
+    return group.first if group.one?
+
+    primary = group.first
+    published = group.filter_map { |item| item[:published] }.max || primary[:published]
+    date_source = group.find { |item| item[:published] == published } || primary
+    tags = ContentTagTaxonomy.canonical_values(group.flat_map { |item| [ item[:label], *Array(item[:tags]) ] })
+    kind_labels = timeline_content_type_labels(tags)
+    search_text = search_text_for(group.flat_map do |item|
+      [ item[:search_text], item[:title], item[:description], item[:source], item[:label], item[:tags], item[:kind_labels] ]
+    end + kind_labels + tags)
+
+    primary.merge(
+      published: published,
+      display_date: date_source[:display_date].presence || primary[:display_date],
+      kind_labels: kind_labels,
+      tags: tags,
+      search_text: search_text,
+      merged_item_ids: group.map { |item| item[:id] }
+    )
+  end
+
+  def timeline_merge_key(item)
+    link = item[:link].to_s
+    return if link.blank?
+
+    CGI.unescape(link)
+  end
+
+  def timeline_content_type_labels(tags)
+    ContentTagTaxonomy.canonical_values(tags)
+                      .select { |tag| ContentTagTaxonomy.content_type?(tag) }
+                      .map { |tag| { label: tag, tag_value: tag } }
   end
 
   def latest_featured_about_entry(kind)
@@ -267,6 +324,14 @@ class ContentIndex
       entry["cwe_id"],
       WriteupDifficulty.filter_label_for(entry)
     ].map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| ContentRepository.filter_tag_sort_key(tag) }
+  end
+
+  def about_entry_timeline_link(entry, id, collection)
+    if collection[:kind] == "challenge"
+      entry["card_url"].presence || entry["title_url"].presence || "/about##{id}"
+    else
+      "/about##{id}"
+    end
   end
 
   def about_published_time(entry, path)

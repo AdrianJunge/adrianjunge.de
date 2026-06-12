@@ -148,7 +148,8 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-meta-row > a.authored-challenge-badge.content-tag-link.content-tag-action .content-tag-arrow", text: ">"
     assert_select ".blog-post-meta-row > button.writeup-winner-badge", false
     assert_select ".blog-post-meta-row > button.authored-challenge-badge", false
-    assert_select ".blog-post-meta-row > .filter-chip.blog-post-static-chip", text: "Web"
+    assert_select ".blog-post-meta-row > a.filter-chip.content-tag-timeline-link[href=?]", "/timeline?tag=Web", text: "Web"
+    assert_select ".blog-post-meta-row > .filter-chip.blog-post-static-chip", false
   end
 
   test "writeup cards render authored challenge badge from optional metadata" do
@@ -173,7 +174,7 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-card[data-filter-tags*='Authored challenge']"
   end
 
-  test "writeup cards render static difficulty badge with filterable difficulty metadata" do
+  test "writeup cards render filterable difficulty metadata" do
     render inline: "<%= render_writeup_card('Difficulty', '/ctf/demo/Difficulty', info) %>", locals: {
       info: {
         "title" => "Difficulty",
@@ -307,18 +308,20 @@ class CtfHelperTest < ActionView::TestCase
       }
     }
 
-    assert_select ".difficulty-badge.difficulty-badge-unknown.difficulty-badge-article", text: "unknown difficulty"
+    assert_select "a.difficulty-badge.difficulty-badge-unknown.difficulty-badge-article.content-tag-timeline-link[href=?]",
+                  "/timeline?tag=unknown+difficulty",
+                  text: "unknown difficulty"
   end
 
-  test "article category badges render colorful static badges" do
+  test "article category badges link to timeline filters" do
     render inline: "<%= safe_join(render_writeup_category_badges(info, context: :article)) %>", locals: {
       info: {
         "categories" => [ "Web", "Privilege Escalation" ]
       }
     }
 
-    assert_select ".category-badge.category-badge-web.category-badge-article", text: "Web"
-    assert_select ".category-badge.category-badge-privesc.category-badge-article", text: "Privilege Escalation"
+    assert_select "a.category-badge.category-badge-web.category-badge-article.content-tag-timeline-link[href=?]", "/timeline?tag=Web", text: "Web"
+    assert_select "a.category-badge.category-badge-privesc.category-badge-article.content-tag-timeline-link[href=?]", "/timeline?tag=Privilege+Escalation", text: "Privilege Escalation"
     assert_select ".category-badge[data-filter-tag]", false
   end
 

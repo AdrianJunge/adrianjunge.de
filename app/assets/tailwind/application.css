@@ -22,9 +22,9 @@
     --taskbar-size: calc(var(--taskbar-icon-size) + (var(--taskbar-gutter) * 2));
     --taskbar-expanded-width: clamp(11rem, calc(var(--taskbar-size) * 3), 16rem);
     --default-border: 0.3dvh solid var(--color-border);
-    --radius-ui: var(--radius-3xl, 1.5rem);
-    --radius-ui-control: var(--radius-2xl, 1rem);
-    --radius-ui-pill: 9999px;
+    --radius-ui: 0.95rem;
+    --radius-ui-control: 0.65rem;
+    --radius-ui-pill: 0.72rem;
     --motion-fast: 0.18s ease;
     --motion-standard: 0.2s ease-in-out;
     --page-background-height: 100dvh;

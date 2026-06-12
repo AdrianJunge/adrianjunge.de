@@ -2387,20 +2387,6 @@
     pointer-events: none;
 }
 
-.timeline-page .timeline-source {
-    display: flex;
-    position: relative;
-    z-index: 30;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    color: rgba(226, 232, 240, 0.7);
-    font-size: 0.78rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    overflow-wrap: anywhere;
-    pointer-events: none;
-}
-
 .timeline-page .content-card-date {
     display: flex;
     position: relative;

@@ -25,6 +25,26 @@ function shouldReleaseChipFocus(pointerType) {
   return window.matchMedia('(hover: none), (pointer: coarse)').matches;
 }
 
+function splitParamTags(value) {
+  return String(value || '')
+    .split(/[|,]/)
+    .map(token => token.trim())
+    .filter(Boolean);
+}
+
+function tagValuesFromParams(params) {
+  const values = params.getAll('tag').flatMap(splitParamTags);
+  values.push(...splitParamTags(params.get('tags')));
+
+  return values.map(normalizeToken).filter(Boolean);
+}
+
+function validSelectValue(select, value) {
+  if (!select || value === '') return value;
+
+  return Array.from(select.options).some(option => option.value === value) ? value : '';
+}
+
 function initYearDropdown(panel, scope, select, onChange) {
   const wrap = panel.querySelector(`[data-year-dropdown="${scope}"]`);
   const button = panel.querySelector(`[data-year-dropdown-button="${scope}"]`);
@@ -154,10 +174,44 @@ function initFilterPanel(panel) {
   const empty = document.querySelector(`[data-filter-empty="${scope}"]`);
   const resultContainers = Array.from(document.querySelectorAll(`[data-filter-results="${scope}"]`));
   const cards = Array.from(document.querySelectorAll(`[data-filter-card="${scope}"]`));
+  const chips = Array.from(document.querySelectorAll(`[data-filter-tag][data-filter-scope="${scope}"]`));
+  const tagLabels = new Map(chips.map(chip => [normalizeToken(chip.dataset.filterTag), chip.dataset.filterTag]));
   const activeTags = new Set();
   let yearDropdown = null;
 
-  function applyFilters() {
+  function readStateFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    if (search) search.value = params.get('q') || '';
+    if (year) year.value = validSelectValue(year, params.get('year') || '');
+
+    activeTags.clear();
+    tagValuesFromParams(params).forEach(tag => activeTags.add(tag));
+  }
+
+  function writeStateToUrl(query, selectedYear) {
+    if (!window.history || !window.history.replaceState) return;
+
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+    params.delete('q');
+    params.delete('year');
+    params.delete('tag');
+    params.delete('tags');
+
+    const rawQuery = search ? search.value.trim() : query;
+    if (rawQuery) params.set('q', rawQuery);
+    if (selectedYear) params.set('year', selectedYear);
+    [...activeTags].sort().forEach(tag => {
+      params.append('tag', tagLabels.get(tag) || tag);
+    });
+
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl !== currentUrl) window.history.replaceState({}, '', nextUrl);
+  }
+
+  function applyFilters(options = {}) {
+    const updateUrl = options.updateUrl !== false;
     const query = normalizeToken(search && search.value);
     const selectedYear = normalizeToken(year && year.value);
     let visible = 0;
@@ -212,11 +266,13 @@ function initFilterPanel(panel) {
       reset.tabIndex = resetVisible ? 0 : -1;
     }
     if (yearDropdown) yearDropdown.sync();
+    if (updateUrl) writeStateToUrl(query, selectedYear);
     document.dispatchEvent(new CustomEvent('content:filters-applied', {
       detail: { scope, visible, total: cards.length }
     }));
   }
 
+  readStateFromUrl();
   if (search) search.addEventListener('input', applyFilters);
   if (year) year.addEventListener('change', applyFilters);
   yearDropdown = initYearDropdown(panel, scope, year, applyFilters);
@@ -237,7 +293,7 @@ function initFilterPanel(panel) {
     });
   }
 
-  document.querySelectorAll(`[data-filter-tag][data-filter-scope="${scope}"]`).forEach(chip => {
+  chips.forEach(chip => {
     let pointerType = '';
 
     chip.addEventListener('pointerdown', event => {
@@ -265,6 +321,11 @@ function initFilterPanel(panel) {
       event.preventDefault();
       chip.click();
     });
+  });
+
+  window.addEventListener('popstate', () => {
+    readStateFromUrl();
+    applyFilters({ updateUrl: false });
   });
 
   applyFilters();

@@ -62,6 +62,26 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_includes metrics["pageBackgroundImage"], "linear-gradient"
   end
 
+  test "global radius tokens keep website corners restrained" do
+    visit "/timeline"
+
+    radii = page.evaluate_script(<<~JS)
+      (() => {
+        const root = window.getComputedStyle(document.documentElement);
+
+        return {
+          surface: root.getPropertyValue("--radius-ui").trim(),
+          control: root.getPropertyValue("--radius-ui-control").trim(),
+          tag: root.getPropertyValue("--radius-ui-pill").trim()
+        };
+      })()
+    JS
+
+    assert_equal ".95rem", radii["surface"]
+    assert_equal ".65rem", radii["control"]
+    assert_equal ".72rem", radii["tag"]
+  end
+
   test "top taskbar keeps usable icons on narrow displays" do
     [ 320, 390 ].each do |width|
       page.current_window.resize_to(width, 900)
@@ -81,11 +101,13 @@ class SitePagesTest < ApplicationSystemTestCase
             taskbarHeight: Math.round(taskbarRect.height),
             paddingLeft: parseFloat(taskbarStyle.paddingLeft),
             iconLeft: Math.round(iconRect.left),
-            iconWidth: Math.round(iconRect.width)
+            iconWidth: Math.round(iconRect.width),
+            taskbarBackground: taskbarStyle.backgroundColor
           };
         })()
       JS
 
+      assert_equal "rgba(7, 31, 52, 0.82)", metrics["taskbarBackground"]
       assert_operator metrics["paddingLeft"], :>=, 7, "top taskbar padding collapsed at #{width}px"
       assert_operator metrics["iconLeft"], :>=, 7, "top taskbar icon touched the viewport edge at #{width}px"
       assert_operator metrics["iconWidth"], :>=, 24, "top taskbar icon became too small at #{width}px"
@@ -166,6 +188,24 @@ class SitePagesTest < ApplicationSystemTestCase
       find(".content-hero").click
       assert_no_selector ".taskbar-feed-menu[open]", visible: :all
     end
+  end
+
+  test "terminal cd command accepts listed labels" do
+    visit "/"
+
+    find("#terminal-taskbar-button").click
+    assert_selector "#terminal-container:not(.terminal-minimized)"
+    assert_selector ".xterm-rows", text: "about"
+
+    find(".xterm-helper-textarea", visible: :all).send_keys("cd ctf", :enter)
+    assert_current_path "/ctf"
+
+    assert_selector "#terminal-container:not(.terminal-minimized)"
+    assert_selector ".xterm-rows", text: "adrian@my-space:/ctf$"
+    assert_selector ".xterm-rows", text: "gpnctf"
+
+    find(".xterm-helper-textarea", visible: :all).send_keys("cd gpnctf", :enter)
+    assert_current_path "/ctf/gpnctf"
   end
 
   test "page intro copy uses the full content width" do
@@ -482,7 +522,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".landing-writeup-cards .content-card.blog-post-card", count: expected_card_count
     assert_selector ".landing-writeup-cards .blog-post-card-hitbox[href]", count: expected_card_count, visible: :all
     assert_selector ".landing-writeup-cards .filter-chip", minimum: 1
-    assert_selector ".landing-writeup-cards .blog-post-static-chip", minimum: 1
+    assert_selector ".landing-writeup-cards .content-tag-timeline-link[href^='/timeline?tag=']", minimum: 1
     expected_card_scopes.each do |scope|
       assert_selector ".landing-writeup-cards .blog-post-card[data-filter-card='#{scope}']", minimum: 1
     end
@@ -531,12 +571,13 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".landing-writeup-cards .filter-chip[data-filter-tag]", visible: :all
     assert_no_selector ".landing-writeup-cards .filter-chip.ui-hover-lift", visible: :all
     assert_selector_count ".landing-writeup-cards .blog-post-card-logo svg", expected_svg_count
-    static_chip_styles = page.evaluate_script(<<~JS)
+    timeline_chip_styles = page.evaluate_script(<<~JS)
       (() => {
-        const chip = document.querySelector(".landing-writeup-cards .blog-post-static-chip");
+        const chip = document.querySelector(".landing-writeup-cards .content-tag-timeline-link");
         const style = window.getComputedStyle(chip);
 
         return {
+          href: chip.getAttribute("href"),
           cursor: style.cursor,
           className: chip.className,
           pointerEvents: style.pointerEvents,
@@ -548,16 +589,18 @@ class SitePagesTest < ApplicationSystemTestCase
         };
       })()
     JS
-    assert_equal "default", static_chip_styles["cursor"]
-    assert_includes static_chip_styles["className"], "content-tag-static"
-    assert_not_includes static_chip_styles["className"], "content-tag-action"
-    assert_equal "auto", static_chip_styles["pointerEvents"]
-    assert_equal "0s", static_chip_styles["transitionDuration"]
-    assert_equal "none", static_chip_styles["transform"]
-    find(".landing-writeup-cards .blog-post-static-chip", match: :first).hover
-    static_chip_hover_styles = page.evaluate_script(<<~JS)
+    assert_match %r{\A/timeline\?tag=}, timeline_chip_styles["href"]
+    assert_equal "pointer", timeline_chip_styles["cursor"]
+    assert_includes timeline_chip_styles["className"], "content-tag-timeline-link"
+    assert_includes timeline_chip_styles["className"], "content-tag-action"
+    assert_not_includes timeline_chip_styles["className"], "content-tag-static"
+    assert_equal "auto", timeline_chip_styles["pointerEvents"]
+    assert_not_equal "0s", timeline_chip_styles["transitionDuration"]
+    assert_equal "none", timeline_chip_styles["transform"]
+    find(".landing-writeup-cards .content-tag-timeline-link", match: :first).hover
+    timeline_chip_hover_styles = page.evaluate_script(<<~JS)
       (() => {
-        const chip = document.querySelector(".landing-writeup-cards .blog-post-static-chip");
+        const chip = document.querySelector(".landing-writeup-cards .content-tag-timeline-link");
         const style = window.getComputedStyle(chip);
 
         return {
@@ -568,8 +611,7 @@ class SitePagesTest < ApplicationSystemTestCase
         };
       })()
     JS
-    assert_equal static_chip_styles.slice("backgroundColor", "borderColor", "boxShadow", "transform"),
-                 static_chip_hover_styles
+    assert_not_equal timeline_chip_styles["transform"], timeline_chip_hover_styles["transform"]
 
     landing_difficulty_styles = page.evaluate_script(<<~JS)
       (() => {
@@ -589,9 +631,10 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
     if landing_difficulty_styles
-      assert_includes landing_difficulty_styles["className"], "content-tag-static"
-      assert_not_includes landing_difficulty_styles["className"], "content-tag-action"
-      assert_equal "default", landing_difficulty_styles["cursor"]
+      assert_includes landing_difficulty_styles["className"], "content-tag-timeline-link"
+      assert_includes landing_difficulty_styles["className"], "content-tag-action"
+      assert_not_includes landing_difficulty_styles["className"], "content-tag-static"
+      assert_equal "pointer", landing_difficulty_styles["cursor"]
       assert_equal "auto", landing_difficulty_styles["pointerEvents"]
       find(".landing-writeup-cards .difficulty-badge", match: :first).hover
       landing_difficulty_hover_styles = page.evaluate_script(<<~JS)
@@ -607,8 +650,7 @@ class SitePagesTest < ApplicationSystemTestCase
           };
         })()
       JS
-      assert_equal landing_difficulty_styles.slice("backgroundColor", "borderColor", "boxShadow", "transform"),
-                   landing_difficulty_hover_styles
+      assert_not_equal "none", landing_difficulty_hover_styles["transform"]
     end
 
     landing_styles = post_card_styles(".landing-writeup-cards .blog-post-card")
@@ -985,12 +1027,13 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal false, featured_disclosure_animation["closing"]
     assert_equal "0s", featured_disclosure_animation["transitionDuration"]
     assert_equal "", featured_disclosure_animation["inlineHeight"]
-    selected_static_tag_styles = page.evaluate_script(<<~JS)
+    selected_timeline_tag_styles = page.evaluate_script(<<~JS)
       (() => {
-        const tag = document.querySelector(".landing-featured-card .aboutme-tag-static");
+        const tag = document.querySelector(".landing-featured-card .aboutme-tag-timeline");
         const style = window.getComputedStyle(tag);
 
         return {
+          href: tag.getAttribute("href"),
           className: tag.className,
           cursor: style.cursor,
           pointerEvents: style.pointerEvents,
@@ -1001,14 +1044,16 @@ class SitePagesTest < ApplicationSystemTestCase
         };
       })()
     JS
-    assert_includes selected_static_tag_styles["className"], "aboutme-tag-static"
-    assert_not_includes selected_static_tag_styles["className"], "aboutme-tag-action"
-    assert_equal "default", selected_static_tag_styles["cursor"]
-    assert_equal "auto", selected_static_tag_styles["pointerEvents"]
-    find(".landing-featured-card .aboutme-tag-static", match: :first).hover
-    selected_static_tag_hover_styles = page.evaluate_script(<<~JS)
+    assert_match %r{\A/timeline\?tag=}, selected_timeline_tag_styles["href"]
+    assert_includes selected_timeline_tag_styles["className"], "aboutme-tag-timeline"
+    assert_includes selected_timeline_tag_styles["className"], "aboutme-tag-action"
+    assert_not_includes selected_timeline_tag_styles["className"], "aboutme-tag-static"
+    assert_equal "pointer", selected_timeline_tag_styles["cursor"]
+    assert_equal "auto", selected_timeline_tag_styles["pointerEvents"]
+    find(".landing-featured-card .aboutme-tag-timeline", match: :first).hover
+    selected_timeline_tag_hover_styles = page.evaluate_script(<<~JS)
       (() => {
-        const tag = document.querySelector(".landing-featured-card .aboutme-tag-static");
+        const tag = document.querySelector(".landing-featured-card .aboutme-tag-timeline");
         const style = window.getComputedStyle(tag);
 
         return {
@@ -1019,8 +1064,8 @@ class SitePagesTest < ApplicationSystemTestCase
         };
       })()
     JS
-    assert_equal selected_static_tag_styles.slice("backgroundColor", "borderColor", "boxShadow", "transform"),
-                 selected_static_tag_hover_styles
+    assert_not_equal selected_timeline_tag_styles["boxShadow"], selected_timeline_tag_hover_styles["boxShadow"]
+    assert_not_equal selected_timeline_tag_styles["transform"], selected_timeline_tag_hover_styles["transform"]
   end
 
   test "landing metrics add row separators on mobile two-column layouts" do
@@ -1107,7 +1152,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
     visit "/timeline"
     find(".timeline-tags .timeline-tag-pill", text: tag_name, match: :first).click
-    assert_current_path "/timeline"
+    assert_current_path "/timeline?#{Rack::Utils.build_query(tag: tag_name)}"
     assert_selector ".timeline-tags .timeline-tag-pill.is-active", text: tag_name
     assert_selector ".content-filter-panel .filter-chip.is-active", text: tag_name
   end
@@ -1128,6 +1173,16 @@ class SitePagesTest < ApplicationSystemTestCase
     visit "/timeline"
 
     assert_selector ".timeline-content", count: total_items
+    authored_challenge_timeline_item = timeline_items.find { |item| Array(item[:merged_item_ids]).include?("about-challenge-scanwich-station") }
+    assert authored_challenge_timeline_item, "expected Scanwich Station to be merged into its writeup timeline entry"
+    assert_selector ".timeline-card-hitbox[href='#{authored_challenge_timeline_item[:link]}']", count: 1, visible: :all
+    authored_challenge_timeline_entry = find(".timeline-card-hitbox[href='#{authored_challenge_timeline_item[:link]}']", visible: :all)
+                                         .find(:xpath, "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-item ')]")
+    within authored_challenge_timeline_entry do
+      assert_selector ".timeline-date .timeline-kind-pill", text: "CTF writeup"
+      assert_no_selector ".timeline-date .timeline-kind-pill", text: "Created CTF challenge"
+      assert_no_selector ".timeline-tags [data-filter-tag='Created CTF challenges']"
+    end
     assert_timeline_year_counts_match_visible_cards
     timeline_year_count_style = page.evaluate_script(<<~JS)
       (() => {
@@ -1156,7 +1211,7 @@ class SitePagesTest < ApplicationSystemTestCase
         const card = [...document.querySelectorAll(".timeline-content")].find((entry) => entry.querySelector(".timeline-tags"));
         const title = card.querySelector(".timeline-title").getBoundingClientRect();
         const tags = card.querySelector(".timeline-tags").getBoundingClientRect();
-        const nextContent = card.querySelector(".timeline-meta, .timeline-source").getBoundingClientRect();
+        const nextContent = card.querySelector(".timeline-meta").getBoundingClientRect();
 
         return {
           tagsBelowTitle: tags.top >= title.bottom - 1,
@@ -1166,6 +1221,16 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
     assert_equal true, timeline_tag_positions["tagsBelowTitle"]
     assert_equal true, timeline_tag_positions["nextContentBelowTags"]
+    assert_no_selector ".timeline-source"
+    timeline_side_tags = all(".timeline-date .timeline-kind-pill").map { |chip| chip["data-filter-tag"] }
+    assert timeline_side_tags.any?
+    timeline_side_tags.each do |tag|
+      assert ContentTagTaxonomy.content_type?(tag), "Expected #{tag.inspect} to be a timeline side content type tag"
+    end
+    timeline_card_body_tags = all(".timeline-tags [data-filter-tag]").map { |chip| chip["data-filter-tag"] }
+    timeline_card_body_tags.each do |tag|
+      assert_not ContentTagTaxonomy.content_type?(tag), "Expected #{tag.inspect} to stay out of the timeline card body tags"
+    end
     assert_text "Timeline"
     assert_selector ".content-filter-tag-group-label", text: "CONTENT TYPE"
     assert_selector ".content-filter-tag-group-label", text: "DIFFICULTY"
@@ -1178,6 +1243,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".content-filter-tag-group-label", text: "TOPICS, PROJECTS, AND SOURCES"
     assert_selector ".content-filter-panel .filter-chip", text: "CVE"
     assert_selector ".content-filter-panel .filter-chip", text: "CTF writeup"
+    assert_no_selector ".content-filter-panel .filter-chip", text: /^Created CTF challenges$/
     within find(".content-filter-tag-group", text: "CONTENT TYPE") do
       assert_selector ".filter-chip", text: /^Security Research$/
       assert_selector ".filter-chip", text: /^Slides$/
@@ -1216,13 +1282,16 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_operator difficulty_backgrounds.length, :>, 1
 
     fill_in "timeline-search-input", with: search_case[:query]
+    assert_current_path "/timeline?#{Rack::Utils.build_query(q: search_case[:query])}"
     assert_selector "[data-filter-count='timeline']", text: filter_count_text(search_case[:items].length, total_items)
     assert_selector ".timeline-content", text: search_case[:items].first[:title]
     assert_hidden_timeline_item search_case[:items]
     assert_timeline_year_counts_match_visible_cards
 
     find("[data-filter-reset='timeline']").click
+    assert_current_path "/timeline"
     find(".content-filter-panel .filter-chip", text: "Certificate").click
+    assert_current_path "/timeline?tag=Certificate"
     assert_selector ".content-filter-panel .filter-chip.is-active", text: "Certificate"
     assert_selector "[data-filter-count='timeline']", text: filter_count_text(certificate_count, total_items)
     assert_selector ".timeline-content", count: certificate_count
@@ -1261,8 +1330,23 @@ class SitePagesTest < ApplicationSystemTestCase
         };
       })()
     JS
-    assert_equal "rgba(20, 135, 170, 0.54)", active_timeline_cve_styles["backgroundColor"]
-    assert_equal "rgba(165, 243, 252, 0.68)", active_timeline_cve_styles["borderColor"]
+    active_timeline_cve_background = active_timeline_cve_styles["backgroundColor"].scan(/[\d.]+/).map(&:to_f)
+    active_timeline_cve_border = active_timeline_cve_styles["borderColor"].scan(/[\d.]+/).map(&:to_f)
+    assert_in_delta 20, active_timeline_cve_background[0], 2
+    assert_in_delta 132, active_timeline_cve_background[1], 6
+    assert_in_delta 166, active_timeline_cve_background[2], 8
+    assert_operator active_timeline_cve_background[3], :>=, 0.45
+    assert_operator active_timeline_cve_background[3], :<=, 0.55
+    assert_operator active_timeline_cve_border[0], :>=, 120
+    assert_operator active_timeline_cve_border[0], :<=, 180
+    assert_operator active_timeline_cve_border[1], :>=, 220
+    assert_operator active_timeline_cve_border[1], :<=, 250
+    assert_operator active_timeline_cve_border[2], :>=, 245
+    assert_operator active_timeline_cve_border[2], :<=, 255
+    assert_operator active_timeline_cve_border[1], :>, active_timeline_cve_border[0]
+    assert_operator active_timeline_cve_border[2], :>=, active_timeline_cve_border[1]
+    assert_operator active_timeline_cve_border[3], :>=, 0.55
+    assert_operator active_timeline_cve_border[3], :<=, 0.69
     assert_selector "[data-filter-count='timeline']", text: filter_count_text(cve_case[:items].length, total_items)
     assert_hidden_timeline_item cve_case[:items]
     assert_timeline_year_counts_match_visible_cards
@@ -1275,6 +1359,12 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".timeline-content", text: tag_case[:items].first[:title]
     assert_hidden_timeline_item tag_case[:items]
     assert_timeline_year_counts_match_visible_cards
+
+    query_year = search_case[:items].first[:published].year.to_s
+    visit "/timeline?#{Rack::Utils.build_query(q: search_case[:query], year: query_year, tag: tag_case[:tag])}"
+    assert_field "timeline-search-input", with: search_case[:query]
+    assert_equal query_year, page.evaluate_script("document.querySelector('[data-filter-year=\"timeline\"]').value")
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: tag_case[:tag]
   end
 
   test "ctf markdown preserves anchors and external links while resolving local images" do
@@ -1530,6 +1620,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_operator ctf_card_tag_order.index("difficulty"), :<, ctf_card_tag_order.index("category")
     assert_operator ctf_card_tag_order.index("shiny"), :<, ctf_card_tag_order.index("difficulty") if ctf_card_tag_order.include?("shiny")
     find(".content-filter-panel .filter-chip", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i).click
+    assert_current_path "/ctf?#{Rack::Utils.build_query(tag: ctf_tag_case[:tag])}"
     assert_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_tag_case[:items].length, ctf_total)
     assert_equal ctf_tag_case[:items].map { |item| item[:name] }, visible_ctf_names
@@ -1553,6 +1644,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal 0, filter_panel_after_tag["resetTabIndex"]
 
     find("[data-filter-reset='ctfs']").click
+    assert_current_path "/ctf"
     filter_panel_after_reset = page.evaluate_script(<<~JS)
       (() => {
         const panel = document.querySelector(".content-filter-panel");
@@ -1572,6 +1664,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal "true", filter_panel_after_reset["resetAriaHidden"]
     assert_equal(-1, filter_panel_after_reset["resetTabIndex"])
     find(".content-filter-panel .filter-chip.difficulty-badge-filter", text: /^#{Regexp.escape(ctf_difficulty_case[:label])}$/).click
+    assert_current_path "/ctf?#{Rack::Utils.build_query(tag: ctf_difficulty_case[:label])}"
     assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.is-active", text: ctf_difficulty_case[:label]
     active_difficulty_styles = page.evaluate_script(<<~JS)
       (() => {
@@ -1589,8 +1682,10 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal ctf_difficulty_case[:items].map { |item| item[:name] }, visible_ctf_names
 
     find("[data-filter-reset='ctfs']").click
+    assert_current_path "/ctf"
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_total, ctf_total)
     fill_in "ctf-search-input", with: ctf_search_case[:query]
+    assert_current_path "/ctf?#{Rack::Utils.build_query(q: ctf_search_case[:query])}"
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_search_case[:items].length, ctf_total)
     assert_selector ".content-filter-panel .search-wrapper.is-filled #ctf-search-clear"
     search_visual_styles = page.evaluate_script(<<~JS)
@@ -1633,14 +1728,21 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal ctf_search_case[:items].map { |item| item[:name] }, visible_ctf_names
 
     find("[data-filter-reset='ctfs']").click
+    assert_current_path "/ctf"
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_total, ctf_total)
     select_filter_year("ctfs", ctf_year_case[:year].to_s)
+    assert_current_path "/ctf?#{Rack::Utils.build_query(year: ctf_year_case[:year])}"
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_year_case[:items].length, ctf_total)
     assert_equal ctf_year_case[:items].map { |item| item[:name] }, visible_ctf_names
     filter_panel_after_year = page.evaluate_script(<<~JS)
       Math.round(document.querySelector(".content-filter-panel").getBoundingClientRect().height)
     JS
     assert_in_delta filter_panel_initial["height"], filter_panel_after_year, 1
+
+    visit "/ctf?#{Rack::Utils.build_query(q: ctf_search_case[:query], year: ctf_year_case[:year], tag: ctf_tag_case[:tag])}"
+    assert_field "ctf-search-input", with: ctf_search_case[:query]
+    assert_equal ctf_year_case[:year].to_s, page.evaluate_script("document.querySelector('[data-filter-year=\"ctfs\"]').value")
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
 
     visit "/ctf/#{writeup_case[:directory]}"
     assert_selector ".blog-post-authors", text: "Challenge by"
@@ -1658,6 +1760,7 @@ class SitePagesTest < ApplicationSystemTestCase
       find(".filter-chip.difficulty-badge-filter", text: /^#{Regexp.escape(writeup_difficulty_case[:label])}$/).click
       assert_selector ".filter-chip.difficulty-badge-filter.is-active", text: writeup_difficulty_case[:label]
     end
+    assert_current_path "/ctf/#{writeup_case[:directory]}?#{Rack::Utils.build_query(tag: writeup_difficulty_case[:label])}"
     writeup_filter_after_tag_height = page.evaluate_script(<<~JS)
       Math.round(document.querySelector(".content-filter-panel").getBoundingClientRect().height)
     JS
@@ -1666,16 +1769,20 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal writeup_difficulty_case[:posts].map { |post| post[:title] }, visible_writeup_titles
 
     find("[data-filter-reset='writeups']").click
+    assert_current_path "/ctf/#{writeup_case[:directory]}"
     within ".content-filter-panel" do
       find(".filter-chip.category-badge-filter", text: /^#{Regexp.escape(writeup_case[:tag])}$/i).click
       assert_selector ".filter-chip.category-badge-filter.is-active", text: /^#{Regexp.escape(writeup_case[:tag])}$/i
     end
+    assert_current_path "/ctf/#{writeup_case[:directory]}?#{Rack::Utils.build_query(tag: writeup_case[:tag])}"
     assert_selector "[data-filter-count='writeups']", text: filter_count_text(writeup_case[:tag_posts].length, writeup_case[:posts].length)
     assert_equal writeup_case[:tag_posts].map { |post| post[:title] }, visible_writeup_titles
 
     find("[data-filter-reset='writeups']").click
+    assert_current_path "/ctf/#{writeup_case[:directory]}"
     assert_selector "[data-filter-count='writeups']", text: filter_count_text(writeup_case[:posts].length, writeup_case[:posts].length)
     select_filter_year("writeups", writeup_case[:year].to_s)
+    assert_current_path "/ctf/#{writeup_case[:directory]}?#{Rack::Utils.build_query(year: writeup_case[:year])}"
     assert_selector "[data-filter-count='writeups']", text: filter_count_text(writeup_case[:year_posts].length, writeup_case[:posts].length)
     assert_equal writeup_case[:year_posts].map { |post| post[:title] }, visible_writeup_titles
 
@@ -1725,16 +1832,26 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_includes [ "none", "\"\"" ], category_before_content
     end
 
+    visit "/blog?#{Rack::Utils.build_query(tag: tag_case[:tag])}"
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(tag_case[:tag])}$/i
+    assert_selector "[data-filter-count='blogs']", text: filter_count_text(tag_case[:items].length, blog_total)
+
+    find("[data-filter-reset='blogs']").click
+    assert_current_path "/blog"
     fill_in "blog-search-input", with: search_case[:query]
+    assert_current_path "/blog?#{Rack::Utils.build_query(q: search_case[:query])}"
     assert_selector "[data-filter-count='blogs']", text: filter_count_text(search_case[:items].length, blog_total)
     assert_equal search_case[:items].map { |post| post[:title] }.sort, visible_blog_titles.sort
 
     find("[data-filter-reset='blogs']").click
+    assert_current_path "/blog"
     select_filter_year("blogs", year_case[:year].to_s)
+    assert_current_path "/blog?#{Rack::Utils.build_query(year: year_case[:year])}"
     assert_selector "[data-filter-count='blogs']", text: filter_count_text(year_case[:items].length, blog_total)
     assert_equal year_case[:items].map { |post| post[:title] }.sort, visible_blog_titles.sort
 
     find("[data-filter-reset='blogs']").click
+    assert_current_path "/blog"
     normal_result_gap = page.evaluate_script(<<~JS)
       (() => {
         const panel = document.querySelector(".content-filter-panel").getBoundingClientRect();
@@ -1744,6 +1861,7 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
     fill_in "blog-search-input", with: "definitely-not-a-post"
+    assert_current_path "/blog?#{Rack::Utils.build_query(q: "definitely-not-a-post")}"
     assert_selector "[data-filter-count='blogs']", text: filter_count_text(0, blog_total)
     assert_selector ".content-filter-empty", text: "No blog posts match the current filters."
     assert_no_selector ".blog-post-card"
@@ -1782,20 +1900,24 @@ class SitePagesTest < ApplicationSystemTestCase
     difficulty = WriteupDifficulty.from_metadata(writeup_post[:metadata])
     assert_selector ".writeup-badges-article .difficulty-badge-#{difficulty[:key]}.difficulty-badge-article", text: difficulty[:label]
     assert_selector ".writeup-badges-article .category-badge", minimum: 1
-    static_article_tag_styles = page.evaluate_script(<<~JS)
+    article_tag_styles = page.evaluate_script(<<~JS)
       [...document.querySelectorAll(".writeup-badges-article .difficulty-badge, .writeup-badges-article .category-badge")].map((tag) => {
         const style = window.getComputedStyle(tag);
         return {
+          href: tag.getAttribute("href"),
+          className: tag.className,
           cursor: style.cursor,
           transitionDuration: style.transitionDuration,
           transform: style.transform
         };
       })
     JS
-    assert static_article_tag_styles.any?
-    assert static_article_tag_styles.all? { |styles| styles["cursor"] == "default" }
-    assert static_article_tag_styles.all? { |styles| styles["transitionDuration"] == "0s" }
-    assert static_article_tag_styles.all? { |styles| styles["transform"] == "none" }
+    assert article_tag_styles.any?
+    assert article_tag_styles.all? { |styles| styles["href"].to_s.start_with?("/timeline?tag=") }
+    assert article_tag_styles.all? { |styles| styles["className"].include?("content-tag-timeline-link") }
+    assert article_tag_styles.all? { |styles| styles["cursor"] == "pointer" }
+    assert article_tag_styles.all? { |styles| styles["transitionDuration"] != "0s" }
+    assert article_tag_styles.all? { |styles| styles["transform"] == "none" }
   end
 
   test "writeup optional hints render as overview counts and collapsed article details" do

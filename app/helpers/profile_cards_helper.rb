@@ -30,7 +30,7 @@ module ProfileCardsHelper
 
     return content_tag(:span, text, options) if url.blank?
 
-    link_to(text, url, options.merge(profile_card_link_options(url)))
+    content_tag(:a, text, options.merge(profile_card_link_options(url)).merge(href: url))
   end
 
   def profile_card_link_attributes(url, label)
@@ -44,10 +44,13 @@ module ProfileCardsHelper
     return nil if label.blank?
 
     label = ContentTagTaxonomy.canonical_label(label)
+    timeline_link = url.blank? && datetime.blank?
+    url = timeline_filter_path(tag: label) if timeline_link
     linked = url.present?
     tag_classes = [
       "aboutme-card-tag",
       (linked ? "aboutme-tag-action" : "aboutme-tag-static"),
+      ("aboutme-tag-timeline" if timeline_link),
       *aboutme_tag_style_classes(label, class_name),
       ("ui-hover-lift" if linked)
     ].compact.uniq.join(" ")
@@ -277,8 +280,7 @@ module ProfileCardsHelper
         "event" => event["title"],
         "summary" => event["summary"],
         "url" => event["url"].presence || event["card_url"].presence,
-        "link_style" => "tag",
-        "link_label" => "Event"
+        "link_style" => "tag"
       }.compact
     end
   end

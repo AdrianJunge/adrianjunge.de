@@ -19,7 +19,7 @@
 <% end %>
 
 <%= render_taskbar_items %>
-<% terminal_paths = @blog_posts.map { |post| post[:slug] } %>
+<% terminal_paths = @blog_posts.map { |post| { label: post[:slug], url: post[:link] } } %>
 <%= render_terminal(terminal_paths, true) %>
 
 <main class="content-page blog-overview">

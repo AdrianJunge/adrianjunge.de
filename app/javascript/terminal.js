@@ -118,6 +118,67 @@ function normalizePathEntry(entry) {
     };
 }
 
+function currentPromptPath() {
+    const path = window.location.pathname.replace(/\/+$/, '');
+    return path === '' ? '~' : path;
+}
+
+function promptText(prefix = '\n') {
+    return `${prefix}adrian@my-space:${currentPromptPath()}$ `;
+}
+
+function currentListTarget() {
+    return window.location.pathname === '/' ? '~' : '.';
+}
+
+function localUrl(path) {
+    return new URL(path, window.location.origin).href;
+}
+
+function parentPath(path = window.location.pathname) {
+    const cleanPath = path.replace(/\/+$/, '');
+    if (cleanPath === '' || cleanPath === '/') return '/';
+
+    const segments = cleanPath.split('/').filter(Boolean);
+    segments.pop();
+    return segments.length ? `/${segments.join('/')}` : '/';
+}
+
+function currentDirectoryBase() {
+    const path = window.location.pathname || '/';
+    return path.endsWith('/') ? path : `${path}/`;
+}
+
+function resolveRoutePath(target) {
+    const path = target.trim();
+    if (path === '' || path === '~') return localUrl('/');
+    if (path === '.') return localUrl(`${window.location.pathname}${window.location.search}${window.location.hash}`);
+    if (path === '..') return localUrl(parentPath());
+
+    if (path.startsWith('~')) {
+        const homeRelativePath = path.slice(1).replace(/^\/?/, '/');
+        return localUrl(homeRelativePath);
+    }
+
+    if (path.startsWith('/')) {
+        return localUrl(path);
+    }
+
+    return new URL(path, `${window.location.origin}${currentDirectoryBase()}`).href;
+}
+
+function isRouteLikePath(target) {
+    return target === '' ||
+        target === '~' ||
+        target === '.' ||
+        target === '..' ||
+        target.startsWith('/') ||
+        target.startsWith('./') ||
+        target.startsWith('../') ||
+        target.startsWith('~/') ||
+        target.includes('/');
+}
+
 const customLinkHandler = {
   allowNonHttpProtocols: true,
 
@@ -172,29 +233,33 @@ function getTargetUrl(pathEntry) {
         return new URL(entry.url, window.location.origin).href;
     }
 
-    let url;
-    if (path === '~') {
-        url = window.location.origin;
-    } else if (path === '.') {
-        url = window.location.href;
-    } else if (path === '..') {
-        url = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/');
-    } else {
-        url = window.location.href.endsWith("/") ? window.location.href + path : window.location.href + "/" + path;
+    return resolveRoutePath(path);
+}
+
+function resolveCdTarget(target) {
+    const trimmedTarget = target.trim();
+    const targetEntry = pathsArray.find(entry => entry.label === trimmedTarget);
+
+    if (targetEntry) {
+        return getTargetUrl(targetEntry);
     }
 
-    return url;
+    if (isRouteLikePath(trimmedTarget)) {
+        return resolveRoutePath(trimmedTarget);
+    }
+
+    return null;
 }
 
 function processCommand(command) {
-    if (/^ls\s*(-[a-zA-Z]+)?\s*$/.test(command)) {
+    if (/^ls(?:\s+[^<>:"|?*\r\n]+)*\s*$/.test(command)) {
         generateLsOutput(pathsArray);
-    } else if (/^cd\s+([^<>:"|?*\r\n]+)?\s*$/.test(command)) {
-        const target = command.substring(3).trim();
-        const targetEntry = pathsArray.find(entry => entry.label === target);
-        if (targetEntry) {
-            const targetUrl = getTargetUrl(targetEntry);
-            printLine(`\n  Changing to ${target}...\n`);
+    } else if (/^cd(?:\s+([^<>:"|?*\r\n]+))?\s*$/.test(command)) {
+        const target = command.replace(/^cd\s*/, '').trim();
+        const targetUrl = resolveCdTarget(target);
+
+        if (targetUrl) {
+            printLine(`\n  Changing to ${target || '~'}...\n`);
             window.location.href = targetUrl;
             return;
         } else {
@@ -215,7 +280,7 @@ function processCommand(command) {
     } else {
         printLine(`\n  Command not recognized: ${command}`, COLORS.white);
     }
-    printLine(`\nadrian@my-space:~$ `, COLORS.brightRed);
+    printLine(promptText(), COLORS.brightRed);
 }
 
 function initializeTerminal() {
@@ -232,10 +297,10 @@ function initializeTerminal() {
         printMultiLineString(firstHelp, COLORS.bold, true);
     }
 
-    printLine('adrian@my-space:~$ ', COLORS.brightRed);
-    typeText('ls -lah ~', COLORS.white, () => {
+    printLine(promptText(''), COLORS.brightRed);
+    typeText(`ls -lah ${currentListTarget()}`, COLORS.white, () => {
         generateLsOutput(pathsArray);
-        printLine('\nadrian@my-space:~$ ', COLORS.brightRed);
+        printLine(promptText(), COLORS.brightRed);
     });
 
     term.onData(function(data) {

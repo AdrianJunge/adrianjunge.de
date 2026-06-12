@@ -84,7 +84,7 @@ class ContentRepository
           slug: slug,
           title: title,
           published: published,
-          link: "#{link_prefix}/#{dir_name}/#{slug}",
+          link: encoded_local_path("#{link_prefix}/#{dir_name}/#{slug}"),
           description: meta["description"].to_s,
           categories: normalized_metadata_categories(meta),
           logo: item_meta["logo"],
@@ -404,7 +404,7 @@ class ContentRepository
     path = path.to_s
     return path unless path.start_with?("/")
 
-    path.split("/").map { |segment| CGI.escape(segment).gsub("+", "%20") }.join("/")
+    path.split("/").map { |segment| CGI.escape(CGI.unescape(segment)).gsub("+", "%20") }.join("/")
   end
 
   def feed_post_from(post, source)

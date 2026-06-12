@@ -23,7 +23,8 @@
 <% end %>
 
 <%= render_taskbar_items %>
-<%= render_terminal(@writeups, true) %>
+<% terminal_paths = @writeups.map { |writeup| { label: writeup, url: "/ctf/#{@which}/#{ERB::Util.url_encode(writeup)}" } } %>
+<%= render_terminal(terminal_paths, true) %>
 
 <main class="content-page ctf-container">
   <%= render "shared/content_hero",
@@ -49,7 +50,7 @@
   <div class="writeup-content" data-filter-results="writeups">
     <div class="writeup-overview">
       <% @ctf_info.each do |writeup, info| %>
-        <% writeup_path = "/ctf/#{@which}/#{writeup}" %>
+        <% writeup_path = "/ctf/#{@which}/#{ERB::Util.url_encode(writeup)}" %>
         <div class="blog-post-entry writeup-post-entry">
           <%= render_writeup_card(writeup, writeup_path, info) %>
         </div>

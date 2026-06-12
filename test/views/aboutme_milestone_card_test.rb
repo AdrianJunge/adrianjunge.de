@@ -40,8 +40,15 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
     assert_select ".aboutme-card-details .aboutme-reference-link[href=?][target=?][rel=?]", "https://example.com/reference", "_blank", "noopener noreferrer", text: "Reference"
     assert_select ".aboutme-detail-block h3", text: "Timeline"
     assert_select ".aboutme-timeline time[datetime=?]", "2026-01-02"
-    assert_select ".aboutme-timeline-title", text: "Example 2026 #1"
-    assert_select ".aboutme-timeline-event-tag[href=?][target=?][rel=?]", "https://example.com/event", "_blank", "noopener noreferrer", text: "Event"
+    assert_select ".aboutme-timeline-title", 0
+    assert_select ".aboutme-timeline-link.aboutme-timeline-event-link[href=?][target=?][rel=?][aria-label=?][title=?]",
+                  "https://example.com/event",
+                  "_blank",
+                  "noopener noreferrer",
+                  "Open Example 2026 #1",
+                  "Open Example 2026 #1",
+                  text: "Example 2026 #1"
+    assert_select ".aboutme-timeline-event-tag", 0
     assert_select ".aboutme-timeline-summary", text: "Won the example event."
     assert_select ".aboutme-link-row", 0
   end

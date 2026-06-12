@@ -144,7 +144,7 @@
 
 <% inner_content = capture do %>
   <% if overlay_link %>
-    <%= link_to("", card_url, content_card_link_attributes(card_url, card[:aria_label].presence || card[:title].presence || "Open item", class_name: hitbox_classes)) %>
+    <%= content_tag(:a, "", content_card_link_attributes(card_url, card[:aria_label].presence || card[:title].presence || "Open item", class_name: hitbox_classes).merge(href: card_url)) %>
   <% end %>
 
   <% if wrap_content %>
@@ -167,9 +167,7 @@
 <% end %>
 
 <% if linked_root %>
-  <%= link_to(card_url, root_attrs) do %>
-    <%= inner_content %>
-  <% end %>
+  <%= content_tag(:a, inner_content, root_attrs.merge(content_link_options(card_url)).merge(href: card_url)) %>
 <% else %>
   <%= content_tag(root_tag, inner_content, root_attrs) %>
 <% end %>
