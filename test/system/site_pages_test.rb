@@ -118,7 +118,7 @@ class SitePagesTest < ApplicationSystemTestCase
         })()
       JS
 
-      assert_equal "rgba(7, 31, 52, 0.82)", metrics["taskbarBackground"]
+      assert_equal "rgba(7, 31, 52, 0.64)", metrics["taskbarBackground"]
       assert_operator metrics["paddingLeft"], :>=, 7, "top taskbar padding collapsed at #{width}px"
       assert_operator metrics["iconLeft"], :>=, 7, "top taskbar icon touched the viewport edge at #{width}px"
       assert_operator metrics["iconWidth"], :>=, 24, "top taskbar icon became too small at #{width}px"
@@ -578,28 +578,29 @@ class SitePagesTest < ApplicationSystemTestCase
     landing_authored_posts = landing_latest_posts.select { |post| post[:type] == "ctf" && AuthoredChallenge.from_metadata(post[:metadata] || {}) }
     if landing_authored_posts.any?
       authored_post = landing_authored_posts.first
-      event_url = writeup_event_url_for(authored_post)
+      authored_timeline_path = timeline_path(tag: AuthoredChallenge::FILTER_LABEL)
 
       within find(".landing-writeup-cards .blog-post-card", text: authored_post[:title]) do
-        assert_selector ".blog-post-meta-row > a.authored-challenge-badge[href='#{event_url}'][target='_blank'][rel='noopener noreferrer']",
+        assert_selector ".blog-post-meta-row > a.authored-challenge-badge.content-tag-timeline-link[href='#{authored_timeline_path}']:not([target])[rel='noopener']",
                         text: /Authored challenge/
-        assert_selector ".blog-post-meta-row > a.authored-challenge-badge.content-tag-link.content-tag-action .content-tag-arrow", text: ">"
+        assert_no_selector ".blog-post-meta-row > a.authored-challenge-badge .content-tag-arrow", text: ">"
         assert_no_selector ".blog-post-meta-row > button.authored-challenge-badge"
         assert_no_selector ".blog-post-meta-row > .authored-challenge-badge.blog-post-static-chip"
       end
       authored_hit = link_hit_target(".landing-writeup-cards .authored-challenge-badge")
-      assert_equal event_url, authored_hit["href"]
+      assert_equal URI.join(page.server_url, authored_timeline_path).to_s, authored_hit["href"]
       assert_includes authored_hit["className"], "authored-challenge-badge"
     end
     landing_winner_posts = landing_latest_posts.select { |post| post[:type] == "ctf" && WriteupWinner.from_metadata(post[:metadata] || {}) }
     if landing_winner_posts.any?
       winner_post = landing_winner_posts.first
       winner = WriteupWinner.from_metadata(winner_post[:metadata] || {})
+      winner_timeline_path = timeline_path(tag: WriteupWinner::FILTER_LABEL)
 
       within find(".landing-writeup-cards .blog-post-card", text: winner_post[:title]) do
-        assert_selector ".blog-post-meta-row > a.writeup-winner-badge[href='#{winner[:proof_url]}'][target='_blank'][rel='noopener noreferrer']",
+        assert_selector ".blog-post-meta-row > a.writeup-winner-badge.content-tag-timeline-link[href='#{winner_timeline_path}']:not([target])[rel='noopener']",
                         text: winner[:label]
-        assert_selector ".blog-post-meta-row > a.writeup-winner-badge.content-tag-link.content-tag-action .content-tag-arrow", text: ">"
+        assert_no_selector ".blog-post-meta-row > a.writeup-winner-badge .content-tag-arrow", text: ">"
         assert_no_selector ".blog-post-meta-row > button.writeup-winner-badge"
         assert_no_selector ".blog-post-meta-row > .writeup-winner-badge.blog-post-static-chip"
       end

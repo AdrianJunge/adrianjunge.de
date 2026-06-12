@@ -210,9 +210,20 @@ class AboutmeTest < ApplicationSystemTestCase
 
     assert_current_path "/about"
     assert_equal "#my-challenges", page.evaluate_script("window.location.hash")
+    scroll_options = nil
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
+
+    loop do
+      scroll_options = page.evaluate_script("window.__aboutScrollOptions")
+      break if scroll_options.present?
+      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+      sleep 0.05
+    end
+
     assert_equal(
       { "targetId" => "my-challenges", "behavior" => "smooth", "block" => "start" },
-      page.evaluate_script("window.__aboutScrollOptions")
+      scroll_options
     )
     assert_equal true, page.evaluate_script("document.querySelector('#my-challenges').open")
     assert_selector "#my-challenges", text: "Created CTF Challenges"

@@ -29,7 +29,7 @@ module CtfHelper
     )
   end
 
-  def render_writeup_card(writeup, writeup_path, info, logo: nil, interactive_tags: true, show_hints: true)
+  def render_writeup_card(writeup, writeup_path, info, logo: nil, interactive_tags: true, show_hints: true, external_recognition_links: true)
     categories = normalized_categories(info["categories"]).presence || [ "Unknown category" ]
     title = info["title"].presence || writeup.capitalize
     description = info["description"] || "No description available"
@@ -56,7 +56,7 @@ module CtfHelper
         label: winner[:label],
         tag_value: WriteupWinner::FILTER_LABEL,
         winner: true,
-        url: interactive_tags ? nil : winner[:proof_url],
+        url: !interactive_tags && external_recognition_links ? winner[:proof_url] : nil,
         class_name: "writeup-winner-badge-card"
       }
     end
@@ -65,7 +65,7 @@ module CtfHelper
         label: authored_challenge[:label],
         tag_value: AuthoredChallenge::FILTER_LABEL,
         authored: true,
-        url: interactive_tags ? nil : authored_challenge[:event_url],
+        url: !interactive_tags && external_recognition_links ? authored_challenge[:event_url] : nil,
         class_name: "authored-challenge-badge-card"
       }
     end

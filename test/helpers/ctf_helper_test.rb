@@ -153,6 +153,36 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-meta-row > .filter-chip.blog-post-static-chip", false
   end
 
+  test "non-interactive writeup cards can send recognition badges to timeline filters" do
+    render inline: "<%= render_writeup_card('Winner', '/ctf/demo/Winner', info, interactive_tags: false, external_recognition_links: false) %>", locals: {
+      info: {
+        "title" => "Winner",
+        "description" => "A winning authored writeup.",
+        "categories" => [ "Web" ],
+        "published" => "2026-01-01",
+        "event_url" => "https://example.com/ctf",
+        "writeup_winner" => {
+          "label" => "Best writeup",
+          "proof_url" => "https://example.com/proof"
+        },
+        "optional" => {
+          "authored_challenge" => {
+            "event" => "DemoCTF 2026"
+          }
+        }
+      }
+    }
+
+    assert_select ".blog-post-meta-row > a.writeup-winner-badge.content-tag-timeline-link[href='/timeline?tag=Writeup+winner']:not([target])[rel='noopener']",
+                  text: /Best writeup/
+    assert_select ".blog-post-meta-row > a.authored-challenge-badge.content-tag-timeline-link[href='/timeline?tag=Authored+challenge']:not([target])[rel='noopener']",
+                  text: /Authored challenge/
+    assert_select ".blog-post-meta-row > a.writeup-winner-badge[href='https://example.com/proof']", false
+    assert_select ".blog-post-meta-row > a.authored-challenge-badge[href='https://example.com/ctf']", false
+    assert_select ".blog-post-meta-row > a.writeup-winner-badge .content-tag-arrow", false
+    assert_select ".blog-post-meta-row > a.authored-challenge-badge .content-tag-arrow", false
+  end
+
   test "writeup cards render authored challenge badge from optional metadata" do
     render inline: "<%= render_writeup_card('Authored', '/ctf/demo/Authored', info) %>", locals: {
       info: {

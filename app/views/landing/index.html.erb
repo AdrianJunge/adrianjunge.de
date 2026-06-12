@@ -152,7 +152,7 @@
                 </div>
             <% elsif post[:type] == "ctf" %>
                 <div class="blog-post-entry writeup-post-entry">
-                    <%= render_writeup_card(post[:slug], post[:link], post[:metadata] || {}, logo: post[:logo], interactive_tags: false, show_hints: false) %>
+                    <%= render_writeup_card(post[:slug], post[:link], post[:metadata] || {}, logo: post[:logo], interactive_tags: false, show_hints: false, external_recognition_links: false) %>
                 </div>
             <% end %>
         <% end %>
