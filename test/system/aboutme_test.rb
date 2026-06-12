@@ -230,6 +230,59 @@ class AboutmeTest < ApplicationSystemTestCase
 
     assert_selector "#certificates[open]"
     assert_equal true, page.evaluate_script("document.querySelector('#certificates').open")
+
+    visit about_path(anchor: "kitctf-glacierctf-2025")
+
+    assert_selector "#achievements[open]"
+    assert_selector "#kitctf[open]"
+    assert_selector "#kitctf-glacierctf-2025 .aboutme-timeline-event-link", text: "KITCTF #3 at GlacierCTF 2025"
+
+    anchor_metrics = nil
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
+
+    loop do
+      anchor_metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const taskbar = document.getElementById("top-taskbar").getBoundingClientRect();
+          const target = document.getElementById("kitctf-glacierctf-2025");
+          const section = document.getElementById("achievements");
+          const card = document.getElementById("kitctf");
+          if (!target) return { targetExists: false };
+
+          const targetRect = target.getBoundingClientRect();
+          const cardRect = card.getBoundingClientRect();
+          return {
+            targetExists: true,
+            sectionOpen: section.open,
+            cardOpen: card.open,
+            cardOffset: Math.round(cardRect.top - taskbar.bottom),
+            targetTop: Math.round(targetRect.top),
+            targetBottom: Math.round(targetRect.bottom),
+            taskbarBottom: Math.round(taskbar.bottom),
+            viewportHeight: window.innerHeight
+          };
+        })()
+      JS
+
+      break if anchor_metrics["targetExists"] &&
+        anchor_metrics["sectionOpen"] &&
+        anchor_metrics["cardOpen"] &&
+        anchor_metrics["cardOffset"] >= 8 &&
+        anchor_metrics["cardOffset"] <= 120 &&
+        anchor_metrics["targetTop"] > anchor_metrics["taskbarBottom"] &&
+        anchor_metrics["targetBottom"] < anchor_metrics["viewportHeight"]
+      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+      sleep 0.05
+    end
+
+    assert anchor_metrics["targetExists"]
+    assert anchor_metrics["sectionOpen"]
+    assert anchor_metrics["cardOpen"]
+    assert_operator anchor_metrics["cardOffset"], :>=, 8
+    assert_operator anchor_metrics["cardOffset"], :<=, 120
+    assert_operator anchor_metrics["targetTop"], :>, anchor_metrics["taskbarBottom"]
+    assert_operator anchor_metrics["targetBottom"], :<, anchor_metrics["viewportHeight"]
   end
 
   test "about me page stays within narrow mobile viewports" do
@@ -269,16 +322,26 @@ class AboutmeTest < ApplicationSystemTestCase
     page.current_window.resize_to(390, 1200)
     visit about_path
 
-    separators = page.evaluate_script(<<~JS)
-      Array.from(document.querySelectorAll(".aboutme-stat")).map((stat) => {
-        const style = window.getComputedStyle(stat);
+    separators = nil
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
 
-        return {
-          borderTopWidth: style.borderTopWidth,
-          borderTopStyle: style.borderTopStyle
-        };
-      })
-    JS
+    loop do
+      separators = page.evaluate_script(<<~JS)
+        Array.from(document.querySelectorAll(".aboutme-stat")).map((stat) => {
+          const style = window.getComputedStyle(stat);
+
+          return {
+            borderTopWidth: style.borderTopWidth,
+            borderTopStyle: style.borderTopStyle
+          };
+        })
+      JS
+
+      break if separators[2]["borderTopWidth"] == "1px" && separators[3]["borderTopWidth"] == "1px"
+      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+      sleep 0.05
+    end
 
     assert_equal "0px", separators[0]["borderTopWidth"]
     assert_equal "0px", separators[1]["borderTopWidth"]
@@ -338,38 +401,48 @@ class AboutmeTest < ApplicationSystemTestCase
   test "cve disclosure timelines use a rail with dots" do
     visit about_path
 
-    metrics = page.evaluate_script(<<~JS)
-      (() => {
-        document.querySelector("#cves").open = true;
-        const timeline = document.querySelector("#cves details .aboutme-timeline");
-        const details = timeline.closest("details");
-        details.open = true;
-        details.scrollIntoView({ block: "center" });
+    metrics = nil
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
 
-        const railStyle = window.getComputedStyle(timeline, "::before");
-        const firstItem = timeline.querySelector("li");
-        const dotStyle = window.getComputedStyle(firstItem, "::before");
-        const timelineRect = timeline.getBoundingClientRect();
-        const itemRect = firstItem.getBoundingClientRect();
-        const railTop = parseFloat(railStyle.top);
-        const railCenter = parseFloat(railStyle.left) + (parseFloat(railStyle.width) / 2);
-        const dotTop = parseFloat(dotStyle.top);
-        const dotSize = parseFloat(dotStyle.width) + (parseFloat(dotStyle.borderLeftWidth) * 2);
-        const dotCenter = (itemRect.left - timelineRect.left) + parseFloat(dotStyle.left) + (dotSize / 2);
+    loop do
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          document.querySelector("#cves").open = true;
+          const timeline = document.querySelector("#cves details .aboutme-timeline");
+          const details = timeline.closest("details");
+          details.open = true;
+          details.scrollIntoView({ block: "center" });
 
-        return {
-          railContent: railStyle.content,
-          railWidth: railStyle.width,
-          railBackground: railStyle.backgroundImage,
-          railStartsInsideFirstDot: railTop >= dotTop && railTop <= (dotTop + dotSize),
-          centerDelta: Math.abs(railCenter - dotCenter),
-          dotContent: dotStyle.content,
-          dotRadius: dotStyle.borderTopLeftRadius,
-          dotBackground: dotStyle.backgroundColor,
-          dotShadow: dotStyle.boxShadow
-        };
-      })()
-    JS
+          const railStyle = window.getComputedStyle(timeline, "::before");
+          const firstItem = timeline.querySelector("li");
+          const dotStyle = window.getComputedStyle(firstItem, "::before");
+          const timelineRect = timeline.getBoundingClientRect();
+          const itemRect = firstItem.getBoundingClientRect();
+          const railTop = parseFloat(railStyle.top);
+          const railCenter = parseFloat(railStyle.left) + (parseFloat(railStyle.width) / 2);
+          const dotTop = parseFloat(dotStyle.top);
+          const dotSize = parseFloat(dotStyle.width) + (parseFloat(dotStyle.borderLeftWidth) * 2);
+          const dotCenter = (itemRect.left - timelineRect.left) + parseFloat(dotStyle.left) + (dotSize / 2);
+
+          return {
+            railContent: railStyle.content,
+            railWidth: railStyle.width,
+            railBackground: railStyle.backgroundImage,
+            railStartsInsideFirstDot: railTop >= dotTop && railTop <= (dotTop + dotSize),
+            centerDelta: Math.abs(railCenter - dotCenter),
+            dotContent: dotStyle.content,
+            dotRadius: dotStyle.borderTopLeftRadius,
+            dotBackground: dotStyle.backgroundColor,
+            dotShadow: dotStyle.boxShadow
+          };
+        })()
+      JS
+
+      break if metrics["railContent"] == '""' && metrics["dotContent"] == '""'
+      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+      sleep 0.05
+    end
 
     assert_equal '""', metrics["railContent"]
     assert_equal "2px", metrics["railWidth"]

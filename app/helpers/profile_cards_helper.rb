@@ -276,6 +276,7 @@ module ProfileCardsHelper
   def profile_milestone_timeline_items(events)
     events.map do |event|
       {
+        "id" => event["id"],
         "date" => event["date"],
         "event" => event["title"],
         "summary" => event["summary"],

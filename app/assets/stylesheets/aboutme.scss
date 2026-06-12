@@ -164,7 +164,12 @@
     --aboutme-section-accent: #7dd3fc;
     --aboutme-section-accent-soft: rgba(125, 211, 252, 0.16);
     padding: 2.35rem 0 0;
-    scroll-margin-top: 5rem;
+    scroll-margin-top: calc(var(--top-taskbar-height) + 1rem);
+}
+
+.aboutme-card,
+.aboutme-timeline li[id] {
+    scroll-margin-top: calc(var(--top-taskbar-height) + 1rem);
 }
 
 .aboutme-section:last-child {

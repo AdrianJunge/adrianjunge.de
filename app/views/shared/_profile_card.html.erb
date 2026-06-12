@@ -75,7 +75,7 @@
         <% timeline_items.each do |item| %>
           <% event_label = item["event"].presence || item["title"].presence %>
           <% event_url = item["url"].presence || item["card_url"].presence %>
-          <li>
+          <%= content_tag(:li, id: item["id"].presence) do %>
             <% if item["date"].present? %>
               <time datetime="<%= item["date"] %>"><%= item["date"] %></time>
             <% end %>
@@ -103,7 +103,7 @@
                 <span class="aboutme-timeline-summary"><%= item["summary"] %></span>
               <% end %>
             </span>
-          </li>
+          <% end %>
         <% end %>
       </ol>
     </div>

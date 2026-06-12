@@ -5,7 +5,7 @@ module ContentUiHelper
     render "shared/content_card", card: card
   end
 
-  def content_tag_badge(label, classes:, title: nil, url: nil, filter_scope: nil, filter_tag: label, aria_label: nil, static_class: nil, label_class: nil, arrow: nil, link_target: "_blank", timeline_redirect: true)
+  def content_tag_badge(label, classes:, title: nil, url: nil, filter_scope: nil, filter_tag: label, aria_label: nil, static_class: nil, label_class: nil, arrow: nil, link_target: nil, timeline_redirect: true)
     label = ContentTagTaxonomy.canonical_label(label)
     filter_tag = ContentTagTaxonomy.canonical_label(filter_tag.presence || label)
     timeline_link = url.blank? && filter_scope.blank? && timeline_redirect && filter_tag.present?

@@ -12,7 +12,7 @@ module SidebarHelper
     icon = content_tag(:span, class: icon_class) do
       image_tag(image_path, alt: alt_text, class: "taskbar-icon-image")
     end
-    item_classes = [ "taskbar-item", ("is-active" if active) ].compact.join(" ")
+    item_classes = [ "taskbar-item", ("taskbar-item-terminal" if id == "terminal-taskbar-button"), ("is-active" if active) ].compact.join(" ")
     control_classes = [ (link ? "taskbar-link" : "taskbar-button-container"), ("is-active" if active) ].compact.join(" ")
 
     content_tag :div, class: item_classes do

@@ -28,6 +28,19 @@ function openDetailsForTarget(target) {
     return details.length > 0;
 }
 
+function scrollToAboutTarget(target, options = {}) {
+    if (!target) return;
+
+    window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+            target.scrollIntoView({
+                behavior: options.behavior || "auto",
+                block: "start",
+            });
+        });
+    });
+}
+
 function revealAboutHashTarget(options = {}) {
     if (!document.querySelector(".aboutme-page")) return;
 
@@ -37,10 +50,7 @@ function revealAboutHashTarget(options = {}) {
     openDetailsForTarget(target);
 
     if (options.scroll) {
-        target.scrollIntoView({
-            behavior: options.behavior || "auto",
-            block: "start",
-        });
+        scrollToAboutTarget(target, options);
     }
 }
 
@@ -62,10 +72,7 @@ function initializeAboutStatsNavigation() {
 
             event.preventDefault();
             openDetailsForTarget(target);
-            target.scrollIntoView({
-                behavior: reducedMotion.matches ? "auto" : "smooth",
-                block: "start",
-            });
+            scrollToAboutTarget(target, { behavior: reducedMotion.matches ? "auto" : "smooth" });
 
             if (window.location.hash !== hash) {
                 history.pushState(null, "", hash);

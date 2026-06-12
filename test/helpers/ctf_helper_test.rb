@@ -149,6 +149,7 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-meta-row > button.writeup-winner-badge", false
     assert_select ".blog-post-meta-row > button.authored-challenge-badge", false
     assert_select ".blog-post-meta-row > a.filter-chip.content-tag-timeline-link[href=?]", "/timeline?tag=Web", text: "Web"
+    assert_select ".blog-post-meta-row > a.filter-chip.content-tag-timeline-link[href=?]:not([target])", "/timeline?tag=Web"
     assert_select ".blog-post-meta-row > .filter-chip.blog-post-static-chip", false
   end
 

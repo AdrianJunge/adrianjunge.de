@@ -83,7 +83,7 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "top taskbar keeps usable icons on narrow displays" do
-    [ 320, 390 ].each do |width|
+    [ 320, 390, 690, 720 ].each do |width|
       page.current_window.resize_to(width, 900)
       visit "/"
 
@@ -93,16 +93,27 @@ class SitePagesTest < ApplicationSystemTestCase
         (() => {
           const taskbar = document.getElementById("top-taskbar");
           const icon = taskbar.querySelector(".taskbar-icon");
+          const terminalItem = taskbar.querySelector(".taskbar-item-terminal");
+          const visibleLabels = Array.from(taskbar.querySelectorAll(".taskbar-label")).filter((label) => {
+            return label.getClientRects().length > 0;
+          });
           const taskbarRect = taskbar.getBoundingClientRect();
           const iconRect = icon.getBoundingClientRect();
           const taskbarStyle = window.getComputedStyle(taskbar);
+          const labelStyles = visibleLabels.map((label) => window.getComputedStyle(label));
+          const labelFontSizes = labelStyles.map((style) => parseFloat(style.fontSize));
 
           return {
             taskbarHeight: Math.round(taskbarRect.height),
             paddingLeft: parseFloat(taskbarStyle.paddingLeft),
             iconLeft: Math.round(iconRect.left),
             iconWidth: Math.round(iconRect.width),
-            taskbarBackground: taskbarStyle.backgroundColor
+            taskbarBackground: taskbarStyle.backgroundColor,
+            terminalVisible: terminalItem && window.getComputedStyle(terminalItem).display !== "none",
+            visibleLabelCount: visibleLabels.length,
+            labelTextOverflows: labelStyles.map((style) => style.textOverflow),
+            minLabelFontSize: labelFontSizes.length ? Math.min(...labelFontSizes) : null,
+            maxLabelFontSize: labelFontSizes.length ? Math.max(...labelFontSizes) : null
           };
         })()
       JS
@@ -112,6 +123,16 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_operator metrics["iconLeft"], :>=, 7, "top taskbar icon touched the viewport edge at #{width}px"
       assert_operator metrics["iconWidth"], :>=, 24, "top taskbar icon became too small at #{width}px"
       assert_operator metrics["taskbarHeight"], :>=, 48, "top taskbar became too short at #{width}px"
+      assert_empty metrics["labelTextOverflows"].grep("ellipsis"), "top taskbar labels still use ellipsis at #{width}px"
+      assert_equal width >= 700, metrics["terminalVisible"], "terminal taskbar visibility was wrong at #{width}px"
+
+      if width <= 420
+        assert_equal 0, metrics["visibleLabelCount"], "top taskbar labels should be hidden at #{width}px"
+      else
+        assert_operator metrics["visibleLabelCount"], :>, 0, "top taskbar labels disappeared too early at #{width}px"
+        assert_operator metrics["minLabelFontSize"], :>=, 8.9, "top taskbar labels became too small at #{width}px"
+        assert_operator metrics["maxLabelFontSize"], :<=, 11, "top taskbar labels became too large at #{width}px"
+      end
     end
   end
 
@@ -191,6 +212,7 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "terminal cd command accepts listed labels" do
+    page.current_window.resize_to(1280, 900)
     visit "/"
 
     find("#terminal-taskbar-button").click
@@ -394,13 +416,16 @@ class SitePagesTest < ApplicationSystemTestCase
           const image = document.querySelector(".landing-profile-image").getBoundingClientRect();
           const links = document.querySelector(".landing-affiliation-links").getBoundingClientRect();
           const h1 = document.querySelector(".landing-page h1").getBoundingClientRect();
+          const kicker = document.querySelector(".landing-kicker").getBoundingClientRect();
           const shell = document.querySelector(".landing-hero-shell").getBoundingClientRect();
+          const taskbar = document.getElementById("top-taskbar").getBoundingClientRect();
           const overlaps = (a, b) => !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
 
           return {
             emojiOverlapsPanel: overlaps(emoji, panel),
             emojiOverlapsImage: overlaps(emoji, image),
             emojiOverlapsLinks: overlaps(emoji, links),
+            kickerTopGap: Math.round(kicker.top - taskbar.bottom),
             titleOverflowsShell: h1.right > shell.right + 1 || h1.left < shell.left - 1
           };
         })()
@@ -409,11 +434,12 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_equal false, metrics["emojiOverlapsPanel"], "emoji overlapped profile panel at #{width}px"
       assert_equal false, metrics["emojiOverlapsImage"], "emoji overlapped profile image at #{width}px"
       assert_equal false, metrics["emojiOverlapsLinks"], "emoji overlapped affiliation links at #{width}px"
+      assert_operator metrics["kickerTopGap"], :>=, 24, "landing kicker sat too close to the taskbar at #{width}px"
       assert_equal false, metrics["titleOverflowsShell"], "landing title overflowed hero shell at #{width}px"
     end
   end
 
-  test "fixed top taskbar overlays compact pages without horizontal offset" do
+  test "sticky top taskbar reserves compact page space without horizontal offset" do
     {
       "/" => "#landing-top",
       "/ctf" => ".content-hero-inner",
@@ -437,23 +463,27 @@ class SitePagesTest < ApplicationSystemTestCase
               taskbarLeft: Math.round(taskbarRect.left),
               taskbarRight: Math.round(taskbarRect.right),
               viewportWidth,
+              contentTop: Math.round(content.top),
+              taskbarBottom: Math.round(taskbarRect.bottom),
               contentLeft: Math.round(content.left),
               contentRightGap: Math.round(viewportWidth - content.right)
             };
           })()
         JS
 
-        assert_equal "fixed", metrics["taskbarPosition"]
+        assert_equal "sticky", metrics["taskbarPosition"]
         assert_equal 0, metrics["taskbarTop"], "top taskbar drifted away from the viewport top on #{path} at #{width}px"
         assert_equal 0, metrics["taskbarLeft"], "top taskbar drifted away from the viewport edge on #{path} at #{width}px"
         assert_in_delta metrics["viewportWidth"], metrics["taskbarRight"], 1
+        assert_operator metrics["contentTop"], :>=, metrics["taskbarBottom"],
+                        "top taskbar overlaid content on #{path} at #{width}px"
         assert_in_delta metrics["contentLeft"], metrics["contentRightGap"], 2,
                         "content was horizontally offset by top taskbar on #{path} at #{width}px"
       end
     end
   end
 
-  test "fixed top taskbar does not jump while scrolling compact pages" do
+  test "sticky top taskbar does not jump while scrolling compact pages" do
     page.current_window.resize_to(390, 900)
     visit "/timeline"
 
@@ -578,6 +608,8 @@ class SitePagesTest < ApplicationSystemTestCase
 
         return {
           href: chip.getAttribute("href"),
+          target: chip.getAttribute("target"),
+          rel: chip.getAttribute("rel"),
           cursor: style.cursor,
           className: chip.className,
           pointerEvents: style.pointerEvents,
@@ -590,6 +622,8 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
     assert_match %r{\A/timeline\?tag=}, timeline_chip_styles["href"]
+    assert_nil timeline_chip_styles["target"]
+    assert_equal "noopener", timeline_chip_styles["rel"]
     assert_equal "pointer", timeline_chip_styles["cursor"]
     assert_includes timeline_chip_styles["className"], "content-tag-timeline-link"
     assert_includes timeline_chip_styles["className"], "content-tag-action"
@@ -621,6 +655,9 @@ class SitePagesTest < ApplicationSystemTestCase
 
         return {
           className: chip.className,
+          href: chip.getAttribute("href"),
+          target: chip.getAttribute("target"),
+          rel: chip.getAttribute("rel"),
           cursor: style.cursor,
           pointerEvents: style.pointerEvents,
           backgroundColor: style.backgroundColor,
@@ -634,6 +671,9 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_includes landing_difficulty_styles["className"], "content-tag-timeline-link"
       assert_includes landing_difficulty_styles["className"], "content-tag-action"
       assert_not_includes landing_difficulty_styles["className"], "content-tag-static"
+      assert_match %r{\A/timeline\?tag=}, landing_difficulty_styles["href"]
+      assert_nil landing_difficulty_styles["target"]
+      assert_equal "noopener", landing_difficulty_styles["rel"]
       assert_equal "pointer", landing_difficulty_styles["cursor"]
       assert_equal "auto", landing_difficulty_styles["pointerEvents"]
       find(".landing-writeup-cards .difficulty-badge", match: :first).hover
@@ -660,6 +700,55 @@ class SitePagesTest < ApplicationSystemTestCase
     blog_styles = post_card_styles(".blog-posts-container .blog-post-card")
 
     assert_equal blog_styles, landing_styles
+  end
+
+  test "tag links only open a new tab for external destinations" do
+    tag_pages = [
+      "/",
+      "/ctf",
+      "/ctf/#{first_ctf_event_with_writeups[:directory]}",
+      "/blog",
+      "/timeline",
+      "/about"
+    ]
+
+    checked_tag_link_count = 0
+
+    tag_pages.each do |path|
+      visit path
+      if path == "/about"
+        page.execute_script(<<~JS)
+          document.querySelectorAll(".aboutme-section, .aboutme-card").forEach((element) => { element.open = true; });
+        JS
+      end
+
+      tag_links = page.evaluate_script(<<~JS)
+        Array.from(document.querySelectorAll("a.content-tag-link[href], a.aboutme-card-tag[href]")).map((link) => {
+          const url = new URL(link.getAttribute("href"), window.location.origin);
+
+          return {
+            className: link.className,
+            href: link.getAttribute("href"),
+            external: url.origin !== window.location.origin,
+            target: link.getAttribute("target"),
+            rel: link.getAttribute("rel")
+          };
+        })
+      JS
+
+      checked_tag_link_count += tag_links.length
+      tag_links.each do |link|
+        if link["external"]
+          assert_equal "_blank", link["target"], "external tag link opened in-tab on #{path}: #{link.inspect}"
+          assert_includes link["rel"].to_s.split, "noopener", "external tag link missed noopener on #{path}: #{link.inspect}"
+          assert_includes link["rel"].to_s.split, "noreferrer", "external tag link missed noreferrer on #{path}: #{link.inspect}"
+        else
+          assert_nil link["target"], "local tag link opened a new tab on #{path}: #{link.inspect}"
+        end
+      end
+    end
+
+    assert_operator checked_tag_link_count, :>, 0
   end
 
   test "post pages show reading time in the article header" do
@@ -805,6 +894,7 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "landing page exposes about section counters as direct links" do
+    page.current_window.resize_to(1280, 1200)
     visit "/"
 
     assert_text "creating writeups, collecting CVEs, bounties, and notes"
@@ -964,7 +1054,10 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".xterm-rows", text: "LinkedIn:"
     assert_selector ".xterm-rows", text: "Discord"
     assert_selector ".xterm-rows", text: "Telegram:"
-    assert_selector ".xterm-rows", text: "@FullyIncredibleCreativeUsername"
+    terminal_text_without_wraps = page.evaluate_script(<<~JS)
+      document.querySelector(".xterm-rows").innerText.replace(/\\s+/g, "")
+    JS
+    assert_includes terminal_text_without_wraps, "@FullyIncredibleCreativeUsername"
     terminal_contact_order = page.evaluate_script(<<~JS)
       (() => {
         const text = document.querySelector(".xterm-rows").innerText;
@@ -2237,11 +2330,12 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector "#toc[hidden]", visible: :all
     assert_selector "#toc-toggle[aria-expanded='true']"
     expanded_button_metrics = page.evaluate_script("#{button_metrics_script}('#toc-toggle')")
-    assert_in_delta expanded_button_metrics["contentTopInset"], expanded_button_metrics["contentRightInset"], 1
+    assert_equal "fixed", expanded_button_metrics["position"]
+    assert_operator expanded_button_metrics["top"], :>=, 0
+    assert_operator expanded_button_metrics["right"], :>=, 0
 
     page.execute_script("window.scrollTo(0, 700)")
     scrolled_expanded_button_metrics = page.evaluate_script("#{button_metrics_script}('#toc-toggle')")
-    assert_equal "fixed", expanded_button_metrics["position"]
     assert_in_delta expanded_button_metrics["top"], scrolled_expanded_button_metrics["top"], 1
     assert_in_delta expanded_button_metrics["right"], scrolled_expanded_button_metrics["right"], 1
 

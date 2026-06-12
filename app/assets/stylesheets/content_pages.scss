@@ -2448,8 +2448,8 @@
 }
 
 .landing-page #landing-top {
-    min-height: 100dvh;
-    padding: 5rem 0 3rem;
+    min-height: calc(100dvh - var(--top-taskbar-height));
+    padding: 1.75rem 0 3rem;
     gap: 1rem;
     align-items: stretch;
     position: relative;
@@ -2839,11 +2839,16 @@
 }
 
 @media (max-width: 720px) {
-    .content-hero,
-    .landing-page #landing-top {
+    .content-hero {
         padding-right: 0;
         padding-left: 0;
         padding-top: 4.25rem;
+    }
+
+    .landing-page #landing-top {
+        padding-right: 0;
+        padding-left: 0;
+        padding-top: 2rem;
     }
 
     .content-hero-inner,

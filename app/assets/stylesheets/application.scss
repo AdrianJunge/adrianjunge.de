@@ -529,7 +529,7 @@ mjx-container[display="true"] {
 }
 
 .top-taskbar {
-    position: fixed;
+    position: sticky;
     top: 0;
     right: 0;
     left: 0;
@@ -642,11 +642,10 @@ mjx-container[display="true"] {
     max-width: 100%;
     opacity: 1;
     color: inherit;
-    font-size: 0.68rem;
+    font-size: clamp(0.56rem, 1.75vw, 0.68rem);
     font-weight: 800;
     line-height: 1.05;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
     white-space: nowrap;
     transition: none;
 }
@@ -759,6 +758,12 @@ mjx-container[display="true"] {
     font-size: 0.62rem;
 }
 
+@media (max-width: 699.98px) {
+    .top-taskbar .taskbar-item-terminal {
+        display: none;
+    }
+}
+
 @media (max-width: 420px) {
     .top-taskbar {
         padding-right: 0.45rem;
@@ -771,20 +776,38 @@ mjx-container[display="true"] {
 
     .top-taskbar .taskbar-link,
     .top-taskbar .taskbar-button-container {
-        width: clamp(2.35rem, 13vw, 3.2rem);
-        min-height: 3rem;
-        padding-right: 0.18rem;
-        padding-left: 0.18rem;
+        width: clamp(2.35rem, 14vw, 3rem);
+        min-height: 2.85rem;
+        padding: 0.32rem 0.18rem;
     }
 
     .top-taskbar .taskbar-icon {
-        width: 1.55rem;
-        height: 1.55rem;
+        width: 1.65rem;
+        height: 1.65rem;
     }
 
     .top-taskbar .taskbar-label,
+    .top-taskbar .taskbar-feed-toggle .taskbar-label,
     .top-taskbar #terminal-taskbar-button .taskbar-label {
-        font-size: 0.56rem;
+        display: none;
+    }
+
+    .top-taskbar .taskbar-feed-toggle::after {
+        position: absolute;
+        right: 0.32rem;
+        bottom: 0.3rem;
+        width: 0.32rem;
+        height: 0.32rem;
+        border-right: 1.5px solid currentColor;
+        border-bottom: 1.5px solid currentColor;
+        content: "";
+        opacity: 0.82;
+        transform: rotate(45deg);
+    }
+
+    .top-taskbar .taskbar-feed-menu[open] > .taskbar-feed-toggle::after {
+        opacity: 1;
+        transform: rotate(225deg);
     }
 }
 
