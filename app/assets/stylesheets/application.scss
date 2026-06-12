@@ -17,14 +17,16 @@ body {
 }
 
 :root {
-    --button-border: rgba(121, 169, 214, 0.48);
-    --button-border-hover: rgba(151, 204, 237, 0.68);
-    --button-border-active: rgba(125, 211, 252, 0.74);
+    --top-taskbar-height: 4.35rem;
+    --button-border: rgba(125, 211, 252, 0.36);
+    --button-border-hover: rgba(165, 243, 252, 0.64);
+    --button-border-active: var(--button-border);
     --button-color: #e5f6ff;
+    --button-color-hover: #f8feff;
     --button-color-muted: rgba(226, 232, 240, 0.78);
-    --button-bg: rgba(18, 47, 76, 0.78);
-    --button-bg-hover: rgba(26, 64, 96, 0.86);
-    --button-bg-active: rgba(12, 38, 62, 0.92);
+    --button-bg: rgba(15, 52, 83, 0.88);
+    --button-bg-hover: rgba(24, 76, 112, 0.94);
+    --button-bg-active: var(--button-bg);
     --button-shadow:
         inset 0 1px 0 rgba(248, 250, 252, 0.08),
         0 0.45rem 1rem rgba(2, 12, 24, 0.24);
@@ -39,10 +41,7 @@ body {
         0 0 0 3px rgba(125, 211, 252, 0.24),
         var(--button-shadow-hover);
     --button-transition:
-        background-color 140ms ease,
-        border-color 140ms ease,
         box-shadow 140ms ease,
-        color 140ms ease,
         opacity 140ms ease,
         transform 140ms ease;
     --button-hover-transform: translateY(-1px);
@@ -71,6 +70,7 @@ body {
 .content-page .ctf-atom-feed,
 .content-page .blog-rss-feed,
 .content-page .blog-atom-feed,
+.content-page .content-hero-feed-link,
 .landing-page .landing-action,
 .landing-page .landing-affiliation-link,
 .footer-link {
@@ -97,10 +97,10 @@ body {
 .content-page .ctf-atom-feed,
 .content-page .blog-rss-feed,
 .content-page .blog-atom-feed,
+.content-page .content-hero-feed-link,
 .landing-page .landing-action,
 .landing-page .landing-affiliation-link,
 .footer-link,
-.menu-icon,
 .terminal-button,
 .content-page .copy-btn,
 .content-page .search-clear-btn,
@@ -123,11 +123,12 @@ body {
     .content-page .ctf-atom-feed:hover,
     .content-page .blog-rss-feed:hover,
     .content-page .blog-atom-feed:hover,
+    .content-page .content-hero-feed-link:hover,
     .landing-page .landing-action:hover,
     .landing-page .landing-affiliation-link:hover,
     .footer-link:hover {
-        border-color: var(--button-border-hover);
-        color: #fff;
+        border-color: var(--button-border);
+        color: var(--button-color-hover);
         background-color: var(--button-bg-hover);
         box-shadow: var(--button-shadow-hover);
         transform: var(--button-hover-transform);
@@ -148,11 +149,12 @@ body {
 .content-page .ctf-atom-feed:focus-visible,
 .content-page .blog-rss-feed:focus-visible,
 .content-page .blog-atom-feed:focus-visible,
+.content-page .content-hero-feed-link:focus-visible,
 .landing-page .landing-action:focus-visible,
 .landing-page .landing-affiliation-link:focus-visible,
 .footer-link:focus-visible {
-    border-color: var(--button-focus-ring);
-    color: #fff;
+    border-color: var(--button-border-hover);
+    color: var(--button-color-hover);
     background-color: var(--button-bg-hover);
     box-shadow: var(--button-focus-shadow);
     outline: 2px solid transparent;
@@ -172,11 +174,12 @@ body {
 .content-page .ctf-atom-feed:active,
 .content-page .blog-rss-feed:active,
 .content-page .blog-atom-feed:active,
+.content-page .content-hero-feed-link:active,
 .landing-page .landing-action:active,
 .landing-page .landing-affiliation-link:active,
 .footer-link:active {
-    border-color: var(--button-border-active);
-    background-color: var(--button-bg-active);
+    border-color: var(--button-border);
+    background-color: var(--button-bg);
     box-shadow: var(--button-shadow-active);
     transform: translateY(0);
 }
@@ -194,6 +197,7 @@ body {
 .content-page .ctf-atom-feed[aria-disabled="true"],
 .content-page .blog-rss-feed[aria-disabled="true"],
 .content-page .blog-atom-feed[aria-disabled="true"],
+.content-page .content-hero-feed-link[aria-disabled="true"],
 .landing-page .landing-action[aria-disabled="true"],
 .landing-page .landing-affiliation-link[aria-disabled="true"],
 .footer-link[aria-disabled="true"] {
@@ -216,10 +220,10 @@ body {
     .content-page .ctf-atom-feed,
     .content-page .blog-rss-feed,
     .content-page .blog-atom-feed,
+    .content-page .content-hero-feed-link,
     .landing-page .landing-action,
     .landing-page .landing-affiliation-link,
     .footer-link,
-    .menu-icon,
     .terminal-button,
     .content-page .copy-btn,
     .content-page .search-clear-btn,
@@ -241,6 +245,7 @@ body {
     .content-page .ctf-atom-feed:hover,
     .content-page .blog-rss-feed:hover,
     .content-page .blog-atom-feed:hover,
+    .content-page .content-hero-feed-link:hover,
     .landing-page .landing-action:hover,
     .landing-page .landing-affiliation-link:hover,
     .footer-link:hover,
@@ -276,21 +281,21 @@ body {
     border: 1px solid rgba(88, 122, 166, 0.7);
     border-radius: var(--radius-ui);
     background-color: rgba(18, 34, 56, 0.88);
-    background-image: linear-gradient(180deg, rgba(38, 170, 232, 0.09), rgba(18, 34, 56, 0) 48%);
+    background-image: none;
     box-shadow: 0 1rem 2rem rgba(2, 12, 24, 0.25);
     isolation: isolate;
-    transition: background-color var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast);
+    transition: box-shadow var(--motion-fast), transform var(--motion-fast);
 }
 
 .ui-card-surface::before {
     position: absolute;
     inset: 0;
     z-index: 0;
-    background: linear-gradient(180deg, rgba(85, 195, 246, 0.18), rgba(18, 34, 56, 0) 48%);
+    background: transparent;
     content: "";
     opacity: 0;
     pointer-events: none;
-    transition: opacity var(--motion-fast);
+    transition: none;
 }
 
 .ui-card-surface > * {
@@ -304,14 +309,14 @@ body {
     .landing-page .ui-card-surface:hover,
     .landing-page .landing-writeup-cards .ui-card-surface:hover,
     .aboutme-page .ui-card-surface:hover {
-        border-color: rgba(125, 211, 252, 0.85);
-        background-color: rgba(27, 54, 85, 0.95);
+        border-color: rgba(125, 211, 252, 0.76);
+        background-color: rgba(24, 54, 84, 0.92);
         box-shadow: 0 1rem 2rem rgba(2, 12, 24, 0.28);
         transform: translateY(-1px);
     }
 
     .ui-card-surface:hover::before {
-        opacity: 0.75;
+        opacity: 0;
     }
 }
 
@@ -404,77 +409,6 @@ mjx-container {
 .MathJax,
 mjx-container[display="true"] {
     overflow: visible;
-}
-
-#taskbar-left {
-    --taskbar-surface: rgba(19, 43, 70, 0.94);
-    --taskbar-surface-strong: rgba(28, 56, 88, 0.97);
-    --taskbar-accent: rgba(125, 211, 252, 0.78);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 0;
-    opacity: 0;
-    height: 100svh;
-    display: flex;
-    white-space: nowrap;
-    flex-direction: column;
-    z-index: 1000;
-    align-items: flex-start;
-    transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out, box-shadow var(--motion-fast);
-    padding: var(--taskbar-gutter);
-    border-right: 1px solid rgba(125, 211, 252, 0.28);
-    background:
-        radial-gradient(circle at 10% 5%, rgba(125, 211, 252, 0.15), transparent 12rem),
-        linear-gradient(180deg, rgba(21, 49, 78, 0.98), rgba(6, 27, 47, 0.96));
-    box-shadow: 1.2rem 0 2.8rem rgba(2, 12, 24, 0.36);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    box-sizing: border-box;
-    pointer-events: none;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    isolation: isolate;
-}
-
-#taskbar-left::before {
-    position: absolute;
-    top: var(--taskbar-gutter);
-    right: 0;
-    bottom: var(--taskbar-gutter);
-    z-index: 0;
-    width: 1px;
-    background: linear-gradient(180deg, transparent, rgba(125, 211, 252, 0.72), transparent);
-    content: "";
-    pointer-events: none;
-}
-
-#taskbar-left::after {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background: linear-gradient(180deg, rgba(85, 195, 246, 0.08), transparent 44%);
-    content: "";
-    pointer-events: none;
-}
-
-#taskbar-left::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-}
-
-#taskbar-left.expanded {
-    width: var(--taskbar-expanded-width);
-    opacity: 1;
-    pointer-events: auto;
-}
-
-#taskbar-left .taskbar-item:last-child {
-    margin-top: auto;
 }
 
 .taskbar-item {
@@ -609,89 +543,159 @@ mjx-container[display="true"] {
     filter: brightness(0) saturate(100%) invert(100%) sepia(14%) saturate(841%) hue-rotate(163deg) brightness(106%) contrast(101%) drop-shadow(0 0 0.36rem rgba(125, 211, 252, 0.38));
 }
 
-.menu-icon {
+.top-taskbar {
     position: fixed;
-    appearance: none;
-    display: grid;
-    place-items: center;
-    width: calc(var(--taskbar-icon-size) * 0.8);
-    height: calc(var(--taskbar-icon-size) * 1.55);
-    top: 50%;
-    top: 50svh;
+    top: 0;
+    right: 0;
     left: 0;
-    padding: clamp(0.32rem, 0.9vmin, 0.56rem);
-    border: 1px solid var(--button-border);
-    border-left: none;
-    border-top-right-radius: var(--radius-ui-control);
-    border-bottom-right-radius: var(--radius-ui-control);
-    color: var(--button-color);
-    background: var(--button-bg);
-    box-shadow: var(--button-shadow);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--top-taskbar-height);
+    padding: 0.45rem 1rem;
+    border-bottom: 1px solid rgba(125, 211, 252, 0.24);
+    background: rgba(7, 31, 52, 0.96);
+    box-shadow: 0 0.65rem 1.4rem rgba(2, 12, 24, 0.22);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    box-sizing: border-box;
-    cursor: pointer;
-    font: inherit;
-    transform: translateY(-50%);
-    transition: var(--button-transition), left 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
 
-.menu-icon:hover,
-.menu-icon:focus-visible {
+.top-taskbar-inner {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: clamp(0.2rem, 1vw, 0.75rem);
+    width: 100%;
+    max-width: 72rem;
+}
+
+.top-taskbar .taskbar-item {
+    width: auto;
+    min-width: 0;
+    margin: 0;
+}
+
+.top-taskbar .taskbar-link,
+.top-taskbar .taskbar-button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.22rem;
+    width: clamp(2.9rem, 10vw, 4.6rem);
+    min-height: 3.25rem;
+    padding: 0.3rem 0.28rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-ui-control);
+    color: rgba(226, 232, 240, 0.82);
+    background: transparent;
+    box-shadow: none;
+    text-align: center;
+    transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+}
+
+.top-taskbar .taskbar-link::before,
+.top-taskbar .taskbar-button-container::before {
+    display: none;
+}
+
+.top-taskbar .taskbar-link.is-active,
+.top-taskbar .taskbar-button-container.is-active {
+    border-color: rgba(125, 211, 252, 0.32);
+    color: #f8fafc;
+    background: var(--button-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06);
+}
+
+.top-taskbar .taskbar-link:hover,
+.top-taskbar .taskbar-button-container:hover,
+.top-taskbar .taskbar-link:focus-visible,
+.top-taskbar .taskbar-button-container:focus-visible {
     border-color: var(--button-border-hover);
-    background-color: var(--button-bg-hover);
+    color: var(--button-color-hover);
+    background: var(--button-bg-hover);
     box-shadow: var(--button-shadow-hover);
-    outline: 2px solid transparent;
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.top-taskbar .taskbar-link:focus-visible,
+.top-taskbar .taskbar-button-container:focus-visible {
+    outline: 2px solid rgba(125, 211, 252, 0.75);
     outline-offset: 2px;
-    transform: translateY(-50%) translateX(0.5px);
 }
 
-.menu-icon:focus-visible {
-    border-color: var(--button-focus-ring);
-    box-shadow: var(--button-focus-shadow);
+.top-taskbar .taskbar-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
-.menu-icon:active {
-    border-color: var(--button-border-active);
-    background-color: var(--button-bg-active);
-    box-shadow: var(--button-shadow-active);
-    transform: translateY(-50%);
+.top-taskbar .taskbar-link:hover .taskbar-icon,
+.top-taskbar .taskbar-button-container:hover .taskbar-icon {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
 }
 
-.menu-icon-image {
-    width: 72%;
-    height: 72%;
-    object-fit: contain;
-    filter: brightness(0) saturate(100%) invert(89%) sepia(29%) saturate(504%) hue-rotate(169deg) brightness(104%) contrast(97%) drop-shadow(0 0 0.35rem rgba(125, 211, 252, 0.38));
-    user-select: none;
-    -webkit-user-drag: none;
-    -ms-user-drag: none;
+.top-taskbar .taskbar-icon-image {
+    width: 100%;
+    height: 100%;
 }
 
-#menu-icon-left {
-    opacity: 0;
-    z-index: -1;
-}
-
-#menu-icon-right {
+.top-taskbar .taskbar-label {
+    display: block;
+    max-width: 100%;
     opacity: 1;
-    z-index: 2000;
+    color: inherit;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1.05;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: none;
 }
 
-#menu-icon-right.shift {
-    left: var(--taskbar-expanded-width);
-    opacity: 0;
-    z-index: -1;
+.top-taskbar #terminal-taskbar-button .taskbar-label {
+    font-size: 0.62rem;
 }
 
-#menu-icon-left.shift {
-    left: var(--taskbar-expanded-width);
-    opacity: 1;
-    z-index: 2000;
+@media (max-width: 420px) {
+    .top-taskbar {
+        padding-right: 0.45rem;
+        padding-left: 0.45rem;
+    }
+
+    .top-taskbar .taskbar-link,
+    .top-taskbar .taskbar-button-container {
+        min-height: 3rem;
+        padding-right: 0.18rem;
+        padding-left: 0.18rem;
+    }
+
+    .top-taskbar .taskbar-icon {
+        width: 1.55rem;
+        height: 1.55rem;
+    }
+
+    .top-taskbar .taskbar-label,
+    .top-taskbar #terminal-taskbar-button .taskbar-label {
+        font-size: 0.56rem;
+    }
+}
+
+.back-button-floating {
+    top: calc(var(--top-taskbar-height) + 0.75rem);
 }
 
 #terminal-container {
-    --terminal-sidebar-offset: clamp(0rem, calc(var(--taskbar-size) / 2), 2.5rem);
+    --terminal-sidebar-offset: 0rem;
     --terminal-edge-gap: 1rem;
     --terminal-content-padding-x: clamp(1.25rem, 3vmin, 1.5rem);
     --terminal-content-padding-top: clamp(4.1rem, 6vmin, 5.25rem);
@@ -703,7 +707,7 @@ mjx-container[display="true"] {
     transform-origin: center center;
     transition: transform 320ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease-in-out;
     will-change: transform, opacity;
-    z-index: 100;
+    z-index: 1200;
     width: calc(100vw - (var(--terminal-edge-gap) * 2) - (var(--terminal-sidebar-offset) * 2));
     max-width: 82rem;
     height: calc(100dvh - 2rem);
@@ -909,4 +913,283 @@ mjx-container[display="true"] {
 .xterm-underline-4:hover,
 .xterm-underline-5:hover {
     transform: scale(1.1);
+}
+
+.content-page .filter-chip,
+.landing-page .landing-writeup-cards .filter-chip,
+.content-page .difficulty-badge,
+.landing-page .landing-writeup-cards .difficulty-badge,
+.content-page .category-badge,
+.landing-page .landing-writeup-cards .category-badge,
+.content-page .severity-badge,
+.landing-page .landing-writeup-cards .severity-badge,
+.content-page .writeup-winner-badge,
+.landing-page .landing-writeup-cards .writeup-winner-badge,
+.content-page .authored-challenge-badge,
+.landing-page .landing-writeup-cards .authored-challenge-badge,
+.content-page .writeup-hints-chip,
+.aboutme-card-tag.aboutme-tag-action {
+    --tag-border: rgba(125, 211, 252, 0.34);
+    --tag-border-hover: rgba(165, 243, 252, 0.68);
+    --tag-color: #dff7ff;
+    --tag-color-hover: #ffffff;
+    --tag-bg: rgba(14, 116, 144, 0.42);
+    --tag-bg-hover: rgba(20, 135, 170, 0.54);
+    --tag-shadow: rgba(2, 12, 24, 0.18);
+    --tag-shadow-hover: rgba(2, 12, 24, 0.24);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.05), 0 0.35rem 0.8rem var(--tag-shadow);
+    transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+}
+
+.content-page .content-tag-static,
+.landing-page .landing-writeup-cards .content-tag-static,
+.content-page .blog-post-static-chip,
+.landing-page .landing-writeup-cards .blog-post-static-chip,
+.aboutme-card-tag.aboutme-tag-static,
+.aboutme-tag-static,
+.aboutme-card-linked .aboutme-tag-static,
+:not(a).aboutme-card-tag,
+:not(a).aboutme-cve-id,
+:not(a).aboutme-cwe-id,
+:not(a).aboutme-card-tag.aboutme-cve-id,
+:not(a).aboutme-card-tag.cve-badge,
+:not(a).aboutme-card-tag.aboutme-cwe-id,
+:not(a).aboutme-card-tag.cwe-badge,
+.aboutme-severity {
+    --tag-border: rgba(148, 163, 184, 0.34);
+    --tag-color: rgba(203, 213, 225, 0.8);
+    --tag-bg: rgba(51, 65, 85, 0.48);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: none;
+    cursor: default;
+    transition: none;
+}
+
+.content-page .content-tag-action:hover,
+.landing-page .landing-writeup-cards .content-tag-action:hover,
+.content-page .content-tag-link:focus-visible,
+.landing-page .landing-writeup-cards .content-tag-link:focus-visible,
+.content-page button.filter-chip:focus-visible,
+.content-page button.filter-chip.is-active,
+.landing-page .landing-writeup-cards button.filter-chip:focus-visible,
+.landing-page .landing-writeup-cards button.filter-chip.is-active,
+.aboutme-card-tag.aboutme-tag-action:hover,
+a.aboutme-card-tag.aboutme-tag-action:focus-visible {
+    border-color: var(--tag-border-hover);
+    color: var(--tag-color-hover);
+    background: var(--tag-bg-hover);
+    background-image: none;
+    box-shadow: inset 0 -2px 0 rgba(125, 211, 252, 0.82), 0 0.45rem 0.95rem var(--tag-shadow);
+}
+
+.content-page button.filter-chip.is-active,
+.landing-page .landing-writeup-cards button.filter-chip.is-active {
+    outline: 2px solid rgba(125, 211, 252, 0.65);
+    outline-offset: 2px;
+    transform: none;
+}
+
+.content-page .filter-chip.writeup-winner-badge-filter,
+.content-page .filter-chip.authored-challenge-badge-filter,
+.content-page .filter-chip.category-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter,
+.content-page .filter-chip.severity-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter,
+.content-page .filter-chip.cve-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter,
+.content-page .filter-chip.cwe-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter,
+.content-page .filter-chip.difficulty-badge-filter,
+.content-page .filter-chip.difficulty-badge-intro,
+.content-page .filter-chip.difficulty-badge-easy,
+.content-page .filter-chip.difficulty-badge-medium,
+.content-page .filter-chip.difficulty-badge-hard,
+.content-page .filter-chip.difficulty-badge-insane,
+.content-page .filter-chip.difficulty-badge-unknown {
+    --tag-border: rgba(125, 211, 252, 0.34);
+    --tag-border-hover: rgba(165, 243, 252, 0.68);
+    --tag-color: #dff7ff;
+    --tag-color-hover: #ffffff;
+    --tag-bg: rgba(14, 116, 144, 0.42);
+    --tag-bg-hover: rgba(20, 135, 170, 0.54);
+    --tag-shadow: rgba(2, 12, 24, 0.18);
+    --tag-shadow-hover: rgba(2, 12, 24, 0.24);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.05), 0 0.35rem 0.8rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.writeup-winner-badge-filter:hover,
+.content-page .filter-chip.authored-challenge-badge-filter:hover,
+.content-page .filter-chip.category-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter:hover,
+.content-page .filter-chip.severity-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter:hover,
+.content-page .filter-chip.cve-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter:hover,
+.content-page .filter-chip.cwe-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter:hover,
+.content-page .filter-chip.difficulty-badge-filter:hover,
+.content-page .filter-chip.difficulty-badge-intro:hover,
+.content-page .filter-chip.difficulty-badge-easy:hover,
+.content-page .filter-chip.difficulty-badge-medium:hover,
+.content-page .filter-chip.difficulty-badge-hard:hover,
+.content-page .filter-chip.difficulty-badge-insane:hover,
+.content-page .filter-chip.difficulty-badge-unknown:hover,
+.content-page .filter-chip.writeup-winner-badge-filter:focus-visible,
+.content-page .filter-chip.authored-challenge-badge-filter:focus-visible,
+.content-page .filter-chip.category-badge-filter:focus-visible,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter:focus-visible,
+.content-page .filter-chip.severity-badge-filter:focus-visible,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter:focus-visible,
+.content-page .filter-chip.cve-badge-filter:focus-visible,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter:focus-visible,
+.content-page .filter-chip.cwe-badge-filter:focus-visible,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter:focus-visible,
+.content-page .filter-chip.difficulty-badge-filter:focus-visible,
+.content-page .filter-chip.difficulty-badge-intro:focus-visible,
+.content-page .filter-chip.difficulty-badge-easy:focus-visible,
+.content-page .filter-chip.difficulty-badge-medium:focus-visible,
+.content-page .filter-chip.difficulty-badge-hard:focus-visible,
+.content-page .filter-chip.difficulty-badge-insane:focus-visible,
+.content-page .filter-chip.difficulty-badge-unknown:focus-visible,
+.content-page .filter-chip.writeup-winner-badge-filter.is-active,
+.content-page .filter-chip.authored-challenge-badge-filter.is-active,
+.content-page .filter-chip.category-badge-filter.is-active,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter.is-active,
+.content-page .filter-chip.severity-badge-filter.is-active,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter.is-active,
+.content-page .filter-chip.cve-badge-filter.is-active,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter.is-active,
+.content-page .filter-chip.cwe-badge-filter.is-active,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter.is-active,
+.content-page .filter-chip.difficulty-badge-filter.is-active,
+.content-page .filter-chip.difficulty-badge-intro.is-active,
+.content-page .filter-chip.difficulty-badge-easy.is-active,
+.content-page .filter-chip.difficulty-badge-medium.is-active,
+.content-page .filter-chip.difficulty-badge-hard.is-active,
+.content-page .filter-chip.difficulty-badge-insane.is-active,
+.content-page .filter-chip.difficulty-badge-unknown.is-active {
+    border-color: var(--tag-border-hover);
+    color: var(--tag-color-hover);
+    background: var(--tag-bg-hover);
+    background-image: none;
+}
+
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cve-id,
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id,
+a.aboutme-card-tag.aboutme-tag-action.cve-badge,
+a.aboutme-card-tag.aboutme-tag-action.cwe-badge {
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+}
+
+.content-page .content-tag-action:hover,
+.landing-page .landing-writeup-cards .content-tag-action:hover,
+.content-page .content-tag-link:focus-visible,
+.landing-page .landing-writeup-cards .content-tag-link:focus-visible,
+.content-page button.filter-chip:focus-visible,
+.landing-page .landing-writeup-cards button.filter-chip:focus-visible,
+.aboutme-card-tag.aboutme-tag-action:hover,
+a.aboutme-card-tag.aboutme-tag-action:focus-visible,
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cve-id:hover,
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id:hover,
+a.aboutme-card-tag.aboutme-tag-action.cve-badge:hover,
+a.aboutme-card-tag.aboutme-tag-action.cwe-badge:hover {
+    border-color: var(--tag-border-hover);
+    color: var(--tag-color-hover);
+    background: var(--tag-bg-hover);
+    background-image: none;
+}
+
+.landing-page .content-tag-static,
+.landing-page .blog-post-static-chip,
+.landing-page .difficulty-badge.content-tag-static,
+.landing-page .category-badge.content-tag-static,
+.landing-page :not(a).aboutme-card-tag.aboutme-tag-static,
+.landing-page :not(a).aboutme-card-tag.difficulty-badge,
+.landing-page :not(a).aboutme-card-tag.category-badge,
+.landing-page :not(a).aboutme-card-tag.severity-badge {
+    --tag-border: rgba(148, 163, 184, 0.34);
+    --tag-color: rgba(203, 213, 225, 0.8);
+    --tag-bg: rgba(51, 65, 85, 0.48);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: none;
+    cursor: default;
+    transition: none;
+}
+
+.content-page .filter-chip.content-tag-static,
+.content-page .filter-chip.blog-post-static-chip,
+.landing-page .landing-writeup-cards .filter-chip.content-tag-static,
+.landing-page .landing-writeup-cards .filter-chip.blog-post-static-chip,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter.content-tag-static,
+.landing-page .landing-writeup-cards .filter-chip.difficulty-badge-filter.content-tag-static,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter.content-tag-static,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter.content-tag-static,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter.content-tag-static,
+.content-page .filter-chip.content-tag-static:hover,
+.content-page .filter-chip.blog-post-static-chip:hover,
+.landing-page .landing-writeup-cards .filter-chip.content-tag-static:hover,
+.landing-page .landing-writeup-cards .filter-chip.blog-post-static-chip:hover,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter.content-tag-static:hover,
+.landing-page .landing-writeup-cards .filter-chip.difficulty-badge-filter.content-tag-static:hover,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter.content-tag-static:hover,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter.content-tag-static:hover,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter.content-tag-static:hover {
+    --tag-border: rgba(148, 163, 184, 0.34);
+    --tag-color: rgba(203, 213, 225, 0.8);
+    --tag-bg: rgba(51, 65, 85, 0.48);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: none;
+    cursor: default;
+    transform: none;
+    transition: none;
+}
+
+.content-page .content-filter-panel,
+.content-page .content-filter-input,
+.content-page .content-filter-year-button,
+.content-page .content-filter-year-menu,
+.content-page .content-filter-year-option,
+.content-page .search-clear-btn,
+.content-page .content-hero-feed-link,
+.content-page .ctf-rss-feed,
+.content-page .ctf-atom-feed,
+.content-page .ctf-json-feed,
+.content-page .blog-rss-feed,
+.content-page .blog-atom-feed,
+.content-page .blog-json-feed,
+.landing-page .landing-action,
+.landing-page .landing-affiliation-link,
+.footer-link {
+    transition-property: transform, box-shadow, opacity, visibility;
+}
+
+.aboutme-card.ui-card-surface,
+.landing-featured-card.aboutme-card.ui-card-surface,
+details.aboutme-card.ui-card-surface,
+details.aboutme-card.ui-card-surface.details-is-animating,
+.aboutme-finding-card summary,
+.aboutme-finding-card summary::before,
+.aboutme-card-header,
+.aboutme-card-body {
+    transition: none;
 }

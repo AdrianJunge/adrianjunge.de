@@ -73,11 +73,28 @@
       <h3><%= card[:timeline_title].presence || "Disclosure timeline" %></h3>
       <ol class="aboutme-timeline">
         <% timeline_items.each do |item| %>
+          <% event_label = item["event"].presence || item["title"].presence %>
+          <% event_url = item["url"].presence || item["card_url"].presence %>
           <li>
             <% if item["date"].present? %>
               <time datetime="<%= item["date"] %>"><%= item["date"] %></time>
             <% end %>
-            <span><%= item["event"] %></span>
+            <span class="aboutme-timeline-content">
+              <% if event_url.present? && event_label.present? %>
+                <%= profile_card_optional_link(
+                      event_label,
+                      event_url,
+                      class_name: "aboutme-timeline-link",
+                      aria_label: "Open #{event_label}",
+                      title: "Open #{event_label}"
+                    ) %>
+              <% elsif event_label.present? %>
+                <span class="aboutme-timeline-title"><%= event_label %></span>
+              <% end %>
+              <% if item["summary"].present? %>
+                <span class="aboutme-timeline-summary"><%= item["summary"] %></span>
+              <% end %>
+            </span>
           </li>
         <% end %>
       </ol>

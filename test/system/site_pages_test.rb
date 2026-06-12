@@ -62,45 +62,34 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_includes metrics["pageBackgroundImage"], "linear-gradient"
   end
 
-  test "sidebar keeps a usable fixed inset on narrow displays" do
+  test "top taskbar keeps usable icons on narrow displays" do
     [ 320, 390 ].each do |width|
       page.current_window.resize_to(width, 900)
       visit "/"
 
-      page.execute_script(<<~JS)
-        document.querySelectorAll("#taskbar-left, .menu-icon").forEach((element) => {
-          element.style.transition = "none";
-        });
-        document.getElementById("menu-icon-right").click();
-      JS
-
-      assert_selector "#taskbar-left.expanded", visible: :all
+      assert_selector "#top-taskbar", visible: :all
 
       metrics = page.evaluate_script(<<~JS)
         (() => {
-          const taskbar = document.getElementById("taskbar-left");
+          const taskbar = document.getElementById("top-taskbar");
           const icon = taskbar.querySelector(".taskbar-icon");
-          const shiftedMenu = document.getElementById("menu-icon-left");
           const taskbarRect = taskbar.getBoundingClientRect();
           const iconRect = icon.getBoundingClientRect();
-          const menuRect = shiftedMenu.getBoundingClientRect();
           const taskbarStyle = window.getComputedStyle(taskbar);
 
           return {
-            taskbarWidth: Math.round(taskbarRect.width),
+            taskbarHeight: Math.round(taskbarRect.height),
             paddingLeft: parseFloat(taskbarStyle.paddingLeft),
             iconLeft: Math.round(iconRect.left),
-            iconWidth: Math.round(iconRect.width),
-            shiftedMenuLeft: Math.round(menuRect.left)
+            iconWidth: Math.round(iconRect.width)
           };
         })()
       JS
 
-      assert_operator metrics["paddingLeft"], :>=, 9, "sidebar padding collapsed at #{width}px"
-      assert_operator metrics["iconLeft"], :>=, 9, "sidebar icon touched the viewport edge at #{width}px"
-      assert_operator metrics["iconWidth"], :>=, 38, "sidebar icon became too small at #{width}px"
-      assert_operator metrics["taskbarWidth"], :>=, 176, "expanded sidebar became too narrow at #{width}px"
-      assert_in_delta metrics["taskbarWidth"], metrics["shiftedMenuLeft"], 1
+      assert_operator metrics["paddingLeft"], :>=, 7, "top taskbar padding collapsed at #{width}px"
+      assert_operator metrics["iconLeft"], :>=, 7, "top taskbar icon touched the viewport edge at #{width}px"
+      assert_operator metrics["iconWidth"], :>=, 24, "top taskbar icon became too small at #{width}px"
+      assert_operator metrics["taskbarHeight"], :>=, 48, "top taskbar became too short at #{width}px"
     end
   end
 
@@ -116,7 +105,7 @@ class SitePagesTest < ApplicationSystemTestCase
       find(icon_selector)
       assert_selector ".content-hero-actions #{button_selector}"
       assert_selector ".content-hero-title-row .content-hero-actions #{button_selector}"
-      assert_equal "/feed", URI.parse(button[:href]).path
+      assert_equal "/feed.xml", URI.parse(button[:href]).path
       assert_equal "/feed.atom", URI.parse(atom_button[:href]).path
       assert_no_selector ".content-filter-panel #{button_selector}"
       assert_no_selector ".ctf-header-section #{button_selector}" if path == "/ctf"
@@ -327,7 +316,7 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
-  test "fixed sidebar toggle overlays compact pages without reserving layout space" do
+  test "fixed top taskbar overlays compact pages without horizontal offset" do
     {
       "/" => "#landing-top",
       "/ctf" => ".content-hero-inner",
@@ -340,39 +329,45 @@ class SitePagesTest < ApplicationSystemTestCase
 
         metrics = page.evaluate_script(<<~JS)
           (() => {
-            const menu = document.getElementById("menu-icon-right").getBoundingClientRect();
+            const taskbar = document.getElementById("top-taskbar");
+            const taskbarRect = taskbar.getBoundingClientRect();
             const content = document.querySelector("#{selector}").getBoundingClientRect();
             const viewportWidth = document.documentElement.clientWidth;
 
             return {
-              menuPosition: window.getComputedStyle(document.getElementById("menu-icon-right")).position,
-              menuLeft: Math.round(menu.left),
+              taskbarPosition: window.getComputedStyle(taskbar).position,
+              taskbarTop: Math.round(taskbarRect.top),
+              taskbarLeft: Math.round(taskbarRect.left),
+              taskbarRight: Math.round(taskbarRect.right),
+              viewportWidth,
               contentLeft: Math.round(content.left),
               contentRightGap: Math.round(viewportWidth - content.right)
             };
           })()
         JS
 
-        assert_equal "fixed", metrics["menuPosition"]
-        assert_equal 0, metrics["menuLeft"], "sidebar toggle drifted away from the viewport edge on #{path} at #{width}px"
+        assert_equal "fixed", metrics["taskbarPosition"]
+        assert_equal 0, metrics["taskbarTop"], "top taskbar drifted away from the viewport top on #{path} at #{width}px"
+        assert_equal 0, metrics["taskbarLeft"], "top taskbar drifted away from the viewport edge on #{path} at #{width}px"
+        assert_in_delta metrics["viewportWidth"], metrics["taskbarRight"], 1
         assert_in_delta metrics["contentLeft"], metrics["contentRightGap"], 2,
-                        "content was offset by sidebar toggle on #{path} at #{width}px"
+                        "content was horizontally offset by top taskbar on #{path} at #{width}px"
       end
     end
   end
 
-  test "fixed sidebar toggle does not jump while scrolling compact pages" do
+  test "fixed top taskbar does not jump while scrolling compact pages" do
     page.current_window.resize_to(390, 900)
     visit "/timeline"
 
     metrics = page.evaluate_script(<<~JS)
       (() => {
-        const menu = document.getElementById("menu-icon-right");
-        const before = Math.round(menu.getBoundingClientRect().top);
+        const taskbar = document.getElementById("top-taskbar");
+        const before = Math.round(taskbar.getBoundingClientRect().top);
         window.scrollTo(0, document.documentElement.scrollHeight);
-        const bottom = Math.round(menu.getBoundingClientRect().top);
+        const bottom = Math.round(taskbar.getBoundingClientRect().top);
         window.scrollTo(0, 0);
-        const top = Math.round(menu.getBoundingClientRect().top);
+        const top = Math.round(taskbar.getBoundingClientRect().top);
 
         return { before, bottom, top };
       })()
@@ -501,7 +496,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_includes static_chip_styles["className"], "content-tag-static"
     assert_not_includes static_chip_styles["className"], "content-tag-action"
     assert_equal "auto", static_chip_styles["pointerEvents"]
-    assert_not_equal "0s", static_chip_styles["transitionDuration"]
+    assert_equal "0s", static_chip_styles["transitionDuration"]
     assert_equal "none", static_chip_styles["transform"]
     find(".landing-writeup-cards .blog-post-static-chip", match: :first).hover
     static_chip_hover_styles = page.evaluate_script(<<~JS)
@@ -673,6 +668,9 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal featured_styles, card_surface_styles(".blog-posts-container .blog-post-card")
 
     visit "/about"
+    page.execute_script(<<~JS)
+      document.querySelectorAll(".aboutme-section").forEach((section) => { section.open = true; });
+    JS
     assert_selector ".aboutme-finding-card.ui-card-surface", minimum: 1
     assert_selector ".aboutme-achievement-card.ui-card-surface", minimum: 1
     assert_equal featured_styles, card_surface_styles(".aboutme-finding-card")
@@ -716,15 +714,17 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal "0px", typed_cursor_layout["cursorMarginLeft"]
     assert_equal true, typed_cursor_layout["cursorWithinLine"]
     assert_equal true, typed_cursor_layout["cursorStartsAtLine"]
-    assert_selector ".landing-affiliation-link[href='https://kitctf.de'] img"
-    assert_selector ".landing-affiliation-link[href='https://www.kit.edu'] img"
+    discord_profile = "https://discord.com/users/305624492221267968/"
+    assert_selector ".landing-affiliation-link[href='#{discord_profile}']", text: "KITCTF"
+    assert_selector ".landing-affiliation-link[href='#{discord_profile}']", text: "KIT"
+    assert_selector ".landing-affiliation-link[href='#{discord_profile}'] img", minimum: 2
     assert_selector ".landing-affiliation-link-pgp[href='/pgp-vurlo.asc']", text: "PGP key"
     assert_selector ".landing-affiliation-link-pgp img[src*='pgp']"
     assert_selector "footer a[href='mailto:adjun37@gmail.com'] img[alt='Mail Icon']"
     assert File.exist?(Rails.root.join("public", "pgp-vurlo.asc"))
     affiliation_image_size = page.evaluate_script(<<~JS)
       (() => {
-        const image = document.querySelector(".landing-affiliation-link[href='https://kitctf.de'] img");
+        const image = document.querySelector(".landing-affiliation-link[href='#{discord_profile}'] img");
         const rect = image.getBoundingClientRect();
 
         return Math.round(rect.width);
@@ -745,6 +745,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
         return {
           groupGap: groupStyle.gap,
+          groupBackgroundColor: groupStyle.backgroundColor,
           groupBackground: groupStyle.backgroundImage,
           firstBackground: firstStyle.backgroundColor,
           firstBackgroundImage: firstStyle.backgroundImage
@@ -752,9 +753,24 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
     assert_equal "0px", landing_metric_surface["groupGap"]
-    assert_includes landing_metric_surface["groupBackground"], "linear-gradient"
-    assert_equal "rgba(0, 0, 0, 0)", landing_metric_surface["firstBackground"]
+    assert_equal "rgba(18, 34, 56, 0.9)", landing_metric_surface["groupBackgroundColor"]
+    assert_equal "none", landing_metric_surface["groupBackground"]
+    assert_equal "rgba(15, 52, 83, 0.7)", landing_metric_surface["firstBackground"]
     assert_equal "none", landing_metric_surface["firstBackgroundImage"]
+    find(".landing-metric:first-child").hover
+    landing_metric_hover_surface = page.evaluate_script(<<~JS)
+      (() => {
+        const first = document.querySelector(".landing-metric");
+        const style = window.getComputedStyle(first);
+
+        return {
+          backgroundColor: style.backgroundColor,
+          boxShadow: style.boxShadow
+        };
+      })()
+    JS
+    assert_equal "rgba(24, 76, 112, 0.94)", landing_metric_hover_surface["backgroundColor"]
+    assert_not_equal "none", landing_metric_hover_surface["boxShadow"]
     assert_selector ".landing-metric:first-child .landing-metric-sublabel", text: /min read/
     metric_order = page.evaluate_script(<<~JS)
       (() => {
@@ -823,10 +839,10 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
     assert featured_disclosure_animation, "expected a collapsible selected work card"
-    assert_equal true, featured_disclosure_animation["animating"]
-    assert_equal true, featured_disclosure_animation["closing"]
-    assert_includes featured_disclosure_animation["transitionProperty"], "height"
-    assert_not_equal "", featured_disclosure_animation["inlineHeight"]
+    assert_equal false, featured_disclosure_animation["animating"]
+    assert_equal false, featured_disclosure_animation["closing"]
+    assert_equal "0s", featured_disclosure_animation["transitionDuration"]
+    assert_equal "", featured_disclosure_animation["inlineHeight"]
     selected_static_tag_styles = page.evaluate_script(<<~JS)
       (() => {
         const tag = document.querySelector(".landing-featured-card .aboutme-tag-static");
@@ -894,6 +910,9 @@ class SitePagesTest < ApplicationSystemTestCase
     bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
 
     visit "/about"
+    page.execute_script(<<~JS)
+      document.querySelectorAll("#cves, #bug-bounties").forEach((section) => { section.open = true; });
+    JS
 
     assert_no_text "TBA"
     assert_selector "#bug-bounties .aboutme-section-count", text: "0 findings"
@@ -1074,13 +1093,12 @@ class SitePagesTest < ApplicationSystemTestCase
         const style = window.getComputedStyle(chip);
         return {
           backgroundColor: style.backgroundColor,
-          backgroundActive: style.getPropertyValue("--vulnerability-bg-active").trim(),
           borderColor: style.borderTopColor
         };
       })()
     JS
-    assert_equal "rgba(67, 56, 202, 0.7)", active_timeline_cve_styles["backgroundActive"]
-    refute_includes active_timeline_cve_styles["borderColor"], "125, 211, 252"
+    assert_equal "rgba(20, 135, 170, 0.54)", active_timeline_cve_styles["backgroundColor"]
+    assert_equal "rgba(165, 243, 252, 0.68)", active_timeline_cve_styles["borderColor"]
     assert_selector "[data-filter-count='timeline']", text: filter_count_text(cve_case[:items].length, total_items)
     assert_hidden_timeline_item cve_case[:items]
     assert_timeline_year_counts_match_visible_cards
@@ -1155,8 +1173,70 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".ctf-card .ctf-event-chip"
     assert_no_selector ".ctf-card .ctf-card-cta"
     assert_selector ".ctf-card .ctf-writeup-count-text", minimum: 1, text: /writeups?/
-    assert_selector ".ctf-card .ctf-total-reading-time", minimum: 1, text: /min read/
     target_path = URI.parse(first_card.find(".blog-post-card-hitbox", visible: :all)[:href]).path
+    ctf_metadata_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const count = document.querySelector(".ctf-card .ctf-writeup-count-text");
+        const readingTime = document.querySelector(".ctf-card .ctf-total-reading-time");
+        const countStyle = window.getComputedStyle(count);
+        const readingTimeStyle = window.getComputedStyle(readingTime);
+
+        return {
+          countClassName: count.className,
+          countColor: countStyle.color,
+          countBackgroundColor: countStyle.backgroundColor,
+          countBorderTopWidth: countStyle.borderTopWidth,
+          countBorderTopLeftRadius: countStyle.borderTopLeftRadius,
+          countPaddingLeft: countStyle.paddingLeft,
+          countFontSize: countStyle.fontSize,
+          countFontWeight: countStyle.fontWeight,
+          countLineHeight: countStyle.lineHeight,
+          readingTimeColor: readingTimeStyle.color,
+          readingTimeFontSize: readingTimeStyle.fontSize,
+          readingTimeFontWeight: readingTimeStyle.fontWeight,
+          readingTimeLineHeight: readingTimeStyle.lineHeight
+        };
+      })()
+    JS
+    assert_not_includes ctf_metadata_styles["countClassName"], "content-tag"
+    assert_equal "rgb(254, 243, 199)", ctf_metadata_styles["countColor"]
+    assert_equal "rgba(0, 0, 0, 0)", ctf_metadata_styles["countBackgroundColor"]
+    assert_equal "0px", ctf_metadata_styles["countBorderTopWidth"]
+    assert_equal "0px", ctf_metadata_styles["countBorderTopLeftRadius"]
+    assert_equal "0px", ctf_metadata_styles["countPaddingLeft"]
+    assert_selector ".ctf-card .ctf-total-reading-time", minimum: 1, text: /min read/
+
+    visit target_path
+    writeup_metadata_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const date = document.querySelector(".writeup-overview .blog-post-date-text");
+        const readingTime = document.querySelector(".writeup-overview .blog-post-reading-time");
+        const dateStyle = window.getComputedStyle(date);
+        const readingTimeStyle = window.getComputedStyle(readingTime);
+
+        return {
+          dateColor: dateStyle.color,
+          dateFontSize: dateStyle.fontSize,
+          dateFontWeight: dateStyle.fontWeight,
+          dateLineHeight: dateStyle.lineHeight,
+          readingTimeColor: readingTimeStyle.color,
+          readingTimeFontSize: readingTimeStyle.fontSize,
+          readingTimeFontWeight: readingTimeStyle.fontWeight,
+          readingTimeLineHeight: readingTimeStyle.lineHeight
+        };
+      })()
+    JS
+    assert_equal writeup_metadata_styles["dateColor"], ctf_metadata_styles["countColor"]
+    assert_equal writeup_metadata_styles["dateFontSize"], ctf_metadata_styles["countFontSize"]
+    assert_equal writeup_metadata_styles["dateFontWeight"], ctf_metadata_styles["countFontWeight"]
+    assert_equal writeup_metadata_styles["dateLineHeight"], ctf_metadata_styles["countLineHeight"]
+    assert_equal writeup_metadata_styles["readingTimeColor"], ctf_metadata_styles["readingTimeColor"]
+    assert_equal writeup_metadata_styles["readingTimeFontSize"], ctf_metadata_styles["readingTimeFontSize"]
+    assert_equal writeup_metadata_styles["readingTimeFontWeight"], ctf_metadata_styles["readingTimeFontWeight"]
+    assert_equal writeup_metadata_styles["readingTimeLineHeight"], ctf_metadata_styles["readingTimeLineHeight"]
+
+    visit "/ctf"
+    first_card = find(".ctf-card", match: :first)
     click_card_link_area(first_card)
 
     assert_current_path target_path
@@ -1219,23 +1299,21 @@ class SitePagesTest < ApplicationSystemTestCase
         const difficultyStyle = window.getComputedStyle(difficulty);
 
         return {
-          winnerBackgroundImage: winnerStyle.backgroundImage,
+          winnerBackground: winnerStyle.backgroundColor,
           winnerBorder: winnerStyle.borderTopColor,
           authoredBackground: authoredStyle.backgroundColor,
           authoredBorder: authoredStyle.borderTopColor,
           difficultyBackground: difficultyStyle.backgroundColor,
-          difficultyExpectedBackground: difficultyStyle.getPropertyValue("--difficulty-bg").trim(),
-          difficultyBorder: difficultyStyle.borderTopColor,
-          difficultyExpectedBorder: difficultyStyle.getPropertyValue("--difficulty-border").trim()
+          difficultyBorder: difficultyStyle.borderTopColor
         };
       })()
     JS
-    assert_match(/rgba?\(234,\s*179,\s*8/, colored_filter_styles["winnerBackgroundImage"])
-    assert_match(/rgba?\(250,\s*204,\s*21/, colored_filter_styles["winnerBorder"])
-    assert_equal "rgba(49, 46, 129, 0.52)", colored_filter_styles["authoredBackground"]
-    assert_equal "rgba(129, 140, 248, 0.78)", colored_filter_styles["authoredBorder"]
-    assert_equal colored_filter_styles["difficultyExpectedBackground"], colored_filter_styles["difficultyBackground"]
-    assert_equal colored_filter_styles["difficultyExpectedBorder"], colored_filter_styles["difficultyBorder"]
+    assert_equal "rgba(14, 116, 144, 0.42)", colored_filter_styles["winnerBackground"]
+    assert_equal colored_filter_styles["winnerBackground"], colored_filter_styles["authoredBackground"]
+    assert_equal colored_filter_styles["winnerBackground"], colored_filter_styles["difficultyBackground"]
+    assert_equal "rgba(125, 211, 252, 0.34)", colored_filter_styles["winnerBorder"]
+    assert_equal colored_filter_styles["winnerBorder"], colored_filter_styles["authoredBorder"]
+    assert_equal colored_filter_styles["winnerBorder"], colored_filter_styles["difficultyBorder"]
     assert_selector ".content-filter-panel .filter-chip.category-badge-filter.category-badge-#{ContentCategoryTag.css_key(ctf_tag_case[:tag])}",
                     text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector ".ctf-card .filter-chip.category-badge-filter.category-badge-#{ContentCategoryTag.css_key(ctf_tag_case[:tag])}",
@@ -1289,7 +1367,7 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
     assert_not_equal "none", active_difficulty_styles["boxShadow"]
-    assert_not_equal "none", active_difficulty_styles["transform"]
+    assert_equal "none", active_difficulty_styles["transform"]
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_difficulty_case[:items].length, ctf_total)
     assert_equal ctf_difficulty_case[:items].map { |item| item[:name] }, visible_ctf_names
 
@@ -1452,7 +1530,7 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
     assert static_article_tag_styles.any?
     assert static_article_tag_styles.all? { |styles| styles["cursor"] == "default" }
-    assert static_article_tag_styles.all? { |styles| styles["transitionDuration"] != "0s" }
+    assert static_article_tag_styles.all? { |styles| styles["transitionDuration"] == "0s" }
     assert static_article_tag_styles.all? { |styles| styles["transform"] == "none" }
   end
 

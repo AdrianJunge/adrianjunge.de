@@ -150,6 +150,21 @@ module ContentUiHelper
     end
 
     if config[:difficulty]
+      scope = config.fetch(:scope, default_scope)
+      interactive = config.key?(:interactive) ? config[:interactive] : default_interactive
+
+      if interactive && scope.present?
+        return content_filter_chip(
+          config[:label],
+          scope: scope,
+          tag_value: config[:tag_value].presence || config[:label],
+          interactive: true,
+          class_name: config[:class_name],
+          difficulty_key: config[:difficulty_key].presence || config[:label],
+          title: config[:title]
+        )
+      end
+
       return content_difficulty_badge(
         label: config[:label],
         key: config[:difficulty_key],

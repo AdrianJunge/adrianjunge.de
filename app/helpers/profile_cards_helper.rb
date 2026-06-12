@@ -70,10 +70,10 @@ module ProfileCardsHelper
     summary_text = aboutme_finding_summary(entry)
     collapsible = aboutme_finding_collapsible?(entry)
     card_url = entry["card_url"].presence || (collapsible ? nil : entry["title_url"].presence)
-    description_url = collapsible ? entry["title_url"] : nil
-    advisory_link = kind == "cve" && description_url.present?
     body_blocks = []
     body_blocks << { title: "Summary", text: summary_text } if aboutme_visible_detail?(summary_text)
+    reference_links = profile_finding_reference_links(entry, kind: kind)
+    body_blocks << { title: "References", items: reference_links } if reference_links.any?
 
     {
       id: entry["id"],
@@ -83,14 +83,14 @@ module ProfileCardsHelper
       tags_class: "aboutme-finding-badges",
       description_class: "aboutme-finding-summary",
       title: entry["project"],
-      title_url: entry["project_url"],
-      title_link: collapsible,
-      title_link_class: "aboutme-finding-project-link",
+      title_url: nil,
+      title_link: false,
+      title_link_class: nil,
       description: title_label,
-      description_url: description_url,
-      description_link_class: [ "aboutme-finding-summary-link", ("aboutme-finding-advisory-link" if advisory_link) ].compact.join(" "),
-      description_aria_label: ("Open advisory for #{title_label}" if advisory_link),
-      description_title: ("Open advisory source" if advisory_link),
+      description_url: nil,
+      description_link_class: nil,
+      description_aria_label: nil,
+      description_title: nil,
       tags: profile_finding_tags(entry),
       body_blocks: body_blocks,
       timeline: aboutme_timeline_items(entry["timeline"]),
@@ -104,18 +104,29 @@ module ProfileCardsHelper
   def profile_milestone_card(entry)
     events = aboutme_visible_events(entry["events"])
     card_url = entry["card_url"].presence || entry["title_url"].presence
+    summary_text = aboutme_sentence(entry["summary"])
+    reference_links = profile_milestone_reference_links(entry)
+    timeline_items = profile_milestone_timeline_items(events)
+    body_blocks = []
+    body_blocks << { title: "Summary", text: summary_text } if summary_text.present?
+    body_blocks << { title: "References", items: reference_links } if reference_links.any?
 
     {
       id: entry["id"],
-      class_name: "aboutme-achievement-card",
-      tags_class: "aboutme-achievement-meta",
+      class_name: "aboutme-finding-card aboutme-finding-card-milestone aboutme-achievement-card",
+      main_class: "aboutme-finding-main",
+      title_class: "aboutme-finding-project",
+      tags_class: "aboutme-finding-badges aboutme-achievement-meta",
+      description_class: "aboutme-finding-summary",
       title: entry["title"],
       title_link: false,
-      description: entry["summary"],
+      description: nil,
       tags: profile_milestone_tags(entry, events),
-      body_blocks: [],
-      children: events.map { |event| profile_event_card(entry, event) },
-      collapsible: false,
+      body_blocks: body_blocks,
+      timeline: timeline_items,
+      timeline_title: "Timeline",
+      children: [],
+      collapsible: body_blocks.any? || timeline_items.any?,
       card_url: card_url,
       reading_time: aboutme_reading_time_for_url(card_url),
       aria_label: "Open #{entry["title"]}"
@@ -136,6 +147,30 @@ module ProfileCardsHelper
     end
   end
 
+  def profile_finding_reference_links(entry, kind:)
+    [].tap do |links|
+      if kind == "cve" && entry["project_url"].present?
+        links << profile_card_optional_link(
+          "Repository",
+          entry["project_url"],
+          class_name: "aboutme-reference-link",
+          aria_label: "Open repository for #{entry["project"].presence || entry["title"].presence || "finding"}",
+          title: "Open repository"
+        )
+      end
+
+      next unless kind == "cve" && entry["title_url"].present?
+
+      links << profile_card_optional_link(
+        "Advisory source",
+        entry["title_url"],
+        class_name: "aboutme-reference-link aboutme-finding-advisory-link",
+        aria_label: "Open advisory for #{entry["title"].presence || entry["short_summary"].presence || entry["summary"]}",
+        title: "Open advisory source"
+      )
+    end
+  end
+
   def profile_milestone_tags(entry, events)
     [].tap do |tags|
       if entry["category"].present?
@@ -144,6 +179,51 @@ module ProfileCardsHelper
       end
       tags.concat(aboutme_extra_tags(entry["tags"]))
       tags << { label: entry["date"], datetime: entry["date"], class_name: "aboutme-tag-date" } if entry["date"].present? && events.empty?
+    end
+  end
+
+  def profile_milestone_reference_links(entry)
+    link_entries = Array(entry["links"]).filter_map do |link|
+      next unless link.is_a?(Hash)
+
+      label = link["label"].presence || link[:label].presence
+      url = link["url"].presence || link[:url].presence
+      next if label.blank? || url.blank?
+
+      { label: label, url: url }
+    end
+
+    primary_url = entry["card_url"].presence || entry["title_url"].presence
+    if primary_url.present? && link_entries.none? { |link| link[:url] == primary_url }
+      link_entries.unshift({ label: "Overview", url: primary_url })
+    end
+
+    seen_urls = []
+
+    link_entries.filter_map do |link|
+      label = link[:label]
+      url = link[:url]
+      next if seen_urls.include?(url)
+
+      seen_urls << url
+      profile_card_optional_link(
+        label,
+        url,
+        class_name: "aboutme-reference-link",
+        aria_label: "Open #{label}",
+        title: "Open #{label}"
+      )
+    end
+  end
+
+  def profile_milestone_timeline_items(events)
+    events.map do |event|
+      {
+        "date" => event["date"],
+        "event" => event["title"],
+        "summary" => event["summary"],
+        "url" => event["url"].presence || event["card_url"].presence
+      }.compact
     end
   end
 

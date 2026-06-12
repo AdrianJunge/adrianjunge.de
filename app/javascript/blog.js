@@ -5,7 +5,7 @@ function initBlogTOC() {
   const tocAnimationDuration = 240;
 
   function prefersReducedMotion() {
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return true;
   }
 
   if (tocLinks.length > 0) tocLinks[0].classList.add("active-anchor");
@@ -104,7 +104,7 @@ function initAnimatedDetails() {
   const duration = 240;
 
   function prefersReducedMotion() {
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return true;
   }
 
   function finishAnimation(details, open) {

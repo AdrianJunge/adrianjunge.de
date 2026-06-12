@@ -12,6 +12,25 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_text "Certificates"
     assert_text "Talks"
     assert_text "Relevant achievements"
+
+    section_states = page.evaluate_script(<<~JS)
+      Array.from(document.querySelectorAll(".aboutme-section")).map((section) => section.open)
+    JS
+    assert_equal 6, section_states.length
+    assert section_states.all? { |open| open == false }
+
+    page.execute_script(<<~JS)
+      document.querySelectorAll(".aboutme-section").forEach((section) => { section.open = true; });
+    JS
+    achievement_card_states = page.evaluate_script(<<~JS)
+      Array.from(document.querySelectorAll(".aboutme-achievement-card")).map((card) => card.open)
+    JS
+    assert_operator achievement_card_states.length, :>, 0
+    assert achievement_card_states.all? { |open| open == false }
+    page.execute_script(<<~JS)
+      document.querySelectorAll(".aboutme-achievement-card").forEach((card) => { card.open = true; });
+    JS
+
     assert_text "record of what I have worked on and learned from"
     assert_text "CVE-2026-39327"
     assert_text "CVE-2026-35221"
@@ -26,7 +45,8 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_text "Smile at me"
     assert_text "GPNCTF 2025"
     assert_text "Web challenge about URL parser differentials"
-    assert_selector "#my-challenges .aboutme-card-link-overlay[href='/ctf/gpnctf/Smile%20at%20me']", visible: :all
+    assert_no_selector "#my-challenges .aboutme-card-link-overlay", visible: :all
+    assert_selector "#my-challenges .aboutme-reference-link[href='/ctf/gpnctf/Smile%20at%20me']", text: "Read writeup", visible: :all
     assert_selector "#my-challenges .aboutme-card-reading-time", text: /min read/
     reading_time_style = page.evaluate_script(<<~JS)
       (() => {
@@ -44,7 +64,8 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#my-challenges .aboutme-card-tag[href='https://gpn23.ctf.kitctf.de/']", text: "GPNCTF 2025"
     assert_selector "#my-challenges .aboutme-difficulty-tag-hard", text: "Hard"
     assert_no_selector "#my-challenges .aboutme-difficulty-tag-unknown"
-    assert_selector "#certificates .aboutme-card-link-overlay[href='/blog/htb-cpts']", visible: :all
+    assert_no_selector "#certificates .aboutme-card-link-overlay", visible: :all
+    assert_selector "#certificates .aboutme-reference-link[href='/blog/htb-cpts']", text: "Read writeup", visible: :all
     assert_selector "#certificates .aboutme-card-reading-time", text: /min read/
     assert_selector "#certificates .aboutme-tag-certificate[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", text: "Certificate"
     certificate_tags = page.evaluate_script(<<~JS)
@@ -58,12 +79,15 @@ class AboutmeTest < ApplicationSystemTestCase
       { "text" => "Certificate", "linked" => true }
     ], certificate_tags
     assert_selector "#talks #kitctf-web-intro-2026.aboutme-achievement-card"
-    assert_selector "#talks .aboutme-card-link-overlay[href='https://kitctf.de/intro/']", visible: :all
+    assert_no_selector "#talks .aboutme-card-link-overlay", visible: :all
+    assert_selector "#talks .aboutme-reference-link[href='https://kitctf.de/intro/']", text: "Overview", visible: :all
     assert_selector "#talks .aboutme-card-title", text: "KITCTF Web Intro"
     assert_selector "#talks .aboutme-tag-date", text: "2026-05-07"
     assert_selector "#talks .aboutme-tag-slides[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf'][target='_blank'][rel='noopener noreferrer']", text: "Slides"
     assert_no_selector "#achievements #firedancer-v1-audit-competition"
-    assert_selector "#achievements #kitctf .aboutme-card-link-overlay[href='https://ctftime.org/team/7221/']", visible: :all
+    assert_no_selector "#achievements .aboutme-card-link-overlay", visible: :all
+    assert_selector "#achievements #kitctf .aboutme-reference-link[href='https://ctftime.org/team/7221/']", text: "KITCTF on CTFtime", visible: :all
+    assert_selector "#achievements #kitctf .aboutme-timeline-link[href='https://ctftime.org/event/2714']", text: "KITCTF #3 at GlacierCTF 2025", visible: :all
     assert_no_text "Public advisories"
     assert_no_text "Responsible disclosure"
     assert_no_text "Credentials"
@@ -95,6 +119,7 @@ class AboutmeTest < ApplicationSystemTestCase
 
         return {
           groupGap: groupStyle.gap,
+          groupBackgroundColor: groupStyle.backgroundColor,
           groupBackground: groupStyle.backgroundImage,
           firstBackground: firstStyle.backgroundColor,
           firstBackgroundImage: firstStyle.backgroundImage
@@ -102,15 +127,51 @@ class AboutmeTest < ApplicationSystemTestCase
       })()
     JS
     assert_equal "0px", counter_surface["groupGap"]
-    assert_includes counter_surface["groupBackground"], "linear-gradient"
-    assert_equal "rgba(0, 0, 0, 0)", counter_surface["firstBackground"]
+    assert_equal "rgba(18, 34, 56, 0.9)", counter_surface["groupBackgroundColor"]
+    assert_equal "none", counter_surface["groupBackground"]
+    assert_equal "rgba(15, 52, 83, 0.7)", counter_surface["firstBackground"]
     assert_equal "none", counter_surface["firstBackgroundImage"]
+    find(".aboutme-stat[href='#cves']").hover
+    counter_hover_surface = page.evaluate_script(<<~JS)
+      (() => {
+        const first = document.querySelector(".aboutme-stat");
+        const style = window.getComputedStyle(first);
+
+        return {
+          backgroundColor: style.backgroundColor,
+          boxShadow: style.boxShadow
+        };
+      })()
+    JS
+    assert_equal "rgba(24, 76, 112, 0.94)", counter_hover_surface["backgroundColor"]
+    assert_not_equal "none", counter_hover_surface["boxShadow"]
     assert_selector "#cves .aboutme-section-count", text: /entries/
     assert_selector "#bug-bounties .aboutme-section-count", text: "0 findings"
     assert_selector "#my-challenges .aboutme-section-count", text: /challenge/
     assert_selector "#certificates .aboutme-section-count", text: /certificate/
     assert_selector "#talks .aboutme-section-count", text: "1 talk"
     assert_selector "#achievements .aboutme-section-count", text: /events/
+
+    section_arrow = page.evaluate_script(<<~JS)
+      (() => {
+        const title = document.querySelector("#certificates .aboutme-section-title");
+        const titleRect = title.getBoundingClientRect();
+        const countRect = document.querySelector("#certificates .aboutme-section-count").getBoundingClientRect();
+        const beforeStyle = window.getComputedStyle(title, "::before");
+        const afterStyle = window.getComputedStyle(title, "::after");
+
+        return {
+          text: title.innerText.trim(),
+          beforeContent: beforeStyle.content,
+          afterContent: afterStyle.content,
+          titleBeforeCount: titleRect.right < countRect.left
+        };
+      })()
+    JS
+    assert_equal "Certificates", section_arrow["text"]
+    assert_equal "none", section_arrow["beforeContent"]
+    assert_equal '">"', section_arrow["afterContent"]
+    assert_equal true, section_arrow["titleBeforeCount"]
   end
 
   test "about counters scroll to their sections" do
@@ -135,6 +196,7 @@ class AboutmeTest < ApplicationSystemTestCase
       { "targetId" => "my-challenges", "behavior" => "smooth", "block" => "start" },
       page.evaluate_script("window.__aboutScrollOptions")
     )
+    assert_equal true, page.evaluate_script("document.querySelector('#my-challenges').open")
     assert_selector "#my-challenges", text: "Created CTF Challenges"
   end
 
@@ -197,6 +259,9 @@ class AboutmeTest < ApplicationSystemTestCase
   test "about me entry cards use row-wise two column grids on desktop" do
     page.current_window.resize_to(1280, 1400)
     visit about_path
+    page.execute_script(<<~JS)
+      document.querySelectorAll(".aboutme-section").forEach((section) => { section.open = true; });
+    JS
 
     layout = page.evaluate_script(<<~JS)
       (() => {
@@ -243,6 +308,7 @@ class AboutmeTest < ApplicationSystemTestCase
 
     metrics = page.evaluate_script(<<~JS)
       (() => {
+        document.querySelector("#cves").open = true;
         const timeline = document.querySelector("#cves details .aboutme-timeline");
         const details = timeline.closest("details");
         details.open = true;
@@ -287,6 +353,9 @@ class AboutmeTest < ApplicationSystemTestCase
   test "about me card tags sit below titles and links read as larger actions" do
     page.current_window.resize_to(1280, 1400)
     visit about_path
+    page.execute_script(<<~JS)
+      document.querySelectorAll(".aboutme-section").forEach((section) => { section.open = true; });
+    JS
 
     metrics = page.evaluate_script(<<~JS)
       (() => {
@@ -298,8 +367,10 @@ class AboutmeTest < ApplicationSystemTestCase
         const cveTagStyle = window.getComputedStyle(cveTag);
         const cveTagActionStyle = window.getComputedStyle(cveTag, "::after");
         const cweTagStyle = window.getComputedStyle(cweTag);
-        const projectLinkStyle = window.getComputedStyle(finding.querySelector(".aboutme-finding-project-link"));
-        const advisoryLink = finding.querySelector(".aboutme-finding-advisory-link");
+        const cweTagActionStyle = window.getComputedStyle(cweTag, "::after");
+        const projectLink = finding.querySelector(".aboutme-finding-project-link");
+        const referenceLinks = [...finding.querySelectorAll(".aboutme-card-body .aboutme-reference-link")];
+        const advisoryLink = finding.querySelector(".aboutme-card-body .aboutme-finding-advisory-link");
         const highSeverityStyle = window.getComputedStyle(document.querySelector(".aboutme-severity-high"));
         const mediumSeverityStyle = window.getComputedStyle(document.querySelector(".aboutme-severity-medium"));
         const challengeTag = document.querySelector("#my-challenges .aboutme-tag-gpnctf-2025");
@@ -315,13 +386,17 @@ class AboutmeTest < ApplicationSystemTestCase
 
         return {
           findingTagsBelowTitle: findingTags.top >= findingTitle.bottom,
-          cveHref: cveTag.href,
-          cweHref: cweTag.href,
-          projectDecoration: projectLinkStyle.textDecorationLine,
+          cveTagName: cveTag.tagName,
+          cveHref: cveTag.getAttribute("href"),
+          cweTagName: cweTag.tagName,
+          cweHref: cweTag.getAttribute("href"),
+          projectLinkPresent: !!projectLink,
           advisoryHref: advisoryLink.href,
           advisoryClass: advisoryLink.className,
           advisoryAriaLabel: advisoryLink.getAttribute("aria-label"),
           advisoryTitle: advisoryLink.getAttribute("title"),
+          referenceTexts: referenceLinks.map((link) => link.textContent.trim()),
+          referenceHrefs: referenceLinks.map((link) => link.href),
           achievementTagsBelowTitle: achievementTags.top >= achievementTitle.bottom,
           cveTagClass: cveTag.className,
           cveTagBackground: cveTagStyle.backgroundColor,
@@ -333,6 +408,8 @@ class AboutmeTest < ApplicationSystemTestCase
           cweTagBackground: cweTagStyle.backgroundColor,
           cweTagBorder: cweTagStyle.borderTopColor,
           cweTagCursor: cweTagStyle.cursor,
+          cweTagActionContent: cweTagActionStyle.content,
+          cweTagActionWidth: cweTagActionStyle.width,
           challengeTagClass: challengeTag.className,
           challengeTagBackground: challengeTagStyle.backgroundColor,
           challengeTagBorder: challengeTagStyle.borderTopColor,
@@ -360,43 +437,50 @@ class AboutmeTest < ApplicationSystemTestCase
 
     assert metrics["findingTagsBelowTitle"]
     assert metrics["achievementTagsBelowTitle"]
+    assert_equal "A", metrics["cveTagName"]
     assert_equal "https://www.cve.org/CVERecord?id=CVE-2026-48898", metrics["cveHref"]
+    assert_equal "A", metrics["cweTagName"]
     assert_equal "https://cwe.mitre.org/data/definitions/284.html", metrics["cweHref"]
-    assert_equal "none", metrics["projectDecoration"]
+    assert_equal false, metrics["projectLinkPresent"]
     assert_equal "https://developer.joomla.org/security-centre/1045-20260513-core-privilege-escalation-through-com-users-batch-task.html", metrics["advisoryHref"]
     assert_includes metrics["advisoryClass"], "aboutme-finding-advisory-link"
     assert_equal "Open advisory for Privilege escalation through com_users batch task", metrics["advisoryAriaLabel"]
     assert_equal "Open advisory source", metrics["advisoryTitle"]
+    assert_includes metrics["referenceTexts"], "Repository"
+    assert_includes metrics["referenceTexts"], "Advisory source"
+    assert_includes metrics["referenceHrefs"], "https://github.com/joomla/joomla-cms"
+    assert_not_includes metrics["referenceHrefs"], "https://www.cve.org/CVERecord?id=CVE-2026-48898"
+    assert_not_includes metrics["referenceHrefs"], "https://cwe.mitre.org/data/definitions/284.html"
     assert_includes metrics["cveTagClass"], "ui-hover-lift"
     assert_includes metrics["cveTagClass"], "cve-badge"
-    assert_equal "rgba(49, 46, 129, 0.52)", metrics["cveTagBackground"]
-    assert_equal "rgba(129, 140, 248, 0.78)", metrics["cveTagBorder"]
+    assert_equal "rgba(14, 116, 144, 0.42)", metrics["cveTagBackground"]
+    assert_equal "rgba(125, 211, 252, 0.34)", metrics["cveTagBorder"]
     assert_equal "pointer", metrics["cveTagCursor"]
-    assert_equal '""', metrics["cveTagActionContent"]
-    assert_not_equal "0px", metrics["cveTagActionWidth"]
+    assert_equal "none", metrics["cveTagActionContent"]
     assert_includes metrics["cweTagClass"], "ui-hover-lift"
     assert_includes metrics["cweTagClass"], "cwe-badge"
-    assert_equal "rgba(14, 132, 170, 0.46)", metrics["cweTagBackground"]
-    assert_equal "rgba(125, 211, 252, 0.5)", metrics["cweTagBorder"]
+    assert_equal "rgba(14, 116, 144, 0.42)", metrics["cweTagBackground"]
+    assert_equal "rgba(125, 211, 252, 0.34)", metrics["cweTagBorder"]
     assert_equal "pointer", metrics["cweTagCursor"]
+    assert_equal "none", metrics["cweTagActionContent"]
     assert_includes metrics["challengeTagClass"], "ui-hover-lift"
-    assert_equal "rgba(14, 132, 170, 0.46)", metrics["challengeTagBackground"]
-    assert_equal "rgba(125, 211, 252, 0.32)", metrics["challengeTagBorder"]
+    assert_equal "rgba(14, 116, 144, 0.42)", metrics["challengeTagBackground"]
+    assert_equal "rgba(125, 211, 252, 0.34)", metrics["challengeTagBorder"]
     assert_equal "pointer", metrics["challengeTagCursor"]
     assert_equal '""', metrics["challengeTagActionContent"]
     assert_not_equal "0px", metrics["challengeTagActionWidth"]
-    assert_match(/rgba?\(251,\s*146,\s*60/, metrics["highSeverityBorder"])
-    assert_includes metrics["highSeverityBackgroundImage"], "linear-gradient"
-    assert_includes metrics["highSeverityShadow"], "inset"
-    assert_match(/rgba?\(250,\s*204,\s*21/, metrics["mediumSeverityBorder"])
-    assert_includes metrics["mediumSeverityBackgroundImage"], "linear-gradient"
-    assert_includes metrics["mediumSeverityShadow"], "inset"
-    assert_equal "rgba(14, 132, 170, 0.46)", metrics["achievementTagBackground"]
-    assert_equal "rgba(125, 211, 252, 0.32)", metrics["achievementTagBorder"]
+    assert_equal "rgba(148, 163, 184, 0.34)", metrics["highSeverityBorder"]
+    assert_equal "none", metrics["highSeverityBackgroundImage"]
+    assert_equal "none", metrics["highSeverityShadow"]
+    assert_equal "rgba(148, 163, 184, 0.34)", metrics["mediumSeverityBorder"]
+    assert_equal "none", metrics["mediumSeverityBackgroundImage"]
+    assert_equal "none", metrics["mediumSeverityShadow"]
+    assert_equal "rgba(51, 65, 85, 0.48)", metrics["achievementTagBackground"]
+    assert_equal "rgba(148, 163, 184, 0.34)", metrics["achievementTagBorder"]
     assert_equal "default", metrics["achievementTagCursor"]
     assert_equal "auto", metrics["achievementTagPointerEvents"]
-    assert_includes metrics["achievementTagShadow"], "inset"
-    assert_not_equal '""', metrics["achievementTagActionContent"]
+    assert_equal "none", metrics["achievementTagShadow"]
+    assert_equal "none", metrics["achievementTagActionContent"]
     assert_not_includes metrics["achievementTagClass"], "ui-hover-lift"
     assert_equal 0, metrics["visibleActionRows"]
 
@@ -424,11 +508,15 @@ class AboutmeTest < ApplicationSystemTestCase
 
   test "my challenges link to their writeups" do
     visit about_path
+    page.execute_script(<<~JS)
+      document.querySelector("#my-challenges").open = true;
+      document.querySelector("#my-challenges #smile-at-me").open = true;
+    JS
 
     within "#my-challenges" do
       assert_text "Smile at me"
       assert_text "Published for GPNCTF 2025."
-      find(".aboutme-card-link-overlay[href='/ctf/gpnctf/Smile%20at%20me']", visible: :all).click
+      find(".aboutme-reference-link[href='/ctf/gpnctf/Smile%20at%20me']").click
     end
 
     assert_current_path "/ctf/gpnctf/Smile%20at%20me"
@@ -436,9 +524,13 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_text "I'm the author of this challenge"
   end
 
-  test "about linked tags and nested achievement cards receive pointer events" do
+  test "about linked tags and achievement timeline links receive pointer events" do
     page.current_window.resize_to(1280, 1400)
     visit about_path
+    page.execute_script(<<~JS)
+      document.querySelectorAll("#my-challenges, #certificates, #talks, #achievements").forEach((section) => { section.open = true; });
+      document.querySelectorAll("#achievements .aboutme-achievement-card").forEach((card) => { card.open = true; });
+    JS
 
     hit_targets = page.evaluate_script(<<~JS)
       (() => {
@@ -461,8 +553,8 @@ class AboutmeTest < ApplicationSystemTestCase
           linkAtCenter("#my-challenges .aboutme-tag-gpnctf-2025"),
           linkAtCenter("#certificates .aboutme-tag-certificate"),
           linkAtCenter("#talks .aboutme-tag-slides"),
-          linkAtCenter("#achievements #dhm-2025 .aboutme-card-link-overlay"),
-          linkAtCenter("#achievements #kitctf-glacierctf-2025 .aboutme-card-link-overlay")
+          linkAtCenter("#achievements #dhm .aboutme-reference-link[href='https://hacking-meisterschaft.de/']"),
+          linkAtCenter("#achievements #kitctf .aboutme-timeline-link[href='https://ctftime.org/event/2714']")
         ];
       })()
     JS
@@ -472,32 +564,31 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", hit_targets[2]["href"]
     assert_equal "https://hacking-meisterschaft.de/", hit_targets[3]["href"]
     assert_equal "https://ctftime.org/event/2714", hit_targets[4]["href"]
-
-    page.execute_script("document.querySelector('#dhm-2025').scrollIntoView({ block: 'center' });")
-    find("#dhm-2025").hover
-
-    transform = page.evaluate_script("window.getComputedStyle(document.querySelector('#dhm-2025')).transform")
-    assert_not_equal "none", transform
   end
 
   test "about me entries are ordered newest first" do
     visit about_path
+    page.execute_script(<<~JS)
+      document.querySelectorAll(".aboutme-section").forEach((section) => { section.open = true; });
+      document.querySelectorAll("#achievements .aboutme-achievement-card").forEach((card) => { card.open = true; });
+    JS
 
     first_cve_title = page.evaluate_script(<<~JS)
       document.querySelector("#cves .aboutme-finding-card .aboutme-finding-summary").innerText.trim()
     JS
     achievement_titles = page.evaluate_script(<<~JS)
-      Array.from(document.querySelectorAll("#achievements .aboutme-achievement-card h3"))
+      Array.from(document.querySelectorAll("#achievements .aboutme-achievement-card > summary h3"))
         .map((heading) => heading.innerText.trim())
     JS
     achievement_events = page.evaluate_script(<<~JS)
       Object.fromEntries(
         Array.from(document.querySelectorAll("#achievements .aboutme-achievement-card")).map((card) => [
           card.querySelector("h3").innerText.trim(),
-          Array.from(card.querySelectorAll(".aboutme-achievement-event")).map((event) => ({
-            title: event.querySelector("h4").innerText.trim(),
+          Array.from(card.querySelectorAll(".aboutme-timeline li")).map((event) => ({
+            title: event.querySelector(".aboutme-timeline-link, .aboutme-timeline-title").innerText.trim(),
             date: event.querySelector("time").innerText.trim(),
-            summary: event.querySelector("p") ? event.querySelector("p").innerText.trim() : ""
+            summary: event.querySelector(".aboutme-timeline-summary") ? event.querySelector(".aboutme-timeline-summary").innerText.trim() : "",
+            href: event.querySelector(".aboutme-timeline-link") ? event.querySelector(".aboutme-timeline-link").href : null
           }))
         ])
       )

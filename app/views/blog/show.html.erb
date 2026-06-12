@@ -23,7 +23,12 @@
           tags: blog_tags,
           image: blog_image,
           section: @blog_category
-        )
+        ),
+        breadcrumbs: [
+          { title: "Home", link: root_path },
+          { title: "Blog", link: blog_path },
+          { title: @blog_title, link: blog_post_path(@post_slug) }
+        ]
       ) %>
 <% end %>
 

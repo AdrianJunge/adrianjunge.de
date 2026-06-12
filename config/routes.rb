@@ -5,12 +5,16 @@ Rails.application.routes.draw do
   get "/aboutme", to: redirect("/about")
   get "/sitemap.xml", to: "seo#sitemap", defaults: { format: :xml }
   get "/feed", to: "feeds#show", as: :feed, defaults: { format: :rss }
+  get "/feed.xml", to: "feeds#show", as: :feed_xml, defaults: { format: :rss }
   get "/feed.atom", to: "feeds#show", defaults: { format: :atom }
+  get "/feed.json", to: "feeds#show", as: :feed_json, defaults: { format: :json }
 
   get "/ctf/files/*file_path", to: "ctf_files#download", as: :ctf_file_download
 
   get "/ctf/feed.atom", to: redirect("/feed.atom")
-  get "/ctf/feed", to: redirect("/feed"), as: :ctf_feed
+  get "/ctf/feed.json", to: redirect("/feed.json")
+  get "/ctf/feed.xml", to: redirect("/feed.xml")
+  get "/ctf/feed", to: redirect("/feed.xml"), as: :ctf_feed
 
   get "/ctf", to: "ctf#index"
   get "/ctf/:which", to: "ctf#which"
@@ -20,7 +24,9 @@ Rails.application.routes.draw do
   get "/posts-timeline", to: redirect("/timeline")
 
   get "/blog/feed.atom", to: redirect("/feed.atom")
-  get "/blog/feed", to: redirect("/feed"), as: :blog_feed
+  get "/blog/feed.json", to: redirect("/feed.json")
+  get "/blog/feed.xml", to: redirect("/feed.xml")
+  get "/blog/feed", to: redirect("/feed.xml"), as: :blog_feed
 
   get "/blog", to: "blog#index", as: :blog
   get "/blog/:which", to: "blog#show", as: :blog_post

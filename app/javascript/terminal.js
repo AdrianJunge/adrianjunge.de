@@ -14,7 +14,7 @@ const aboutMe = `\tDiscord:\t${createHyperlink('Discord', 'https://discord.com/u
 \tLinkedin:\t${createHyperlink('Linkedin', 'https://www.linkedin.com/in/adrian-junge-998a63296/')}
 `
 
-const firstHelp = `\tNavigation via sidebar, 'cd' command or listed hyperlinks
+const firstHelp = `\tNavigation via taskbar, 'cd' command or listed hyperlinks
 \tType 'help' for more...
 `
 

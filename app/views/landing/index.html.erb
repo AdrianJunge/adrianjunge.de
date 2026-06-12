@@ -14,6 +14,9 @@
             canonical_path: root_path,
             items: landing_latest_items
           )
+        ],
+        breadcrumbs: [
+          { title: "Home", link: root_path }
         ]
       ) %>
 <% end %>
@@ -27,8 +30,7 @@
 ], true) %>
 <% timeline_link = timeline_path %>
 <% about_link = about_path %>
-<% kit_link = "https://www.kit.edu" %>
-<% kitctf_link = "https://kitctf.de" %>
+<% discord_link = "https://discord.com/users/305624492221267968/" %>
 <% pgp_link = "/pgp-vurlo.asc" %>
 <% landing_metrics = [
   { label: "Posts", value: @amount_posts, sublabel: @amount_post_reading_time, link: timeline_link },
@@ -67,11 +69,11 @@
             <%= image_tag("landing/profile.png", alt: "Adrian Junge profile image", class: "landing-profile-image") %>
 
             <div class="landing-affiliation-links">
-                <a href="<%= kitctf_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift">
+                <a href="<%= discord_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift" title="Open Discord profile">
                     <%= image_tag("landing/kitctf.png", alt: "", aria: { hidden: true }) %>
                     <span>KITCTF</span>
                 </a>
-                <a href="<%= kit_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift">
+                <a href="<%= discord_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift" title="Open Discord profile">
                     <%= image_tag("landing/kit.png", alt: "", aria: { hidden: true }) %>
                     <span>KIT</span>
                 </a>

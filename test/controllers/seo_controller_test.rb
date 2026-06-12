@@ -16,8 +16,10 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_select "script[type='application/ld+json']", text: %r{/timeline\?q=\{search_term_string\}}
     assert_select "link[rel='stylesheet'][href=?]", TerminalHelper::XTERM_CSS_CDN_URL
     assert_select "link[rel='stylesheet'][href^='/assets'][href*='xterm.css']", 0
-    assert_select "link[rel='alternate'][title='adrianjunge.de (RSS)'][href=?]", feed_url
+    assert_select "link[rel='alternate'][title='adrianjunge.de (RSS)'][href=?]", feed_xml_url
     assert_select "link[rel='alternate'][title='adrianjunge.de (Atom)'][href=?]", feed_url(format: :atom)
+    assert_select "link[rel='alternate'][title='adrianjunge.de (JSON Feed)'][href=?]", feed_json_url
+    assert_select "script[type='application/ld+json']", text: /"@type":"BreadcrumbList"/
     assert_select "link[rel='alternate'][title='Blog Posts (RSS)']", 0
     assert_select "link[rel='alternate'][title='CTF Writeups (RSS)']", 0
   end
@@ -35,6 +37,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_select "meta[property='og:image'][content*='ctf/kitctf']"
     assert_select "script[type='application/ld+json']", text: /"@type":"TechArticle"/
     assert_select "script[type='application/ld+json']", text: /"articleSection":"KITCTF Intro CTF"/
+    assert_select "script[type='application/ld+json']", text: /"@type":"BreadcrumbList"/
   end
 
   test "blog article pages use post-specific SEO metadata" do
@@ -47,6 +50,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_select "meta[property='og:image'][content*='blog/java']"
     assert_select "script[type='application/ld+json']", text: /"headline":"Funny Java Strings\?"/
     assert_select "script[type='application/ld+json']", text: /"articleSection":"Security Research"/
+    assert_select "script[type='application/ld+json']", text: /"@type":"BreadcrumbList"/
   end
 
   test "collection pages expose item lists from current content" do
@@ -54,6 +58,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "script[type='application/ld+json']", text: /"@type":"ItemList"/
     assert_select "script[type='application/ld+json']", text: /"Funny Java Strings\?"/
+    assert_select "script[type='application/ld+json']", text: /"@type":"BreadcrumbList"/
 
     get ctf_path
     assert_response :success

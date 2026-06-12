@@ -11,7 +11,11 @@
           description: ctf_description,
           canonical_path: ctf_path,
           items: ctf_items
-        )
+        ),
+        breadcrumbs: [
+          { title: "Home", link: root_path },
+          { title: "CTF", link: ctf_path }
+        ]
       ) %>
 <% end %>
 
@@ -25,7 +29,7 @@
              icon_alt: "CTF",
              title: "CTF events",
              description: "Capture The Flag competitions grouped by event. Open an event to browse its challenge writeups.",
-             actions: feed_actions_for(:ctf, feed_url: feed_path, atom_url: feed_path(format: :atom), label: "Website") %>
+             actions: feed_actions_for(:ctf, feed_url: feed_xml_path, atom_url: feed_path(format: :atom), json_url: feed_json_path, label: "Website") %>
 
   <%= render "shared/content_filters",
              scope: "ctfs",
@@ -37,7 +41,7 @@
              tag_groups: @filter_tag_groups,
              total: @ctfs.length %>
 
-  <div class="ctf-cards-container">
+  <div class="ctf-cards-container" data-filter-results="ctfs">
     <% @ctfs.each do |name, ctf| %>
       <% ctf_tags = Array(@ctf_tags[name]) %>
       <% writeup_count = @ctf_writeup_counts[name].to_i %>
@@ -77,10 +81,10 @@
             description_class: "ctf-description",
             description_tag: :p,
             date: writeup_count_label,
-            date_class: "ctf-event-summary",
-            date_text_class: "ctf-writeup-count-text",
+            date_class: "blog-post-date ctf-event-summary",
+            date_text_class: "blog-post-date-text ctf-writeup-count-text",
             reading_time: @ctf_reading_times[name],
-            reading_time_class: "ctf-total-reading-time",
+            reading_time_class: "blog-post-reading-time ctf-total-reading-time",
             data: {
               expandable: false,
               filter_card: "ctfs",

@@ -1298,3 +1298,243 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
         font-size: 0.72rem;
     }
 }
+
+.aboutme-stats {
+    background: rgba(18, 34, 56, 0.9);
+    box-shadow: 0 0.8rem 1.6rem rgba(2, 12, 24, 0.2);
+}
+
+.aboutme-stats::before,
+.aboutme-stat::before,
+.aboutme-stat::after {
+    display: none;
+}
+
+.aboutme-stat,
+.aboutme-stat:hover,
+.aboutme-stat:focus-visible {
+    color: inherit;
+    background: rgba(15, 52, 83, 0.7);
+    transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+}
+
+.aboutme-stat:hover,
+.aboutme-stat:focus-visible {
+    box-shadow: inset 1px 0 0 rgba(125, 211, 252, 0.18), 0 0.45rem 0.95rem rgba(2, 12, 24, 0.18);
+    transform: translateY(-1px);
+}
+
+.aboutme-card,
+.aboutme-empty-state,
+details.aboutme-card.ui-card-surface.details-is-animating,
+.aboutme-finding-card summary,
+.aboutme-finding-card summary::before,
+.aboutme-card-header,
+.aboutme-card-body {
+    transition: none;
+}
+
+.aboutme-card-tag,
+.aboutme-cve-id,
+.aboutme-cwe-id,
+.aboutme-achievement-meta span,
+.aboutme-achievement-meta time,
+:not(a).aboutme-card-tag,
+:not(a).aboutme-cve-id,
+:not(a).aboutme-cwe-id,
+.aboutme-card-tag.aboutme-difficulty-tag,
+.aboutme-card-tag.aboutme-tag-static,
+.aboutme-tag-static,
+.aboutme-card-linked .aboutme-tag-static,
+:not(a).aboutme-card-tag.aboutme-cve-id,
+:not(a).aboutme-card-tag.cve-badge,
+:not(a).aboutme-card-tag.aboutme-cwe-id,
+:not(a).aboutme-card-tag.cwe-badge {
+    color: rgba(203, 213, 225, 0.8);
+    border-color: rgba(148, 163, 184, 0.34);
+    background: rgba(51, 65, 85, 0.48);
+    box-shadow: none;
+    cursor: default;
+    transition: none;
+}
+
+.aboutme-severity {
+    color: rgba(203, 213, 225, 0.84);
+    border-color: rgba(148, 163, 184, 0.36);
+    background: rgba(51, 65, 85, 0.5);
+    box-shadow: none;
+}
+
+.aboutme-card-tag.aboutme-tag-action,
+.aboutme-card-tag.aboutme-tag-action:hover,
+a.aboutme-card-tag.aboutme-tag-action:focus-visible {
+    color: #dff7ff;
+    border-color: rgba(125, 211, 252, 0.34);
+    background: rgba(14, 116, 144, 0.42);
+    box-shadow: 0 0.35rem 0.8rem rgba(2, 12, 24, 0.18);
+    transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+}
+
+.aboutme-card-tag.aboutme-tag-action:hover,
+a.aboutme-card-tag.aboutme-tag-action:focus-visible {
+    transform: translateY(-1px);
+}
+
+.aboutme-reference-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #dff7ff;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.aboutme-reference-link::after {
+    content: ">";
+    font-weight: 950;
+    line-height: 1;
+    transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.aboutme-reference-link:hover,
+.aboutme-reference-link:focus-visible {
+    color: #dff7ff;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+    outline: none;
+}
+
+.aboutme-reference-link:hover::after,
+.aboutme-reference-link:focus-visible::after {
+    transform: translateX(0.12rem);
+}
+
+.aboutme-section {
+    display: block;
+}
+
+.aboutme-section-header {
+    cursor: pointer;
+    list-style: none;
+}
+
+.aboutme-section-header::-webkit-details-marker {
+    display: none;
+}
+
+.aboutme-section-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.aboutme-section-title::before {
+    display: none;
+    content: none;
+}
+
+.aboutme-section-title::after {
+    flex: 0 0 auto;
+    color: currentColor;
+    content: ">";
+    font-size: 0.88em;
+    font-weight: 900;
+    line-height: 1;
+    opacity: 0.78;
+    transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.aboutme-section[open] .aboutme-section-title::after {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+.aboutme-section-header:focus-visible {
+    border-radius: var(--radius-ui-control);
+    outline: 2px solid rgba(125, 211, 252, 0.75);
+    outline-offset: 0.25rem;
+}
+
+.aboutme-section-body {
+    padding-top: 0.1rem;
+}
+
+details.aboutme-achievement-card {
+    display: block;
+}
+
+details.aboutme-card:not(.aboutme-finding-card) > summary {
+    display: block;
+    position: relative;
+    padding: 1.15rem 1.25rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+details.aboutme-card:not(.aboutme-finding-card) > summary::-webkit-details-marker {
+    display: none;
+}
+
+details.aboutme-card:not(.aboutme-finding-card) > summary::after {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 2px solid rgba(226, 232, 240, 0.72);
+    border-bottom: 2px solid rgba(226, 232, 240, 0.72);
+    content: "";
+    transform: rotate(-45deg);
+}
+
+details.aboutme-card:not(.aboutme-finding-card)[open] > summary::after {
+    transform: rotate(45deg);
+}
+
+.aboutme-timeline-content {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.aboutme-timeline-title,
+.aboutme-timeline-link {
+    color: #f8fafc;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.aboutme-timeline-link:hover,
+.aboutme-timeline-link:focus-visible {
+    color: #7dd3fc;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+    outline: none;
+}
+
+.aboutme-timeline-summary {
+    color: rgba(226, 232, 240, 0.82);
+    line-height: 1.5;
+}
+
+.aboutme-stat:hover,
+.aboutme-stat:focus-visible,
+.landing-page .landing-metric:hover,
+.landing-page .landing-metric:focus-visible {
+    color: #f8feff;
+    background: rgba(24, 76, 112, 0.94);
+    box-shadow: inset 1px 0 0 rgba(165, 243, 252, 0.28), 0 0.55rem 1.08rem rgba(2, 12, 24, 0.26);
+    transform: translateY(-1px);
+}
+
+.aboutme-reference-link::after,
+.aboutme-reference-link:hover::after,
+.aboutme-reference-link:focus-visible::after,
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cve-id::after,
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id::after,
+a.aboutme-card-tag.aboutme-tag-action.cve-badge::after,
+a.aboutme-card-tag.aboutme-tag-action.cwe-badge::after {
+    display: none;
+    content: none;
+}

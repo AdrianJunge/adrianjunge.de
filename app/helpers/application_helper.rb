@@ -8,7 +8,7 @@ module ApplicationHelper
     parent
   end
 
-  def feed_actions_for(scope, feed_url:, atom_url:, label:)
+  def feed_actions_for(scope, feed_url:, atom_url:, json_url:, label:)
     scope = scope.to_s
 
     [
@@ -27,6 +27,14 @@ module ApplicationHelper
         icon_class: "#{scope}-atom-icon",
         label: "#{label} Atom feed",
         alt: "Atom Feed Icon"
+      },
+      {
+        href: json_url,
+        class: "#{scope}-json-feed ui-hover-lift",
+        icon_path: "task-bar/feed-json.svg",
+        icon_class: "#{scope}-json-icon",
+        label: "#{label} JSON feed",
+        alt: "JSON Feed Icon"
       }
     ]
   end

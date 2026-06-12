@@ -9,7 +9,7 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     "Timeline" => "/timeline"
   }.freeze
 
-  PUBLIC_PAGES_WITH_SIDEBAR = [
+  PUBLIC_PAGES_WITH_TASKBAR = [
     "/",
     "/about",
     "/ctf",
@@ -17,36 +17,34 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     "/timeline"
   ].freeze
 
-  test "main sidebar navigation is present on every public page with sidebar" do
-    PUBLIC_PAGES_WITH_SIDEBAR.each do |path|
+  test "main top taskbar navigation is present on every public page" do
+    PUBLIC_PAGES_WITH_TASKBAR.each do |path|
       get path
 
       assert_response :success, "expected #{path} to render successfully"
 
       assert_select ".flex-grow > .taskbar-item", 0,
-                    "expected #{path} not to render sidebar controls as normal-flow taskbar items"
-      assert_select ".flex-grow > #menu-icon-right", 1,
-                    "expected #{path} to render the sidebar open control as a fixed icon"
-      assert_select ".flex-grow > #menu-icon-left", 1,
-                    "expected #{path} to render the sidebar close control as a fixed icon"
-      assert_select "button#menu-icon-right.menu-icon[type=button][aria-label=?]", "Open sidebar navigation", 1
-      assert_select "button#menu-icon-left.menu-icon[type=button][aria-label=?]", "Close sidebar navigation", 1
+                    "expected #{path} not to render taskbar items outside the top taskbar"
+      assert_select "#menu-icon-right", 0
+      assert_select "#menu-icon-left", 0
+      assert_select "nav#top-taskbar.top-taskbar[aria-label=?]", "Primary navigation", 1
+      assert_select "nav#top-taskbar .top-taskbar-inner", 1
 
       MAIN_NAV_LINKS.each do |label, href|
-        assert_select ".taskbar-link[href=?]", href, { text: /#{Regexp.escape(label)}/, count: 1 },
-                      "expected #{path} to include one #{label} sidebar link"
+        assert_select "#top-taskbar .taskbar-link[href=?]", href, { text: /#{Regexp.escape(label)}/, count: 1 },
+                      "expected #{path} to include one #{label} taskbar link"
       end
 
-      assert_select "#terminal-taskbar-button", 1, "expected #{path} to include the terminal sidebar button"
+      assert_select "#top-taskbar #terminal-taskbar-button", 1, "expected #{path} to include the terminal taskbar button"
     end
   end
 
-  test "sidebar marks the current main section" do
+  test "top taskbar marks the current main section" do
     MAIN_NAV_LINKS.each_value do |href|
       get href
 
       assert_response :success
-      assert_select ".taskbar-link.is-active[aria-current=page][href=?]", href, 1
+      assert_select "#top-taskbar .taskbar-link.is-active[aria-current=page][href=?]", href, 1
     end
   end
 

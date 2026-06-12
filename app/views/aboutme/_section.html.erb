@@ -2,23 +2,25 @@
 <% count = section[:count].to_i %>
 <% count_label = count == 1 ? section[:singular] : section[:plural] %>
 
-<section class="aboutme-section" id="<%= section[:id] %>">
-  <div class="aboutme-section-header">
+<details class="aboutme-section" id="<%= section[:id] %>" data-animated-details="true">
+  <summary class="aboutme-section-header">
     <div>
       <h2 class="aboutme-section-title"><%= section[:title] %></h2>
     </div>
     <span class="aboutme-section-count"><%= count %> <%= count_label %></span>
-  </div>
+  </summary>
 
-  <% if entries.any? %>
-    <div class="<%= section[:grid_class] %>">
-      <% entries.each do |entry| %>
-        <%= render partial: section[:partial], locals: { entry: entry }.merge(section[:card_locals] || {}) %>
-      <% end %>
-    </div>
-  <% else %>
-    <div class="aboutme-empty-state">
-      <p><%= section[:empty_text] %></p>
-    </div>
-  <% end %>
-</section>
+  <div class="aboutme-section-body">
+    <% if entries.any? %>
+      <div class="<%= section[:grid_class] %>">
+        <% entries.each do |entry| %>
+          <%= render partial: section[:partial], locals: { entry: entry }.merge(section[:card_locals] || {}) %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="aboutme-empty-state">
+        <p><%= section[:empty_text] %></p>
+      </div>
+    <% end %>
+  </div>
+</details>

@@ -10,7 +10,11 @@
           description: timeline_description,
           canonical_path: timeline_path,
           items: @timeline_items
-        )
+        ),
+        breadcrumbs: [
+          { title: "Home", link: root_path },
+          { title: "Timeline", link: timeline_path }
+        ]
       ) %>
 <% end %>
 
@@ -36,7 +40,7 @@
              placeholder: "Search writeups, blog posts, CVEs, talks, achievements...",
              tag_label: "Filters" %>
 
-  <div class="timeline-shell">
+  <div class="timeline-shell" data-filter-results="timeline">
     <ul class="timeline">
       <% @timeline.each do |year, items| %>
         <li class="timeline-year-group" data-filter-group="timeline">

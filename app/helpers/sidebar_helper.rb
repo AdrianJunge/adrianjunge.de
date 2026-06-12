@@ -38,56 +38,56 @@ module SidebarHelper
     taskbar_icon_class = "taskbar-icon"
     taskbar_label_class = "taskbar-label"
 
-    concat(taskbar_menu_button("menu-icon-right", "Open sidebar navigation", "task-bar/arrow-right.svg"))
-    concat(taskbar_menu_button("menu-icon-left", "Close sidebar navigation", "task-bar/arrow-left.svg"))
-
-    content_tag(:div, id: "taskbar-left", class: "collapsed") do
-      rendered_links = []
-
-      (default_taskbar_items + taskbar_items).each do |item|
-        link_key = item[:link].to_s.presence || item[:label].to_s
-        next if rendered_links.include?(link_key)
-
-        rendered_links << link_key
-        concat(taskbar_icon_item(
-          image_path: item[:image_path],
-          alt_text: item[:alt_text],
-          label: item[:label],
-          link: item[:link],
-          icon_class: taskbar_icon_class,
-          label_class: taskbar_label_class,
-          target: item[:target],
-          active: taskbar_link_active?(item[:link])
-        ))
-      end
-
-      concat(taskbar_icon_item(
-        image_path: "task-bar/timeline.svg",
-        alt_text: "Timeline Icon",
-        label: "Timeline",
-        link: timeline_path,
-        icon_class: taskbar_icon_class,
-        label_class: taskbar_label_class,
-        active: taskbar_link_active?(timeline_path)
-      ))
-
-      concat(taskbar_icon_item(
-        image_path: "task-bar/terminal-prompt.svg",
-        alt_text: "Terminal Icon",
-        label: "Terminal navigation",
-        icon_class: taskbar_icon_class,
-        label_class: taskbar_label_class,
-        id: "terminal-taskbar-button"
-      ))
+    content_tag(:nav, id: "top-taskbar", class: "top-taskbar", aria: { label: "Primary navigation" }) do
+      concat(content_tag(:div, class: "top-taskbar-inner") do
+        safe_join(top_taskbar_nodes(taskbar_items, taskbar_icon_class, taskbar_label_class))
+      end)
     end
   end
 
   private
 
-  def taskbar_menu_button(id, label, image_path)
-    content_tag(:button, type: "button", class: "menu-icon", id: id, aria: { label: label }) do
-      image_tag(image_path, alt: "", class: "menu-icon-image", aria: { hidden: true })
+  def top_taskbar_nodes(taskbar_items, taskbar_icon_class, taskbar_label_class)
+    rendered_links = []
+    nodes = []
+
+    (default_taskbar_items + Array(taskbar_items)).each do |item|
+      link_key = item[:link].to_s.presence || item[:label].to_s
+      next if rendered_links.include?(link_key)
+
+      rendered_links << link_key
+      nodes << taskbar_icon_item(
+        image_path: item[:image_path],
+        alt_text: item[:alt_text],
+        label: item[:label],
+        link: item[:link],
+        icon_class: taskbar_icon_class,
+        label_class: taskbar_label_class,
+        target: item[:target],
+        active: taskbar_link_active?(item[:link])
+      )
     end
+
+    nodes << taskbar_icon_item(
+      image_path: "task-bar/timeline.svg",
+      alt_text: "Timeline Icon",
+      label: "Timeline",
+      link: timeline_path,
+      icon_class: taskbar_icon_class,
+      label_class: taskbar_label_class,
+      active: taskbar_link_active?(timeline_path)
+    )
+
+    nodes << taskbar_icon_item(
+      image_path: "task-bar/terminal-prompt.svg",
+      alt_text: "Terminal Icon",
+      label: "Terminal",
+      icon_class: taskbar_icon_class,
+      label_class: taskbar_label_class,
+      id: "terminal-taskbar-button"
+    )
+
+    nodes
   end
 
   def taskbar_link_active?(link)

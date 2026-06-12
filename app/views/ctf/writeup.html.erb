@@ -26,7 +26,13 @@
           image: @ctf["logo"],
           section: writeup_section,
           authors: writeup_authors
-        )
+        ),
+        breadcrumbs: [
+          { title: "Home", link: root_path },
+          { title: "CTF", link: ctf_path },
+          { title: (@ctf_name.presence || @which).to_s.upcase, link: "/ctf/#{@which}" },
+          { title: @ctf_info["title"], link: request.path }
+        ]
       ) %>
 <% end %>
 

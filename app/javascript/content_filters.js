@@ -31,11 +31,11 @@ function initYearDropdown(panel, scope, select, onChange) {
   const label = panel.querySelector(`[data-year-dropdown-label="${scope}"]`);
   const menu = panel.querySelector(`[data-year-dropdown-menu="${scope}"]`);
   const options = Array.from(panel.querySelectorAll(`[data-year-dropdown-option="${scope}"]`));
-  const animationDuration = 180;
+  const animationDuration = 0;
   if (!wrap || !button || !label || !menu || !select || options.length === 0) return null;
 
   function prefersReducedMotion() {
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return true;
   }
 
   function sync() {
@@ -152,6 +152,7 @@ function initFilterPanel(panel) {
   const reset = panel.querySelector(`[data-filter-reset="${scope}"]`);
   const count = panel.querySelector(`[data-filter-count="${scope}"]`);
   const empty = document.querySelector(`[data-filter-empty="${scope}"]`);
+  const resultContainers = Array.from(document.querySelectorAll(`[data-filter-results="${scope}"]`));
   const cards = Array.from(document.querySelectorAll(`[data-filter-card="${scope}"]`));
   const activeTags = new Set();
   let yearDropdown = null;
@@ -199,6 +200,11 @@ function initFilterPanel(panel) {
 
     if (searchWrapper) searchWrapper.classList.toggle('is-filled', query !== '');
     if (empty) empty.hidden = visible !== 0;
+    resultContainers.forEach(container => {
+      const hideResults = cards.length > 0 && visible === 0;
+      container.hidden = hideResults;
+      container.setAttribute('aria-hidden', hideResults.toString());
+    });
     if (reset) reset.hidden = query === '' && selectedYear === '' && activeTags.size === 0;
     if (yearDropdown) yearDropdown.sync();
     document.dispatchEvent(new CustomEvent('content:filters-applied', {

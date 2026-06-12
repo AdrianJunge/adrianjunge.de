@@ -4,7 +4,8 @@ class CtfHelperTest < ActionView::TestCase
   test "content filter chips render shared severity classes" do
     render inline: "<%= content_filter_chip('High', scope: 'timeline', severity_key: 'High') %>"
 
-    assert_select "button.content-tag.content-tag-filter.content-tag-action.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High']", text: "High"
+    assert_select "button.content-tag.content-tag-filter.content-tag-action.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High'] .content-tag-label", text: "High"
+    assert_select "button.filter-chip[data-filter-tag='High'] .content-tag-arrow", 0
   end
 
   test "content filter chips auto render CVE and CWE classes" do
@@ -13,8 +14,8 @@ class CtfHelperTest < ActionView::TestCase
       <%= content_filter_chip('CWE-284', scope: 'timeline') %>
     ERB
 
-    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2026-48898']", text: "CVE-2026-48898"
-    assert_select "button.filter-chip.cwe-badge.cwe-badge-filter[data-filter-tag='CWE-284']", text: "CWE-284"
+    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2026-48898'] .content-tag-label", text: "CVE-2026-48898"
+    assert_select "button.filter-chip.cwe-badge.cwe-badge-filter[data-filter-tag='CWE-284'] .content-tag-label", text: "CWE-284"
   end
 
   test "content card tags auto style recognized category and severity labels" do
@@ -25,10 +26,10 @@ class CtfHelperTest < ActionView::TestCase
       <%= content_card_tag('CWE-284', default_scope: 'timeline', default_interactive: true) %>
     ERB
 
-    assert_select "button.filter-chip.category-badge.category-badge-privesc.category-badge-filter[data-filter-tag='Privilege Escalation']", text: "Privilege Escalation"
-    assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High']", text: "High"
-    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2026-48898']", text: "CVE-2026-48898"
-    assert_select "button.filter-chip.cwe-badge.cwe-badge-filter[data-filter-tag='CWE-284']", text: "CWE-284"
+    assert_select "button.filter-chip.category-badge.category-badge-privesc.category-badge-filter[data-filter-tag='Privilege Escalation'] .content-tag-label", text: "Privilege Escalation"
+    assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High'] .content-tag-label", text: "High"
+    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2026-48898'] .content-tag-label", text: "CVE-2026-48898"
+    assert_select "button.filter-chip.cwe-badge.cwe-badge-filter[data-filter-tag='CWE-284'] .content-tag-label", text: "CWE-284"
   end
 
   test "writeup cards support multiple authors with independent urls" do
@@ -137,11 +138,11 @@ class CtfHelperTest < ActionView::TestCase
       }
     }
 
-    assert_select ".blog-post-meta-row > .difficulty-badge.content-tag-static.difficulty-badge-hard.difficulty-badge-card", text: "Hard"
-    assert_select ".blog-post-meta-row > .difficulty-badge[data-filter-tag]", false
+    assert_select ".blog-post-meta-row > button.difficulty-badge.content-tag-filter.content-tag-action.difficulty-badge-hard.difficulty-badge-filter[data-filter-tag='Hard'] .content-tag-label", text: "Hard"
+    assert_select ".blog-post-meta-row > button.difficulty-badge[data-filter-tag='Hard'] .content-tag-arrow", 0
     assert_select ".blog-post-card[data-filter-text*='Hard']"
     assert_select ".blog-post-card[data-filter-tags*='Hard']"
-    assert_select ".blog-post-meta-row > button.category-badge.category-badge-web.category-badge-filter[data-filter-tag='Web']", text: "Web"
+    assert_select ".blog-post-meta-row > button.category-badge.category-badge-web.category-badge-filter[data-filter-tag='Web'] .content-tag-label", text: "Web"
   end
 
   test "writeup cards render colorful category badges after difficulty" do
@@ -155,9 +156,9 @@ class CtfHelperTest < ActionView::TestCase
       }
     }
 
-    assert_select ".blog-post-meta-row > .difficulty-badge:first-child", text: "Medium"
-    assert_select ".blog-post-meta-row > button.category-badge.category-badge-pwn.category-badge-filter[data-filter-tag='Pwn']", text: "Pwn"
-    assert_select ".blog-post-meta-row > button.category-badge.category-badge-crypto.category-badge-filter[data-filter-tag='Crypto']", text: "Crypto"
+    assert_select ".blog-post-meta-row > button.difficulty-badge:first-child .content-tag-label", text: "Medium"
+    assert_select ".blog-post-meta-row > button.category-badge.category-badge-pwn.category-badge-filter[data-filter-tag='Pwn'] .content-tag-label", text: "Pwn"
+    assert_select ".blog-post-meta-row > button.category-badge.category-badge-crypto.category-badge-filter[data-filter-tag='Crypto'] .content-tag-label", text: "Crypto"
     assert_select ".writeup-post-card-logo .category-split-icon[data-category-count='2'][role='img'][aria-label='Pwn and Crypto categories']"
     assert_select ".category-split-icon-slice[data-category='pwn'][style*='--category-index: 0; --category-count: 2; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/pwn-']"
     assert_select ".category-split-icon-slice[data-category='crypto'][style*='--category-index: 1; --category-count: 2; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/crypto-']"

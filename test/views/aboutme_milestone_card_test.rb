@@ -26,17 +26,22 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
       }
     }
 
-    assert_select "article.aboutme-achievement-card"
-    assert_select ".aboutme-card-link-overlay[href=?][target=?][rel=?]", "https://example.com/milestone", "_blank", "noopener noreferrer"
-    assert_select "h3", text: "Example milestone"
-    assert_select "h3 a", 0
-    assert_select "h3 + .aboutme-achievement-meta a[href=?]", "https://example.com/competition", text: "Competition"
+    assert_select "details.aboutme-finding-card.aboutme-finding-card-milestone.aboutme-achievement-card[data-animated-details='true']"
+    assert_select ".aboutme-card-link-overlay", 0
+    assert_select "summary h3", text: "Example milestone"
+    assert_select "summary h3 a", 0
+    assert_select "summary .aboutme-finding-main"
+    assert_select "summary .aboutme-finding-project + .aboutme-finding-badges.aboutme-achievement-meta a[href=?]",
+                  "https://example.com/competition",
+                  text: "Competition"
     assert_select ".aboutme-achievement-meta time", 0
-    assert_select ".aboutme-achievement-event#example-2026"
-    assert_select ".aboutme-achievement-event .aboutme-card-link-overlay[href=?][target=?][rel=?]", "https://example.com/event", "_blank", "noopener noreferrer"
-    assert_select ".aboutme-achievement-event h4", text: "Example 2026 #1"
-    assert_select ".aboutme-achievement-event h4 a", 0
-    assert_select ".aboutme-achievement-event time[datetime=?]", "2026-01-02"
+    assert_select ".aboutme-detail-block h3", text: "Summary"
+    assert_select ".aboutme-detail-block h3", text: "References"
+    assert_select ".aboutme-card-details .aboutme-reference-link[href=?][target=?][rel=?]", "https://example.com/reference", "_blank", "noopener noreferrer", text: "Reference"
+    assert_select ".aboutme-detail-block h3", text: "Timeline"
+    assert_select ".aboutme-timeline time[datetime=?]", "2026-01-02"
+    assert_select ".aboutme-timeline-link[href=?][target=?][rel=?]", "https://example.com/event", "_blank", "noopener noreferrer", text: "Example 2026 #1"
+    assert_select ".aboutme-timeline-summary", text: "Won the example event."
     assert_select ".aboutme-link-row", 0
   end
 
@@ -82,6 +87,11 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
                   "_blank",
                   "noopener noreferrer",
                   text: "Slides"
+    assert_select ".aboutme-card-details .aboutme-reference-link[href=?][target=?][rel=?]",
+                  "https://kitctf.de/intro/",
+                  "_blank",
+                  "noopener noreferrer",
+                  text: "Overview"
     assert_select ".aboutme-link-row", 0
   end
 

@@ -13,7 +13,12 @@
           description: ctf_description,
           canonical_path: request.path,
           items: ctf_items
-        )
+        ),
+        breadcrumbs: [
+          { title: "Home", link: root_path },
+          { title: "CTF", link: ctf_path },
+          { title: ctf_label, link: request.path }
+        ]
       ) %>
 <% end %>
 
@@ -41,7 +46,7 @@
              tag_groups: @filter_tag_groups,
              total: @ctf_info.length %>
 
-  <div class="writeup-content">
+  <div class="writeup-content" data-filter-results="writeups">
     <div class="writeup-overview">
       <% @ctf_info.each do |writeup, info| %>
         <% writeup_path = "/ctf/#{@which}/#{writeup}" %>

@@ -23,6 +23,7 @@ function initializeAboutStatsNavigation() {
             if (!target) return;
 
             event.preventDefault();
+            if (target.tagName === "DETAILS") target.open = true;
             target.scrollIntoView({
                 behavior: reducedMotion.matches ? "auto" : "smooth",
                 block: "start",

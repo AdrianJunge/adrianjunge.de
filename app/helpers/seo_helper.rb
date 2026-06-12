@@ -7,7 +7,7 @@ module SeoHelper
 
   def seo_meta_tags(title: nil, description: DEFAULT_DESCRIPTION, type: "website", canonical_path: nil,
                     image: DEFAULT_IMAGE, noindex: false, published_time: nil, modified_time: nil, tags: [],
-                    section: nil, authors: [], json_ld: nil)
+                    section: nil, authors: [], json_ld: nil, breadcrumbs: nil)
     page_title = seo_title(title)
     page_description = seo_description(description)
     canonical = canonical_url(canonical_path)
@@ -48,7 +48,10 @@ module SeoHelper
       tag_values.each { |tag_name| meta_tags << tag.meta(property: "article:tag", content: tag_name) }
     end
 
-    meta_tags << json_ld_tag(json_ld) if json_ld.present?
+    schemas = json_ld.is_a?(Array) ? json_ld.compact : [ json_ld ].compact
+    breadcrumb_schema = seo_breadcrumb_schema(breadcrumbs)
+    schemas << breadcrumb_schema if breadcrumb_schema.present?
+    meta_tags << json_ld_tag(schemas.length == 1 ? schemas.first : schemas) if schemas.any?
 
     safe_join(meta_tags, "\n")
   end
@@ -133,6 +136,28 @@ module SeoHelper
     schema["keywords"] = Array(tags).map(&:to_s).reject(&:blank?).join(", ") if tags.present?
     schema["articleSection"] = seo_plain_text(section) if section.present?
     schema
+  end
+
+  def seo_breadcrumb_schema(items)
+    normalized_items = Array(items).filter_map do |item|
+      breadcrumb_name = seo_item_title(item)
+      breadcrumb_url = seo_item_url(item)
+      next if breadcrumb_name.blank? || breadcrumb_url.blank?
+
+      {
+        "@type" => "ListItem",
+        "name" => breadcrumb_name,
+        "item" => breadcrumb_url
+      }
+    end
+
+    return nil if normalized_items.empty?
+
+    {
+      "@context" => "https://schema.org",
+      "@type" => "BreadcrumbList",
+      "itemListElement" => normalized_items.each_with_index.map { |item, index| item.merge("position" => index + 1) }
+    }
   end
 
   private

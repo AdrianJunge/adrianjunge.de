@@ -10,7 +10,11 @@
           description: blog_description,
           canonical_path: blog_path,
           items: @blog_posts
-        )
+        ),
+        breadcrumbs: [
+          { title: "Home", link: root_path },
+          { title: "Blog", link: blog_path }
+        ]
       ) %>
 <% end %>
 
@@ -24,7 +28,7 @@
              icon_alt: "Blog",
              title: "Blog",
              description: "Longer notes on security work, learning, and practical writeups outside the CTF archive.",
-             actions: feed_actions_for(:blog, feed_url: feed_path, atom_url: feed_path(format: :atom), label: "Website") %>
+             actions: feed_actions_for(:blog, feed_url: feed_xml_path, atom_url: feed_path(format: :atom), json_url: feed_json_path, label: "Website") %>
 
   <%= render "shared/content_filters",
              scope: "blogs",
@@ -36,7 +40,7 @@
              tag_groups: @filter_tag_groups,
              total: @blog_posts.length %>
 
-  <div class="blog-posts-container">
+  <div class="blog-posts-container" data-filter-results="blogs">
     <% @blog_posts.each do |post| %>
       <div class="blog-post-entry">
         <% blog_data = @blogs[post[:slug]] || {} %>
