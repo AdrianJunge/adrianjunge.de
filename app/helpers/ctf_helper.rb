@@ -44,8 +44,9 @@ module CtfHelper
     winner_label = winner&.fetch(:label, nil)
     winner_filter_label = winner ? WriteupWinner::FILTER_LABEL : nil
     authored_filter_label = authored_challenge ? AuthoredChallenge::FILTER_LABEL : nil
+    solve_count_label = writeup_solve_count_label(info)
     filter_tags = ([ winner_filter_label, authored_filter_label, difficulty_label ] + categories).compact
-    filter_text = ([ title, description, published, published_year, difficulty_label, winner_label, winner_filter_label, authored_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
+    filter_text = ([ title, description, published, published_year, solve_count_label, difficulty_label, winner_label, winner_filter_label, authored_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
 
     tags = []
     if winner
@@ -106,6 +107,8 @@ module CtfHelper
       date_text_class: "blog-post-date-text",
       reading_time: info["reading_time_label"],
       reading_time_class: "blog-post-reading-time",
+      meta_items: [ solve_count_label ],
+      meta_item_class: "blog-post-reading-time blog-post-solve-count",
       tags_outer_class: "blog-post-meta",
       tags_class: "blog-post-meta-row",
       tags: tags,
@@ -163,6 +166,13 @@ module CtfHelper
         title: "Challenge category: #{category}"
       )
     end
+  end
+
+  def writeup_solve_count_label(info)
+    count = writeup_solve_count(info)
+    return nil unless count
+
+    "#{count} #{count == 1 ? "solve" : "solves"}"
   end
 
   def render_writeup_hints(info)
@@ -306,6 +316,15 @@ module CtfHelper
       hint = AuthoredChallenge.raw_value(hint, "text", "hint", "value") if hint.is_a?(Hash)
       hint.to_s.strip.presence
     end
+  end
+
+  def writeup_solve_count(info)
+    raw = AuthoredChallenge.metadata_value(info, "solves", "solve_count", "solves_count", "solve-count", "solves-count")
+    normalized = raw.to_s.strip
+    return nil unless normalized.match?(/\A\d+\z/)
+
+    count = normalized.to_i
+    count.positive? ? count : nil
   end
 
   def category_tag_config(category)

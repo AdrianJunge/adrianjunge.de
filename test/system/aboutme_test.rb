@@ -5,6 +5,8 @@ class AboutmeTest < ApplicationSystemTestCase
     visit about_path
 
     assert_selector "main.aboutme-page"
+    assert_selector ".content-hero .content-hero-icon[src*='task-bar/about']"
+    assert_no_selector ".aboutme-hero", visible: :all
     assert_selector ".taskbar-link[href='/about']", text: "About me", visible: :all
     assert_text "CVEs"
     assert_text "Bug bounties"
@@ -46,7 +48,8 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_text "GPNCTF 2025"
     assert_text "Web challenge about URL parser differentials"
     assert_no_selector "#my-challenges .aboutme-card-link-overlay", visible: :all
-    assert_selector "#my-challenges .aboutme-reference-link[href='/ctf/gpnctf/Smile%20at%20me']", text: "Read writeup", visible: :all
+    assert_no_selector "#my-challenges .aboutme-reference-link[href='/ctf/gpnctf/Smile%20at%20me']", visible: :all
+    assert_selector "#my-challenges .aboutme-tag-writeup[href='/ctf/gpnctf/Smile%20at%20me']", text: "Writeup", visible: :all
     assert_selector "#my-challenges .aboutme-card-reading-time", text: /min read/
     reading_time_style = page.evaluate_script(<<~JS)
       (() => {
@@ -65,7 +68,9 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#my-challenges .aboutme-difficulty-tag-hard", text: "Hard"
     assert_no_selector "#my-challenges .aboutme-difficulty-tag-unknown"
     assert_no_selector "#certificates .aboutme-card-link-overlay", visible: :all
-    assert_selector "#certificates .aboutme-reference-link[href='/blog/htb-cpts']", text: "Read writeup", visible: :all
+    assert_no_selector "#certificates .aboutme-reference-link[href='/blog/htb-cpts']", visible: :all
+    assert_no_selector "#certificates .aboutme-reference-link[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", visible: :all
+    assert_selector "#certificates .aboutme-tag-writeup[href='/blog/htb-cpts']", text: "Writeup", visible: :all
     assert_selector "#certificates .aboutme-card-reading-time", text: /min read/
     assert_selector "#certificates .aboutme-tag-certificate[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", text: "Certificate"
     certificate_tags = page.evaluate_script(<<~JS)
@@ -76,18 +81,23 @@ class AboutmeTest < ApplicationSystemTestCase
     JS
     assert_equal [
       { "text" => "2026-03-23", "linked" => false },
-      { "text" => "Certificate", "linked" => true }
+      { "text" => "Certificate", "linked" => true },
+      { "text" => "Writeup", "linked" => true }
     ], certificate_tags
     assert_selector "#talks #kitctf-web-intro-2026.aboutme-achievement-card"
     assert_no_selector "#talks .aboutme-card-link-overlay", visible: :all
-    assert_selector "#talks .aboutme-reference-link[href='https://kitctf.de/intro/']", text: "Overview", visible: :all
+    assert_no_selector "#talks .aboutme-reference-link[href='https://kitctf.de/intro/']", visible: :all
+    assert_no_selector "#talks .aboutme-reference-link[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf']", visible: :all
+    assert_selector "#talks .aboutme-tag-overview[href='https://kitctf.de/intro/']", text: "Overview", visible: :all
     assert_selector "#talks .aboutme-card-title", text: "KITCTF Web Intro"
     assert_selector "#talks .aboutme-tag-date", text: "2026-05-07"
     assert_selector "#talks .aboutme-tag-slides[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf'][target='_blank'][rel='noopener noreferrer']", text: "Slides"
     assert_no_selector "#achievements #firedancer-v1-audit-competition"
     assert_no_selector "#achievements .aboutme-card-link-overlay", visible: :all
-    assert_selector "#achievements #kitctf .aboutme-reference-link[href='https://ctftime.org/team/7221/']", text: "KITCTF on CTFtime", visible: :all
-    assert_selector "#achievements #kitctf .aboutme-timeline-link[href='https://ctftime.org/event/2714']", text: "KITCTF #3 at GlacierCTF 2025", visible: :all
+    assert_no_selector "#achievements #kitctf .aboutme-reference-link[href='https://ctftime.org/team/7221/']", visible: :all
+    assert_selector "#achievements #kitctf .aboutme-tag-event[href='https://ctftime.org/team/7221/']", text: "KITCTF on CTFtime", visible: :all
+    assert_selector "#achievements #kitctf .aboutme-timeline-title", text: "KITCTF #3 at GlacierCTF 2025"
+    assert_selector "#achievements #kitctf .aboutme-timeline-event-tag[href='https://ctftime.org/event/2714']", text: "Event", visible: :all
     assert_no_text "Public advisories"
     assert_no_text "Responsible disclosure"
     assert_no_text "Credentials"
@@ -164,13 +174,17 @@ class AboutmeTest < ApplicationSystemTestCase
           text: title.innerText.trim(),
           beforeContent: beforeStyle.content,
           afterContent: afterStyle.content,
+          afterBorderRightWidth: afterStyle.borderRightWidth,
+          afterWidth: afterStyle.width,
           titleBeforeCount: titleRect.right < countRect.left
         };
       })()
     JS
     assert_equal "Certificates", section_arrow["text"]
     assert_equal "none", section_arrow["beforeContent"]
-    assert_equal '">"', section_arrow["afterContent"]
+    assert_equal '""', section_arrow["afterContent"]
+    assert_equal "2px", section_arrow["afterBorderRightWidth"]
+    assert_not_equal "0px", section_arrow["afterWidth"]
     assert_equal true, section_arrow["titleBeforeCount"]
   end
 
@@ -198,6 +212,20 @@ class AboutmeTest < ApplicationSystemTestCase
     )
     assert_equal true, page.evaluate_script("document.querySelector('#my-challenges').open")
     assert_selector "#my-challenges", text: "Created CTF Challenges"
+  end
+
+  test "about hash links open matching collapsed sections" do
+    visit about_path(anchor: "cves")
+
+    assert_selector "#cves[open]"
+    assert_equal true, page.evaluate_script("document.querySelector('#cves').open")
+
+    visit about_path
+    assert_equal false, page.evaluate_script("document.querySelector('#certificates').open")
+    page.execute_script("window.location.hash = '#certificates'")
+
+    assert_selector "#certificates[open]"
+    assert_equal true, page.evaluate_script("document.querySelector('#certificates').open")
   end
 
   test "about me page stays within narrow mobile viewports" do
@@ -456,27 +484,29 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "rgba(14, 116, 144, 0.42)", metrics["cveTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.34)", metrics["cveTagBorder"]
     assert_equal "pointer", metrics["cveTagCursor"]
-    assert_equal "none", metrics["cveTagActionContent"]
+    assert_equal '""', metrics["cveTagActionContent"]
+    assert_not_equal "0px", metrics["cveTagActionWidth"]
     assert_includes metrics["cweTagClass"], "ui-hover-lift"
     assert_includes metrics["cweTagClass"], "cwe-badge"
     assert_equal "rgba(14, 116, 144, 0.42)", metrics["cweTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.34)", metrics["cweTagBorder"]
     assert_equal "pointer", metrics["cweTagCursor"]
-    assert_equal "none", metrics["cweTagActionContent"]
+    assert_equal '""', metrics["cweTagActionContent"]
+    assert_not_equal "0px", metrics["cweTagActionWidth"]
     assert_includes metrics["challengeTagClass"], "ui-hover-lift"
     assert_equal "rgba(14, 116, 144, 0.42)", metrics["challengeTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.34)", metrics["challengeTagBorder"]
     assert_equal "pointer", metrics["challengeTagCursor"]
     assert_equal '""', metrics["challengeTagActionContent"]
     assert_not_equal "0px", metrics["challengeTagActionWidth"]
-    assert_equal "rgba(148, 163, 184, 0.34)", metrics["highSeverityBorder"]
+    assert_equal "rgba(96, 165, 250, 0.26)", metrics["highSeverityBorder"]
     assert_equal "none", metrics["highSeverityBackgroundImage"]
     assert_equal "none", metrics["highSeverityShadow"]
-    assert_equal "rgba(148, 163, 184, 0.34)", metrics["mediumSeverityBorder"]
+    assert_equal "rgba(96, 165, 250, 0.26)", metrics["mediumSeverityBorder"]
     assert_equal "none", metrics["mediumSeverityBackgroundImage"]
     assert_equal "none", metrics["mediumSeverityShadow"]
-    assert_equal "rgba(51, 65, 85, 0.48)", metrics["achievementTagBackground"]
-    assert_equal "rgba(148, 163, 184, 0.34)", metrics["achievementTagBorder"]
+    assert_equal "rgba(22, 52, 79, 0.56)", metrics["achievementTagBackground"]
+    assert_equal "rgba(96, 165, 250, 0.26)", metrics["achievementTagBorder"]
     assert_equal "default", metrics["achievementTagCursor"]
     assert_equal "auto", metrics["achievementTagPointerEvents"]
     assert_equal "none", metrics["achievementTagShadow"]
@@ -516,7 +546,7 @@ class AboutmeTest < ApplicationSystemTestCase
     within "#my-challenges" do
       assert_text "Smile at me"
       assert_text "Published for GPNCTF 2025."
-      find(".aboutme-reference-link[href='/ctf/gpnctf/Smile%20at%20me']").click
+      find(".aboutme-tag-writeup[href='/ctf/gpnctf/Smile%20at%20me']").click
     end
 
     assert_current_path "/ctf/gpnctf/Smile%20at%20me"
@@ -553,8 +583,8 @@ class AboutmeTest < ApplicationSystemTestCase
           linkAtCenter("#my-challenges .aboutme-tag-gpnctf-2025"),
           linkAtCenter("#certificates .aboutme-tag-certificate"),
           linkAtCenter("#talks .aboutme-tag-slides"),
-          linkAtCenter("#achievements #dhm .aboutme-reference-link[href='https://hacking-meisterschaft.de/']"),
-          linkAtCenter("#achievements #kitctf .aboutme-timeline-link[href='https://ctftime.org/event/2714']")
+          linkAtCenter("#achievements #dhm .aboutme-tag-event[href='https://hacking-meisterschaft.de/']"),
+          linkAtCenter("#achievements #kitctf .aboutme-timeline-event-tag[href='https://ctftime.org/event/2714']")
         ];
       })()
     JS
@@ -588,7 +618,7 @@ class AboutmeTest < ApplicationSystemTestCase
             title: event.querySelector(".aboutme-timeline-link, .aboutme-timeline-title").innerText.trim(),
             date: event.querySelector("time").innerText.trim(),
             summary: event.querySelector(".aboutme-timeline-summary") ? event.querySelector(".aboutme-timeline-summary").innerText.trim() : "",
-            href: event.querySelector(".aboutme-timeline-link") ? event.querySelector(".aboutme-timeline-link").href : null
+            href: event.querySelector(".aboutme-timeline-link, .aboutme-timeline-event-tag") ? event.querySelector(".aboutme-timeline-link, .aboutme-timeline-event-tag").href : null
           }))
         ])
       )

@@ -11,6 +11,7 @@ categories:
 difficulty: Hard
 ctf_year: 2026
 challengefiles: scanwich-station
+solves: 5
 published: "2026-06-05"
 optional:
     authored_challenge:

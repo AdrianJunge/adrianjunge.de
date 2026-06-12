@@ -1,6 +1,53 @@
+function aboutTargetFromHash(hash) {
+    if (!hash || hash === "#") return null;
+
+    let targetId;
+    try {
+        targetId = decodeURIComponent(hash.slice(1));
+    } catch (_error) {
+        targetId = hash.slice(1);
+    }
+
+    return targetId ? document.getElementById(targetId) : null;
+}
+
+function openDetailsForTarget(target) {
+    if (!target) return false;
+
+    const details = [];
+    let element = target;
+    while (element) {
+        if (element.matches && element.matches("details")) details.push(element);
+        element = element.parentElement;
+    }
+
+    details.forEach((element) => {
+        element.open = true;
+    });
+
+    return details.length > 0;
+}
+
+function revealAboutHashTarget(options = {}) {
+    if (!document.querySelector(".aboutme-page")) return;
+
+    const target = aboutTargetFromHash(window.location.hash);
+    if (!target) return;
+
+    openDetailsForTarget(target);
+
+    if (options.scroll) {
+        target.scrollIntoView({
+            behavior: options.behavior || "auto",
+            block: "start",
+        });
+    }
+}
+
 function initializeAboutStatsNavigation() {
+    if (!document.querySelector(".aboutme-page")) return;
+
     const links = document.querySelectorAll(".aboutme-page .aboutme-stats .aboutme-stat[href^='#']");
-    if (!links.length) return;
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -10,20 +57,11 @@ function initializeAboutStatsNavigation() {
         link.dataset.smoothScrollBound = "true";
         link.addEventListener("click", (event) => {
             const hash = link.getAttribute("href");
-            if (!hash || hash === "#") return;
-
-            let targetId;
-            try {
-                targetId = decodeURIComponent(hash.slice(1));
-            } catch (_error) {
-                targetId = hash.slice(1);
-            }
-
-            const target = document.getElementById(targetId);
+            const target = aboutTargetFromHash(hash);
             if (!target) return;
 
             event.preventDefault();
-            if (target.tagName === "DETAILS") target.open = true;
+            openDetailsForTarget(target);
             target.scrollIntoView({
                 behavior: reducedMotion.matches ? "auto" : "smooth",
                 block: "start",
@@ -34,7 +72,14 @@ function initializeAboutStatsNavigation() {
             }
         });
     });
+
+    window.requestAnimationFrame(() => {
+        revealAboutHashTarget({ scroll: true, behavior: "auto" });
+    });
 }
 
 document.addEventListener("DOMContentLoaded", initializeAboutStatsNavigation);
 document.addEventListener("turbo:load", initializeAboutStatsNavigation);
+window.addEventListener("hashchange", () => {
+    revealAboutHashTarget({ scroll: true, behavior: "auto" });
+});

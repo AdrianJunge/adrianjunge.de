@@ -40,7 +40,8 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
     assert_select ".aboutme-card-details .aboutme-reference-link[href=?][target=?][rel=?]", "https://example.com/reference", "_blank", "noopener noreferrer", text: "Reference"
     assert_select ".aboutme-detail-block h3", text: "Timeline"
     assert_select ".aboutme-timeline time[datetime=?]", "2026-01-02"
-    assert_select ".aboutme-timeline-link[href=?][target=?][rel=?]", "https://example.com/event", "_blank", "noopener noreferrer", text: "Example 2026 #1"
+    assert_select ".aboutme-timeline-title", text: "Example 2026 #1"
+    assert_select ".aboutme-timeline-event-tag[href=?][target=?][rel=?]", "https://example.com/event", "_blank", "noopener noreferrer", text: "Event"
     assert_select ".aboutme-timeline-summary", text: "Won the example event."
     assert_select ".aboutme-link-row", 0
   end
@@ -87,11 +88,13 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
                   "_blank",
                   "noopener noreferrer",
                   text: "Slides"
-    assert_select ".aboutme-card-details .aboutme-reference-link[href=?][target=?][rel=?]",
+    assert_select ".aboutme-achievement-meta a.aboutme-tag-overview[href=?][target=?][rel=?]",
                   "https://kitctf.de/intro/",
                   "_blank",
                   "noopener noreferrer",
                   text: "Overview"
+    assert_select ".aboutme-card-details .aboutme-reference-link[href=?]", "https://kitctf.de/intro/", 0
+    assert_select ".aboutme-card-details .aboutme-reference-link[href=?]", "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", 0
     assert_select ".aboutme-link-row", 0
   end
 

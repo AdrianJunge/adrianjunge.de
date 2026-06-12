@@ -111,32 +111,25 @@
   }
 ] %>
 
+<% about_stats_content = capture do %>
+  <div class="aboutme-stats" aria-label="Public security work summary">
+    <% about_stats.each do |stat| %>
+      <a href="#<%= stat[:anchor] %>" class="aboutme-stat ui-hover-lift" aria-label="Jump to <%= stat[:label] %>">
+        <span class="aboutme-stat-value"><%= stat[:value] %></span>
+        <span class="aboutme-stat-label"><%= stat[:label] %></span>
+      </a>
+    <% end %>
+  </div>
+<% end %>
+
 <main class="aboutme-page">
-  <section class="aboutme-hero">
-    <div class="aboutme-hero-inner">
-      <div class="aboutme-identity">
-        <div class="aboutme-icon-wrap">
-          <%= image_tag("task-bar/about.svg", alt: "About me", class: "aboutme-hero-icon") %>
-        </div>
-        <div>
-          <h1>About me</h1>
-        </div>
-      </div>
-
-      <div class="aboutme-copy">
-        <%= @about_html %>
-      </div>
-
-      <div class="aboutme-stats" aria-label="Public security work summary">
-        <% about_stats.each do |stat| %>
-          <a href="#<%= stat[:anchor] %>" class="aboutme-stat ui-hover-lift" aria-label="Jump to <%= stat[:label] %>">
-            <span class="aboutme-stat-value"><%= stat[:value] %></span>
-            <span class="aboutme-stat-label"><%= stat[:label] %></span>
-          </a>
-        <% end %>
-      </div>
-    </div>
-  </section>
+  <%= render "shared/content_hero",
+             icon_path: "task-bar/about.svg",
+             icon_alt: "About me",
+             title: "About me",
+             description_html: @about_html,
+             description_class: "aboutme-copy",
+             after_content: about_stats_content %>
 
   <% about_sections.each do |section| %>
     <%= render "section", section: section %>

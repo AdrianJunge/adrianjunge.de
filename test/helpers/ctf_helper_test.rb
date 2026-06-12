@@ -55,6 +55,24 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-author-name", text: "No Link"
   end
 
+  test "writeup cards render optional solve counts next to reading time" do
+    render inline: "<%= render_writeup_card('Example', '/ctf/demo/Example', info) %>", locals: {
+      info: {
+        "title" => "Example",
+        "description" => "A writeup with solve metadata.",
+        "categories" => [ "Web" ],
+        "published" => "2026-01-01",
+        "reading_time_label" => "4 min read",
+        "solves" => 7
+      }
+    }
+
+    assert_select ".blog-post-solve-count", text: "7 solves"
+    assert_equal "2026-01-01 · 4 min read · 7 solves", css_select(".blog-post-date").first.text.squish
+    assert_equal "1 solve", writeup_solve_count_label("solve_count" => "1")
+    assert_nil writeup_solve_count_label("solves" => "0")
+  end
+
   test "writeup cards render contest win badge from metadata" do
     render inline: "<%= render_writeup_card('Winner', '/ctf/demo/Winner', info) %>", locals: {
       info: {

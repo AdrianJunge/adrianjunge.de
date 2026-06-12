@@ -26,6 +26,8 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert repository.ctf_posts.all? { |post| post[:reading_time_label].present? }
     assert repository.blog_posts.all? { |post| post[:word_count].positive? }
     assert repository.ctf_posts.all? { |post| post[:word_count].positive? }
+    assert_equal 5, repository.ctf_posts.find { |post| post[:title] == "Scanwich Station" }[:metadata]["solves"]
+    assert_equal 1, repository.ctf_posts.find { |post| post[:title] == "Smile at me" }[:metadata]["solves"]
     assert_operator repository.total_post_reading_time_minutes, :>, 0
     assert_match(/\A\d+ min read\z/, repository.format_reading_time(repository.total_post_reading_time_minutes))
   end

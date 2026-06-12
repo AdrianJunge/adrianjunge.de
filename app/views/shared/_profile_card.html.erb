@@ -80,7 +80,16 @@
               <time datetime="<%= item["date"] %>"><%= item["date"] %></time>
             <% end %>
             <span class="aboutme-timeline-content">
-              <% if event_url.present? && event_label.present? %>
+              <% if event_url.present? && event_label.present? && item["link_style"] == "tag" %>
+                <span class="aboutme-timeline-title"><%= event_label %></span>
+                <span class="aboutme-timeline-actions">
+                  <%= profile_card_tag(
+                        label: item["link_label"].presence || "Event",
+                        url: event_url,
+                        class_name: "aboutme-timeline-event-tag"
+                      ) %>
+                </span>
+              <% elsif event_url.present? && event_label.present? %>
                 <%= profile_card_optional_link(
                       event_label,
                       event_url,

@@ -14,40 +14,10 @@
     box-sizing: border-box;
 }
 
-.aboutme-hero {
-    border-bottom: 1px solid rgba(93, 116, 158, 0.55);
-    padding: 4.5rem 1.5rem 2.35rem;
-}
-
-.aboutme-hero-inner,
 .aboutme-section {
     width: calc(100% - 2rem);
     max-width: 72rem;
     margin: 0 auto;
-}
-
-.aboutme-identity {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    margin-bottom: 1.55rem;
-}
-
-.aboutme-icon-wrap {
-    display: grid;
-    place-items: center;
-    width: 5rem;
-    height: 5rem;
-    flex: 0 0 auto;
-    border: var(--default-border);
-    border-radius: var(--radius-ui);
-    background: rgba(18, 34, 56, 0.9);
-}
-
-.aboutme-hero-icon {
-    width: 3.25rem;
-    height: 3.25rem;
-    filter: invert(1);
 }
 
 .aboutme-kicker,
@@ -57,13 +27,6 @@
     font-size: 0.85rem;
     font-weight: 700;
     text-transform: uppercase;
-}
-
-.aboutme-hero h1 {
-    margin: 0;
-    font-size: 4rem;
-    font-weight: 800;
-    line-height: 1;
 }
 
 .aboutme-copy {
@@ -1124,35 +1087,10 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
 }
 
 @media (max-width: 720px) {
-    .aboutme-hero-inner,
     .aboutme-section {
         width: calc(100% - 2rem);
         margin-right: auto;
         margin-left: auto;
-    }
-
-    .aboutme-hero {
-        padding: 4.25rem 1rem 2.5rem;
-    }
-
-    .aboutme-identity {
-        align-items: center;
-        gap: 0.9rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .aboutme-icon-wrap {
-        width: 4rem;
-        height: 4rem;
-    }
-
-    .aboutme-hero-icon {
-        width: 2.55rem;
-        height: 2.55rem;
-    }
-
-    .aboutme-hero h1 {
-        font-size: 2.4rem;
     }
 
     .aboutme-kicker,
@@ -1241,29 +1179,10 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
 }
 
 @media (max-width: 380px) {
-    .aboutme-hero-inner,
     .aboutme-section {
         width: calc(100% - 2rem);
         margin-right: auto;
         margin-left: auto;
-    }
-
-    .aboutme-identity {
-        gap: 0.75rem;
-    }
-
-    .aboutme-icon-wrap {
-        width: 3.6rem;
-        height: 3.6rem;
-    }
-
-    .aboutme-hero-icon {
-        width: 2.3rem;
-        height: 2.3rem;
-    }
-
-    .aboutme-hero h1 {
-        font-size: 2rem;
     }
 
     .aboutme-copy p {
@@ -1350,18 +1269,18 @@ details.aboutme-card.ui-card-surface.details-is-animating,
 :not(a).aboutme-card-tag.cve-badge,
 :not(a).aboutme-card-tag.aboutme-cwe-id,
 :not(a).aboutme-card-tag.cwe-badge {
-    color: rgba(203, 213, 225, 0.8);
-    border-color: rgba(148, 163, 184, 0.34);
-    background: rgba(51, 65, 85, 0.48);
+    color: rgba(191, 219, 254, 0.86);
+    border-color: rgba(96, 165, 250, 0.26);
+    background: rgba(22, 52, 79, 0.56);
     box-shadow: none;
     cursor: default;
     transition: none;
 }
 
 .aboutme-severity {
-    color: rgba(203, 213, 225, 0.84);
-    border-color: rgba(148, 163, 184, 0.36);
-    background: rgba(51, 65, 85, 0.5);
+    color: rgba(191, 219, 254, 0.88);
+    border-color: rgba(96, 165, 250, 0.3);
+    background: rgba(22, 52, 79, 0.6);
     box-shadow: none;
 }
 
@@ -1436,18 +1355,19 @@ a.aboutme-card-tag.aboutme-tag-action:focus-visible {
 
 .aboutme-section-title::after {
     flex: 0 0 auto;
-    color: currentColor;
-    content: ">";
-    font-size: 0.88em;
-    font-weight: 900;
-    line-height: 1;
+    width: 0.58rem;
+    height: 0.58rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    content: "";
     opacity: 0.78;
+    transform: rotate(-45deg);
     transition: transform 140ms ease, opacity 140ms ease;
 }
 
 .aboutme-section[open] .aboutme-section-title::after {
     opacity: 1;
-    transform: rotate(90deg);
+    transform: rotate(45deg);
 }
 
 .aboutme-section-header:focus-visible {
@@ -1497,6 +1417,16 @@ details.aboutme-card:not(.aboutme-finding-card)[open] > summary::after {
     gap: 0.25rem;
 }
 
+.aboutme-timeline-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.aboutme-timeline-event-tag {
+    justify-self: start;
+}
+
 .aboutme-timeline-title,
 .aboutme-timeline-link {
     color: #f8fafc;
@@ -1530,11 +1460,7 @@ details.aboutme-card:not(.aboutme-finding-card)[open] > summary::after {
 
 .aboutme-reference-link::after,
 .aboutme-reference-link:hover::after,
-.aboutme-reference-link:focus-visible::after,
-a.aboutme-card-tag.aboutme-tag-action.aboutme-cve-id::after,
-a.aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id::after,
-a.aboutme-card-tag.aboutme-tag-action.cve-badge::after,
-a.aboutme-card-tag.aboutme-tag-action.cwe-badge::after {
+.aboutme-reference-link:focus-visible::after {
     display: none;
     content: none;
 }

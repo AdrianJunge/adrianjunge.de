@@ -5,6 +5,9 @@
 <% link_target = local_assigns[:external] ? "_blank" : nil %>
 <% link_rel = local_assigns[:external] ? "noopener noreferrer" : nil %>
 <% actions = Array(local_assigns.fetch(:actions, [])) %>
+<% description_html = local_assigns[:description_html] %>
+<% description_class = [ "content-hero-description", local_assigns[:description_class] ].compact.join(" ") %>
+<% after_content = local_assigns[:after_content] %>
 
 <section class="content-hero">
   <div class="content-hero-inner">
@@ -49,8 +52,16 @@
       <% end %>
     </div>
 
-    <% if description.present? %>
-      <p><%= description %></p>
+    <% if description_html.present? %>
+      <div class="<%= description_class %>">
+        <%= description_html %>
+      </div>
+    <% elsif description.present? %>
+      <p class="<%= description_class %>"><%= description %></p>
+    <% end %>
+
+    <% if after_content.present? %>
+      <%= after_content %>
     <% end %>
   </div>
 </section>

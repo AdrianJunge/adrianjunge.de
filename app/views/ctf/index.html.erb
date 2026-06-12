@@ -28,8 +28,7 @@
              icon_path: "task-bar/flag.svg",
              icon_alt: "CTF",
              title: "CTF events",
-             description: "Capture The Flag competitions grouped by event. Open an event to browse its challenge writeups.",
-             actions: feed_actions_for(:ctf, feed_url: feed_xml_path, atom_url: feed_path(format: :atom), json_url: feed_json_path, label: "Website") %>
+             description: "Capture The Flag competitions grouped by event. Open an event to browse its challenge writeups." %>
 
   <%= render "shared/content_filters",
              scope: "ctfs",

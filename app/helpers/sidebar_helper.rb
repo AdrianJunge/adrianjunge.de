@@ -34,6 +34,21 @@ module SidebarHelper
     end
   end
 
+  def taskbar_feed_item(icon_class:, label_class:)
+    content_tag(:details, class: "taskbar-item taskbar-feed-menu") do
+      concat(content_tag(:summary, class: "taskbar-button-container taskbar-feed-toggle", aria: { label: "Feeds" }) do
+        concat(content_tag(:span, class: icon_class) do
+          image_tag("task-bar/rss.svg", alt: "Feeds Icon", class: "taskbar-icon-image")
+        end)
+        concat(content_tag(:span, "Feeds", class: label_class))
+      end)
+
+      concat(content_tag(:div, class: "taskbar-feed-dropdown") do
+        safe_join(feed_dropdown_items)
+      end)
+    end
+  end
+
   def render_taskbar_items(taskbar_items = [])
     taskbar_icon_class = "taskbar-icon"
     taskbar_label_class = "taskbar-label"
@@ -78,6 +93,11 @@ module SidebarHelper
       active: taskbar_link_active?(timeline_path)
     )
 
+    nodes << taskbar_feed_item(
+      icon_class: taskbar_icon_class,
+      label_class: taskbar_label_class
+    )
+
     nodes << taskbar_icon_item(
       image_path: "task-bar/terminal-prompt.svg",
       alt_text: "Terminal Icon",
@@ -88,6 +108,24 @@ module SidebarHelper
     )
 
     nodes
+  end
+
+  def feed_dropdown_items
+    [
+      { href: feed_xml_path, icon: "task-bar/rss.svg", alt: "RSS Feed Icon", label: "RSS" },
+      { href: feed_path(format: :atom), icon: "task-bar/atom.svg", alt: "Atom Feed Icon", label: "Atom" },
+      { href: feed_json_path, icon: "task-bar/feed-json.svg", alt: "JSON Feed Icon", label: "JSON" }
+    ].map do |item|
+      link_to(
+        item[:href],
+        class: "taskbar-feed-option",
+        title: "#{item[:label]} feed",
+        aria: { label: "#{item[:label]} feed" }
+      ) do
+        image_tag(item[:icon], alt: item[:alt], class: "taskbar-feed-option-icon") +
+          content_tag(:span, item[:label], class: "taskbar-feed-option-label")
+      end
+    end
   end
 
   def taskbar_link_active?(link)

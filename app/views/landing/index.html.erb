@@ -66,7 +66,9 @@
         </div>
 
         <aside class="landing-profile-panel" aria-label="Profile summary">
-            <%= image_tag("landing/profile.png", alt: "Adrian Junge profile image", class: "landing-profile-image") %>
+            <a href="<%= discord_link %>" target="_blank" rel="noopener noreferrer" class="landing-profile-link" title="Open Discord profile" aria-label="Open Discord profile">
+                <%= image_tag("landing/profile.png", alt: "Adrian Junge profile image", class: "landing-profile-image") %>
+            </a>
 
             <div class="landing-affiliation-links">
                 <a href="<%= discord_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift" title="Open Discord profile">

@@ -205,7 +205,12 @@ function initFilterPanel(panel) {
       container.hidden = hideResults;
       container.setAttribute('aria-hidden', hideResults.toString());
     });
-    if (reset) reset.hidden = query === '' && selectedYear === '' && activeTags.size === 0;
+    if (reset) {
+      const resetVisible = query !== '' || selectedYear !== '' || activeTags.size > 0;
+      reset.classList.toggle('is-visible', resetVisible);
+      reset.setAttribute('aria-hidden', (!resetVisible).toString());
+      reset.tabIndex = resetVisible ? 0 : -1;
+    }
     if (yearDropdown) yearDropdown.sync();
     document.dispatchEvent(new CustomEvent('content:filters-applied', {
       detail: { scope, visible, total: cards.length }

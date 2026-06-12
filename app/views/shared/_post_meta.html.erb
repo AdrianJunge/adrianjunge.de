@@ -1,6 +1,8 @@
 <% items = Array(local_assigns[:items]).map(&:to_s).reject(&:blank?) %>
 <% reading_time = local_assigns[:reading_time].to_s.presence %>
+<% extra_items = Array(local_assigns[:extra_items]).map(&:to_s).reject(&:blank?) %>
 <% items << reading_time if reading_time.present? %>
+<% items.concat(extra_items) %>
 
 <% if items.any? %>
   <p class="post-meta-line" aria-label="Post metadata">

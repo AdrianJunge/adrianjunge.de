@@ -10,6 +10,7 @@ categories:
 difficulty: Hard
 ctf_year: 2025
 challengefiles: smile-at-me
+solves: 1
 published: "2025-08-21"
 optional:
     authored_challenge:

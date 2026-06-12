@@ -1,14 +1,6 @@
-# TODOs
-- [ ] Discord Link nochmal nachgucken ob das wirklich sinnvoll ist
-- [ ] Add a new sticky button in the right low corner, that is present in every single page - when clicking on it there should be a menu popping up out of the button which is a "gear" themed button, from which you can choose the following (the gear button is uncollapsed until you click it again)
-    - A global search
-    => nochmal überlegen ob das wirklich so sinnvoll ist - das könnte unnötige Lasten auf dem Server erzeugen
-- gwern.net angucken
-- Implement Webmention.io
-- Rework ctf icons especially sekaictf the large black border
-
-- Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
-    => https://github.com/felixfbecker/dom-to-svg
+- for some reason the /about page has less space towards the header bar and the icon at the top at the very start got a darker background than the icons on e.g. /blog or /timeline - there should be only one single source of truth for all the headings of the different pages
+- add telegram contact
+- replace all adjun37 emails with a placeholder email like todo@adrianjunge.de
 
 # Content
 - Next Blog
@@ -37,10 +29,14 @@
     - live Rendering des Markdowns
 
 # Misc
+- Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
+    => https://github.com/felixfbecker/dom-to-svg
+- Implement Webmention.io
 - Auf Raspberry Pi Server hosten und bei Heroku canceln (auto build pipeline aufbauen für pushes zu main branch)
 - `vurlo.de` sichern und DNS einrichten sodass sowohl `adrianjunge.de` als auch `vurlo.de` auf dieselbe IP zeigen
 - Email einrichten für Domaine
     - Email redirect von cloud flare
+    - referenced emails (todo@adrianjunge.de) replacen
     - Andere email Adresse auf Website verlinken
     - Forwarding
     - als contact angeben in Terminal + Footer

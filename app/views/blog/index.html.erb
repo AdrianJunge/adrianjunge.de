@@ -27,8 +27,7 @@
              icon_path: "task-bar/blog.svg",
              icon_alt: "Blog",
              title: "Blog",
-             description: "Longer notes on security work, learning, and practical writeups outside the CTF archive.",
-             actions: feed_actions_for(:blog, feed_url: feed_xml_path, atom_url: feed_path(format: :atom), json_url: feed_json_path, label: "Website") %>
+             description: "Longer notes on security work, learning, and practical writeups outside the CTF archive." %>
 
   <%= render "shared/content_filters",
              scope: "blogs",

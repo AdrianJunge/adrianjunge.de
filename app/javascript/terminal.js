@@ -9,9 +9,11 @@ const fastFetchInfo = `  _____                          _
  |_|  \\_\\  \\___|  \\__,_|  \\___| |_| |_|   |_| |_| |_|  \\___|    \\ \\__,_|
                                                                  \\____/
 `
-const aboutMe = `\tDiscord:\t${createHyperlink('Discord', 'https://discord.com/users/305624492221267968')}
+const aboutMe = `\tEmail:\t\t${createHyperlink('adjun37@gmail.com', 'mailto:adjun37@gmail.com')}
+\tPGP:\t\t${createHyperlink('PGP key', '/pgp-vurlo.asc')}
 \tGitHub:\t\t${createHyperlink('GitHub', 'https://github.com/AdrianJunge/')}
-\tLinkedin:\t${createHyperlink('Linkedin', 'https://www.linkedin.com/in/adrian-junge-998a63296/')}
+\tLinkedIn:\t${createHyperlink('LinkedIn', 'https://www.linkedin.com/in/adrian-junge-998a63296/')}
+\tDiscord:\t${createHyperlink('Discord', 'https://discord.com/users/305624492221267968/')}
 `
 
 const firstHelp = `\tNavigation via taskbar, 'cd' command or listed hyperlinks
@@ -116,7 +118,7 @@ function normalizePathEntry(entry) {
 }
 
 const customLinkHandler = {
-  allowNonHttpProtocols: false,
+  allowNonHttpProtocols: true,
 
   activate: (event, uri) => {
     event.preventDefault();

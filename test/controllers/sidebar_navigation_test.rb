@@ -35,6 +35,15 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
                       "expected #{path} to include one #{label} taskbar link"
       end
 
+      assert_select "#top-taskbar details.taskbar-feed-menu", 1
+      assert_select "#top-taskbar .taskbar-feed-toggle", { text: /Feeds/, count: 1 },
+                    "expected #{path} to include the feeds dropdown"
+      assert_select "#top-taskbar .taskbar-feed-option[href=?]", feed_xml_path, { text: /RSS/, count: 1 },
+                    "expected #{path} to include the RSS feed link"
+      assert_select "#top-taskbar .taskbar-feed-option[href=?]", feed_path(format: :atom), { text: /Atom/, count: 1 },
+                    "expected #{path} to include the Atom feed link"
+      assert_select "#top-taskbar .taskbar-feed-option[href=?]", feed_json_path, { text: /JSON/, count: 1 },
+                    "expected #{path} to include the JSON feed link"
       assert_select "#top-taskbar #terminal-taskbar-button", 1, "expected #{path} to include the terminal taskbar button"
     end
   end

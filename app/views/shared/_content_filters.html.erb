@@ -138,6 +138,6 @@
 
   <div class="content-filter-state">
     <span data-filter-count="<%= scope %>"><%= total %> / <%= total %> <%= total == 1 ? "item" : "items" %></span>
-    <button type="button" class="content-filter-reset" data-filter-reset="<%= scope %>" hidden>Clear filters</button>
+    <button type="button" class="content-filter-reset" data-filter-reset="<%= scope %>" aria-hidden="true" tabindex="-1">Clear filters</button>
   </div>
 </div>

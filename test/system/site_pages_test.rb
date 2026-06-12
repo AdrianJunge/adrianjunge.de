@@ -93,63 +93,78 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
-  test "feed controls render as glass hero actions outside the filters" do
+  test "feed controls render in the top taskbar dropdown" do
     {
-      "/ctf" => [ ".ctf-rss-feed", ".ctf-atom-feed", ".ctf-rss-icon" ],
-      "/blog" => [ ".blog-rss-feed", ".blog-atom-feed", ".blog-rss-icon" ]
-    }.each do |path, (button_selector, atom_selector, icon_selector)|
+      "/ctf" => [ ".ctf-rss-feed", ".ctf-atom-feed", ".ctf-json-feed" ],
+      "/blog" => [ ".blog-rss-feed", ".blog-atom-feed", ".blog-json-feed" ]
+    }.each do |path, old_feed_selectors|
+      page.current_window.resize_to(1280, 900)
       visit path
 
-      button = find(button_selector)
-      atom_button = find(atom_selector)
-      find(icon_selector)
-      assert_selector ".content-hero-actions #{button_selector}"
-      assert_selector ".content-hero-title-row .content-hero-actions #{button_selector}"
-      assert_equal "/feed.xml", URI.parse(button[:href]).path
-      assert_equal "/feed.atom", URI.parse(atom_button[:href]).path
-      assert_no_selector ".content-filter-panel #{button_selector}"
-      assert_no_selector ".ctf-header-section #{button_selector}" if path == "/ctf"
-      assert_no_selector ".blog-header-section #{button_selector}" if path == "/blog"
-      page.driver.browser.action.move_to(button.native).perform
+      old_feed_selectors.each do |selector|
+        assert_no_selector selector, visible: :all
+      end
+      assert_no_selector ".content-hero-actions", visible: :all
+
+      toggle = find(".taskbar-feed-toggle")
+      toggle.click
+      assert_selector ".taskbar-feed-menu[open]", visible: :all
+      assert_selector ".taskbar-feed-option[href='/feed.xml']", text: "RSS", visible: :all
+      assert_selector ".taskbar-feed-option[href='/feed.atom']", text: "Atom", visible: :all
+      assert_selector ".taskbar-feed-option[href='/feed.json']", text: "JSON", visible: :all
+
+      rss_option = find(".taskbar-feed-option[href='/feed.xml']", visible: :all)
+      page.driver.browser.action.move_to(rss_option.native).perform
 
       styles = page.evaluate_script(<<~JS)
         (() => {
-          const button = document.querySelector("#{button_selector}");
-          const icon = document.querySelector("#{icon_selector}");
+          const option = document.querySelector(".taskbar-feed-option[href='/feed.xml']");
+          const icon = option.querySelector(".taskbar-feed-option-icon");
+          const label = document.querySelector(".taskbar-feed-toggle .taskbar-label");
+          const caret = window.getComputedStyle(label, "::after");
 
           return {
-            buttonTransform: window.getComputedStyle(button).transform,
+            optionTransform: window.getComputedStyle(option).transform,
             iconTransform: window.getComputedStyle(icon).transform,
-            boxShadow: window.getComputedStyle(button).boxShadow
+            boxShadow: window.getComputedStyle(option).boxShadow,
+            caretWidth: caret.width,
+            caretBorderRight: caret.borderRightWidth
           };
         })()
       JS
 
-      assert_not_equal "none", styles["buttonTransform"]
+      assert_not_equal "none", styles["optionTransform"]
       assert_equal "none", styles["iconTransform"]
       assert_not_equal "none", styles["boxShadow"]
+      assert_not_equal "0px", styles["caretWidth"]
+      assert_not_equal "0px", styles["caretBorderRight"]
 
       metrics = page.evaluate_script(<<~JS)
         (() => {
-          const row = document.querySelector(".content-hero-title-row");
-          const actions = document.querySelector(".content-hero-actions");
-          const rowRect = row.getBoundingClientRect();
-          const actionsRect = actions.getBoundingClientRect();
+          const taskbar = document.getElementById("top-taskbar");
+          const menu = document.querySelector(".taskbar-feed-menu");
+          const dropdown = document.querySelector(".taskbar-feed-dropdown");
+          const taskbarRect = taskbar.getBoundingClientRect();
+          const menuRect = menu.getBoundingClientRect();
+          const dropdownRect = dropdown.getBoundingClientRect();
 
           return {
-            rowRight: Math.round(rowRect.right),
-            rowTop: Math.round(rowRect.top),
-            rowBottom: Math.round(rowRect.bottom),
-            actionsRight: Math.round(actionsRect.right),
-            actionsTop: Math.round(actionsRect.top),
-            actionsBottom: Math.round(actionsRect.bottom)
+            taskbarBottom: Math.round(taskbarRect.bottom),
+            menuLeft: Math.round(menuRect.left),
+            menuRight: Math.round(menuRect.right),
+            dropdownLeft: Math.round(dropdownRect.left),
+            dropdownRight: Math.round(dropdownRect.right),
+            dropdownTop: Math.round(dropdownRect.top)
           };
         })()
       JS
 
-      assert_in_delta metrics["rowRight"], metrics["actionsRight"], 2
-      assert_operator metrics["actionsTop"], :>=, metrics["rowTop"]
-      assert_operator metrics["actionsBottom"], :<=, metrics["rowBottom"]
+      assert_operator metrics["dropdownTop"], :>=, metrics["taskbarBottom"]
+      assert_in_delta metrics["menuLeft"], metrics["dropdownLeft"], 2
+      assert_operator metrics["dropdownRight"], :>, metrics["menuRight"]
+
+      find(".content-hero").click
+      assert_no_selector ".taskbar-feed-menu[open]", visible: :all
     end
   end
 
@@ -157,7 +172,7 @@ class SitePagesTest < ApplicationSystemTestCase
     {
       "/ctf" => [ ".content-hero-inner", ".content-hero p" ],
       "/blog" => [ ".content-hero-inner", ".content-hero p" ],
-      "/about" => [ ".aboutme-hero-inner", ".aboutme-copy" ]
+      "/about" => [ ".content-hero-inner", ".aboutme-copy" ]
     }.each do |path, (container_selector, copy_selector)|
       page.current_window.resize_to(1280, 1200)
       visit path
@@ -175,6 +190,36 @@ class SitePagesTest < ApplicationSystemTestCase
       JS
 
       assert_operator metrics["copyWidth"], :>=, metrics["containerWidth"] * 0.95
+    end
+  end
+
+  test "main page heroes share spacing and icon surface" do
+    baseline = nil
+
+    [ "/blog", "/timeline", "/about" ].each do |path|
+      page.current_window.resize_to(1280, 900)
+      visit path
+
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const hero = document.querySelector(".content-hero");
+          const icon = document.querySelector(".content-hero-icon-wrap");
+          const heroStyle = window.getComputedStyle(hero);
+          const iconStyle = window.getComputedStyle(icon);
+
+          return {
+            paddingTop: heroStyle.paddingTop,
+            paddingBottom: heroStyle.paddingBottom,
+            iconBackground: iconStyle.backgroundColor,
+            iconBorderColor: iconStyle.borderTopColor,
+            iconWidth: iconStyle.width,
+            iconHeight: iconStyle.height
+          };
+        })()
+      JS
+
+      baseline ||= metrics
+      assert_equal baseline, metrics, "expected #{path} to use shared content hero metrics"
     end
   end
 
@@ -226,22 +271,31 @@ class SitePagesTest < ApplicationSystemTestCase
 
       find(".content-filter-year-button").click
       assert_selector ".content-filter-year-menu", visible: :visible
+      hovered_option = all(".content-filter-year-option:not(.is-active)", visible: :visible).first
+      page.driver.browser.action.move_to(hovered_option.native).perform
 
       styles = page.evaluate_script(<<~JS)
         (() => {
           const button = document.querySelector(".content-filter-year-button");
           const menu = document.querySelector(".content-filter-year-menu");
           const select = document.querySelector(".content-filter-select");
+          const activeOption = document.querySelector(".content-filter-year-option.is-active");
+          const hoveredOption = document.querySelector(".content-filter-year-option:not(.is-active)");
           const buttonStyle = window.getComputedStyle(button);
           const menuStyle = window.getComputedStyle(menu);
           const selectStyle = window.getComputedStyle(select);
+          const activeOptionStyle = window.getComputedStyle(activeOption);
+          const hoveredOptionStyle = window.getComputedStyle(hoveredOption);
 
           return {
             buttonRadius: buttonStyle.borderTopLeftRadius,
             menuRadius: menuStyle.borderTopLeftRadius,
             menuBoxShadow: menuStyle.boxShadow,
             nativeOpacity: selectStyle.opacity,
-            nativePointerEvents: selectStyle.pointerEvents
+            nativePointerEvents: selectStyle.pointerEvents,
+            activeOptionBoxShadow: activeOptionStyle.boxShadow,
+            hoveredOptionBackground: hoveredOptionStyle.backgroundColor,
+            hoveredOptionBorderColor: hoveredOptionStyle.borderTopColor
           };
         })()
       JS
@@ -251,6 +305,9 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_not_equal "none", styles["menuBoxShadow"]
       assert_equal "0", styles["nativeOpacity"]
       assert_equal "none", styles["nativePointerEvents"]
+      assert_no_match(/3px 0px 0px/, styles["activeOptionBoxShadow"])
+      assert_not_equal "rgba(0, 0, 0, 0)", styles["hoveredOptionBackground"]
+      assert_not_equal "rgba(0, 0, 0, 0)", styles["hoveredOptionBorderColor"]
     end
   end
 
@@ -321,7 +378,7 @@ class SitePagesTest < ApplicationSystemTestCase
       "/" => "#landing-top",
       "/ctf" => ".content-hero-inner",
       "/timeline" => ".timeline-shell",
-      "/about" => ".aboutme-hero-inner"
+      "/about" => ".content-hero-inner"
     }.each do |path, selector|
       [ 320, 390 ].each do |width|
         page.current_window.resize_to(width, 900)
@@ -619,6 +676,27 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".article-progress", visible: :visible
   end
 
+  test "ctf solve counts appear after reading time" do
+    visit "/ctf/gpnctf"
+
+    scanwich_card = find(".writeup-post-card", text: "Scanwich Station")
+    within scanwich_card do
+      assert_selector ".blog-post-solve-count", text: "5 solves"
+      assert_match(/min read\s*·\s*5 solves/, find(".blog-post-date").text.squish)
+    end
+
+    smile_card = find(".writeup-post-card", text: "Smile at me")
+    within smile_card do
+      assert_selector ".blog-post-solve-count", text: "1 solve"
+      assert_match(/min read\s*·\s*1 solve/, find(".blog-post-date").text.squish)
+    end
+
+    visit "/ctf/gpnctf/Scanwich%20Station"
+
+    assert_selector ".post-meta-line", text: /5 solves/
+    assert_match(/min read\s*·\s*5 solves/, find(".post-meta-line").text.squish)
+  end
+
   test "post card author links stay clickable above full card hitboxes" do
     page.current_window.resize_to(1280, 1400)
     author_post, author = first_ctf_post_with_author_link
@@ -715,6 +793,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal true, typed_cursor_layout["cursorWithinLine"]
     assert_equal true, typed_cursor_layout["cursorStartsAtLine"]
     discord_profile = "https://discord.com/users/305624492221267968/"
+    assert_selector ".landing-profile-link[href='#{discord_profile}'][target='_blank'][rel='noopener noreferrer'] .landing-profile-image"
     assert_selector ".landing-affiliation-link[href='#{discord_profile}']", text: "KITCTF"
     assert_selector ".landing-affiliation-link[href='#{discord_profile}']", text: "KIT"
     assert_selector ".landing-affiliation-link[href='#{discord_profile}'] img", minimum: 2
@@ -731,6 +810,27 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
     assert_operator affiliation_image_size, :>=, 44
+    profile_link_styles = page.evaluate_script(<<~JS)
+      (() => {
+        const profileLink = document.querySelector(".landing-profile-link");
+        const profileImage = document.querySelector(".landing-profile-image");
+        const profileLinkStyle = window.getComputedStyle(profileLink);
+        const profileStyle = window.getComputedStyle(profileImage);
+
+        return {
+          profileLinkBorderWidth: profileLinkStyle.borderTopWidth,
+          profileImageBorderWidth: profileStyle.borderTopWidth,
+          profileLinkBackground: profileLinkStyle.backgroundColor,
+          profileImageAnimation: profileStyle.animationName,
+          profileImageAnimationDuration: profileStyle.animationDuration
+        };
+      })()
+    JS
+    assert_equal "0px", profile_link_styles["profileLinkBorderWidth"]
+    assert_equal "0px", profile_link_styles["profileImageBorderWidth"]
+    assert_equal "rgba(0, 0, 0, 0)", profile_link_styles["profileLinkBackground"]
+    assert_equal "landing-profile-bounce", profile_link_styles["profileImageAnimation"]
+    assert_equal "2.35s", profile_link_styles["profileImageAnimationDuration"]
     assert_selector ".landing-metrics.aboutme-stats"
     assert_selector ".landing-metric", count: 4
     assert_selector ".landing-metric.aboutme-stat", count: 4
@@ -803,6 +903,33 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".landing-metric", text: "Achievements"
     assert_no_selector ".landing-metric[href='/ctf']", text: "CTFs"
     assert_no_selector ".landing-metric", text: "Tags"
+    find("#terminal-taskbar-button").click
+    assert_selector "#terminal-container:not(.terminal-minimized)"
+    assert_selector ".xterm-rows", text: "Email:"
+    assert_selector ".xterm-rows", text: "PGP:"
+    assert_selector ".xterm-rows", text: "GitHub:"
+    assert_selector ".xterm-rows", text: "LinkedIn:"
+    assert_selector ".xterm-rows", text: "Discord"
+    terminal_contact_order = page.evaluate_script(<<~JS)
+      (() => {
+        const text = document.querySelector(".xterm-rows").innerText;
+
+        return {
+          email: text.indexOf("Email:"),
+          pgp: text.indexOf("PGP:"),
+          github: text.indexOf("GitHub:"),
+          linkedin: text.indexOf("LinkedIn:"),
+          discord: text.indexOf("Discord:")
+        };
+      })()
+    JS
+    assert_operator terminal_contact_order["email"], :>=, 0
+    assert_operator terminal_contact_order["email"], :<, terminal_contact_order["pgp"]
+    assert_operator terminal_contact_order["pgp"], :<, terminal_contact_order["github"]
+    assert_operator terminal_contact_order["github"], :<, terminal_contact_order["linkedin"]
+    assert_operator terminal_contact_order["linkedin"], :<, terminal_contact_order["discord"]
+    find("#minimize-terminal").click
+    assert_selector "#terminal-container.terminal-minimized", visible: :all
     expected_featured_count = content_index.featured_items.length
     assert_selector "#landing-featured-title", text: "Selected work"
     assert_no_selector "#landing-featured-title", text: "Featured work"
@@ -987,6 +1114,28 @@ class SitePagesTest < ApplicationSystemTestCase
 
     assert_selector ".timeline-content", count: total_items
     assert_timeline_year_counts_match_visible_cards
+    timeline_year_count_style = page.evaluate_script(<<~JS)
+      (() => {
+        const count = document.querySelector(".timeline-year-count");
+        const style = window.getComputedStyle(count);
+
+        return {
+          className: count.className,
+          backgroundColor: style.backgroundColor,
+          borderColor: style.borderTopColor,
+          color: style.color,
+          fontSize: style.fontSize,
+          fontWeight: style.fontWeight
+        };
+      })()
+    JS
+    assert_includes timeline_year_count_style["className"], "timeline-year-count"
+    assert_not_includes timeline_year_count_style["className"], "bg-slate-800"
+    assert_equal "rgba(125, 211, 252, 0.16)", timeline_year_count_style["backgroundColor"]
+    assert_equal "rgba(125, 211, 252, 0.46)", timeline_year_count_style["borderColor"]
+    assert_equal "rgb(248, 250, 252)", timeline_year_count_style["color"]
+    assert_equal "12.48px", timeline_year_count_style["fontSize"]
+    assert_equal "900", timeline_year_count_style["fontWeight"]
     timeline_tag_positions = page.evaluate_script(<<~JS)
       (() => {
         const card = [...document.querySelectorAll(".timeline-content")].find((entry) => entry.querySelector(".timeline-tags"));
@@ -1314,6 +1463,23 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal "rgba(125, 211, 252, 0.34)", colored_filter_styles["winnerBorder"]
     assert_equal colored_filter_styles["winnerBorder"], colored_filter_styles["authoredBorder"]
     assert_equal colored_filter_styles["winnerBorder"], colored_filter_styles["difficultyBorder"]
+    filter_panel_initial = page.evaluate_script(<<~JS)
+      (() => {
+        const panel = document.querySelector(".content-filter-panel");
+        const reset = document.querySelector("[data-filter-reset='ctfs']");
+        const resetStyle = window.getComputedStyle(reset);
+
+        return {
+          height: Math.round(panel.getBoundingClientRect().height),
+          resetVisibility: resetStyle.visibility,
+          resetAriaHidden: reset.getAttribute("aria-hidden"),
+          resetTabIndex: reset.tabIndex
+        };
+      })()
+    JS
+    assert_equal "hidden", filter_panel_initial["resetVisibility"]
+    assert_equal "true", filter_panel_initial["resetAriaHidden"]
+    assert_equal(-1, filter_panel_initial["resetTabIndex"])
     assert_selector ".content-filter-panel .filter-chip.category-badge-filter.category-badge-#{ContentCategoryTag.css_key(ctf_tag_case[:tag])}",
                     text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector ".ctf-card .filter-chip.category-badge-filter.category-badge-#{ContentCategoryTag.css_key(ctf_tag_case[:tag])}",
@@ -1352,8 +1518,44 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_tag_case[:items].length, ctf_total)
     assert_equal ctf_tag_case[:items].map { |item| item[:name] }, visible_ctf_names
+    filter_panel_after_tag = page.evaluate_script(<<~JS)
+      (() => {
+        const panel = document.querySelector(".content-filter-panel");
+        const reset = document.querySelector("[data-filter-reset='ctfs']");
+        const resetStyle = window.getComputedStyle(reset);
+
+        return {
+          height: Math.round(panel.getBoundingClientRect().height),
+          resetVisibility: resetStyle.visibility,
+          resetAriaHidden: reset.getAttribute("aria-hidden"),
+          resetTabIndex: reset.tabIndex
+        };
+      })()
+    JS
+    assert_in_delta filter_panel_initial["height"], filter_panel_after_tag["height"], 1
+    assert_equal "visible", filter_panel_after_tag["resetVisibility"]
+    assert_equal "false", filter_panel_after_tag["resetAriaHidden"]
+    assert_equal 0, filter_panel_after_tag["resetTabIndex"]
 
     find("[data-filter-reset='ctfs']").click
+    filter_panel_after_reset = page.evaluate_script(<<~JS)
+      (() => {
+        const panel = document.querySelector(".content-filter-panel");
+        const reset = document.querySelector("[data-filter-reset='ctfs']");
+        const resetStyle = window.getComputedStyle(reset);
+
+        return {
+          height: Math.round(panel.getBoundingClientRect().height),
+          resetVisibility: resetStyle.visibility,
+          resetAriaHidden: reset.getAttribute("aria-hidden"),
+          resetTabIndex: reset.tabIndex
+        };
+      })()
+    JS
+    assert_in_delta filter_panel_initial["height"], filter_panel_after_reset["height"], 1
+    assert_equal "hidden", filter_panel_after_reset["resetVisibility"]
+    assert_equal "true", filter_panel_after_reset["resetAriaHidden"]
+    assert_equal(-1, filter_panel_after_reset["resetTabIndex"])
     find(".content-filter-panel .filter-chip.difficulty-badge-filter", text: /^#{Regexp.escape(ctf_difficulty_case[:label])}$/).click
     assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.is-active", text: ctf_difficulty_case[:label]
     active_difficulty_styles = page.evaluate_script(<<~JS)
@@ -1402,9 +1604,16 @@ class SitePagesTest < ApplicationSystemTestCase
     select_filter_year("ctfs", ctf_year_case[:year].to_s)
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_year_case[:items].length, ctf_total)
     assert_equal ctf_year_case[:items].map { |item| item[:name] }, visible_ctf_names
+    filter_panel_after_year = page.evaluate_script(<<~JS)
+      Math.round(document.querySelector(".content-filter-panel").getBoundingClientRect().height)
+    JS
+    assert_in_delta filter_panel_initial["height"], filter_panel_after_year, 1
 
     visit "/ctf/#{writeup_case[:directory]}"
     assert_selector ".blog-post-authors", text: "Challenge by"
+    writeup_filter_initial_height = page.evaluate_script(<<~JS)
+      Math.round(document.querySelector(".content-filter-panel").getBoundingClientRect().height)
+    JS
     assert_selector ".content-filter-tags-label", text: "TAGS"
     assert_selector ".content-filter-tag-group-label", text: "DIFFICULTY"
     assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.difficulty-badge-#{writeup_difficulty_case[:key]}",
@@ -1416,6 +1625,10 @@ class SitePagesTest < ApplicationSystemTestCase
       find(".filter-chip.difficulty-badge-filter", text: /^#{Regexp.escape(writeup_difficulty_case[:label])}$/).click
       assert_selector ".filter-chip.difficulty-badge-filter.is-active", text: writeup_difficulty_case[:label]
     end
+    writeup_filter_after_tag_height = page.evaluate_script(<<~JS)
+      Math.round(document.querySelector(".content-filter-panel").getBoundingClientRect().height)
+    JS
+    assert_in_delta writeup_filter_initial_height, writeup_filter_after_tag_height, 1
     assert_selector "[data-filter-count='writeups']", text: filter_count_text(writeup_difficulty_case[:posts].length, writeup_case[:posts].length)
     assert_equal writeup_difficulty_case[:posts].map { |post| post[:title] }, visible_writeup_titles
 
@@ -1489,10 +1702,27 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal year_case[:items].map { |post| post[:title] }.sort, visible_blog_titles.sort
 
     find("[data-filter-reset='blogs']").click
+    normal_result_gap = page.evaluate_script(<<~JS)
+      (() => {
+        const panel = document.querySelector(".content-filter-panel").getBoundingClientRect();
+        const firstCard = document.querySelector(".blog-post-card").getBoundingClientRect();
+
+        return Math.round(firstCard.top - panel.bottom);
+      })()
+    JS
     fill_in "blog-search-input", with: "definitely-not-a-post"
     assert_selector "[data-filter-count='blogs']", text: filter_count_text(0, blog_total)
     assert_selector ".content-filter-empty", text: "No blog posts match the current filters."
     assert_no_selector ".blog-post-card"
+    empty_result_gap = page.evaluate_script(<<~JS)
+      (() => {
+        const panel = document.querySelector(".content-filter-panel").getBoundingClientRect();
+        const empty = document.querySelector(".content-filter-empty").getBoundingClientRect();
+
+        return Math.round(empty.top - panel.bottom);
+      })()
+    JS
+    assert_in_delta normal_result_gap, empty_result_gap, 1
   end
 
   test "blog and writeup cards keep full-card navigation" do
@@ -1832,11 +2062,15 @@ class SitePagesTest < ApplicationSystemTestCase
         const element = document.querySelector(selector);
         const rect = element.getBoundingClientRect();
         const style = window.getComputedStyle(element);
+        const wrapper = document.querySelector(".writeup-wrapper");
+        const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : null;
 
         return {
           position: style.position,
           top: Math.round(rect.top),
-          right: Math.round(window.innerWidth - rect.right)
+          right: Math.round(window.innerWidth - rect.right),
+          contentTopInset: wrapperRect ? Math.round(rect.top - wrapperRect.top) : null,
+          contentRightInset: wrapperRect ? Math.round(wrapperRect.right - rect.right) : null
         };
       })
     JS
@@ -1847,6 +2081,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector "#toc[hidden]", visible: :all
     assert_selector "#toc-toggle[aria-expanded='true']"
     expanded_button_metrics = page.evaluate_script("#{button_metrics_script}('#toc-toggle')")
+    assert_in_delta expanded_button_metrics["contentTopInset"], expanded_button_metrics["contentRightInset"], 1
 
     page.execute_script("window.scrollTo(0, 700)")
     scrolled_expanded_button_metrics = page.evaluate_script("#{button_metrics_script}('#toc-toggle')")

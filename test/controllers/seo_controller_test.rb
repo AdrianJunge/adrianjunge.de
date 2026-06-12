@@ -64,15 +64,18 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "script[type='application/ld+json']", text: /"@type":"ItemList"/
     assert_select "script[type='application/ld+json']", text: /"UMDCTF"/
+    assert_select "script[type='application/ld+json']", text: /"@type":"BreadcrumbList"/
 
     get timeline_path
     assert_response :success
     assert_select "script[type='application/ld+json']", text: /"@type":"ItemList"/
     assert_select "script[type='application/ld+json']", text: /"Funny Java Strings\?"/
+    assert_select "script[type='application/ld+json']", text: /"@type":"BreadcrumbList"/
 
     get about_path
     assert_response :success
     assert_select "script[type='application/ld+json']", text: /"Created CTF challenges"/
+    assert_select "script[type='application/ld+json']", text: /"@type":"BreadcrumbList"/
   end
 
   test "error pages are excluded from indexing" do

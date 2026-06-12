@@ -105,7 +105,7 @@ module ProfileCardsHelper
     events = aboutme_visible_events(entry["events"])
     card_url = entry["card_url"].presence || entry["title_url"].presence
     summary_text = aboutme_sentence(entry["summary"])
-    reference_links = profile_milestone_reference_links(entry)
+    reference_links = profile_milestone_reference_links(entry, events)
     timeline_items = profile_milestone_timeline_items(events)
     body_blocks = []
     body_blocks << { title: "Summary", text: summary_text } if summary_text.present?
@@ -178,11 +178,30 @@ module ProfileCardsHelper
         tags << { label: category_label, url: entry["category_url"], class_name: "aboutme-tag-#{category_label.parameterize}" }
       end
       tags.concat(aboutme_extra_tags(entry["tags"]))
+      tags.concat(profile_milestone_action_tags(entry, events))
       tags << { label: entry["date"], datetime: entry["date"], class_name: "aboutme-tag-date" } if entry["date"].present? && events.empty?
     end
   end
 
-  def profile_milestone_reference_links(entry)
+  def profile_milestone_reference_links(entry, events)
+    seen_urls = []
+
+    profile_milestone_link_entries(entry).filter_map do |link|
+      url = link[:url]
+      next if seen_urls.include?(url) || profile_milestone_link_has_tag?(entry, events, link)
+
+      seen_urls << url
+      profile_card_optional_link(
+        link[:label],
+        url,
+        class_name: "aboutme-reference-link",
+        aria_label: "Open #{link[:label]}",
+        title: "Open #{link[:label]}"
+      )
+    end
+  end
+
+  def profile_milestone_link_entries(entry)
     link_entries = Array(entry["links"]).filter_map do |link|
       next unless link.is_a?(Hash)
 
@@ -198,22 +217,57 @@ module ProfileCardsHelper
       link_entries.unshift({ label: "Overview", url: primary_url })
     end
 
-    seen_urls = []
+    link_entries
+  end
 
-    link_entries.filter_map do |link|
-      label = link[:label]
+  def profile_milestone_action_tags(entry, events)
+    seen_urls = [ entry["category_url"].presence ].compact
+
+    profile_milestone_link_entries(entry).filter_map do |link|
+      next unless profile_milestone_link_has_tag?(entry, events, link)
+
       url = link[:url]
       next if seen_urls.include?(url)
 
       seen_urls << url
-      profile_card_optional_link(
-        label,
-        url,
-        class_name: "aboutme-reference-link",
-        aria_label: "Open #{label}",
-        title: "Open #{label}"
-      )
+      {
+        label: profile_milestone_action_tag_label(entry, events, link),
+        url: url,
+        class_name: "aboutme-milestone-action-tag #{profile_milestone_action_tag_class(entry, events, link)}"
+      }
     end
+  end
+
+  def profile_milestone_link_has_tag?(entry, events, link)
+    url = link[:url]
+    return true if url.present? && url == entry["category_url"].presence
+
+    profile_milestone_action_tag_label(entry, events, link).present?
+  end
+
+  def profile_milestone_action_tag_label(entry, events, link)
+    url = link[:url]
+    return nil if url.blank? || url == entry["category_url"].presence
+
+    return link[:label] if profile_milestone_achievement_entry?(entry, events)
+
+    primary_url = entry["card_url"].presence || entry["title_url"].presence
+    if primary_url.present? && url == primary_url
+      return url.start_with?("/") ? "Writeup" : "Overview"
+    end
+
+    nil
+  end
+
+  def profile_milestone_action_tag_class(entry, events, link)
+    return "aboutme-tag-writeup" if link[:url].to_s.start_with?("/")
+    return "aboutme-tag-event" if profile_milestone_achievement_entry?(entry, events)
+
+    "aboutme-tag-overview"
+  end
+
+  def profile_milestone_achievement_entry?(entry, events)
+    events.any? && entry["card_url"].blank?
   end
 
   def profile_milestone_timeline_items(events)
@@ -222,7 +276,9 @@ module ProfileCardsHelper
         "date" => event["date"],
         "event" => event["title"],
         "summary" => event["summary"],
-        "url" => event["url"].presence || event["card_url"].presence
+        "url" => event["url"].presence || event["card_url"].presence,
+        "link_style" => "tag",
+        "link_label" => "Event"
       }.compact
     end
   end
