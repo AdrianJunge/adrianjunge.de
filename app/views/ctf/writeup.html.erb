@@ -1,10 +1,11 @@
+<% writeup_author_entries = writeup_authors(@ctf_info) %>
+
 <% content_for :head do %>
   <% writeup_section = @ctf_info["ctf"].presence || @ctf_name %>
   <% writeup_title = "#{@ctf_info["title"]} - #{writeup_section} writeup" %>
   <% writeup_description = @ctf_info["description"].presence || "Writeup for #{@ctf_info["title"]} from #{writeup_ctf_year(@ctf_info)} CTF." %>
   <% writeup_tags = (Array(@ctf_info["categories"]) + [ @ctf_name ]).map(&:to_s).reject(&:blank?).uniq %>
   <% writeup_modified = @ctf_info["updated"].presence || @ctf_info["modified"].presence %>
-  <% writeup_authors = writeup_authors(@ctf_info) %>
   <%= seo_meta_tags(
         title: writeup_title,
         description: writeup_description,
@@ -15,7 +16,7 @@
         modified_time: writeup_modified,
         tags: writeup_tags,
         section: writeup_section,
-        authors: writeup_authors,
+        authors: writeup_author_entries,
         json_ld: seo_article_schema(
           title: writeup_title,
           description: writeup_description,
@@ -25,7 +26,7 @@
           tags: writeup_tags,
           image: @ctf["logo"],
           section: writeup_section,
-          authors: writeup_authors
+          authors: writeup_author_entries
         ),
         breadcrumbs: [
           { title: "Home", link: root_path },
@@ -90,57 +91,76 @@
          render_writeup_difficulty_badge(@ctf_info, context: :article),
          *render_writeup_category_badges(@ctf_info, context: :article)
        ].compact %>
-    <% if recognition_badges.any? || detail_badges.any? %>
-      <div class="writeup-badge-groups-article">
-        <% if recognition_badges.any? %>
-          <div class="writeup-winner-article writeup-badges-article writeup-recognition-badges-article">
-            <%= safe_join(recognition_badges) %>
-          </div>
-        <% end %>
-        <% if detail_badges.any? %>
-          <div class="writeup-badges-article writeup-detail-badges-article">
-            <%= safe_join(detail_badges) %>
-          </div>
-        <% end %>
-      </div>
-    <% end %>
-
-    <%= render_writeup_hints(@ctf_info) %>
-
-    <% if @challenge_file || @pdf_writeup %>
-      <div class="writeup-article-actions flex flex-col items-center gap-4">
-        <div class="writeup-challengefiles flex items-center gap-4">
-          <% if @challenge_file %>
-            <%= link_to ctf_file_download_path(@challenge_file[:relative_path]),
-                        class: "download-btn ui-article-action mt-3",
-                        target: "_blank",
-                        rel: "noopener",
-                        aria: { label: "Download #{@challenge_file[:basename]}" } do %>
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M12 3v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M8 11l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M21 21H3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <%= @challenge_file[:basename] %> - <%= number_to_human_size(@challenge_file[:size]) %>
+    <section class="article-meta-panel ctf-article-meta-panel" aria-label="Challenge details">
+      <% if recognition_badges.any? || detail_badges.any? %>
+        <div class="article-meta-row article-meta-tags writeup-badge-groups-article">
+          <span class="article-meta-row-label">Tags</span>
+          <div class="article-meta-row-value">
+            <% if recognition_badges.any? %>
+              <div class="writeup-winner-article writeup-badges-article writeup-recognition-badges-article">
+                <%= safe_join(recognition_badges) %>
+              </div>
             <% end %>
-          <% end %>
-
-          <% if @pdf_writeup %>
-            <%= link_to "/ctf/writeups/#{@pdf_writeup[:relative_path]}",
-                        class: "open-pdf-btn ui-article-action mt-3",
-                        target: "_blank",
-                        rel: "noopener",
-                        aria: { label: "PDF Writeup" } do %>
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M6 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h7l5 5v9a2 2 0 0 1-2 2H6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M13 7V2.5L18.5 8H14a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              PDF Writeup
+            <% if detail_badges.any? %>
+              <div class="writeup-badges-article writeup-detail-badges-article">
+                <%= safe_join(detail_badges) %>
+              </div>
             <% end %>
-          <% end %>
+          </div>
         </div>
-      </div>
-    <% end %>
+      <% end %>
+
+      <% if writeup_author_entries.any? %>
+        <div class="article-meta-row writeup-authors-article blog-post-authors">
+          <span class="article-meta-row-label">Challenge by</span>
+          <div class="article-meta-row-value">
+            <%= safe_join(writeup_author_entries.map { |author| content_author_node(author) }, ", ".html_safe) %>
+          </div>
+        </div>
+      <% end %>
+
+      <% if @challenge_file || @pdf_writeup %>
+        <div class="article-meta-row writeup-article-actions">
+          <span class="article-meta-row-label">Resources</span>
+          <div class="article-meta-row-value writeup-challengefiles">
+            <% if @challenge_file %>
+              <%= link_to ctf_file_download_path(@challenge_file[:relative_path]),
+                          class: "download-btn ui-article-action",
+                          target: "_blank",
+                          rel: "noopener",
+                          aria: { label: "Download #{@challenge_file[:basename]}" } do %>
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 3v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8 11l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M21 21H3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <%= @challenge_file[:basename] %> - <%= number_to_human_size(@challenge_file[:size]) %>
+              <% end %>
+            <% end %>
+
+            <% if @pdf_writeup %>
+              <%= link_to "/ctf/writeups/#{@pdf_writeup[:relative_path]}",
+                          class: "open-pdf-btn ui-article-action",
+                          target: "_blank",
+                          rel: "noopener",
+                          aria: { label: "PDF Writeup" } do %>
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h7l5 5v9a2 2 0 0 1-2 2H6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M13 7V2.5L18.5 8H14a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                PDF Writeup
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%= render_writeup_hints(@ctf_info) %>
+
+      <%= render "shared/article_description",
+                 description: @ctf_info["description"],
+                 label: "Challenge description" %>
+    </section>
 
     <%= @html_content %>
 

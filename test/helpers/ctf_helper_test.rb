@@ -312,7 +312,7 @@ class CtfHelperTest < ActionView::TestCase
     assert_equal "2024", writeup_ctf_year("year" => "2024", "published" => "2026-01-01")
   end
 
-  test "article hints render as collapsed markdown details" do
+  test "article hints render as blurred spoilers" do
     render inline: "<%= render_writeup_hints(info) %>", locals: {
       info: {
         "optional" => {
@@ -324,11 +324,13 @@ class CtfHelperTest < ActionView::TestCase
       }
     }
 
-    assert_select "details.writeup-hints[open]", false
-    assert_select "details.writeup-hints summary", text: /Hints/
-    assert_select "details.writeup-hints .writeup-hints-count", text: "2 hints"
-    assert_select "details.writeup-hints ul.writeup-hints-list li", 2
-    assert_select "details.writeup-hints code", text: "in_array"
+    assert_select "details.writeup-hints", false
+    assert_select "section.writeup-hints.writeup-hints-spoilers"
+    assert_select ".writeup-hints-summary", text: /Hints/
+    assert_select ".writeup-hints-count", text: "2 hints"
+    assert_select "ol.writeup-hints-list li.writeup-hint-spoiler.is-hidden", 2
+    assert_select ".writeup-hint-spoiler-content[aria-hidden='true'] code", text: "in_array"
+    assert_select "button.writeup-hint-unhide[data-hint-spoiler-reveal='true']", text: "Expose"
   end
 
   test "article difficulty badge falls back when metadata is omitted" do

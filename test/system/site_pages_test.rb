@@ -817,6 +817,44 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_no_selector ".article-progress", visible: :visible
   end
 
+  test "article pages show metadata descriptions before the markdown body" do
+    page.current_window.resize_to(1280, 1200)
+
+    [
+      [ first_blog_post[:link], first_blog_post[:description], "Post description" ],
+      [ first_ctf_post[:link], first_ctf_post[:description], "Challenge description" ]
+    ].each do |path, description, label|
+      visit path
+
+      assert_selector ".writeup-container > .article-meta-panel > .article-description[aria-label='#{label}']"
+      assert_selector ".article-description-heading", text: /description/i
+      assert_selector ".article-description p", text: description.to_s.squish
+      assert_equal true, page.evaluate_script(<<~JS)
+        (() => {
+          const container = document.querySelector(".writeup-container");
+          const panel = container?.querySelector(":scope > .article-meta-panel");
+          const description = panel?.querySelector(":scope > .article-description");
+          const markdown = container?.querySelector(":scope > .markdown-content");
+          const leadingMeta = [
+            ".writeup-badge-groups-article",
+            ".writeup-authors-article",
+            ".writeup-hints",
+            ".writeup-article-actions"
+          ].flatMap((selector) => Array.from(panel?.querySelectorAll(`:scope > ${selector}`) || []));
+
+          return Boolean(
+            panel &&
+            description &&
+            markdown &&
+            description === panel.lastElementChild &&
+            leadingMeta.every((node) => node.compareDocumentPosition(description) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+            (description.compareDocumentPosition(markdown) & Node.DOCUMENT_POSITION_FOLLOWING)
+          );
+        })()
+      JS
+    end
+  end
+
   test "ctf solve counts and points appear after reading time" do
     visit "/ctf/gpnctf"
 
@@ -863,6 +901,15 @@ class SitePagesTest < ApplicationSystemTestCase
     overview_hit = link_hit_target(author_selector)
     assert_href_matches author[:url], overview_hit["href"]
     assert_includes overview_hit["className"], "blog-post-author-link"
+
+    visit author_post[:link]
+    assert_selector ".writeup-authors-article.blog-post-authors", text: /challenge by/i
+    assert_selector ".writeup-authors-article", text: author[:name]
+    article_author_selector = ".writeup-authors-article .blog-post-author-link[href='#{author[:url]}']"
+    assert_selector article_author_selector, text: author[:name]
+    article_hit = link_hit_target(article_author_selector)
+    assert_href_matches author[:url], article_hit["href"]
+    assert_includes article_hit["className"], "blog-post-author-link"
   end
 
   test "main content cards share the blue surface treatment" do
@@ -2024,7 +2071,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert article_tag_styles.all? { |styles| styles["transform"] == "none" }
   end
 
-  test "writeup optional hints render as overview counts and collapsed article details" do
+  test "writeup optional hints render as overview counts and article spoilers" do
     page.current_window.resize_to(1440, 1200)
     post = ctf_post_with_hints
     hints = writeup_hints_for(post)
@@ -2039,10 +2086,18 @@ class SitePagesTest < ApplicationSystemTestCase
 
     visit post[:link]
 
-    assert_selector "details.writeup-hints:not([open])"
+    assert_no_selector "details.writeup-hints", visible: :all
+    assert_selector "section.writeup-hints.writeup-hints-spoilers"
     assert_selector ".writeup-hints-summary", text: "Hints"
     assert_selector ".writeup-hints-count", text: hint_count_label
-    assert_no_selector ".writeup-hints-list", visible: true
+    assert_selector ".writeup-hints-list .writeup-hint-spoiler.is-hidden", count: hints.length
+    assert_selector ".writeup-hint-unhide", count: hints.length
+    assert_equal true, page.evaluate_script(<<~JS)
+      (() => {
+        const hints = document.querySelector(".writeup-container > .article-meta-panel > .writeup-hints");
+        return hints?.nextElementSibling?.classList.contains("article-description") || false;
+      })()
+    JS
     assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all
     assert_selector ".article-progress-percent"
     progress_state = page.evaluate_script(<<~JS)
@@ -2069,12 +2124,61 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_operator progress_state["percent"], :<, 100
     assert_operator progress_state["currentWords"], :<, progress_state["totalWords"]
 
-    find(".writeup-hints-summary").click
-    assert_selector "details.writeup-hints[open]"
-    assert_selector "ul.writeup-hints-list li", count: hints.length
-
     inline_code = hints.join(" ")[/`([^`]+)`/, 1]
-    assert_selector ".writeup-hints-list code", text: inline_code if inline_code
+    assert_selector ".writeup-hint-spoiler-content[aria-hidden='true'] code", text: inline_code if inline_code
+
+    spoiler_state = page.evaluate_script(<<~JS)
+      (() => {
+        const spoiler = document.querySelector(".writeup-hint-spoiler");
+        const content = spoiler.querySelector(".writeup-hint-spoiler-content");
+        const button = spoiler.querySelector(".writeup-hint-unhide");
+        const style = window.getComputedStyle(content);
+
+        return {
+          hidden: spoiler.classList.contains("is-hidden"),
+          revealed: spoiler.classList.contains("is-revealed"),
+          ariaHidden: content.getAttribute("aria-hidden"),
+          buttonText: button.innerText.trim(),
+          buttonExpanded: button.getAttribute("aria-expanded"),
+          filter: style.filter
+        };
+      })()
+    JS
+    assert_equal true, spoiler_state["hidden"]
+    assert_equal false, spoiler_state["revealed"]
+    assert_equal "true", spoiler_state["ariaHidden"]
+    assert_equal "expose", spoiler_state["buttonText"].downcase
+    assert_equal "false", spoiler_state["buttonExpanded"]
+    assert_includes spoiler_state["filter"], "blur"
+
+    find(".writeup-hint-unhide", match: :first).click
+
+    revealed_state = page.evaluate_async_script(<<~JS)
+      (() => {
+        const done = arguments[0];
+        window.setTimeout(() => {
+          const spoiler = document.querySelector(".writeup-hint-spoiler");
+          const content = spoiler.querySelector(".writeup-hint-spoiler-content");
+          const button = spoiler.querySelector(".writeup-hint-unhide");
+          const style = window.getComputedStyle(content);
+
+          done({
+            hidden: spoiler.classList.contains("is-hidden"),
+            revealed: spoiler.classList.contains("is-revealed"),
+            ariaHidden: content.getAttribute("aria-hidden"),
+            buttonHidden: button.hidden,
+            buttonExpanded: button.getAttribute("aria-expanded"),
+            filter: style.filter
+          });
+        }, 260);
+      })()
+    JS
+    assert_equal false, revealed_state["hidden"]
+    assert_equal true, revealed_state["revealed"]
+    assert_equal "false", revealed_state["ariaHidden"]
+    assert_equal true, revealed_state["buttonHidden"]
+    assert_equal "true", revealed_state["buttonExpanded"]
+    assert_equal "none", revealed_state["filter"]
   end
 
   test "winning writeups show proof badges on overview cards and articles" do
@@ -2324,49 +2428,57 @@ class SitePagesTest < ApplicationSystemTestCase
         const style = window.getComputedStyle(element);
         const wrapper = document.querySelector(".writeup-wrapper");
         const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : null;
+        const toc = document.getElementById("toc");
+        const tocRect = toc ? toc.getBoundingClientRect() : null;
 
         return {
           position: style.position,
           top: Math.round(rect.top),
           right: Math.round(window.innerWidth - rect.right),
           contentTopInset: wrapperRect ? Math.round(rect.top - wrapperRect.top) : null,
-          contentRightInset: wrapperRect ? Math.round(wrapperRect.right - rect.right) : null
+          contentRightInset: wrapperRect ? Math.round(wrapperRect.right - rect.right) : null,
+          tocTopInset: tocRect ? Math.round(rect.top - tocRect.top) : null,
+          tocRightInset: tocRect ? Math.round(tocRect.right - rect.right) : null
         };
       })
     JS
 
     width_script = "Math.round(document.querySelector('.writeup-container').getBoundingClientRect().width)"
+    wrapper_width_script = "Math.round(document.querySelector('.writeup-wrapper').getBoundingClientRect().width)"
     original_width = page.evaluate_script(width_script)
+    wrapper_width = page.evaluate_script(wrapper_width_script)
     assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all
     assert_no_selector "#toc[hidden]", visible: :all
     assert_selector "#toc-toggle[aria-expanded='true']"
     expanded_button_metrics = page.evaluate_script("#{button_metrics_script}('#toc-toggle')")
-    assert_equal "fixed", expanded_button_metrics["position"]
-    assert_operator expanded_button_metrics["top"], :>=, 0
-    assert_operator expanded_button_metrics["right"], :>=, 0
+    assert_equal "absolute", expanded_button_metrics["position"]
+    assert_in_delta expanded_button_metrics["tocTopInset"], expanded_button_metrics["tocRightInset"], 1
 
     page.execute_script("window.scrollTo(0, 700)")
     scrolled_expanded_button_metrics = page.evaluate_script("#{button_metrics_script}('#toc-toggle')")
-    assert_in_delta expanded_button_metrics["top"], scrolled_expanded_button_metrics["top"], 1
-    assert_in_delta expanded_button_metrics["right"], scrolled_expanded_button_metrics["right"], 1
+    assert_equal "absolute", scrolled_expanded_button_metrics["position"]
+    assert_in_delta expanded_button_metrics["tocTopInset"], scrolled_expanded_button_metrics["tocTopInset"], 1
+    assert_in_delta expanded_button_metrics["tocRightInset"], scrolled_expanded_button_metrics["tocRightInset"], 1
+    assert_in_delta scrolled_expanded_button_metrics["tocTopInset"], scrolled_expanded_button_metrics["tocRightInset"], 1
 
     find("#toc-toggle").click
 
     assert_selector ".writeup-wrapper.toc-collapsed"
     assert_selector "#toc-toggle[aria-expanded='false']", visible: :all
     assert_selector "#toc[hidden]", visible: :all
+    assert_no_selector ".writeup-toc-restore-slot", visible: :all
     assert_selector ".writeup-toc-restore-button", visible: :visible
     expanded_width = page.evaluate_script(width_script)
     assert_operator expanded_width, :>, original_width
+    assert_in_delta wrapper_width, expanded_width, 1
     collapsed_button_metrics = page.evaluate_script("#{button_metrics_script}('.writeup-toc-restore-button')")
-    assert_equal "fixed", collapsed_button_metrics["position"]
-    assert_in_delta expanded_button_metrics["top"], collapsed_button_metrics["top"], 1
-    assert_in_delta expanded_button_metrics["right"], collapsed_button_metrics["right"], 1
+    assert_equal "absolute", collapsed_button_metrics["position"]
+    assert_in_delta collapsed_button_metrics["contentTopInset"], collapsed_button_metrics["contentRightInset"], 1
 
     page.execute_script("window.scrollTo(0, 0)")
     top_collapsed_button_metrics = page.evaluate_script("#{button_metrics_script}('.writeup-toc-restore-button')")
-    assert_in_delta expanded_button_metrics["top"], top_collapsed_button_metrics["top"], 1
-    assert_in_delta expanded_button_metrics["right"], top_collapsed_button_metrics["right"], 1
+    assert_in_delta top_collapsed_button_metrics["contentTopInset"], top_collapsed_button_metrics["contentRightInset"], 1
+    assert_in_delta collapsed_button_metrics["right"], top_collapsed_button_metrics["right"], 1
 
     find(".writeup-toc-restore-button").click
     assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all

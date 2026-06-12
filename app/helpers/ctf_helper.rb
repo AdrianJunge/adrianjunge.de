@@ -201,9 +201,9 @@ module CtfHelper
     hints = writeup_hints(info)
     return nil if hints.empty?
 
-    content_tag(:details, class: "writeup-hints") do
+    content_tag(:section, class: "writeup-hints writeup-hints-spoilers", aria: { label: "Hints" }) do
       safe_join([
-        content_tag(:summary, class: "writeup-hints-summary") do
+        content_tag(:div, class: "writeup-hints-summary") do
           content_tag(:span, class: "writeup-hints-summary-content") do
             safe_join([
               content_tag(:span, "Hints", class: "writeup-hints-title"),
@@ -211,10 +211,20 @@ module CtfHelper
             ])
           end
         end,
-        content_tag(:ul, class: "writeup-hints-list") do
-          safe_join(hints.map do |hint|
-            content_tag(:li) do
-              content_tag(:div, render_markdown(hint), class: "writeup-hint-content")
+        content_tag(:ol, class: "writeup-hints-list") do
+          safe_join(hints.each_with_index.map do |hint, index|
+            content_tag(:li, class: "writeup-hint-spoiler is-hidden", data: { hint_spoiler: true }) do
+              safe_join([
+                content_tag(:div, render_markdown(hint), class: "writeup-hint-content writeup-hint-spoiler-content", aria: { hidden: "true" }),
+                content_tag(
+                  :button,
+                  "Expose",
+                  type: "button",
+                  class: "writeup-hint-unhide",
+                  data: { hint_spoiler_reveal: true },
+                  aria: { expanded: "false", label: "Expose hint #{index + 1}" }
+                )
+              ])
             end
           end)
         end

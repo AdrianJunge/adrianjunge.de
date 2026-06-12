@@ -63,6 +63,12 @@
     <h1 class="writeup-title text-white text-center"><%= @blog_title %></h1>
     <%= render "shared/post_meta", items: [ @blog_info["published"] ], reading_time: @blog_info["reading_time_label"] %>
 
+    <section class="article-meta-panel blog-article-meta-panel" aria-label="Post details">
+      <%= render "shared/article_description",
+                 description: @blog_info["description"].presence || blog_config["description"],
+                 label: "Post description" %>
+    </section>
+
     <%= @html_content %>
   </div>
 

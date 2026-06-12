@@ -185,6 +185,23 @@ function initCodeCopy() {
   });
 }
 
+function initHintSpoilers() {
+  document.addEventListener('click', event => {
+    const btn = event.target.closest('[data-hint-spoiler-reveal]');
+    if (!btn) return;
+
+    const spoiler = btn.closest('[data-hint-spoiler]');
+    if (!spoiler) return;
+
+    const content = spoiler.querySelector('.writeup-hint-spoiler-content');
+    spoiler.classList.remove('is-hidden');
+    spoiler.classList.add('is-revealed');
+    btn.setAttribute('aria-expanded', 'true');
+    btn.hidden = true;
+    if (content) content.setAttribute('aria-hidden', 'false');
+  });
+}
+
 function initArticleProgress() {
   const progress = document.querySelector('[data-article-progress]');
   const article = document.querySelector('.writeup-container > .markdown-content') || document.querySelector('.markdown-content');
@@ -234,11 +251,13 @@ if (document.readyState === 'loading') {
     initBlogTOC();
     initAnimatedDetails();
     initCodeCopy();
+    initHintSpoilers();
     initArticleProgress();
   });
 } else {
   initBlogTOC();
   initAnimatedDetails();
   initCodeCopy();
+  initHintSpoilers();
   initArticleProgress();
 }
