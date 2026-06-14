@@ -2,6 +2,7 @@ require "application_system_test_case"
 
 class AboutmeTest < ApplicationSystemTestCase
   test "visiting about me page renders the public profile sections" do
+    page.current_window.resize_to(1440, 1200)
     visit about_path
 
     assert_selector "main.aboutme-page"
@@ -32,6 +33,96 @@ class AboutmeTest < ApplicationSystemTestCase
     page.execute_script(<<~JS)
       document.querySelectorAll(".aboutme-achievement-card").forEach((card) => { card.open = true; });
     JS
+    icon_coverage = page.evaluate_script(<<~JS)
+      (() => {
+        const cards = [...document.querySelectorAll(".aboutme-section .aboutme-card")]
+          .filter((card) => card.offsetParent !== null);
+
+        return {
+          cardCount: cards.length,
+          iconCount: cards.filter((card) => card.querySelector(".aboutme-card-icon")).length,
+          mediaCount: cards.filter((card) => card.querySelector(".content-card-media.blog-post-card-logo")).length,
+          dropdownHeaderCount: [...document.querySelectorAll("details.aboutme-card > summary.aboutme-card-header")].length,
+          dropdownToggleCount: [...document.querySelectorAll("details.aboutme-card > summary.aboutme-card-header .aboutme-card-toggle")].length,
+          mediaBorderWidths: [...document.querySelectorAll(".aboutme-card .content-card-media.blog-post-card-logo")]
+            .map((media) => window.getComputedStyle(media).borderRightWidth)
+            .filter((value, index, values) => values.indexOf(value) === index),
+          dropdownMetrics: (() => {
+            const summary = document.querySelector("details.aboutme-card[open] > summary.aboutme-card-header");
+            const card = summary.closest(".aboutme-card");
+            const header = summary.querySelector(".aboutme-card-header-content");
+            const media = summary.querySelector(".content-card-media.blog-post-card-logo");
+            const body = summary.querySelector(".blog-post-card-details");
+            const toggle = summary.querySelector(".aboutme-card-toggle");
+            const accentStyle = window.getComputedStyle(card, "::after");
+            const toggleStyle = window.getComputedStyle(toggle);
+            const chevronStyle = window.getComputedStyle(toggle, "::before");
+            const summaryRect = summary.getBoundingClientRect();
+            const headerRect = header.getBoundingClientRect();
+            const mediaRect = media.getBoundingClientRect();
+            const bodyRect = body.getBoundingClientRect();
+            const toggleRect = toggle.getBoundingClientRect();
+
+            return {
+              summaryDisplay: window.getComputedStyle(summary).display,
+              summaryZIndex: window.getComputedStyle(summary).zIndex,
+              summaryBorderBottomWidth: window.getComputedStyle(summary).borderBottomWidth,
+              summaryBorderBottomStyle: window.getComputedStyle(summary).borderBottomStyle,
+              accentZIndex: accentStyle.zIndex,
+              accentWidth: accentStyle.width,
+              accentBackgroundImage: accentStyle.backgroundImage,
+              headerDisplay: window.getComputedStyle(header).display,
+              toggleDisplay: toggleStyle.display,
+              toggleWidth: toggleStyle.width,
+              toggleHeight: toggleStyle.height,
+              toggleBackgroundColor: toggleStyle.backgroundColor,
+              toggleBorderTopWidth: toggleStyle.borderTopWidth,
+              toggleBorderLeftWidth: toggleStyle.borderLeftWidth,
+              toggleBorderRightWidth: toggleStyle.borderRightWidth,
+              toggleBorderBottomWidth: toggleStyle.borderBottomWidth,
+              chevronContent: chevronStyle.content,
+              topGap: Math.round(toggleRect.top - summaryRect.top),
+              rightGap: Math.round(summaryRect.right - toggleRect.right),
+              toggleInsideHeader:
+                toggleRect.top >= summaryRect.top &&
+                toggleRect.right <= summaryRect.right &&
+                toggleRect.bottom <= summaryRect.bottom,
+              headerBottomGap: Math.round(summaryRect.bottom - headerRect.bottom),
+              mediaBottomGap: Math.round(summaryRect.bottom - mediaRect.bottom),
+              bodyBottomGap: Math.round(summaryRect.bottom - bodyRect.bottom)
+            };
+          })()
+        };
+      })()
+    JS
+    assert_operator icon_coverage["cardCount"], :>, 0
+    assert_equal icon_coverage["cardCount"], icon_coverage["iconCount"]
+    assert_equal icon_coverage["cardCount"], icon_coverage["mediaCount"]
+    assert_operator icon_coverage["dropdownHeaderCount"], :>, 0
+    assert_equal icon_coverage["dropdownHeaderCount"], icon_coverage["dropdownToggleCount"]
+    assert_equal [ "1px" ], icon_coverage["mediaBorderWidths"]
+    assert_equal "flex", icon_coverage["dropdownMetrics"]["summaryDisplay"]
+    assert_operator icon_coverage["dropdownMetrics"]["accentZIndex"].to_i, :>, icon_coverage["dropdownMetrics"]["summaryZIndex"].to_i
+    assert_equal "4px", icon_coverage["dropdownMetrics"]["accentWidth"]
+    assert_includes icon_coverage["dropdownMetrics"]["accentBackgroundImage"], "linear-gradient"
+    assert_equal "1px", icon_coverage["dropdownMetrics"]["summaryBorderBottomWidth"]
+    assert_equal "solid", icon_coverage["dropdownMetrics"]["summaryBorderBottomStyle"]
+    assert_equal "flex", icon_coverage["dropdownMetrics"]["headerDisplay"]
+    assert_equal "block", icon_coverage["dropdownMetrics"]["toggleDisplay"]
+    assert_not_equal "0px", icon_coverage["dropdownMetrics"]["toggleWidth"]
+    assert_not_equal "0px", icon_coverage["dropdownMetrics"]["toggleHeight"]
+    assert_equal "rgba(0, 0, 0, 0)", icon_coverage["dropdownMetrics"]["toggleBackgroundColor"]
+    assert_equal "0px", icon_coverage["dropdownMetrics"]["toggleBorderTopWidth"]
+    assert_equal "0px", icon_coverage["dropdownMetrics"]["toggleBorderLeftWidth"]
+    assert_equal "2px", icon_coverage["dropdownMetrics"]["toggleBorderRightWidth"]
+    assert_equal "2px", icon_coverage["dropdownMetrics"]["toggleBorderBottomWidth"]
+    assert_equal "none", icon_coverage["dropdownMetrics"]["chevronContent"]
+    assert_in_delta icon_coverage["dropdownMetrics"]["topGap"], icon_coverage["dropdownMetrics"]["rightGap"], 1
+    assert_operator icon_coverage["dropdownMetrics"]["topGap"], :>, 8
+    assert_equal true, icon_coverage["dropdownMetrics"]["toggleInsideHeader"]
+    assert_operator icon_coverage["dropdownMetrics"]["headerBottomGap"], :<=, 1
+    assert_operator icon_coverage["dropdownMetrics"]["mediaBottomGap"], :<=, 1
+    assert_operator icon_coverage["dropdownMetrics"]["bodyBottomGap"], :<=, 1
 
     assert_text "record of what I have worked on and learned from"
     assert_text "CVE-2026-39327"
@@ -92,6 +183,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#talks .aboutme-card-title", text: "KITCTF Web Intro"
     assert_selector "#talks .aboutme-tag-date", text: "2026-05-07"
     assert_selector "#talks .aboutme-tag-slides[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf'][target='_blank'][rel='noopener noreferrer']", text: "Slides"
+    assert_selector "#talks .aboutme-card-icon[src*='other/talk-slides']"
     assert_no_selector "#achievements #firedancer-v1-audit-competition"
     assert_no_selector "#achievements .aboutme-card-link-overlay", visible: :all
     assert_no_selector "#achievements #kitctf .aboutme-reference-link[href='https://ctftime.org/team/7221/']", visible: :all
@@ -99,6 +191,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_no_text "KITCTF on CTFtime"
     assert_no_selector "#achievements #kitctf .aboutme-timeline-event-tag", visible: :all
     assert_selector "#achievements #kitctf .aboutme-timeline-event-link[href='https://ctftime.org/event/2714']", text: "KITCTF #3 at GlacierCTF 2025", visible: :all
+    assert_selector "#achievements #kitctf .aboutme-card-icon[src*='ctf/kitctf']"
     assert_no_text "Public advisories"
     assert_no_text "Responsible disclosure"
     assert_no_text "Credentials"
@@ -120,6 +213,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector ".aboutme-stat[href='#certificates']", text: "Certificates"
     assert_selector ".aboutme-stat[href='#talks']", text: "Talks"
     assert_selector ".aboutme-stat[href='#achievements']", text: "Achievements"
+    assert_no_selector ".aboutme-stat .aboutme-stat-icon", visible: :all
     assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.aboutme-stat')).justifyContent")
     counter_surface = page.evaluate_script(<<~JS)
       (() => {
@@ -313,15 +407,20 @@ class AboutmeTest < ApplicationSystemTestCase
         (() => {
           const stats = document.querySelector(".aboutme-stats").getBoundingClientRect();
           const lastStat = document.querySelector(".aboutme-stat:last-child").getBoundingClientRect();
+          const overflowingLabels = Array.from(document.querySelectorAll(".aboutme-stat-label")).filter((label) => {
+            return label.scrollWidth - label.clientWidth > 1;
+          }).map((label) => label.textContent.trim());
 
           return {
             statsWidth: Math.round(stats.width),
-            lastStatWidth: Math.round(lastStat.width)
+            lastStatWidth: Math.round(lastStat.width),
+            overflowingLabels
           };
         })()
       JS
 
       assert_operator stats_layout["lastStatWidth"], :<=, stats_layout["statsWidth"]
+      assert_empty stats_layout["overflowingLabels"], "expected about counter labels not to overflow at #{width}px"
     end
   end
 

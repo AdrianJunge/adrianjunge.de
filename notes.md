@@ -1,3 +1,6 @@
+- implement that e.g. for referenced codeblocks you can show the real line numbers instead of counting up from 1
+- search for better icons for the different ctf categories
+
 # Content
 - Next Blog
     - Firedancer Bug Bounty overrun race condition

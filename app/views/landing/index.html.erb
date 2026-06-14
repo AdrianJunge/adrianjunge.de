@@ -118,18 +118,6 @@
 </section>
 
 <section id="landing-bottom">
-    <% if @featured_items.any? %>
-        <section class="landing-featured-section" aria-labelledby="landing-featured-title">
-            <h2 id="landing-featured-title" class="text-3xl font-bold mb-6 text-white text-center">Selected work</h2>
-
-            <div class="landing-featured-grid">
-                <% @featured_items.each do |item| %>
-                    <%= render_profile_card(profile_card_for_featured_item(item)) %>
-                <% end %>
-            </div>
-        </section>
-    <% end %>
-
     <h2 class="text-3xl font-bold mb-6 text-white text-center">Latest notes</h2>
 
     <div class="landing-writeup-cards">

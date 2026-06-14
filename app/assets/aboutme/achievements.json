@@ -3,6 +3,7 @@
     "id": "firedancer-v1-audit-competition",
     "title": "Firedancer v1.0 audit competition",
     "title_url": "https://immunefi.com/audit-competition/firedancer-v1-audit-comp/information/",
+    "icon": "other/bug-bounty.svg",
     "category": "Audit Competition",
     "links": [
       {
@@ -27,6 +28,7 @@
     "id": "dhm",
     "title": "DHM",
     "title_url": "https://hacking-meisterschaft.de/",
+    "icon": "ctf/dhm.png",
     "category": "CTF Competition",
     "summary": "Deutsche Hacking Meisterschaft (CSCG finals)",
     "links": [
@@ -54,6 +56,7 @@
     "id": "cscg",
     "title": "CSCG",
     "title_url": "https://cscg.de/",
+    "icon": "ctf/cscg.png",
     "category": "CTF Competition",
     "summary": "Cyber Security Challenges Germany: Qualified for DHM in 2024 and 2025.",
     "links": [
@@ -81,6 +84,7 @@
     "id": "kitctf",
     "title": "KITCTF",
     "title_url": "https://ctftime.org/team/7221/",
+    "icon": "ctf/kitctf.png",
     "category": "CTF Team",
     "summary": "Selected KITCTF team results across international CTFs and finals qualifiers.",
     "links": [

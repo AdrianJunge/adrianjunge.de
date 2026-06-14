@@ -84,6 +84,7 @@
     flex-direction: column;
     gap: 0.15rem;
     min-height: 4.35rem;
+    min-width: 0;
     padding: 0.8rem 0.9rem;
     color: inherit;
     border: 0;
@@ -147,6 +148,8 @@
 }
 
 .aboutme-stat-value {
+    max-width: 100%;
+    min-width: 0;
     color: #f8fafc;
     font-size: 1.55rem;
     font-weight: 800;
@@ -154,10 +157,14 @@
 }
 
 .aboutme-stat-label {
+    max-width: 100%;
+    min-width: 0;
     color: rgba(226, 232, 240, 0.78);
     font-size: 0.94rem;
     font-weight: 800;
     line-height: 1.2;
+    hyphens: auto;
+    overflow-wrap: anywhere;
 }
 
 .aboutme-section {
@@ -255,77 +262,44 @@ details.aboutme-card.ui-card-surface.details-is-animating {
 .aboutme-achievement-event::after {
     position: absolute;
     inset: 0 auto 0 0;
-    z-index: 2;
+    z-index: 6;
     width: 4px;
     background: linear-gradient(180deg, var(--profile-card-accent, var(--aboutme-section-accent, #7dd3fc)), transparent 82%);
     content: "";
     pointer-events: none;
 }
 
-.aboutme-finding-card summary,
 .aboutme-card-header {
     position: relative;
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
+    align-items: stretch;
+    width: 100%;
     min-height: 0;
+    padding: 0;
+    font-size: 0;
+    line-height: 0;
     list-style: none;
     transition: background-color 0.18s ease, border-color 0.18s ease;
 }
 
-.aboutme-finding-card summary {
-    padding: 1rem 3rem 1rem 1.15rem;
+details.aboutme-card > summary {
     cursor: pointer;
 }
 
-.aboutme-card-header {
-    padding: 1rem 1.15rem;
-}
-
-.aboutme-finding-card summary::-webkit-details-marker {
+details.aboutme-card > summary::-webkit-details-marker {
     display: none;
 }
 
-.aboutme-finding-card summary::before {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background-color: transparent;
-    content: "";
-    pointer-events: none;
-    transition: background-color 0.18s ease;
-}
-
-.aboutme-finding-card summary::after {
-    content: "";
-    position: absolute;
-    top: 1.55rem;
-    right: 1.25rem;
-    width: 0.65rem;
-    height: 0.65rem;
-    flex: 0 0 auto;
-    border-right: 2px solid #7dd3fc;
-    border-bottom: 2px solid #7dd3fc;
-    z-index: 1;
-    transform: rotate(45deg);
-    transition: transform 0.18s ease;
-}
-
-.aboutme-finding-card[open] summary {
-    border-bottom: 1px solid rgba(93, 116, 158, 0.55);
-}
-
-.aboutme-finding-card[open] summary::after {
-    transform: rotate(225deg);
-}
-
-.aboutme-finding-card summary:focus-visible {
+details.aboutme-card > summary:focus-visible {
     outline: 2px solid #7dd3fc;
     outline-offset: -4px;
 }
 
-.aboutme-finding-card summary > * {
+details.aboutme-card[open] > .aboutme-card-header {
+    border-bottom: 1px solid rgba(93, 116, 158, 0.55);
+}
+
+details.aboutme-card > summary > * {
     position: relative;
     z-index: 1;
 }
@@ -337,6 +311,67 @@ details.aboutme-card.ui-card-surface.details-is-animating {
     flex: 1 1 auto;
     flex-direction: column;
     gap: 0.52rem;
+}
+
+.aboutme-card-header-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    font-size: 1rem;
+    line-height: normal;
+}
+
+.aboutme-card .blog-post-card-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 6.75rem;
+    width: 6.75rem;
+    min-width: 6.75rem;
+    align-self: stretch;
+    padding: 0.95rem;
+    border-right: 1px solid rgba(125, 164, 209, 0.42);
+    background: rgba(14, 58, 93, 0.32);
+}
+
+.aboutme-card-icon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 5rem;
+    max-height: 5rem;
+    object-fit: contain;
+}
+
+.aboutme-card .blog-post-card-details {
+    min-width: 0;
+    align-self: stretch;
+    gap: 0.52rem;
+    padding: 1rem 1.15rem;
+}
+
+details.aboutme-card > .aboutme-card-header .blog-post-card-details {
+    padding-right: 3rem;
+}
+
+.aboutme-card-toggle {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.2rem;
+    z-index: 5;
+    display: block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-right: 2px solid #7dd3fc;
+    border-bottom: 2px solid #7dd3fc;
+    pointer-events: none;
+    transform: rotate(45deg);
+    transition: transform 0.18s ease;
+}
+
+details.aboutme-card[open] > .aboutme-card-header .aboutme-card-toggle {
+    transform: rotate(225deg);
 }
 
 .aboutme-card-title,
@@ -1158,19 +1193,25 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
         font-size: 1.75rem;
     }
 
-    .aboutme-finding-card summary,
-    .aboutme-card-header {
-        align-items: stretch;
+    .aboutme-card .blog-post-card-content {
         flex-direction: column;
-        min-height: 0;
     }
 
-    .aboutme-finding-card summary {
-        padding: 1rem 2.75rem 1rem 1rem;
+    .aboutme-card .blog-post-card-logo {
+        width: 100%;
+        min-width: 0;
+        min-height: 5.75rem;
+        border-right: 0;
+        border-bottom: 1px solid rgba(93, 116, 158, 0.45);
     }
 
-    .aboutme-card-header {
-        padding: 1rem;
+    details.aboutme-card > .aboutme-card-header .blog-post-card-details {
+        padding-right: 2.75rem;
+    }
+
+    .aboutme-card-toggle {
+        top: 1.05rem;
+        right: 1.05rem;
     }
 
     .aboutme-finding-badges {
@@ -1267,7 +1308,6 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
 .aboutme-empty-state,
 details.aboutme-card.ui-card-surface.details-is-animating,
 .aboutme-finding-card summary,
-.aboutme-finding-card summary::before,
 .aboutme-card-header,
 .aboutme-card-body {
     transition: none;
@@ -1410,34 +1450,6 @@ a.aboutme-card-tag.aboutme-tag-action:focus-visible {
 
 details.aboutme-achievement-card {
     display: block;
-}
-
-details.aboutme-card:not(.aboutme-finding-card) > summary {
-    display: block;
-    position: relative;
-    padding: 1.15rem 1.25rem;
-    cursor: pointer;
-    list-style: none;
-}
-
-details.aboutme-card:not(.aboutme-finding-card) > summary::-webkit-details-marker {
-    display: none;
-}
-
-details.aboutme-card:not(.aboutme-finding-card) > summary::after {
-    position: absolute;
-    top: 1.25rem;
-    right: 1.25rem;
-    width: 0.55rem;
-    height: 0.55rem;
-    border-right: 2px solid rgba(226, 232, 240, 0.72);
-    border-bottom: 2px solid rgba(226, 232, 240, 0.72);
-    content: "";
-    transform: rotate(-45deg);
-}
-
-details.aboutme-card:not(.aboutme-finding-card)[open] > summary::after {
-    transform: rotate(45deg);
 }
 
 .aboutme-timeline-content {

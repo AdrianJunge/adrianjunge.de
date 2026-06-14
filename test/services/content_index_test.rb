@@ -12,27 +12,46 @@ class ContentIndexTest < ActiveSupport::TestCase
     expected_ids.concat(@repository.blog_posts.map { |post| "blog-#{post[:slug].parameterize}" })
     expected_ids.concat(about_entry_ids("cve", ApplicationController::ABOUTME_CVES_PATH))
     expected_ids.concat(about_entry_ids("bug-bounty", ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
+    expected_ids.concat(@repository.authored_challenges.map { |entry| about_id("challenge", entry) })
     expected_ids.concat(about_entry_ids("certificate", ApplicationController::ABOUTME_CERTIFICATES_PATH))
     expected_ids.concat(about_entry_ids("talk", ApplicationController::ABOUTME_TALKS_PATH))
     expected_ids.concat(achievement_event_ids)
 
-    assert_equal expected_ids.sort, @items.map { |item| item[:id] }.sort
+    assert_equal expected_ids.sort, timeline_source_ids.sort
 
     expected_counts = {
       "writeup" => @repository.ctf_posts.length,
       "blog" => @repository.blog_posts.length,
       "cve" => @repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).length,
       "bug-bounty" => @repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH).length,
+      "challenge" => @repository.authored_challenges.length,
       "certificate" => @repository.about_entries(ApplicationController::ABOUTME_CERTIFICATES_PATH).length,
       "talk" => @repository.about_entries(ApplicationController::ABOUTME_TALKS_PATH).length,
       "achievement" => achievement_event_ids.length
     }
-    actual_counts = @items.group_by { |item| item[:kind] }.transform_values(&:length)
+    actual_counts = timeline_source_ids.group_by { |id| timeline_source_kind(id) }.transform_values(&:length)
 
     expected_counts.each do |kind, count|
-      assert_equal count, actual_counts.fetch(kind, 0), "Expected #{count} #{kind} timeline items"
+      assert_equal count, actual_counts.fetch(kind, 0), "Expected #{count} #{kind} timeline sources"
     end
     assert_equal expected_counts.select { |_kind, count| count.positive? }.keys.sort, actual_counts.keys.sort
+    assert_empty @items.select { |item| item[:logo].blank? }.map { |item| item[:id] }
+  end
+
+  test "timeline groups merge related about and post sources" do
+    ids = @items.map { |item| item[:id] }
+    item = @items.find { |candidate| candidate[:id] == "blog-htb-cpts" }
+
+    assert item
+    assert_not_includes ids, "about-certificate-htb-cpts"
+    assert_includes item[:merged_item_ids], "blog-htb-cpts"
+    assert_includes item[:merged_item_ids], "about-certificate-htb-cpts"
+    assert_equal "/blog/htb-cpts", item[:link]
+    assert_equal "blog", item[:kind]
+    assert_includes item[:kind_labels], { label: "Blog post", tag_value: "Blog post" }
+    assert_includes item[:kind_labels], { label: "Certificate", tag_value: "Certificate" }
+    assert_includes item[:tags], "Certificate"
+    assert_includes item[:search_text], "hack the box certified penetration testing specialist"
   end
 
   test "authored challenge timeline entries merge into their writeups" do
@@ -119,6 +138,23 @@ class ContentIndexTest < ActiveSupport::TestCase
           "about-achievement-#{event_id.parameterize}"
         end
       end
+    end
+  end
+
+  def timeline_source_ids
+    @items.flat_map { |item| [ item[:id], *Array(item[:merged_item_ids]) ] }.uniq
+  end
+
+  def timeline_source_kind(id)
+    case id
+    when /\Actf-/
+      "writeup"
+    when /\Ablog-/
+      "blog"
+    when /\Aabout-(bug-bounty|achievement|certificate|challenge|cve|talk)-/
+      Regexp.last_match(1)
+    else
+      flunk("unexpected timeline source id #{id.inspect}")
     end
   end
 

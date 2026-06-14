@@ -6,43 +6,37 @@ class ContentIndex
       path: ApplicationController::ABOUTME_CVES_PATH,
       kind: "cve",
       label: "CVE",
-      section: "cves",
-      featured: true
+      section: "cves"
     },
     {
       path: ApplicationController::ABOUTME_BUG_BOUNTIES_PATH,
       kind: "bug-bounty",
       label: "Bug bounty",
-      section: "bug-bounties",
-      featured: true
+      section: "bug-bounties"
     },
     {
       path: ApplicationController::ABOUTME_CHALLENGES_PATH,
       kind: "challenge",
       label: AuthoredChallenge::FILTER_LABEL,
-      section: "my-challenges",
-      featured: true
+      section: "my-challenges"
     },
     {
       path: ApplicationController::ABOUTME_CERTIFICATES_PATH,
       kind: "certificate",
       label: "Certificate",
-      section: "certificates",
-      featured: true
+      section: "certificates"
     },
     {
       path: ApplicationController::ABOUTME_TALKS_PATH,
       kind: "talk",
       label: "Talk",
-      section: "talks",
-      featured: false
+      section: "talks"
     },
     {
       path: ApplicationController::ABOUTME_ACHIEVEMENTS_PATH,
       kind: "achievement",
       label: "Achievement",
-      section: "achievements",
-      featured: false
+      section: "achievements"
     }
   ].freeze
 
@@ -52,21 +46,6 @@ class ContentIndex
 
   def all_items
     @all_items ||= merged_timeline_items(post_items + about_items).sort_by { |item| -item[:published].to_i }
-  end
-
-  def featured_items(limit = 3)
-    featured_about_items(limit)
-  end
-
-  def featured_about_items(limit = 3)
-    candidates = [
-      latest_featured_about_entry("cve") { |item| item[:entry]["cve_id"].present? },
-      latest_featured_about_entry("bug-bounty") { |item| meaningful_description?(item) },
-      latest_featured_about_entry("certificate") { |item| meaningful_description?(item) },
-      latest_featured_about_entry("challenge") { |item| meaningful_description?(item) }
-    ].compact
-
-    candidates.uniq { |item| item[:id] }.sort_by { |item| -item[:published].to_i }.first(limit)
   end
 
   private
@@ -93,6 +72,7 @@ class ContentIndex
         link: post[:link],
         tags: [ post[:which] ] + repository.metadata_tags(metadata),
         search_parts: [ post[:which], post[:title], metadata, post[:content] ],
+        timeline_group: metadata["timeline_group"].presence,
         logo: post[:logo],
         reading_time_minutes: post[:reading_time_minutes],
         reading_time_label: post[:reading_time_label],
@@ -120,6 +100,7 @@ class ContentIndex
         link: post[:link],
         tags: [ post[:which] ] + repository.metadata_tags(metadata),
         search_parts: [ post[:which], post[:title], metadata, post[:content] ],
+        timeline_group: metadata["timeline_group"].presence || blog_metadata.dig(post[:slug], "timeline_group").presence,
         logo: blog_metadata.dig(post[:slug], "logo"),
         reading_time_minutes: post[:reading_time_minutes],
         reading_time_label: post[:reading_time_label]
@@ -165,10 +146,11 @@ class ContentIndex
         link: link,
         tags: tags,
         search_parts: [ collection[:label], entry ],
+        timeline_group: entry["timeline_group"].presence,
+        logo: about_entry_icon(entry, collection),
         cve_id: entry["cve_id"].presence,
         severity: entry["severity"].presence,
-        project: entry["project"].presence,
-        featured: collection[:featured]
+        project: entry["project"].presence
       )
     ]
   end
@@ -201,7 +183,8 @@ class ContentIndex
         link: "/about##{event_id}",
         tags: tags,
         search_parts: [ collection[:label], entry, event ],
-        featured: collection[:featured]
+        timeline_group: event["timeline_group"].presence,
+        logo: event["icon"].presence || about_entry_icon(entry, collection)
       )
     end
   end
@@ -249,6 +232,7 @@ class ContentIndex
     primary.merge(
       published: published,
       display_date: date_source[:display_date].presence || primary[:display_date],
+      logo: primary[:logo].presence || group.find { |item| item[:logo].present? }&.dig(:logo),
       kind_labels: kind_labels,
       tags: tags,
       search_text: search_text,
@@ -257,47 +241,19 @@ class ContentIndex
   end
 
   def timeline_merge_key(item)
+    explicit_group = item[:timeline_group].to_s.parameterize
+    return "timeline-group:#{explicit_group}" if explicit_group.present?
+
     link = item[:link].to_s
     return if link.blank?
 
-    CGI.unescape(link)
+    "link:#{CGI.unescape(link)}"
   end
 
   def timeline_content_type_labels(tags)
     ContentTagTaxonomy.canonical_values(tags)
                       .select { |tag| ContentTagTaxonomy.content_type?(tag) }
                       .map { |tag| { label: tag, tag_value: tag } }
-  end
-
-  def latest_featured_about_entry(kind)
-    featured_about_entry_items.find do |item|
-      item[:kind] == kind && yield(item)
-    end
-  end
-
-  def featured_about_entry_items
-    @featured_about_entry_items ||= ABOUT_COLLECTIONS.select { |collection| collection[:featured] }.flat_map do |collection|
-      about_collection_entries(collection).filter_map do |entry|
-        id = entry["id"].presence || entry["title"].to_s.parameterize
-        next if id.blank?
-
-        {
-          id: "about-#{collection[:kind]}-#{id.parameterize}",
-          kind: collection[:kind],
-          label: collection[:label],
-          entry: entry,
-          published: about_published_time(entry, collection[:path])
-        }
-      end
-    end.sort_by { |item| -item[:published].to_i }
-  end
-
-  def meaningful_description?(item)
-    if item[:entry].present?
-      item[:entry]["summary"].present? && !item[:entry]["title"].to_s.match?(/\bTBA\b/i)
-    else
-      item[:description].present? && !item[:title].to_s.match?(/\bTBA\b/i)
-    end
   end
 
   def about_description(entry)
@@ -324,6 +280,35 @@ class ContentIndex
       entry["cwe_id"],
       WriteupDifficulty.filter_label_for(entry)
     ].map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| ContentRepository.filter_tag_sort_key(tag) }
+  end
+
+  def about_entry_icon(entry, collection)
+    entry["icon"].presence || about_collection_default_icon(collection[:kind], entry)
+  end
+
+  def about_collection_default_icon(kind, entry)
+    category = entry["category"].to_s.downcase
+    title = entry["title"].to_s.downcase
+
+    case kind
+    when "cve"
+      "other/cve.svg"
+    when "bug-bounty"
+      "other/bug-bounty.svg"
+    when "certificate"
+      "other/certificate.svg"
+    when "talk"
+      "other/talk-slides.png"
+    when "achievement"
+      "other/achievement.svg"
+    when "challenge"
+      "ctf/kitctf.png"
+    else
+      return "other/talk-slides.png" if category.match?(/slide|talk/) || title.match?(/\btalk\b|intro/)
+      return "other/certificate.svg" if category.match?(/certif/) || title.match?(/certif|cpts/)
+
+      "other/achievement.svg"
+    end
   end
 
   def about_entry_timeline_link(entry, id, collection)

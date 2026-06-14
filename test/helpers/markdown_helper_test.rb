@@ -19,4 +19,14 @@ class MarkdownHelperTest < ActionView::TestCase
     assert_equal 3, fragment.css(".code-block pre.highlight code .code-line-content").length
     assert_equal "puts \"one\"\n\nputs \"two\"\n", fragment.at_css(".copy-btn")["data-code"]
   end
+
+  test "markdown links opened in new tabs include noopener noreferrer" do
+    html = render_markdown("[external](https://example.com)")
+    fragment = Nokogiri::HTML.fragment(html)
+    link = fragment.at_css(".markdown-content a[href='https://example.com']")
+
+    assert_equal "_blank", link["target"]
+    assert_includes link["rel"].split, "noopener"
+    assert_includes link["rel"].split, "noreferrer"
+  end
 end

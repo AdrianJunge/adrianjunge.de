@@ -234,7 +234,12 @@ def paste_logo(
     size = canvas.size[0]
     max_side = int((size - 2 * inner_margin) * logo_scale)
     logo = prepare_logo(source, background, threshold, slack, crop_box)
-    logo.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
+    if logo.width == 0 or logo.height == 0:
+        return
+
+    scale = max_side / max(logo.width, logo.height)
+    resized_size = (max(1, round(logo.width * scale)), max(1, round(logo.height * scale)))
+    logo = logo.resize(resized_size, Image.Resampling.LANCZOS)
     canvas.alpha_composite(logo, ((size - logo.width) // 2, (size - logo.height) // 2))
 
 

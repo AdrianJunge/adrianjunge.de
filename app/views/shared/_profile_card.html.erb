@@ -7,47 +7,62 @@
 <% card_url = collapsible ? nil : card[:card_url].presence %>
 <% title_url = card[:title_link] ? card[:title_url].presence : nil %>
 <% reading_time = card[:reading_time].to_s.presence %>
+<% icon_path = card[:icon].to_s.presence %>
 <% card_classes = [ "profile-card", "aboutme-card", "ui-card-surface", ("ui-hover-lift" if card_url.present?), card[:class_name], ("aboutme-card-static" unless collapsible), ("aboutme-card-linked" if card_url.present?), ("aboutme-card-nested" if card[:nested]) ].compact.join(" ") %>
 <% main_classes = [ "aboutme-card-main", card[:main_class] ].compact.join(" ") %>
 <% title_classes = [ "aboutme-card-title", card[:title_class] ].compact.join(" ") %>
 <% tag_container_classes = [ "aboutme-card-tags", card[:tags_class] ].compact.join(" ") %>
 <% summary_classes = [ "aboutme-card-summary", card[:description_class] ].compact.join(" ") %>
 <% heading_tag = card[:heading_tag].presence || (card[:nested] ? :h4 : :h3) %>
+<% header_body_content = capture do %>
+  <% if card[:title].present? %>
+    <% if card[:kicker].present? %>
+      <span class="aboutme-card-kicker"><%= card[:kicker] %></span>
+    <% end %>
+    <%= content_tag(heading_tag, class: title_classes) do %>
+      <%= profile_card_optional_link(card[:title], title_url, class_name: card[:title_link_class]) %>
+    <% end %>
+  <% end %>
+
+  <% if tags.any? %>
+    <span class="<%= tag_container_classes %>">
+      <% tags.each do |tag| %>
+        <%= profile_card_tag(label: tag[:label], url: tag[:url], class_name: tag[:class_name], datetime: tag[:datetime]) %>
+      <% end %>
+    </span>
+  <% end %>
+
+  <% if card[:description].present? %>
+    <span class="<%= summary_classes %>">
+      <%= profile_card_optional_link(
+            card[:description],
+            card[:description_url],
+            class_name: card[:description_link_class],
+            aria_label: card[:description_aria_label],
+            title: card[:description_title]
+          ) %>
+    </span>
+  <% end %>
+
+  <% if reading_time.present? %>
+    <span class="aboutme-card-reading-time"><%= reading_time %></span>
+  <% end %>
+<% end %>
 <% header_content = capture do %>
-  <span class="<%= main_classes %>">
-    <% if card[:title].present? %>
-      <% if card[:kicker].present? %>
-        <span class="aboutme-card-kicker"><%= card[:kicker] %></span>
-      <% end %>
-      <%= content_tag(heading_tag, class: title_classes) do %>
-        <%= profile_card_optional_link(card[:title], title_url, class_name: card[:title_link_class]) %>
-      <% end %>
-    <% end %>
-
-    <% if tags.any? %>
-      <span class="<%= tag_container_classes %>">
-        <% tags.each do |tag| %>
-          <%= profile_card_tag(label: tag[:label], url: tag[:url], class_name: tag[:class_name], datetime: tag[:datetime]) %>
-        <% end %>
-      </span>
-    <% end %>
-
-    <% if card[:description].present? %>
-      <span class="<%= summary_classes %>">
-        <%= profile_card_optional_link(
-              card[:description],
-              card[:description_url],
-              class_name: card[:description_link_class],
-              aria_label: card[:description_aria_label],
-              title: card[:description_title]
-            ) %>
-      </span>
-    <% end %>
-
-    <% if reading_time.present? %>
-      <span class="aboutme-card-reading-time"><%= reading_time %></span>
-    <% end %>
-  </span>
+  <%= render "shared/card_shell",
+             media: icon_path.present? ? {
+               image: icon_path,
+               alt: "",
+               image_class: "blog-logo aboutme-card-icon",
+               wrapper_class: "blog-post-card-logo aboutme-card-logo"
+             } : {},
+             content_class: "content-card-content blog-post-card-content aboutme-card-header-content",
+             body_class: [ "content-card-body", "blog-post-card-details", main_classes ].compact.join(" "),
+             body_content: header_body_content,
+             content_tag_name: :div,
+             body_tag_name: :div,
+             wrap_content: true,
+             wrap_body: true %>
 <% end %>
 <% body_content = capture do %>
   <% body_blocks.each do |block| %>
@@ -122,8 +137,9 @@
 
 <% if collapsible %>
   <details class="<%= card_classes %>" id="<%= card[:id].presence %>" data-animated-details="true">
-    <summary>
+    <summary class="aboutme-card-header">
       <%= header_content %>
+      <span class="aboutme-card-toggle" aria-hidden="true"></span>
     </summary>
 
     <div class="aboutme-card-body">

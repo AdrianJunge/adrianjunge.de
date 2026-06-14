@@ -163,6 +163,7 @@ class ContentRepository
         "id" => authored[:id].presence || post[:slug].parameterize,
         "title" => post[:title],
         "title_url" => link,
+        "icon" => post[:logo],
         "card_url" => link,
         "category" => event,
         "category_url" => event_url,

@@ -1,0 +1,39 @@
+<% raw_media = local_assigns[:media] || {} %>
+<% media = raw_media.respond_to?(:symbolize_keys) ? raw_media.symbolize_keys : raw_media %>
+<% media_html = local_assigns[:media_html] %>
+<% body_content = local_assigns.fetch(:body_content) %>
+<% content_classes = Array(local_assigns.fetch(:content_class, "content-card-content")).compact.join(" ") %>
+<% body_classes = Array(local_assigns.fetch(:body_class, "content-card-body")).compact.join(" ") %>
+<% wrap_content = local_assigns.fetch(:wrap_content, media.present? || media_html.present?) %>
+<% wrap_body = local_assigns.fetch(:wrap_body, body_classes.present?) %>
+<% content_tag_name = (local_assigns[:content_tag_name].presence || :span).to_sym %>
+<% body_tag_name = (local_assigns[:body_tag_name].presence || :span).to_sym %>
+
+<% media_content = capture do %>
+  <% if media.present? || media_html.present? %>
+    <% media_classes = [ "content-card-media", media[:wrapper_class] ].compact.join(" ") %>
+    <span class="<%= media_classes %>">
+      <% if media_html.present? %>
+        <%= media_html %>
+      <% elsif media[:image].present? %>
+        <%= image_tag(media[:image], alt: media[:alt].presence || "", class: [ "content-card-image", media[:image_class] ].compact.join(" ")) %>
+      <% elsif media[:placeholder].present? %>
+        <span class="<%= [ "content-card-placeholder", media[:placeholder_class] ].compact.join(" ") %>"><%= media[:placeholder] %></span>
+      <% end %>
+    </span>
+  <% end %>
+<% end %>
+
+<% body_node = capture do %>
+  <% if wrap_body %>
+    <%= content_tag(body_tag_name, body_content, class: body_classes) %>
+  <% else %>
+    <%= body_content %>
+  <% end %>
+<% end %>
+
+<% if wrap_content %>
+  <%= content_tag(content_tag_name, safe_join([ media_content, body_node ]), class: content_classes) %>
+<% else %>
+  <%= safe_join([ media_content, body_node ]) %>
+<% end %>

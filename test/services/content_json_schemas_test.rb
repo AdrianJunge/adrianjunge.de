@@ -43,6 +43,34 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
     end
   end
 
+  test "content image references point at local assets" do
+    asset_refs = []
+    repository = ContentRepository.new
+
+    [
+      ApplicationController::ABOUTME_CVES_PATH,
+      ApplicationController::ABOUTME_BUG_BOUNTIES_PATH,
+      ApplicationController::ABOUTME_CERTIFICATES_PATH,
+      ApplicationController::ABOUTME_CHALLENGES_PATH,
+      ApplicationController::ABOUTME_TALKS_PATH,
+      ApplicationController::ABOUTME_ACHIEVEMENTS_PATH
+    ].each do |path|
+      JSON.parse(File.read(path)).each do |entry|
+        asset_refs << entry["icon"]
+        Array(entry["events"]).each { |event| asset_refs << event["icon"] if event.is_a?(Hash) }
+      end
+    end
+
+    repository.blog_metadata.each_value { |entry| asset_refs << entry["logo"] }
+    repository.ctf_metadata.each_value { |entry| asset_refs << entry["logo"] }
+    repository.authored_challenges.each { |entry| asset_refs << entry["icon"] }
+
+    asset_refs.compact_blank.each do |asset_ref|
+      assert_no_match %r{\Ahttps?://}, asset_ref
+      assert Rails.root.join("app", "assets", "images", asset_ref).exist?, "missing image asset #{asset_ref}"
+    end
+  end
+
   test "invalid content json reports useful schema errors" do
     data = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
     data.first.delete("title")

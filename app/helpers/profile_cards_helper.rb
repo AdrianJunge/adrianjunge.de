@@ -3,21 +3,6 @@ module ProfileCardsHelper
     render "shared/profile_card", card: card
   end
 
-  def profile_card_for_featured_item(item)
-    base_card =
-      case item[:kind]
-      when "cve", "bug-bounty"
-        profile_finding_card(item[:entry], kind: item[:kind])
-      else
-        profile_milestone_card(item[:entry])
-      end
-
-    base_card.merge(
-      class_name: [ base_card[:class_name], "landing-featured-card" ].compact.join(" "),
-      kicker: item[:label]
-    )
-  end
-
   def profile_card_optional_link(label, url, class_name: nil, aria_label: nil, title: nil)
     return nil if label.blank?
 
@@ -85,6 +70,7 @@ module ProfileCardsHelper
       title_class: "aboutme-finding-project",
       tags_class: "aboutme-finding-badges",
       description_class: "aboutme-finding-summary",
+      icon: entry["icon"].presence || profile_finding_default_icon(kind),
       title: entry["project"],
       title_url: nil,
       title_link: false,
@@ -121,6 +107,7 @@ module ProfileCardsHelper
       title_class: "aboutme-finding-project",
       tags_class: "aboutme-finding-badges aboutme-achievement-meta",
       description_class: "aboutme-finding-summary",
+      icon: entry["icon"].presence || profile_milestone_default_icon(entry, events),
       title: entry["title"],
       title_link: false,
       description: nil,
@@ -140,6 +127,21 @@ module ProfileCardsHelper
 
   def profile_card_link_options(url)
     url.to_s.start_with?("/") ? {} : { target: "_blank", rel: "noopener noreferrer" }
+  end
+
+  def profile_finding_default_icon(kind)
+    kind == "bug-bounty" ? "other/bug-bounty.svg" : "other/cve.svg"
+  end
+
+  def profile_milestone_default_icon(entry, events)
+    category = ContentTagTaxonomy.canonical_label(entry["category"]).to_s.downcase
+    title = entry["title"].to_s.downcase
+
+    return "other/talk-slides.png" if category.match?(/slide|talk/) || title.match?(/\btalk\b|intro/)
+    return "other/certificate.svg" if category.match?(/certif/) || title.match?(/certif|cpts/)
+    return "other/achievement.svg" if events.any?
+
+    "other/achievement.svg"
   end
 
   def profile_finding_tags(entry)
@@ -293,6 +295,7 @@ module ProfileCardsHelper
     {
       id: event_id,
       class_name: "aboutme-achievement-event",
+      icon: event["icon"].presence || entry["icon"].presence || "other/achievement.svg",
       title: event["title"],
       description: event["summary"],
       tags: profile_event_tags(event),

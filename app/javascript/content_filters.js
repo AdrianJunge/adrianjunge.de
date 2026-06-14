@@ -2,6 +2,58 @@ function normalizeToken(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function normalizeSearchValue(value) {
+  return normalizeToken(value)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '');
+}
+
+function normalizeSearchWords(value) {
+  return normalizeToken(value)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function orderedCharacterMatch(queryTerm, valueTerm) {
+  if (queryTerm === '') return true;
+
+  const valueText = normalizeSearchValue(valueTerm);
+  let queryIndex = 0;
+
+  for (const character of valueText) {
+    if (character === queryTerm[queryIndex]) queryIndex += 1;
+    if (queryIndex === queryTerm.length) return true;
+  }
+
+  return false;
+}
+
+function searchTermsFrom(text, tags) {
+  const terms = normalizeSearchWords(text);
+
+  tags.forEach(tag => {
+    const tagWords = normalizeSearchWords(tag);
+    terms.push(...tagWords);
+
+    const compactTag = tagWords.join('');
+    if (compactTag) terms.push(compactTag);
+  });
+
+  return [...new Set(terms)];
+}
+
+function matchesSearchQuery(query, terms) {
+  const queryTerms = normalizeSearchWords(query);
+  if (queryTerms.length === 0) return true;
+
+  return queryTerms.every(queryTerm => terms.some(term => orderedCharacterMatch(queryTerm, term)));
+}
+
 function tokensFrom(value) {
   return String(value || '')
     .split('|')
@@ -221,8 +273,9 @@ function initFilterPanel(panel) {
       const text = normalizeToken(card.dataset.filterText);
       const cardTags = tokensFrom(card.dataset.filterTags);
       const cardYears = tokensFrom(card.dataset.filterYears || card.dataset.filterYear);
+      const searchTerms = searchTermsFrom(text, cardTags);
 
-      const matchesText = query === '' || text.includes(query);
+      const matchesText = matchesSearchQuery(query, searchTerms);
       const matchesYear = selectedYear === '' || cardYears.includes(selectedYear);
       const matchesTags = [...activeTags].every(tag => cardTags.includes(tag));
       const matched = matchesText && matchesYear && matchesTags;

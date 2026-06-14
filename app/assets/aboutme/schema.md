@@ -8,9 +8,11 @@ Finding entries support these fields:
 {
   "project": "Affected project",
   "project_url": "https://github.com/org/project",
+  "icon": "other/project.svg",
   "title": "Linked card title",
   "title_url": "https://example.com/advisory",
   "card_url": "https://example.com/overview",
+  "timeline_group": "shared-topic-id",
   "cve_id": "CVE-YYYY-NNNN",
   "cwe_id": "CWE-NNN",
   "severity": "High",
@@ -28,6 +30,7 @@ Finding entries support these fields:
 `cve_id` and `cwe_id` render as clickable chips when they contain real IDs. Leave them empty for pending or non-CVE findings.
 Finding cards are only collapsible when they contain real detail fields such as `summary` or `timeline`.
 Set `"hidden": true` on pending JSON records or achievement events that should remain in source but not render publicly. Markdown posts use `draft: true` in front matter for the same behavior.
+Set `timeline_group` on multiple content sources when they should collapse into one `/timeline` card, for example an about entry and a blog post about the same certification.
 
 Authored CTF challenges are listed on `/about` when a writeup has `optional.authored_challenge` in its markdown front matter:
 
@@ -49,7 +52,9 @@ Certificate, talk, and achievement entries support these fields:
 {
   "title": "Achievement title",
   "title_url": "https://example.com",
+  "icon": "other/achievement.svg",
   "card_url": "https://example.com",
+  "timeline_group": "shared-topic-id",
   "category": "Competition",
   "category_url": "https://example.com/category",
   "date": "2026",
@@ -61,6 +66,8 @@ Certificate, talk, and achievement entries support these fields:
 ```
 
 Use `summary` for all visible card text. Use `category_url` when the category chip should link to a public reference, such as talk slides. Keep pending milestones hidden until they have public summary text.
+Use `timeline_group` only for sources that represent the same real item; equal values merge in `/timeline`.
+Use `icon` for the transparent asset rendered on `/about`, `/timeline`, and landing featured cards. Prefer an existing project or event logo; otherwise add a small transparent SVG under `app/assets/images/other/`.
 
 Achievement entries can group dated events so every event becomes its own search and timeline item:
 
@@ -80,8 +87,10 @@ Achievement entries can group dated events so every event becomes its own search
       "id": "competition-2026",
       "title": "Competition 2026 #1",
       "date": "2026-01-01",
+      "icon": "ctf/example.svg",
       "summary": "Placed first.",
-      "url": "https://example.com/event"
+      "url": "https://example.com/event",
+      "timeline_group": "shared-event-id"
     }
   ]
 }

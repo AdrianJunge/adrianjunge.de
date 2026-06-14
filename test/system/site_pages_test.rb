@@ -914,32 +914,28 @@ class SitePagesTest < ApplicationSystemTestCase
 
   test "main content cards share the blue surface treatment" do
     visit "/"
-    assert_selector ".landing-featured-card.ui-card-surface", minimum: 1
     assert_selector ".landing-writeup-cards .blog-post-card.ui-card-surface", count: landing_latest_posts.length
-    featured_styles = card_surface_styles(".landing-featured-card")
-    featured_profile_highlight_styles = profile_card_highlight_styles(".landing-featured-card.aboutme-finding-card")
     latest_styles = card_surface_styles(".landing-writeup-cards .blog-post-card")
-    assert_equal featured_styles, latest_styles
 
     visit "/timeline"
     assert_selector ".timeline-content.ui-card-surface", minimum: 1
     assert_selector ".timeline-content.content-card", minimum: 1
-    assert_equal featured_styles, card_surface_styles(".timeline-content")
+    assert_equal latest_styles, card_surface_styles(".timeline-content")
 
     visit "/ctf"
     assert_selector ".ctf-card.ui-card-surface", minimum: 1
     assert_selector ".ctf-card.content-card", minimum: 1
-    assert_equal featured_styles, card_surface_styles(".ctf-card")
+    assert_equal latest_styles, card_surface_styles(".ctf-card")
 
     visit "/ctf/#{first_ctf_event_with_writeups[:directory]}"
     assert_selector ".writeup-overview .blog-post-card.ui-card-surface", minimum: 1
     assert_selector ".writeup-overview .blog-post-card.content-card", minimum: 1
-    assert_equal featured_styles, card_surface_styles(".writeup-overview .blog-post-card")
+    assert_equal latest_styles, card_surface_styles(".writeup-overview .blog-post-card")
 
     visit "/blog"
     assert_selector ".blog-posts-container .blog-post-card.ui-card-surface", minimum: 1
     assert_selector ".blog-posts-container .blog-post-card.content-card", minimum: 1
-    assert_equal featured_styles, card_surface_styles(".blog-posts-container .blog-post-card")
+    assert_equal latest_styles, card_surface_styles(".blog-posts-container .blog-post-card")
 
     visit "/about"
     page.execute_script(<<~JS)
@@ -947,8 +943,8 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
     assert_selector ".aboutme-finding-card.ui-card-surface", minimum: 1
     assert_selector ".aboutme-achievement-card.ui-card-surface", minimum: 1
-    assert_equal featured_styles, card_surface_styles(".aboutme-finding-card")
-    assert_equal featured_profile_highlight_styles, profile_card_highlight_styles("#cves .aboutme-finding-card")
+    assert_equal latest_styles, card_surface_styles(".aboutme-finding-card")
+    assert_equal profile_card_highlight_styles(".aboutme-finding-card"), profile_card_highlight_styles("#cves .aboutme-finding-card")
   end
 
   test "landing page exposes about section counters as direct links" do
@@ -1138,85 +1134,9 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_operator terminal_contact_order["discord"], :<, terminal_contact_order["telegram"]
     find("#minimize-terminal").click
     assert_selector "#terminal-container.terminal-minimized", visible: :all
-    expected_featured_count = content_index.featured_items.length
-    assert_selector "#landing-featured-title", text: "Selected work"
-    assert_no_selector "#landing-featured-title", text: "Featured work"
-    assert_selector ".landing-featured-card.aboutme-card", count: expected_featured_count
-    assert_equal expected_featured_count, page.evaluate_script("document.querySelectorAll('.landing-featured-card .aboutme-card-header, .landing-featured-card > summary').length")
-    assert_selector ".landing-featured-card .aboutme-card-kicker", text: "CVE"
-    assert_selector ".landing-featured-card .aboutme-card-kicker", text: "Certificate"
-    assert_no_selector ".landing-featured-topline"
-    assert_selector ".landing-featured-card", text: "CVE"
-    assert_selector ".landing-featured-card", text: /Certificate/i
-    featured_disclosure_animation = page.evaluate_script(<<~JS)
-      (() => {
-        const details = document.querySelector(".landing-featured-card.aboutme-finding-card[data-animated-details='true']");
-        if (!details) return null;
-
-        details.open = true;
-        const summary = details.querySelector("summary");
-        summary.click();
-        const style = window.getComputedStyle(details);
-        const metrics = {
-          animating: details.classList.contains("details-is-animating"),
-          closing: details.classList.contains("details-is-closing"),
-          transitionProperty: style.transitionProperty,
-          transitionDuration: style.transitionDuration,
-          inlineHeight: details.style.height
-        };
-
-        details.open = false;
-        details.classList.remove("details-is-animating", "details-is-opening", "details-is-closing");
-        details.style.height = "";
-        details.style.overflow = "";
-
-        return metrics;
-      })()
-    JS
-    assert featured_disclosure_animation, "expected a collapsible selected work card"
-    assert_equal false, featured_disclosure_animation["animating"]
-    assert_equal false, featured_disclosure_animation["closing"]
-    assert_equal "0s", featured_disclosure_animation["transitionDuration"]
-    assert_equal "", featured_disclosure_animation["inlineHeight"]
-    selected_timeline_tag_styles = page.evaluate_script(<<~JS)
-      (() => {
-        const tag = document.querySelector(".landing-featured-card .aboutme-tag-timeline");
-        const style = window.getComputedStyle(tag);
-
-        return {
-          href: tag.getAttribute("href"),
-          className: tag.className,
-          cursor: style.cursor,
-          pointerEvents: style.pointerEvents,
-          backgroundColor: style.backgroundColor,
-          borderColor: style.borderTopColor,
-          boxShadow: style.boxShadow,
-          transform: style.transform
-        };
-      })()
-    JS
-    assert_match %r{\A/timeline\?tag=}, selected_timeline_tag_styles["href"]
-    assert_includes selected_timeline_tag_styles["className"], "aboutme-tag-timeline"
-    assert_includes selected_timeline_tag_styles["className"], "aboutme-tag-action"
-    assert_not_includes selected_timeline_tag_styles["className"], "aboutme-tag-static"
-    assert_equal "pointer", selected_timeline_tag_styles["cursor"]
-    assert_equal "auto", selected_timeline_tag_styles["pointerEvents"]
-    find(".landing-featured-card .aboutme-tag-timeline", match: :first).hover
-    selected_timeline_tag_hover_styles = page.evaluate_script(<<~JS)
-      (() => {
-        const tag = document.querySelector(".landing-featured-card .aboutme-tag-timeline");
-        const style = window.getComputedStyle(tag);
-
-        return {
-          backgroundColor: style.backgroundColor,
-          borderColor: style.borderTopColor,
-          boxShadow: style.boxShadow,
-          transform: style.transform
-        };
-      })()
-    JS
-    assert_not_equal selected_timeline_tag_styles["boxShadow"], selected_timeline_tag_hover_styles["boxShadow"]
-    assert_not_equal selected_timeline_tag_styles["transform"], selected_timeline_tag_hover_styles["transform"]
+    assert_no_selector "#landing-featured-title", visible: :all
+    assert_no_selector ".landing-featured-card", visible: :all
+    assert_no_selector ".landing-metric .aboutme-stat-icon", visible: :all
   end
 
   test "landing metrics add row separators on mobile two-column layouts" do
@@ -1334,6 +1254,20 @@ class SitePagesTest < ApplicationSystemTestCase
     visit "/timeline"
 
     assert_selector ".timeline-content", count: total_items
+    assert_selector ".timeline-content .timeline-card-logo", count: total_items
+    assert_no_selector ".timeline-content .blog-logo-placeholder"
+    timeline_icon_coverage = page.evaluate_script(<<~JS)
+      (() => {
+        const cards = [...document.querySelectorAll(".timeline-content")];
+
+        return cards.filter((card) => (
+          card.querySelector(".timeline-card-logo img") ||
+          card.querySelector(".timeline-card-logo svg") ||
+          card.querySelector(".timeline-card-logo .category-split-icon")
+        )).length;
+      })()
+    JS
+    assert_equal total_items, timeline_icon_coverage
     authored_challenge_timeline_item = timeline_items.find { |item| Array(item[:merged_item_ids]).include?("about-challenge-scanwich-station") }
     assert authored_challenge_timeline_item, "expected Scanwich Station to be merged into its writeup timeline entry"
     assert_selector ".timeline-card-hitbox[href='#{authored_challenge_timeline_item[:link]}']", count: 1, visible: :all
@@ -1343,6 +1277,19 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_selector ".timeline-date .timeline-kind-pill", text: "CTF writeup"
       assert_no_selector ".timeline-date .timeline-kind-pill", text: "Created CTF challenge"
       assert_no_selector ".timeline-tags [data-filter-tag='Created CTF challenges']"
+    end
+    htb_cpts_timeline_item = timeline_items.find { |item| Array(item[:merged_item_ids]).include?("about-certificate-htb-cpts") }
+    assert htb_cpts_timeline_item, "expected HTB CPTS certificate to be merged into its blog timeline entry"
+    assert_equal "blog-htb-cpts", htb_cpts_timeline_item[:id]
+    assert_equal "/blog/htb-cpts", htb_cpts_timeline_item[:link]
+    assert_selector ".timeline-card-hitbox[href='/blog/htb-cpts']", count: 1, visible: :all
+    assert_no_selector ".timeline-card-hitbox[href='/about#htb-cpts']", visible: :all
+    htb_cpts_timeline_entry = find(".timeline-card-hitbox[href='/blog/htb-cpts']", visible: :all)
+                              .find(:xpath, "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-item ')]")
+    within htb_cpts_timeline_entry do
+      assert_selector ".timeline-date .timeline-kind-pill", text: "Blog post"
+      assert_selector ".timeline-date .timeline-kind-pill", text: "Certificate"
+      assert_selector ".timeline-content .timeline-card-logo"
     end
     assert_timeline_year_counts_match_visible_cards
     timeline_year_count_style = page.evaluate_script(<<~JS)
@@ -1435,6 +1382,14 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".timeline-tags .cwe-badge-filter[data-filter-tag='#{cwe_case[:label]}']",
                     text: /^#{Regexp.escape(cwe_case[:label])}$/
     assert_selector ".timeline-tags .writeup-winner-badge-timeline[data-filter-tag='Writeup winner']", text: first_winner_label
+    within timeline_content_card(timeline_items.find { |item| item[:kind] == "blog" }) do
+      assert_selector ".timeline-card-logo"
+      assert_selector ".timeline-card-logo .blog-logo, .timeline-card-logo .blog-logo-placeholder"
+    end
+    within timeline_content_card(timeline_items.find { |item| item[:kind] == "writeup" }) do
+      assert_selector ".timeline-card-logo.writeup-post-card-logo"
+      assert_selector ".timeline-card-logo.writeup-post-card-logo .blog-logo, .timeline-card-logo.writeup-post-card-logo .category-split-icon, .timeline-card-logo.writeup-post-card-logo svg"
+    end
     difficulty_backgrounds = page.evaluate_script(<<~JS)
       [...document.querySelectorAll(".content-filter-panel .difficulty-badge-filter")]
         .map((chip) => window.getComputedStyle(chip).getPropertyValue("--difficulty-bg").trim())
@@ -1526,6 +1481,44 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_field "timeline-search-input", with: search_case[:query]
     assert_equal query_year, page.evaluate_script("document.querySelector('[data-filter-year=\"timeline\"]').value")
     assert_selector ".content-filter-panel .filter-chip.is-active", text: tag_case[:tag]
+  end
+
+  test "timeline search matches tags and skipped search letters" do
+    total_items = timeline_items.length
+    tag_search_case = timeline_tag_search_case
+    fuzzy_search_case = timeline_fuzzy_search_case
+    certificate_items = timeline_items.select { |item| item[:tags].include?("Certificate") }
+
+    visit "/timeline"
+
+    fill_in "timeline-search-input", with: "certificate"
+    assert_current_path "/timeline?#{Rack::Utils.build_query(q: "certificate")}"
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(certificate_items.length, total_items)
+    assert_equal certificate_items.map { |item| item[:title] }.sort, visible_timeline_titles.sort
+    assert_hidden_timeline_item certificate_items
+
+    find("[data-filter-reset='timeline']").click
+    assert_current_path "/timeline"
+
+    page.execute_script(<<~JS)
+      document.querySelectorAll('[data-filter-card="timeline"]').forEach((card) => {
+        card.dataset.filterText = '';
+      });
+    JS
+
+    fill_in "timeline-search-input", with: tag_search_case[:query]
+    assert_current_path "/timeline?#{Rack::Utils.build_query(q: tag_search_case[:query])}"
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(tag_search_case[:items].length, total_items)
+    assert_selector ".timeline-content", text: tag_search_case[:exact_items].first[:title]
+    assert_hidden_timeline_item tag_search_case[:items]
+
+    visit "/timeline"
+
+    fill_in "timeline-search-input", with: fuzzy_search_case[:query]
+    assert_current_path "/timeline?#{Rack::Utils.build_query(q: fuzzy_search_case[:query])}"
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(fuzzy_search_case[:items].length, total_items)
+    assert_selector ".timeline-content", text: fuzzy_search_case[:item][:title]
+    assert_hidden_timeline_item fuzzy_search_case[:items]
   end
 
   test "ctf markdown preserves anchors and external links while resolving local images" do
@@ -2094,8 +2087,9 @@ class SitePagesTest < ApplicationSystemTestCase
         return Math.round(firstCard.top - panel.bottom);
       })()
     JS
-    fill_in "blog-search-input", with: "definitely-not-a-post"
-    assert_current_path "/blog?#{Rack::Utils.build_query(q: "definitely-not-a-post")}"
+    unmatched_blog_query = "zzzzzzzzzzzzzzzz"
+    fill_in "blog-search-input", with: unmatched_blog_query
+    assert_current_path "/blog?#{Rack::Utils.build_query(q: unmatched_blog_query)}"
     assert_selector "[data-filter-count='blogs']", text: filter_count_text(0, blog_total)
     assert_selector ".content-filter-empty", text: "No blog posts match the current filters."
     assert_no_selector ".blog-post-card"
@@ -2865,7 +2859,7 @@ class SitePagesTest < ApplicationSystemTestCase
   def ctf_overview_search_case
     ctf_overview_items.each do |item|
       query = item[:name]
-      matches = ctf_overview_items.select { |candidate| candidate[:text].include?(query.downcase) }
+      matches = ctf_overview_items.select { |candidate| ordered_search_match?(query, [ candidate[:text], candidate[:tags] ].flatten.join(" ")) }
       return { query: query, items: matches } if matches.any?
     end
 
@@ -2960,6 +2954,10 @@ class SitePagesTest < ApplicationSystemTestCase
     all(".blog-posts-container .blog-post-title").map(&:text)
   end
 
+  def visible_timeline_titles
+    all(".timeline-content .timeline-title").map(&:text)
+  end
+
   def blog_tag_case
     groups = {}
     blog_posts.each do |post|
@@ -2979,7 +2977,7 @@ class SitePagesTest < ApplicationSystemTestCase
   def blog_search_case
     blog_posts.each do |post|
       query = post[:title]
-      matches = blog_posts.select { |candidate| blog_filter_text(candidate).include?(query.downcase) }
+      matches = blog_posts.select { |candidate| ordered_search_match?(query, blog_filter_text(candidate)) }
       return { query: query, post: post, items: matches } if matches.any?
     end
 
@@ -3033,11 +3031,89 @@ class SitePagesTest < ApplicationSystemTestCase
       query = item[:title].to_s
       next if query.blank?
 
-      matches = timeline_items.select { |candidate| candidate[:search_text].to_s.include?(query.downcase) }
+      matches = timeline_items.select { |candidate| timeline_search_match?(query, candidate) }
       return { query: query, items: matches } if matches.any?
     end
 
     flunk("expected at least one searchable timeline item")
+  end
+
+  def timeline_tag_search_case
+    timeline_tag_case_candidates.each do |candidate|
+      matches = timeline_items.select { |item| ordered_search_match?(candidate[:tag], Array(item[:tags]).join(" ")) }
+      next unless matches.any? && matches.length < timeline_items.length
+
+      return candidate.merge(query: candidate[:tag], items: matches)
+    end
+
+    flunk("expected at least one searchable timeline tag")
+  end
+
+  def timeline_fuzzy_search_case
+    timeline_items.each do |item|
+      normalized_title = normalized_search_words(item[:title]).find { |word| word.length >= 8 }
+      next unless normalized_title
+
+      query = normalized_title.chars.each_with_index.filter_map { |character, index| character if index.even? }.join
+      next if query.length < 4 || normalized_title.include?(query)
+
+      matches = timeline_items.select { |candidate| timeline_search_match?(query, candidate) }
+      next unless matches.include?(item) && matches.length < timeline_items.length
+
+      return { query: query, items: matches, item: item }
+    end
+
+    flunk("expected at least one fuzzy-searchable timeline item")
+  end
+
+  def timeline_tag_case_candidates
+    groups = {}
+    timeline_items.each do |item|
+      visible_timeline_tags(item).each do |tag|
+        key = tag.downcase
+        groups[key] ||= { tag: tag, exact_items: [] }
+        groups[key][:exact_items] << item
+      end
+    end
+
+    groups.values.sort_by { |group| [ group[:exact_items].length, group[:tag] ] }
+  end
+
+  def timeline_search_match?(query, item)
+    ordered_search_match?(query, [ timeline_filter_text(item), item[:tags] ].flatten.join(" "))
+  end
+
+  def timeline_filter_text(item)
+    [ item[:title], item[:description], item[:source], item[:label], item[:display_date] ].compact.join(" ")
+  end
+
+  def ordered_search_match?(query, value)
+    query_terms = normalized_search_words(query)
+    return true if query_terms.empty?
+
+    value_terms = normalized_search_words(value)
+    query_terms.all? do |query_term|
+      value_terms.any? { |value_term| ordered_search_term_match?(query_term, value_term) }
+    end
+  end
+
+  def ordered_search_term_match?(query_term, value_term)
+    query_index = 0
+    value_term.each_char do |character|
+      query_index += 1 if character == query_term[query_index]
+      return true if query_index == query_term.length
+    end
+
+    false
+  end
+
+  def normalized_search_words(value)
+    value.to_s
+         .downcase
+         .unicode_normalize(:nfkd)
+         .gsub(/\p{Mn}/, "")
+         .gsub(/[^a-z0-9]+/, " ")
+         .split
   end
 
   def timeline_tag_case
@@ -3129,6 +3205,13 @@ class SitePagesTest < ApplicationSystemTestCase
     return unless hidden
 
     assert_no_selector ".timeline-card-hitbox[href='#{hidden[:link]}']"
+  end
+
+  def timeline_content_card(item)
+    assert item, "expected a timeline item"
+
+    find(".timeline-card-hitbox[href='#{item[:link]}']", visible: :all)
+      .find(:xpath, "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-content ')]")
   end
 
   def first_ctf_post_with_author_link

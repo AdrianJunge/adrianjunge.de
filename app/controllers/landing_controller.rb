@@ -1,7 +1,6 @@
 class LandingController < ApplicationController
   def index
     @most_recent_posts = most_recent_all_posts(3)
-    @featured_items = ContentIndex.new.featured_items(3)
     @amount_posts = content_repository.post_count
     @amount_post_reading_time = content_repository.format_reading_time(content_repository.total_post_reading_time_minutes)
     @amount_cves = content_repository.about_entries(ABOUTME_CVES_PATH).length

@@ -58,7 +58,7 @@
               <li
                 class="timeline-item"
                 data-filter-card="timeline"
-                data-filter-text="<%= item[:search_text] %>"
+                data-filter-text="<%= [ item[:title], item[:description], item[:source], item[:label], item[:display_date] ].compact.join(" ") %>"
                 data-filter-years="<%= item[:published].year %>"
                 data-filter-tags="<%= item[:tags].join("|") %>"
               >
@@ -125,12 +125,42 @@
                     <% timeline_tags << { label: tag_name, class_name: "timeline-tag-pill" } %>
                   <% end %>
                 <% end %>
+                <% timeline_media = nil %>
+                <% timeline_media_html = nil %>
+                <% timeline_icon = item[:logo].presence || case item[:kind]
+                   when "blog" then "task-bar/blog.svg"
+                   when "cve" then "other/cve.svg"
+                   when "bug-bounty" then "other/bug-bounty.svg"
+                   when "certificate" then "other/certificate.svg"
+                   when "talk" then "other/talk-slides.png"
+                   when "achievement" then "other/achievement.svg"
+                   else "other/achievement.svg"
+                   end %>
+                <% if item[:kind] == "writeup" && item[:logo].blank? %>
+                  <% timeline_categories = item[:tags].select { |tag_name| ContentCategoryTag.recognized?(tag_name) } %>
+                  <% timeline_media_html = get_category_icon(timeline_categories.presence || [ "Unknown category" ]).html_safe %>
+                  <% timeline_media = {
+                       wrapper_class: "blog-post-card-logo writeup-post-card-logo timeline-card-logo"
+                     } %>
+                <% else %>
+                  <% timeline_media = {
+                       image: timeline_icon,
+                       alt: "#{item[:title]} icon",
+                       image_class: "blog-logo",
+                       wrapper_class: [ "blog-post-card-logo", ("writeup-post-card-logo" if item[:kind] == "writeup"), "timeline-card-logo" ].compact.join(" ")
+                     } %>
+                <% end %>
+                <% timeline_has_media = timeline_media.present? || timeline_media_html.present? %>
 
                 <%= render_content_card(
                       url: item[:link],
-                      class_name: "timeline-content",
-                      wrap_content: false,
-                      wrap_body: false,
+                      class_name: [ "timeline-content", ("timeline-content-with-media" if timeline_has_media) ].compact.join(" "),
+                      content_class: "blog-post-card-content timeline-card-content",
+                      body_class: "blog-post-card-details timeline-card-details",
+                      media_html: timeline_media_html,
+                      media: timeline_media,
+                      wrap_content: timeline_has_media,
+                      wrap_body: timeline_has_media,
                       hitbox_class: "timeline-card-hitbox",
                       title: item[:title],
                       title_tag: :span,

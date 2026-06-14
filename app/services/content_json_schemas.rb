@@ -45,9 +45,11 @@ class ContentJsonSchemas
       "id" => STRING,
       "project" => STRING,
       "project_url" => STRING,
+      "icon" => STRING,
       "title" => STRING,
       "title_url" => STRING,
       "card_url" => STRING,
+      "timeline_group" => STRING,
       "cve_id" => STRING,
       "cwe_id" => STRING,
       "severity" => STRING,
@@ -78,7 +80,9 @@ class ContentJsonSchemas
       "id" => STRING,
       "title" => STRING,
       "title_url" => STRING,
+      "icon" => STRING,
       "card_url" => STRING,
+      "timeline_group" => STRING,
       "category" => STRING,
       "category_url" => STRING,
       "date" => DATE,
@@ -96,7 +100,9 @@ class ContentJsonSchemas
       "id" => STRING,
       "title" => STRING,
       "title_url" => STRING,
+      "icon" => STRING,
       "card_url" => STRING,
+      "timeline_group" => STRING,
       "category" => STRING,
       "category_url" => STRING,
       "summary" => STRING,
@@ -113,9 +119,11 @@ class ContentJsonSchemas
             "id" => STRING,
             "title" => STRING,
             "date" => DATE,
+            "icon" => STRING,
             "summary" => STRING,
             "url" => STRING,
             "card_url" => STRING,
+            "timeline_group" => STRING,
             "hidden" => { "type" => "boolean" }
           }
         }
@@ -133,6 +141,7 @@ class ContentJsonSchemas
       "title" => STRING,
       "category" => STRING,
       "description" => STRING,
+      "timeline_group" => STRING,
       "hidden" => { "type" => "boolean" }
     }
   }.freeze

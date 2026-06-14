@@ -60,8 +60,9 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".landing-metric[href=?]", "#{about_path}#achievements", false
     assert_select ".landing-metric[href=?] .landing-metric-value", timeline_path, text: repository.post_count.to_s
     assert_select ".landing-metric[href=?] .landing-metric-sublabel", timeline_path, text: repository.format_reading_time(repository.total_post_reading_time_minutes)
-    assert_select "#landing-featured-title", text: "Selected work"
-    assert_select ".landing-featured-card", 3
+    assert_select ".landing-metric .aboutme-stat-icon", false
+    assert_select "#landing-featured-title", false
+    assert_select ".landing-featured-card", false
   end
 
   test "about me content files have expected shape" do

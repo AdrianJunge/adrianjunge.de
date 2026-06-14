@@ -10,7 +10,7 @@
   "joomla-sqli": {
     "terminal_path": "joomla-sqli",
     "logo": "blog/joomla.png",
-    "title": "Discovering SQL Injection in Joomla with AI-Assisted Research",
+    "title": "Discovering SQL Injections in Joomla with AI-Assisted Research",
     "category": "Security Research",
     "description": "How a manual SQLi hunt turned into an AI-assisted Joomla audit and two assigned CVEs."
   },
@@ -26,6 +26,7 @@
     "logo": "blog/htb-cpts.png",
     "title": "HTB CPTS",
     "category": "Certificate",
+    "timeline_group": "htb-cpts",
     "description": "This blog post documents my experience with the Hack The Box Certified Penetration Testing Specialist (HTB CPTS) certification."
   }
 }

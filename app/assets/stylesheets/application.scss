@@ -317,15 +317,7 @@ html {
     --profile-card-shadow: 0 1rem 2rem rgba(2, 12, 24, 0.25);
 }
 
-.profile-card.aboutme-finding-card[open] > summary::before {
-    background-color: var(--profile-card-accent-soft);
-}
-
 @media (hover: hover) and (pointer: fine) {
-    .profile-card.aboutme-finding-card:not([open]) > summary:hover::before {
-        background-color: rgba(51, 68, 97, 0.28);
-    }
-
     .profile-card.ui-card-surface[open]:hover {
         border-color: var(--profile-card-border);
         background-color: var(--profile-card-bg);
@@ -817,6 +809,12 @@ mjx-container[display="true"] {
 
 .back-button-floating {
     top: calc(var(--top-taskbar-height) + 0.75rem);
+}
+
+@media (max-width: 720px) {
+    .back-button-floating {
+        display: none;
+    }
 }
 
 #terminal-container {
@@ -1322,11 +1320,9 @@ a.aboutme-card-tag.aboutme-tag-timeline {
 }
 
 .aboutme-card.ui-card-surface,
-.landing-featured-card.aboutme-card.ui-card-surface,
 details.aboutme-card.ui-card-surface,
 details.aboutme-card.ui-card-surface.details-is-animating,
 .aboutme-finding-card summary,
-.aboutme-finding-card summary::before,
 .aboutme-card-header,
 .aboutme-card-body {
     transition: none;
