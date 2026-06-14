@@ -64,6 +64,11 @@ class SitePagesTest < ApplicationSystemTestCase
 
   test "global radius tokens keep website corners restrained" do
     visit "/timeline"
+    assert_selector "body", wait: Capybara.default_max_wait_time do
+      page.evaluate_script(<<~JS).present?
+        window.getComputedStyle(document.documentElement).getPropertyValue("--radius-ui").trim()
+      JS
+    end
 
     radii = page.evaluate_script(<<~JS)
       (() => {
@@ -2233,21 +2238,32 @@ class SitePagesTest < ApplicationSystemTestCase
     revealed_state = page.evaluate_async_script(<<~JS)
       (() => {
         const done = arguments[0];
-        window.setTimeout(() => {
+        const started = performance.now();
+        const readState = () => {
           const spoiler = document.querySelector(".writeup-hint-spoiler");
           const content = spoiler.querySelector(".writeup-hint-spoiler-content");
           const button = spoiler.querySelector(".writeup-hint-unhide");
           const style = window.getComputedStyle(content);
 
-          done({
+          return {
             hidden: spoiler.classList.contains("is-hidden"),
             revealed: spoiler.classList.contains("is-revealed"),
             ariaHidden: content.getAttribute("aria-hidden"),
             buttonHidden: button.hidden,
             buttonExpanded: button.getAttribute("aria-expanded"),
             filter: style.filter
-          });
-        }, 260);
+          };
+        };
+        const waitForSettledFilter = () => {
+          const state = readState();
+          if (state.filter === "none" || performance.now() - started > 1500) {
+            done(state);
+          } else {
+            requestAnimationFrame(waitForSettledFilter);
+          }
+        };
+
+        waitForSettledFilter();
       })()
     JS
     assert_equal false, revealed_state["hidden"]

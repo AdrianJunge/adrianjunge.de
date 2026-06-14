@@ -788,17 +788,36 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal 0, metrics["visibleActionRows"]
 
     find("#achievements .aboutme-achievement-meta .aboutme-card-tag", match: :first).hover
-    hovered_timeline_tag = page.evaluate_script(<<~JS)
+    hovered_timeline_tag = page.evaluate_async_script(<<~JS)
       (() => {
-        const tag = document.querySelector("#achievements .aboutme-achievement-meta .aboutme-card-tag");
-        const style = window.getComputedStyle(tag);
+        const done = arguments[0];
+        const initialShadow = #{metrics["achievementTagShadow"].to_json};
+        const initialTransform = #{metrics["achievementTagTransform"].to_json};
+        const started = performance.now();
+        const readState = () => {
+          const tag = document.querySelector("#achievements .aboutme-achievement-meta .aboutme-card-tag");
+          const style = window.getComputedStyle(tag);
 
-        return {
-          backgroundColor: style.backgroundColor,
-          borderColor: style.borderTopColor,
-          boxShadow: style.boxShadow,
-          transform: style.transform
+          return {
+            backgroundColor: style.backgroundColor,
+            borderColor: style.borderTopColor,
+            boxShadow: style.boxShadow,
+            transform: style.transform
+          };
         };
+        const waitForHoverStyles = () => {
+          const state = readState();
+          if (
+            (state.boxShadow !== initialShadow && state.transform !== initialTransform) ||
+            performance.now() - started > 1000
+          ) {
+            done(state);
+          } else {
+            requestAnimationFrame(waitForHoverStyles);
+          }
+        };
+
+        waitForHoverStyles();
       })()
     JS
     assert_not_equal metrics["achievementTagShadow"], hovered_timeline_tag["boxShadow"]
