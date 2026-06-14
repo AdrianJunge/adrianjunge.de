@@ -7,6 +7,13 @@
     "category": "Security Research",
     "description": "Frankendancer"
   },
+  "joomla-sqli": {
+    "terminal_path": "joomla-sqli",
+    "logo": "blog/joomla.png",
+    "title": "Discovering SQL Injection in Joomla with AI-Assisted Research",
+    "category": "Security Research",
+    "description": "How a manual SQLi hunt turned into an AI-assisted Joomla audit and two assigned CVEs."
+  },
   "java-strings": {
     "terminal_path": "java-strings",
     "logo": "blog/java.png",

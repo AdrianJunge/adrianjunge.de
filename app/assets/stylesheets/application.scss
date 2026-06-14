@@ -57,6 +57,10 @@ body {
     --glass-tag-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.13), transparent 68%);
 }
 
+html {
+    scroll-padding-top: calc(var(--top-taskbar-height) + 1rem);
+}
+
 .back-button,
 .collapse-toc-button,
 .ui-article-action,

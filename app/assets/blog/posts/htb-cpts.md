@@ -64,11 +64,11 @@ When writing the report, I focused on reproducing a clear attack chain and added
 
 The most important lesson is simple: **good notes are everything**. If your notes are structured well during the course, you are already giving yourself a huge advantage for both the exam and the report. A few other things mattered a lot for me:
 
-**-** Even small remarks from the content can be useful later; tiny details can turn into a breakthrough.
-**-** The last module felt very similar to one of the exam machines, so do not treat the final module as "just another chapter" but more as a test before the exam.
-**-** Exam machines are not equally expensive in terms of time; some move fast, others eat your day.
-**-** During the exam, copy everything relevant: commands, outputs, screenshots, and context, because your future self will thank you for it.
-**-** Learn and use [ligolo-ng](https://github.com/nicocha30/ligolo-ng). For me, it was a huge quality-of-life improvement for pivoting compared to the more elaborate combination of [Chisel](https://github.com/jpillora/chisel) and [Proxychains](https://github.com/haad/proxychains).
+- Even small remarks from the content can be useful later; tiny details can turn into a breakthrough.
+- The last module felt very similar to one of the exam machines, so do not treat the final module as "just another chapter" but more as a test before the exam.
+- Exam machines are not equally expensive in terms of time; some move fast, others eat your day.
+- During the exam, copy everything relevant: commands, outputs, screenshots, and context, because your future self will thank you for it.
+- Learn and use [ligolo-ng](https://github.com/nicocha30/ligolo-ng). For me, it was a huge quality-of-life improvement for pivoting compared to the more elaborate combination of [Chisel](https://github.com/jpillora/chisel) and [Proxychains](https://github.com/haad/proxychains).
 
 # 8. CPTS Summary<a id="how-i-would-summarize-cpts"></a>
 

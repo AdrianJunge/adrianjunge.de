@@ -1,6 +1,7 @@
 function initBlogTOC() {
   const tocLinks = document.querySelectorAll(".toc-anchor");
   const article = document.querySelector(".writeup-container > .markdown-content") || document.querySelector(".markdown-content");
+  const articlePage = document.querySelector(".article-page");
   const headings = article ? article.querySelectorAll("h1, h2, h3") : [];
   const tocAnimationDuration = 240;
 
@@ -8,32 +9,123 @@ function initBlogTOC() {
     return true;
   }
 
+  function hashToId(hash) {
+    if (!hash || hash === '#') return null;
+
+    const rawId = hash.replace(/^#/, '');
+    try {
+      return decodeURIComponent(rawId);
+    } catch (_) {
+      return rawId;
+    }
+  }
+
+  function hashForLink(link) {
+    const href = link.getAttribute('href');
+    if (!href) return null;
+
+    const url = new URL(href, window.location.href);
+    if (
+      url.origin !== window.location.origin ||
+      url.pathname !== window.location.pathname ||
+      url.search !== window.location.search ||
+      !url.hash
+    ) {
+      return null;
+    }
+
+    return url.hash;
+  }
+
+  function targetForHash(hash) {
+    const id = hashToId(hash);
+    return id ? document.getElementById(id) : null;
+  }
+
+  function scrollTargetForAnchor(anchor) {
+    return anchor.closest('h1, h2, h3, h4, h5, h6') || anchor;
+  }
+
+  function topScrollOffset() {
+    const taskbar = document.getElementById('top-taskbar') || document.querySelector('.top-taskbar');
+    const taskbarBottom = taskbar ? taskbar.getBoundingClientRect().bottom : 0;
+    const configuredHeight = parseFloat(
+      window.getComputedStyle(document.documentElement).getPropertyValue('--top-taskbar-height')
+    ) || 0;
+
+    return Math.max(taskbarBottom, configuredHeight) + 16;
+  }
+
+  function setActiveLinkForId(id) {
+    tocLinks.forEach((link) => {
+      link.classList.toggle('active-anchor', hashToId(hashForLink(link)) === id);
+    });
+  }
+
+  function scrollToAnchor(anchor, hash = null) {
+    const target = scrollTargetForAnchor(anchor);
+    const targetTop = window.scrollY + target.getBoundingClientRect().top - topScrollOffset();
+
+    window.scrollTo({
+      top: Math.max(targetTop, 0),
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth'
+    });
+
+    if (hash && window.history && window.history.pushState) {
+      window.history.pushState(null, '', hash);
+    }
+
+    setActiveLinkForId(anchor.id);
+  }
+
   if (tocLinks.length > 0) tocLinks[0].classList.add("active-anchor");
 
   function highlightCurrentSection() {
-    let scrollPosition = window.scrollY + 10;
+    let scrollPosition = window.scrollY + topScrollOffset() + 1;
     let currentSection = null;
 
     headings.forEach((heading) => {
       const anchor = heading.querySelector("a[id]");
-      if (anchor && anchor.offsetTop <= scrollPosition) {
+      const target = anchor ? scrollTargetForAnchor(anchor) : null;
+      const targetTop = target ? window.scrollY + target.getBoundingClientRect().top : null;
+      if (anchor && targetTop <= scrollPosition) {
         currentSection = anchor;
       }
     });
 
     if (currentSection) {
-      tocLinks.forEach((link) => {
-        link.classList.remove("active-anchor");
-        if (link.getAttribute("href") === `#${currentSection.id}`) {
-          link.classList.add("active-anchor");
-        }
-      });
+      setActiveLinkForId(currentSection.id);
     }
   }
 
   if (tocLinks.length > 0) {
-    window.addEventListener("scroll", highlightCurrentSection);
+    tocLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        const hash = hashForLink(link);
+        const target = targetForHash(hash);
+        if (!target) return;
+
+        event.preventDefault();
+        scrollToAnchor(target, hash);
+      });
+    });
+
+    window.addEventListener("scroll", highlightCurrentSection, { passive: true });
     highlightCurrentSection();
+  }
+
+  function correctCurrentHashScroll() {
+    const target = targetForHash(window.location.hash);
+    if (target) scrollToAnchor(target);
+  }
+
+  if (articlePage && window.location.hash) {
+    window.requestAnimationFrame(correctCurrentHashScroll);
+    window.addEventListener('load', correctCurrentHashScroll, { once: true });
+  }
+
+  if (articlePage) {
+    window.addEventListener('hashchange', correctCurrentHashScroll);
   }
 
   function updateTocState(targetId, collapsed) {

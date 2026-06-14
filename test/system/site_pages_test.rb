@@ -1223,16 +1223,26 @@ class SitePagesTest < ApplicationSystemTestCase
     page.current_window.resize_to(390, 1200)
     visit "/"
 
-    separators = page.evaluate_script(<<~JS)
-      Array.from(document.querySelectorAll(".landing-metric")).map((metric) => {
-        const style = window.getComputedStyle(metric);
+    separators = nil
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
 
-        return {
-          borderTopWidth: style.borderTopWidth,
-          borderTopStyle: style.borderTopStyle
-        };
-      })
-    JS
+    loop do
+      separators = page.evaluate_script(<<~JS)
+        Array.from(document.querySelectorAll(".landing-metric")).map((metric) => {
+          const style = window.getComputedStyle(metric);
+
+          return {
+            borderTopWidth: style.borderTopWidth,
+            borderTopStyle: style.borderTopStyle
+          };
+        })
+      JS
+
+      break if separators[2]["borderTopWidth"] == "1px" && separators[3]["borderTopWidth"] == "1px"
+      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+      sleep 0.05
+    end
 
     assert_equal 4, separators.length
     assert_equal "0px", separators[0]["borderTopWidth"]
@@ -1561,6 +1571,79 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal top_heading[:level] > 1, metrics["topMarker"]
     assert_equal nested_heading[:level] > 1, metrics["nestedMarker"]
     assert_operator metrics["nestedLeft"], :>, metrics["topLeft"] + 8
+  end
+
+  test "table of contents scrolls target headings below the top taskbar" do
+    page.current_window.resize_to(1440, 900)
+    visit ctf_post_with_headings[:link]
+    assert_selector "#toc-body .toc-anchor", minimum: 1
+
+    candidate_index = page.evaluate_script(<<~JS)
+      (() => {
+        const links = [...document.querySelectorAll("#toc-body .toc-anchor")];
+        const taskbar = document.getElementById("top-taskbar").getBoundingClientRect();
+        const configuredHeight = parseFloat(
+          window.getComputedStyle(document.documentElement).getPropertyValue("--top-taskbar-height")
+        ) || 0;
+        const offset = Math.max(taskbar.bottom, configuredHeight) + 16;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+
+        const candidates = links.map((link, index) => {
+          const hash = link.getAttribute("href").replace(/^#/, "");
+          const id = decodeURIComponent(hash);
+          const anchor = document.getElementById(id);
+          const heading = anchor?.closest("h1, h2, h3, h4, h5, h6") || anchor;
+          if (!heading) return null;
+
+          const pageTop = window.scrollY + heading.getBoundingClientRect().top;
+          return { index, desiredScroll: pageTop - offset };
+        }).filter(Boolean);
+
+        const aligned = candidates.find((candidate) => {
+          return candidate.desiredScroll > 100 && candidate.desiredScroll < maxScroll - 50;
+        });
+
+        return (aligned || candidates[0]).index;
+      })()
+    JS
+
+    all("#toc-body .toc-anchor", minimum: 1)[candidate_index].click
+
+    metrics = nil
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
+
+    loop do
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          let id = window.location.hash.replace(/^#/, "");
+          try {
+            id = decodeURIComponent(id);
+          } catch (_error) {}
+
+          const anchor = id ? document.getElementById(id) : null;
+          const heading = anchor?.closest("h1, h2, h3, h4, h5, h6") || anchor;
+          const taskbar = document.getElementById("top-taskbar").getBoundingClientRect();
+          const headingRect = heading?.getBoundingClientRect();
+
+          return {
+            targetExists: Boolean(anchor && heading),
+            headingTop: headingRect ? Math.round(headingRect.top) : null,
+            taskbarBottom: Math.round(taskbar.bottom)
+          };
+        })()
+      JS
+
+      break if metrics["targetExists"] &&
+        metrics["headingTop"] >= metrics["taskbarBottom"] + 8 &&
+        metrics["headingTop"] <= metrics["taskbarBottom"] + 48
+      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+      sleep 0.05
+    end
+
+    assert metrics["targetExists"]
+    assert_operator metrics["headingTop"], :>=, metrics["taskbarBottom"] + 8
+    assert_operator metrics["headingTop"], :<=, metrics["taskbarBottom"] + 48
   end
 
   test "ctf overview cards link directly to writeup overviews" do
@@ -2428,6 +2511,8 @@ class SitePagesTest < ApplicationSystemTestCase
         const style = window.getComputedStyle(element);
         const wrapper = document.querySelector(".writeup-wrapper");
         const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : null;
+        const container = document.querySelector(".writeup-container");
+        const containerRect = container ? container.getBoundingClientRect() : null;
         const toc = document.getElementById("toc");
         const tocRect = toc ? toc.getBoundingClientRect() : null;
 
@@ -2437,6 +2522,8 @@ class SitePagesTest < ApplicationSystemTestCase
           right: Math.round(window.innerWidth - rect.right),
           contentTopInset: wrapperRect ? Math.round(rect.top - wrapperRect.top) : null,
           contentRightInset: wrapperRect ? Math.round(wrapperRect.right - rect.right) : null,
+          postTopInset: containerRect ? Math.round(rect.top - containerRect.top) : null,
+          postRightInset: containerRect ? Math.round(containerRect.right - rect.right) : null,
           tocTopInset: tocRect ? Math.round(rect.top - tocRect.top) : null,
           tocRightInset: tocRect ? Math.round(tocRect.right - rect.right) : null
         };
@@ -2472,12 +2559,13 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_operator expanded_width, :>, original_width
     assert_in_delta wrapper_width, expanded_width, 1
     collapsed_button_metrics = page.evaluate_script("#{button_metrics_script}('.writeup-toc-restore-button')")
-    assert_equal "absolute", collapsed_button_metrics["position"]
-    assert_in_delta collapsed_button_metrics["contentTopInset"], collapsed_button_metrics["contentRightInset"], 1
+    assert_equal "sticky", collapsed_button_metrics["position"]
+    assert_in_delta scrolled_expanded_button_metrics["top"], collapsed_button_metrics["top"], 2
+    assert_in_delta expanded_button_metrics["tocRightInset"], collapsed_button_metrics["postRightInset"], 1
 
     page.execute_script("window.scrollTo(0, 0)")
     top_collapsed_button_metrics = page.evaluate_script("#{button_metrics_script}('.writeup-toc-restore-button')")
-    assert_in_delta top_collapsed_button_metrics["contentTopInset"], top_collapsed_button_metrics["contentRightInset"], 1
+    assert_in_delta top_collapsed_button_metrics["postTopInset"], top_collapsed_button_metrics["postRightInset"], 1
     assert_in_delta collapsed_button_metrics["right"], top_collapsed_button_metrics["right"], 1
 
     find(".writeup-toc-restore-button").click
@@ -2506,7 +2594,11 @@ class SitePagesTest < ApplicationSystemTestCase
           blockCenter: Math.round(blockRect.left + (blockRect.width / 2)),
           containerCenter: Math.round(containerRect.left + (containerRect.width / 2)),
           whiteSpace: style.whiteSpace,
-          overflowWrap: style.overflowWrap
+          overflowWrap: style.overflowWrap,
+          codeLineCount: pre.querySelectorAll(".code-line").length,
+          firstLineDisplay: window.getComputedStyle(pre.querySelector(".code-line")).display,
+          firstLineNumber: window.getComputedStyle(pre.querySelector(".code-line"), "::before").content,
+          firstLineUserSelect: window.getComputedStyle(pre.querySelector(".code-line"), "::before").userSelect
         };
       })()
     JS
@@ -2515,6 +2607,10 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_in_delta metrics["containerCenter"], metrics["blockCenter"], 2
     assert_equal "pre-wrap", metrics["whiteSpace"]
     assert_equal "anywhere", metrics["overflowWrap"]
+    assert_operator metrics["codeLineCount"], :>, 0
+    assert_equal "grid", metrics["firstLineDisplay"]
+    assert_equal '"1"', metrics["firstLineNumber"]
+    assert_equal "none", metrics["firstLineUserSelect"]
 
     page.current_window.resize_to(390, 1200)
     mobile_font_sizes = page.evaluate_script(<<~JS)
@@ -2921,7 +3017,11 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   def visible_timeline_tags(item)
-    Array(item[:tags]).reject { |tag| tag == item[:label] || special_filter_tag?(tag) }
+    content_type_tags = Array(item[:kind_labels]).map { |kind_label| kind_label[:tag_value].presence || kind_label[:label] }
+
+    Array(item[:tags]).reject do |tag|
+      tag == item[:label] || content_type_tags.include?(tag) || special_filter_tag?(tag)
+    end
   end
 
   def special_filter_tag?(tag)

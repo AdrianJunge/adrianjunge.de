@@ -21,10 +21,10 @@ Longer answer: Java is doing exactly what it is designed to do, but that design 
 
 Assume an attacker can obtain heap dumps, process snapshots, or comparable memory disclosures. In Java applications this can happen in a variety of different ways:
 
-**-** An exposed [Spring Boot Actuator `heapdump` endpoint](https://docs.spring.io/spring-boot/reference/actuator/endpoints.html) can return a heap dump file.
-**-** Unsafe JNI usage or native libraries can introduce memory corruption bugs.
-**-** Native dependencies can be affected by their own memory-safety bugs, for example something similar to [Heartbleed](https://www.heartbleed.com/).
-**-** Operators, debugging tooling, crash dumps, and snapshots can all create copies of process memory.
+- An exposed [Spring Boot Actuator `heapdump` endpoint](https://docs.spring.io/spring-boot/reference/actuator/endpoints.html) can return a heap dump file.
+- Unsafe JNI usage or native libraries can introduce memory corruption bugs.
+- Native dependencies can be affected by their own memory-safety bugs, for example something similar to [Heartbleed](https://www.heartbleed.com/).
+- Operators, debugging tooling, crash dumps, and snapshots can all create copies of process memory.
 
 If an attacker can continuously read live process memory, this becomes impossible to solve in-process because credentials must exist in memory while authentication is happening. Sending password-equivalent material, such as a reusable client-side hash, would only lead to more problems. So the more realistic model is that an attacker obtains one or a few dumps.
 
@@ -32,11 +32,11 @@ If an attacker can continuously read live process memory, this becomes impossibl
 
 The Java API promise is straightforward:
 
-**-** [`java.lang.String`](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/String.html) is final.
-**-** [`String` values cannot be changed after creation and thus are immutable](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/String.html).
-**-** [String literals are `String` instances](https://docs.oracle.com/javase/specs/jls/se26/html/jls-3.html#jls-3.10.5).
-**-** [String literals and constant-expression strings are interned](https://docs.oracle.com/javase/specs/jls/se26/html/jls-3.html#jls-3.10.5).
-**-** [`String.intern()` returns the canonical pooled instance](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/String.html#intern()) for equal string contents.
+- [`java.lang.String`](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/String.html) is final.
+- [`String` values cannot be changed after creation and thus are immutable](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/String.html).
+- [String literals are `String` instances](https://docs.oracle.com/javase/specs/jls/se26/html/jls-3.html#jls-3.10.5).
+- [String literals and constant-expression strings are interned](https://docs.oracle.com/javase/specs/jls/se26/html/jls-3.html#jls-3.10.5).
+- [`String.intern()` returns the canonical pooled instance](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/String.html#intern()) for equal string contents.
 
 The string pool is the JVM's table of canonical `String` instances. That does not mean pooled strings live in some magic non-heap place. On modern HotSpot JVM they are still normal heap objects, while the pool keeps track of the canonical references. Interning is the process of looking up a string in that pool and using the pooled object for equal text. If no equal string is present, the string can be added to the pool. If it is already present, the existing pooled object is returned. String literals and constant-expression strings are interned automatically, while `intern()` lets you ask for that canonical pooled object explicitly.
 
@@ -165,14 +165,14 @@ String literals are especially long-lived in typical services. A literal like `"
 
 There is no magic in-process fix when assuming an attacker can read your memory. Still, there are practical mitigations:
 
-**-** Avoid `String` for secrets where APIs allow `char[]`, `byte[]`, or dedicated secret wrappers.
-**-** Overwrite mutable secret buffers as soon as they are no longer needed.
-**-** Disable and protect memory dump endpoints.
-**-** Treat memory dumps, crash dumps, logs, and snapshots as sensitive artifacts.
-**-** Avoid logging secrets and encoded variants of secrets.
-**-** Keep native dependencies patched.
-**-** Restart short-lived worker processes if you need to reduce secret lifetime in memory.
-**-** Prefer designs where the process never receives long-lived user secrets if that is architecturally possible.
+- Avoid `String` for secrets where APIs allow `char[]`, `byte[]`, or dedicated secret wrappers.
+- Overwrite mutable secret buffers as soon as they are no longer needed.
+- Disable and protect memory dump endpoints.
+- Treat memory dumps, crash dumps, logs, and snapshots as sensitive artifacts.
+- Avoid logging secrets and encoded variants of secrets.
+- Keep native dependencies patched.
+- Restart short-lived worker processes if you need to reduce secret lifetime in memory.
+- Prefer designs where the process never receives long-lived user secrets if that is architecturally possible.
 
 [Secure string wrappers like `GuardedString`](https://docs.oracle.com/cd/E23943_01/apirefs.1111/e24834/org/identityconnectors/common/security/package-summary.html) can make secret handling safer in code you control, because they avoid keeping the secret as a plain `String` all the time. But once you pass the secret to a library that asks for a normal `String`, that library can still create ordinary string copies.
 
