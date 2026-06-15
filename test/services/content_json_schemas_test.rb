@@ -57,7 +57,7 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
     ].each do |path|
       JSON.parse(File.read(path)).each do |entry|
         asset_refs << entry["icon"]
-        Array(entry["events"]).each { |event| asset_refs << event["icon"] if event.is_a?(Hash) }
+        Array(entry["timeline"]).each { |event| asset_refs << event["icon"] if event.is_a?(Hash) }
       end
     end
 
@@ -72,11 +72,11 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
   end
 
   test "invalid content json reports useful schema errors" do
-    data = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
+    data = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
     data.first.delete("title")
 
     error = assert_raises(ContentJsonSchemas::ValidationError) do
-      ContentJsonSchemas.validate!(ApplicationController::ABOUTME_CHALLENGES_PATH, data)
+      ContentJsonSchemas.validate!(ApplicationController::ABOUTME_CVES_PATH, data)
     end
 
     assert_includes error.message, "/0"

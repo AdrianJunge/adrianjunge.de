@@ -114,7 +114,7 @@ class ContentIndex
 
       entries.flat_map do |entry|
         if collection[:kind] == "achievement"
-          achievement_event_items(entry, collection)
+          achievement_timeline_items(entry, collection)
         else
           about_entry_item(entry, collection)
         end
@@ -128,9 +128,9 @@ class ContentIndex
 
     published = about_published_time(entry, collection[:path])
     display_date = about_display_date(entry, published)
-    title = entry["title"].presence || entry["cve_id"].presence || entry["project"].presence || collection[:label]
+    title = entry["title"].presence || collection[:label]
     description = about_description(entry)
-    tags = about_tags(entry, collection[:label])
+    tags = about_tags(entry, collection)
     link = about_entry_timeline_link(entry, id, collection)
 
     [
@@ -138,7 +138,6 @@ class ContentIndex
         id: "about-#{collection[:kind]}-#{id.parameterize}",
         kind: collection[:kind],
         label: collection[:label],
-        source: entry["project"].presence || entry["category"].presence || "About",
         title: title,
         description: description,
         published: published,
@@ -148,18 +147,16 @@ class ContentIndex
         search_parts: [ collection[:label], entry ],
         timeline_group: entry["timeline_group"].presence,
         logo: about_entry_icon(entry, collection),
-        cve_id: entry["cve_id"].presence,
-        severity: entry["severity"].presence,
-        project: entry["project"].presence
+        source: entry["title"].presence || "About"
       )
     ]
   end
 
-  def achievement_event_items(entry, collection)
+  def achievement_timeline_items(entry, collection)
     parent_id = entry["id"].presence || entry["title"].to_s.parameterize
     return [] if parent_id.blank?
 
-    events = Array(entry["events"]).select { |event| event.is_a?(Hash) && event["title"].present? }
+    events = Array(entry["timeline"]).select { |event| event.is_a?(Hash) && event["title"].present? }
     return about_entry_item(entry, collection) if events.empty?
 
     events.filter_map do |event|
@@ -169,13 +166,13 @@ class ContentIndex
       published = repository.parsed_time(event["date"], fallback: about_published_time(entry, collection[:path]))
       description = event["summary"].presence || about_description(entry)
       title = event["title"].presence || entry["title"].presence || collection[:label]
-      tags = about_tags(entry, collection[:label]) + [ entry["title"] ]
+      tags = about_tags(entry, collection) + [ entry["title"] ]
 
       content_item(
         id: "about-#{collection[:kind]}-#{event_id.parameterize}",
         kind: collection[:kind],
         label: collection[:label],
-        source: entry["title"].presence || entry["category"].presence || "About",
+        source: entry["title"].presence || "About",
         title: title,
         description: description,
         published: published,
@@ -257,7 +254,7 @@ class ContentIndex
   end
 
   def about_description(entry)
-    entry["short_summary"].presence ||
+    entry["subtitle"].presence ||
       entry["summary"].presence ||
       ""
   end
@@ -270,16 +267,15 @@ class ContentIndex
     end
   end
 
-  def about_tags(entry, label)
-    [
-      label,
-      entry["project"],
-      entry["category"],
-      entry["severity"],
-      entry["cve_id"],
-      entry["cwe_id"],
-      WriteupDifficulty.filter_label_for(entry)
-    ].map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| ContentRepository.filter_tag_sort_key(tag) }
+  def about_tags(entry, collection)
+    extra_tags = [ collection[:label] ]
+    extra_tags << entry["title"] if %w[cve bug-bounty].include?(collection[:kind])
+
+    (extra_tags + about_tag_labels(entry["tags"]))
+      .map(&:to_s)
+      .reject(&:blank?)
+      .uniq { |tag| tag.downcase }
+      .sort_by { |tag| ContentRepository.filter_tag_sort_key(tag) }
   end
 
   def about_entry_icon(entry, collection)
@@ -287,7 +283,6 @@ class ContentIndex
   end
 
   def about_collection_default_icon(kind, entry)
-    category = entry["category"].to_s.downcase
     title = entry["title"].to_s.downcase
 
     case kind
@@ -304,8 +299,8 @@ class ContentIndex
     when "challenge"
       "ctf/kitctf.png"
     else
-      return "other/talk-slides.png" if category.match?(/slide|talk/) || title.match?(/\btalk\b|intro/)
-      return "other/certificate.svg" if category.match?(/certif/) || title.match?(/certif|cpts/)
+      return "other/talk-slides.png" if title.match?(/\btalk\b|intro/)
+      return "other/certificate.svg" if title.match?(/certif|cpts/)
 
       "other/achievement.svg"
     end
@@ -313,7 +308,7 @@ class ContentIndex
 
   def about_entry_timeline_link(entry, id, collection)
     if collection[:kind] == "challenge"
-      entry["card_url"].presence || entry["title_url"].presence || "/about##{id}"
+      entry["url"].presence || "/about##{id}"
     else
       "/about##{id}"
     end
@@ -355,6 +350,16 @@ class ContentIndex
       value.strftime("%Y-%m-%d")
     else
       value.to_s
+    end
+  end
+
+  def about_tag_labels(tags)
+    Array(tags).filter_map do |tag|
+      if tag.respond_to?(:to_h)
+        tag.to_h["label"].presence || tag.to_h[:label].presence
+      else
+        tag.to_s.presence
+      end
     end
   end
 

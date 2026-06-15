@@ -179,8 +179,23 @@ class ApplicationController < ActionController::Base
 
   def filter_repository_labels
     [ ABOUTME_CVES_PATH, ABOUTME_BUG_BOUNTIES_PATH ].flat_map do |path|
-      content_repository.about_entries(path).filter_map { |entry| entry["project"] }
+      content_repository.about_entries(path).filter_map { |entry| entry["title"] }
     end
+  end
+
+  def adjacent_content_items(items, slug, directory: nil)
+    normalized_slug = slug.to_s.downcase
+    normalized_directory = directory.to_s.downcase.presence
+    index = items.index do |item|
+      item[:slug].to_s.downcase == normalized_slug &&
+        (normalized_directory.blank? || item[:directory].to_s.downcase == normalized_directory)
+    end
+    return [ nil, nil ] if index.nil?
+
+    next_item = index.positive? ? items[index - 1] : nil
+    previous_item = index < items.length - 1 ? items[index + 1] : nil
+
+    [ previous_item, next_item ]
   end
 
   def sanitize_which(which)

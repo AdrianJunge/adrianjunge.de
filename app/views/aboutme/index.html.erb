@@ -43,70 +43,68 @@
 <% about_sections = [
   {
     id: "cves",
+    kind: "cve",
     title: "CVEs",
     entries: @cves,
     count: @cve_entry_count,
     singular: "entry",
     plural: "entries",
     grid_class: "aboutme-finding-grid",
-    partial: "aboutme/finding_card",
-    card_locals: { kind: "cve" },
     empty_text: "No public CVEs are listed yet."
   },
   {
     id: "bug-bounties",
+    kind: "bug-bounty",
     title: "Bug bounties",
     entries: @bug_bounties,
     count: @bug_bounties.length,
     singular: "finding",
     plural: "findings",
     grid_class: "aboutme-finding-grid",
-    partial: "aboutme/finding_card",
-    card_locals: { kind: "bug-bounty" },
     empty_text: "No public bounties yet - the disclosure timers are still pretending to be load-bearing."
   },
   {
     id: "my-challenges",
+    kind: "challenge",
     title: "Created CTF Challenges",
     entries: @challenges,
     count: @challenges.length,
     singular: "challenge",
     plural: "challenges",
     grid_class: "aboutme-achievement-grid",
-    partial: "aboutme/milestone_card",
     empty_text: "No authored challenges are listed yet."
   },
   {
     id: "certificates",
+    kind: "certificate",
     title: "Certificates",
     entries: @certificates,
     count: @certificates.length,
     singular: "certificate",
     plural: "certificates",
     grid_class: "aboutme-achievement-grid",
-    partial: "aboutme/milestone_card",
     empty_text: "No certificates are listed yet."
   },
   {
     id: "talks",
+    kind: "talk",
     title: "Talks",
     entries: @talks,
     count: @talks.length,
     singular: "talk",
     plural: "talks",
     grid_class: "aboutme-achievement-grid",
-    partial: "aboutme/milestone_card",
     empty_text: "No talks are listed yet."
   },
   {
     id: "achievements",
+    kind: "achievement",
     title: "Relevant achievements",
     entries: @achievements,
     count: @achievement_event_count,
     singular: "event",
     plural: "events",
     grid_class: "aboutme-achievement-grid",
-    partial: "aboutme/milestone_card",
     empty_text: "No achievements are listed yet."
   }
 ] %>

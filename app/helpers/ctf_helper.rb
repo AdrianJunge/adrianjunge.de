@@ -1,6 +1,6 @@
 module CtfHelper
-  CATEGORY_ICON_ASSET_ROOT = Rails.root.join("app", "assets", "ctf")
-  CATEGORY_ICON_DIRECTORY = Rails.root.join("app", "assets", "ctf", "categories")
+  CATEGORY_ICON_ASSET_ROOT = Rails.root.join("app", "assets", "images")
+  CATEGORY_ICON_DIRECTORY = CATEGORY_ICON_ASSET_ROOT.join("ctf", "categories")
   DEFAULT_CATEGORY_ICON = "default.svg"
 
   def get_category_svg(category)

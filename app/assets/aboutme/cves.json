@@ -1,415 +1,409 @@
 [
   {
     "id": "joomla-com-users-batch-task-privilege-escalation",
-    "project": "Joomla CMS",
-    "project_url": "https://github.com/joomla/joomla-cms",
+    "title": "Joomla CMS",
+    "subtitle": "Privilege escalation through com_users batch task",
     "icon": "blog/joomla.png",
-    "title": "Privilege escalation through com_users batch task",
-    "title_url": "https://developer.joomla.org/security-centre/1045-20260513-core-privilege-escalation-through-com-users-batch-task.html",
-    "cve_id": "CVE-2026-48898",
-    "cwe_id": "CWE-284",
-    "severity": "High",
-    "short_summary": "Privilege escalation through the Joomla com_users batch task.",
     "summary": "Joomla CMS 4.0.0 through 5.4.5 and 6.0.0 through 6.1.0 were affected by an improper access check in the com_users batch task. Authenticated attackers could abuse the batch flow to escalate privileges.",
-    "timeline": [
-      {
-        "date": "2026-04-03",
-        "event": "Reported to the Joomla Security Strike Team."
-      },
-      {
-        "date": "2026-04-18",
-        "event": "Confirmation of the issue and initial patch development."
-      },
-      {
-        "date": "2026-05-26",
-        "event": "Fixed in Joomla CMS 5.4.6 and 6.1.1 and CVE assigned."
-      }
-    ],
-    "references": [
-      {
-        "label": "Joomla security announcement",
-        "url": "https://developer.joomla.org/security-centre/1045-20260513-core-privilege-escalation-through-com-users-batch-task.html"
-      },
+    "tags": [
+      "High",
       {
         "label": "CVE-2026-48898",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-48898"
       },
       {
-        "label": "Joomla CMS repository",
+        "label": "CWE-284",
+        "url": "https://cwe.mitre.org/data/definitions/284.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
         "url": "https://github.com/joomla/joomla-cms"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://developer.joomla.org/security-centre/1045-20260513-core-privilege-escalation-through-com-users-batch-task.html"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-04-03",
+        "title": "Reported to the Joomla Security Strike Team."
+      },
+      {
+        "date": "2026-04-18",
+        "title": "Confirmation of the issue and initial patch development."
+      },
+      {
+        "date": "2026-05-26",
+        "title": "Fixed in Joomla CMS 5.4.6 and 6.1.1 and CVE assigned."
       }
     ]
   },
   {
     "id": "joomla-com-tags-authenticated-blind-sqli",
-    "project": "Joomla CMS",
-    "project_url": "https://github.com/joomla/joomla-cms",
+    "title": "Joomla CMS",
+    "subtitle": "Authenticated blind SQL injection in com_tags",
     "icon": "blog/joomla.png",
-    "title": "Authenticated blind SQL injection in com_tags",
-    "title_url": "https://developer.joomla.org/security-centre/1039-20260507-core-authenticated-blind-sqli-in-com-tags.html",
-    "cve_id": "CVE-2026-35222",
-    "cwe_id": "CWE-89",
-    "severity": "Moderate",
-    "short_summary": "Authenticated blind SQL injection in Joomla com_tags.",
     "summary": "Joomla CMS 4.0.0 through 5.4.5 and 6.0.0 through 6.1.0 were affected by improper validation of order clauses in com_tags. Authenticated attackers could manipulate generated SQL and infer database contents through blind SQL injection.",
-    "timeline": [
-      {
-        "date": "2026-03-31",
-        "event": "Reported to the Joomla Security Strike Team."
-      },
-      {
-        "date": "2026-04-01",
-        "event": "First acknowledgment."
-      },
-      {
-        "date": "2026-04-11",
-        "event": "Confirmation of the issue and initial patch development."
-      },
-      {
-        "date": "2026-05-26",
-        "event": "Fixed in Joomla CMS 5.4.6 and 6.1.1 and CVE assigned."
-      }
-    ],
-    "references": [
-      {
-        "label": "Joomla security announcement",
-        "url": "https://developer.joomla.org/security-centre/1039-20260507-core-authenticated-blind-sqli-in-com-tags.html"
-      },
+    "tags": [
+      "Moderate",
       {
         "label": "CVE-2026-35222",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-35222"
       },
       {
-        "label": "Joomla CMS repository",
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      {
+        "label": "Writeup",
+        "url": "/blog/joomla-sqli"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
         "url": "https://github.com/joomla/joomla-cms"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://developer.joomla.org/security-centre/1039-20260507-core-authenticated-blind-sqli-in-com-tags.html"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-31",
+        "title": "Reported to the Joomla Security Strike Team."
+      },
+      {
+        "date": "2026-04-01",
+        "title": "First acknowledgment."
+      },
+      {
+        "date": "2026-04-11",
+        "title": "Confirmation of the issue and initial patch development."
+      },
+      {
+        "date": "2026-05-26",
+        "title": "Fixed in Joomla CMS 5.4.6 and 6.1.1 and CVE assigned."
       }
     ]
   },
   {
     "id": "joomla-com-finder-authenticated-blind-sqli",
-    "project": "Joomla CMS",
-    "project_url": "https://github.com/joomla/joomla-cms",
+    "title": "Joomla CMS",
+    "subtitle": "Authenticated blind SQL injection in com_finder",
     "icon": "blog/joomla.png",
-    "title": "Authenticated blind SQL injection in com_finder",
-    "title_url": "https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html",
-    "cve_id": "CVE-2026-35221",
-    "cwe_id": "CWE-89",
-    "severity": "Moderate",
-    "short_summary": "Authenticated blind SQL injection in Joomla com_finder.",
     "summary": "Joomla CMS 5.4.0 through 5.4.5 and 6.0.0 through 6.1.0 were affected by improperly constructed filter clauses in the com_finder search query. Authenticated attackers could influence the SQL query and infer database contents through blind SQL injection.",
-    "timeline": [
-      {
-        "date": "2026-03-31",
-        "event": "Reported to the Joomla Security Strike Team."
-      },
-      {
-        "date": "2026-04-01",
-        "event": "First acknowledgment."
-      },
-      {
-        "date": "2026-04-11",
-        "event": "Confirmation of the issue and initial patch development."
-      },
-      {
-        "date": "2026-05-26",
-        "event": "Fixed in Joomla CMS 5.4.6 and 6.1.1 and CVE assigned."
-      }
-    ],
-    "references": [
-      {
-        "label": "Joomla security announcement",
-        "url": "https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html"
-      },
+    "tags": [
+      "Moderate",
       {
         "label": "CVE-2026-35221",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-35221"
       },
       {
-        "label": "Joomla CMS repository",
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      {
+        "label": "Writeup",
+        "url": "/blog/joomla-sqli"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
         "url": "https://github.com/joomla/joomla-cms"
-      }
-    ]
-  },
-  {
-    "id": "suitecrm-tba-2",
-    "hidden": true,
-    "project": "SuiteCRM",
-    "project_url": "https://github.com/salesagility/SuiteCRM",
-    "icon": "other/cve.svg",
-    "title": "SuiteCRM advisory #2 (TBA)",
-    "title_url": "https://github.com/salesagility/SuiteCRM",
-    "cve_id": "",
-    "cwe_id": "",
-    "severity": "",
-    "short_summary": "",
-    "summary": "",
-    "timeline": [
+      },
       {
-        "date": "",
-        "event": ""
+        "label": "Advisory source",
+        "url": "https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html"
       }
     ],
-    "references": [
-      {
-        "label": "SuiteCRM repository",
-        "url": "https://github.com/salesagility/SuiteCRM"
-      }
-    ]
-  },
-  {
-    "id": "suitecrm-tba-1",
-    "hidden": true,
-    "project": "SuiteCRM",
-    "project_url": "https://github.com/salesagility/SuiteCRM",
-    "icon": "other/cve.svg",
-    "title": "SuiteCRM advisory #1 (TBA)",
-    "title_url": "https://github.com/salesagility/SuiteCRM",
-    "cve_id": "",
-    "cwe_id": "",
-    "severity": "",
-    "short_summary": "",
-    "summary": "",
     "timeline": [
       {
-        "date": "",
-        "event": ""
-      }
-    ],
-    "references": [
+        "date": "2026-03-31",
+        "title": "Reported to the Joomla Security Strike Team."
+      },
       {
-        "label": "SuiteCRM repository",
-        "url": "https://github.com/salesagility/SuiteCRM"
+        "date": "2026-04-01",
+        "title": "First acknowledgment."
+      },
+      {
+        "date": "2026-04-11",
+        "title": "Confirmation of the issue and initial patch development."
+      },
+      {
+        "date": "2026-05-26",
+        "title": "Fixed in Joomla CMS 5.4.6 and 6.1.1 and CVE assigned."
       }
     ]
   },
   {
     "id": "churchcrm-settingsindividual-blind-sqli",
-    "project": "ChurchCRM",
-    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "ChurchCRM",
+    "subtitle": "Authenticated blind SQL injection in SettingsIndividual.php",
     "icon": "other/churchcrm.png",
-    "title": "Authenticated blind SQL injection in SettingsIndividual.php",
-    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-8g53-72jr-39w6",
-    "cve_id": "CVE-2026-39334",
-    "cwe_id": "CWE-89",
-    "severity": "High",
-    "short_summary": "Authenticated blind SQL injection in SettingsIndividual.php.",
     "summary": "In ChurchCRM 7.0.5, settings input handled by SettingsIndividual.php could be used by an authenticated user to influence a SQL query. The issue enabled blind SQL injection behavior that could expose sensitive database contents.",
-    "timeline": [
-      {
-        "date": "2026-03-26",
-        "event": "Report published to ChurchCRM and initial triage."
-      },
-      {
-        "date": "2026-04-05",
-        "event": "GitHub advisory published and CVE assigned."
-      }
-    ],
-    "references": [
+    "tags": [
+      "High",
       {
         "label": "CVE-2026-39334",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39334"
       },
       {
-        "label": "ChurchCRM repository",
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
         "url": "https://github.com/ChurchCRM/CRM"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-8g53-72jr-39w6"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "title": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "title": "GitHub advisory published and CVE assigned."
       }
     ]
   },
   {
     "id": "churchcrm-propertyassign-blind-sqli",
-    "project": "ChurchCRM",
-    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "ChurchCRM",
+    "subtitle": "Authenticated blind SQL injection in PropertyAssign.php",
     "icon": "other/churchcrm.png",
-    "title": "Authenticated blind SQL injection in PropertyAssign.php",
-    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-xq86-jh52-728g",
-    "cve_id": "CVE-2026-39330",
-    "cwe_id": "CWE-89",
-    "severity": "High",
-    "short_summary": "Authenticated blind SQL injection in PropertyAssign.php.",
     "summary": "In ChurchCRM 7.0.5, property assignment handling in PropertyAssign.php exposed a blind SQL injection path for authenticated users. Attackers could infer database contents and potentially alter application data through injected SQL.",
-    "timeline": [
-      {
-        "date": "2026-03-26",
-        "event": "Report published to ChurchCRM and initial triage."
-      },
-      {
-        "date": "2026-04-05",
-        "event": "GitHub advisory published and CVE assigned."
-      }
-    ],
-    "references": [
+    "tags": [
+      "High",
       {
         "label": "CVE-2026-39330",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39330"
       },
       {
-        "label": "ChurchCRM repository",
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
         "url": "https://github.com/ChurchCRM/CRM"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-xq86-jh52-728g"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "title": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "title": "GitHub advisory published and CVE assigned."
       }
     ]
   },
   {
     "id": "churchcrm-eventnames-blind-sqli",
-    "project": "ChurchCRM",
-    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "ChurchCRM",
+    "subtitle": "Authenticated blind SQL injection in EventNames.php",
     "icon": "other/churchcrm.png",
-    "title": "Authenticated blind SQL injection in EventNames.php",
-    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-ggfm-5q4w-p93g",
-    "cve_id": "CVE-2026-39329",
-    "cwe_id": "CWE-89",
-    "severity": "High",
-    "short_summary": "Authenticated blind SQL injection in EventNames.php.",
     "summary": "In ChurchCRM 7.0.5, event-name management in EventNames.php exposed SQL injection behavior to authenticated users with access to the affected configuration path. Successful exploitation could expose or modify ChurchCRM database records.",
-    "timeline": [
-      {
-        "date": "2026-03-26",
-        "event": "Report published to ChurchCRM and initial triage."
-      },
-      {
-        "date": "2026-04-05",
-        "event": "GitHub advisory published and CVE assigned."
-      }
-    ],
-    "references": [
+    "tags": [
+      "High",
       {
         "label": "CVE-2026-39329",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39329"
       },
       {
-        "label": "ChurchCRM repository",
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
         "url": "https://github.com/ChurchCRM/CRM"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-ggfm-5q4w-p93g"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "title": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "title": "GitHub advisory published and CVE assigned."
       }
     ]
   },
   {
     "id": "churchcrm-memberrolechange-sqli",
-    "project": "ChurchCRM",
-    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "ChurchCRM",
+    "subtitle": "Authenticated SQL injection in MemberRoleChange.php",
     "icon": "other/churchcrm.png",
-    "title": "Authenticated SQL injection in MemberRoleChange.php",
-    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-66fc-v5xj-x859",
-    "cve_id": "CVE-2026-39327",
-    "cwe_id": "CWE-89",
-    "severity": "High",
-    "short_summary": "Authenticated SQL injection in MemberRoleChange.php.",
     "summary": "In ChurchCRM 7.0.5, authenticated users with group and role management privileges could inject SQL through the MemberRoleChange.php role update flow. Depending on deployment configuration, this could provide database read/write access and potential privilege escalation.",
-    "timeline": [
-      {
-        "date": "2026-03-25",
-        "event": "Report published to ChurchCRM and initial triage."
-      },
-      {
-        "date": "2026-04-05",
-        "event": "GitHub advisory published and CVE assigned."
-      }
-    ],
-    "references": [
+    "tags": [
+      "High",
       {
         "label": "CVE-2026-39327",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39327"
       },
       {
-        "label": "ChurchCRM repository",
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
         "url": "https://github.com/ChurchCRM/CRM"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-66fc-v5xj-x859"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-25",
+        "title": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "title": "GitHub advisory published and CVE assigned."
       }
     ]
   },
   {
     "id": "churchcrm-propertytypeeditor-blind-sqli",
-    "project": "ChurchCRM",
-    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "ChurchCRM",
+    "subtitle": "Authenticated blind SQL injection in PropertyTypeEditor.php",
     "icon": "other/churchcrm.png",
-    "title": "Authenticated blind SQL injection in PropertyTypeEditor.php",
-    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-mch7-6v8f-c4j5",
-    "cve_id": "CVE-2026-39326",
-    "cwe_id": "CWE-89",
-    "severity": "High",
-    "short_summary": "Authenticated blind SQL injection in PropertyTypeEditor.php.",
     "summary": "In ChurchCRM 7.0.5, property type editing in PropertyTypeEditor.php accepted authenticated input that could influence SQL statements. The issue could lead to database compromise, including data extraction or modification.",
-    "timeline": [
-      {
-        "date": "2026-03-26",
-        "event": "Report published to ChurchCRM and initial triage."
-      },
-      {
-        "date": "2026-04-05",
-        "event": "GitHub advisory published and CVE assigned."
-      }
-    ],
-    "references": [
+    "tags": [
+      "High",
       {
         "label": "CVE-2026-39326",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39326"
       },
       {
-        "label": "ChurchCRM repository",
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
         "url": "https://github.com/ChurchCRM/CRM"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-mch7-6v8f-c4j5"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "title": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "title": "GitHub advisory published and CVE assigned."
       }
     ]
   },
   {
     "id": "churchcrm-settingsuser-blind-sqli",
-    "project": "ChurchCRM",
-    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "ChurchCRM",
+    "subtitle": "Authenticated blind SQL injection in SettingsUser.php",
     "icon": "other/churchcrm.png",
-    "title": "Authenticated blind SQL injection in SettingsUser.php",
-    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-cf68-g7vf-9xrq",
-    "cve_id": "CVE-2026-39325",
-    "cwe_id": "CWE-89",
-    "severity": "High",
-    "short_summary": "Authenticated blind SQL injection in SettingsUser.php.",
     "summary": "In ChurchCRM 7.0.5, user settings handling in SettingsUser.php exposed an authenticated blind SQL injection path. Attackers could infer and extract database data through timing-based or boolean blind SQL techniques.",
-    "timeline": [
-      {
-        "date": "2026-03-26",
-        "event": "Report published to ChurchCRM and initial triage."
-      },
-      {
-        "date": "2026-04-05",
-        "event": "GitHub advisory published and CVE assigned."
-      }
-    ],
-    "references": [
+    "tags": [
+      "High",
       {
         "label": "CVE-2026-39325",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39325"
       },
       {
-        "label": "ChurchCRM repository",
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
         "url": "https://github.com/ChurchCRM/CRM"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-cf68-g7vf-9xrq"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "title": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "title": "GitHub advisory published and CVE assigned."
       }
     ]
   },
   {
     "id": "churchcrm-fundraisereditor-second-order-sqli",
-    "project": "ChurchCRM",
-    "project_url": "https://github.com/ChurchCRM/CRM",
+    "title": "ChurchCRM",
+    "subtitle": "Second-order SQL injection via FundRaiserEditor.php",
     "icon": "other/churchcrm.png",
-    "title": "Second-order SQL injection via FundRaiserEditor.php",
-    "title_url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-vg4m-hc29-jgqj",
-    "cve_id": "CVE-2026-39319",
-    "cwe_id": "CWE-89",
-    "severity": "High",
-    "short_summary": "Second-order SQL injection via FundRaiserEditor.php.",
     "summary": "ChurchCRM 7.1.2 and earlier allowed stored input from FundRaiserEditor.php to become executable SQL later in the fundraiser workflow. This second-order SQL injection could lead to database compromise once the malicious stored value was processed.",
-    "timeline": [
-      {
-        "date": "2026-03-26",
-        "event": "Report published to ChurchCRM and initial triage."
-      },
-      {
-        "date": "2026-04-05",
-        "event": "GitHub advisory published and CVE assigned."
-      }
-    ],
-    "references": [
+    "tags": [
+      "High",
       {
         "label": "CVE-2026-39319",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39319"
       },
       {
-        "label": "ChurchCRM repository",
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
         "url": "https://github.com/ChurchCRM/CRM"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://github.com/ChurchCRM/CRM/security/advisories/GHSA-vg4m-hc29-jgqj"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-26",
+        "title": "Report published to ChurchCRM and initial triage."
+      },
+      {
+        "date": "2026-04-05",
+        "title": "GitHub advisory published and CVE assigned."
       }
     ]
   }

@@ -42,6 +42,8 @@
 
 <main class="content-page article-page">
 <div class="writeup-wrapper relative flex items-start gap-4 mx-4">
+  <%= render "shared/article_toc", headings: @headings, word_total: @ctf_info["word_count"] %>
+
   <div class="writeup-container bg-primary">
     <button
       type="button"
@@ -164,81 +166,10 @@
 
     <%= @html_content %>
 
-    <div class="next-previous-writeups flex justify-between my-8">
-      <% if @previous_writeup %>
-        <a
-          href="<%= @previous_writeup[:link] %>"
-          class="previous-writeup-btn ui-article-action mt-3"
-        >
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          <span><%= @previous_writeup[:which].upcase %> - <%= @previous_writeup[:title] %></span>
-        </a>
-      <% else %>
-        <div></div>
-      <% end %>
-
-      <% if @next_writeup %>
-        <a
-          href="<%= @next_writeup[:link] %>"
-          class="next-writeup-btn ui-article-action mt-3"
-        >
-          <span><%= @next_writeup[:which].upcase %> - <%= @next_writeup[:title] %></span>
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </a>
-      <% else %>
-        <div></div>
-      <% end %>
-    </div>
+    <%= render "shared/article_navigation",
+               previous_item: @previous_writeup,
+               next_item: @next_writeup %>
   </div>
 
-  <div id="toc" class="table-of-content bg-primary">
-    <div class="toc-header">
-      <h3 class="text-slate-100 font-semibold text-3xl">Table of contents</h3>
-      <button
-        id="toc-toggle"
-        type="button"
-        class="collapse-toc-button toc-toggle-button"
-        title="Collapse table of contents"
-        aria-label="Collapse table of contents"
-        data-toc-toggle="toc"
-        aria-expanded="true"
-        aria-controls="toc"
-      >
-        <svg
-          id="toc-toggle-icon"
-          class="w-5 h-5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round">
-          <path d="M9 6l6 6-6 6"/>
-        </svg>
-      </button>
-    </div>
-    <ul id="toc-body" class="text-slate-100">
-      <% @headings.each do |heading| %>
-        <% toc_depth = [[ heading[:depth].to_i, 0 ].max, 4].min %>
-        <li class="toc-item toc-depth-<%= toc_depth %>" style="margin-left: <%= toc_depth * 0.85 %>rem;">
-          <a href="#<%= heading[:anchor] %>" class="toc-anchor group flex items-start py-1">
-            <% if toc_depth.positive? %>
-              <svg width="3" height="24" viewBox="0 -9 3 24"
-                class="toc-indent-marker mr-2 text-slate-400 overflow-visible group-hover:text-slate-600 dark:text-slate-600 dark:group-hover:text-slate-500">
-                <path d="M0 0L3 3L0 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                </path>
-              </svg>
-            <% end %>
-            <%= heading[:text] %>
-          </a>
-        </li>
-      <% end %>
-    </ul>
-    <%= render "shared/post_progress", word_total: @ctf_info["word_count"] %>
-  </div>
 </div>
 </main>

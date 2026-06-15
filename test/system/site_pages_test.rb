@@ -211,6 +211,23 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_in_delta metrics["menuLeft"], metrics["dropdownLeft"], 2
       assert_operator metrics["dropdownRight"], :>, metrics["menuRight"]
 
+      page.current_window.resize_to(320, 900)
+      mobile_metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const dropdown = document.querySelector(".taskbar-feed-dropdown").getBoundingClientRect();
+          const viewportWidth = document.documentElement.clientWidth;
+
+          return {
+            dropdownLeft: Math.round(dropdown.left),
+            dropdownRight: Math.round(dropdown.right),
+            viewportWidth
+          };
+        })()
+      JS
+      assert_operator mobile_metrics["dropdownLeft"], :>=, 0
+      assert_operator mobile_metrics["dropdownRight"], :<=, mobile_metrics["viewportWidth"]
+
+      page.current_window.resize_to(1280, 900)
       find(".content-hero").click
       assert_no_selector ".taskbar-feed-menu[open]", visible: :all
     end
@@ -327,6 +344,21 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_operator styles["cueHeight"], :>, 0
     assert_operator styles["cueBorderWidth"], :>=, 2
     assert_operator styles["cueOpacity"], :>, 0
+
+    page.current_window.resize_to(320, 900)
+    visit "/ctf/umdctf"
+    mobile_link_metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const link = document.querySelector(".content-hero-title-link");
+
+        return {
+          text: link.innerText.trim(),
+          overflowX: link.scrollWidth - link.clientWidth
+        };
+      })()
+    JS
+    assert_equal "UMDCTF", mobile_link_metrics["text"]
+    assert_operator mobile_link_metrics["overflowX"], :<=, 1
   end
 
   test "year filter uses a rounded custom dropdown" do
@@ -818,8 +850,38 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".article-progress-percent", text: /\d+%/
 
     page.current_window.resize_to(390, 900)
-    visit blog_post[:link]
-    assert_no_selector ".article-progress", visible: :visible
+    [ blog_post[:link], ctf_post[:link] ].each do |post_path|
+      visit post_path
+      assert_no_selector ".article-progress", visible: :visible
+      assert_no_selector ".table-of-content", visible: :visible
+
+      mobile_article_layout = page.evaluate_script(<<~JS)
+        (() => {
+          const wrapper = document.querySelector(".writeup-wrapper");
+          const container = document.querySelector(".writeup-container");
+          const wrapperRect = wrapper.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          const containerStyle = window.getComputedStyle(container);
+
+          return {
+            viewportWidth: document.documentElement.clientWidth,
+            wrapperWidth: Math.round(wrapperRect.width),
+            containerWidth: Math.round(containerRect.width),
+            leftAligned: Math.abs(containerRect.left - wrapperRect.left) <= 1,
+            rightAligned: Math.abs(containerRect.right - wrapperRect.right) <= 1,
+            flexBasis: containerStyle.flexBasis,
+            maxWidth: containerStyle.maxWidth
+          };
+        })()
+      JS
+
+      assert_operator mobile_article_layout["wrapperWidth"], :>=, mobile_article_layout["viewportWidth"] - 40
+      assert_in_delta mobile_article_layout["wrapperWidth"], mobile_article_layout["containerWidth"], 1
+      assert_equal true, mobile_article_layout["leftAligned"]
+      assert_equal true, mobile_article_layout["rightAligned"]
+      assert_equal "100%", mobile_article_layout["flexBasis"]
+      assert_equal "100%", mobile_article_layout["maxWidth"]
+    end
   end
 
   test "article pages show metadata descriptions before the markdown body" do
@@ -1243,6 +1305,60 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".content-filter-panel .filter-chip.is-active", text: tag_name
   end
 
+  test "timeline about links open target cards below the top taskbar" do
+    page.current_window.resize_to(1280, 1000)
+    timeline_item = first_timeline_about_achievement
+    target_id = timeline_item[:link].split("#", 2).last
+
+    visit "/timeline"
+
+    timeline_card = find(".timeline-card-hitbox[href='#{timeline_item[:link]}']", visible: :all)
+                    .find(:xpath, "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-content ')]")
+    page.driver.browser.action.move_to(timeline_card.find(".timeline-title").native).click.perform
+    assert_current_path "/about"
+    assert_equal "##{target_id}", page.evaluate_script("window.location.hash")
+
+    anchor_metrics = nil
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
+
+    loop do
+      anchor_metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const taskbar = document.getElementById("top-taskbar").getBoundingClientRect();
+          const target = document.getElementById(#{target_id.to_json});
+          if (!target) return { targetExists: false };
+
+          const scrollTarget = target.closest(".aboutme-card") || target.closest(".aboutme-section") || target;
+          const scrollTargetRect = scrollTarget.getBoundingClientRect();
+          const openDetails = [...target.closest(".aboutme-page").querySelectorAll("details")]
+            .filter((details) => details.contains(target))
+            .map((details) => details.open);
+
+          return {
+            targetExists: true,
+            allParentsOpen: openDetails.every(Boolean),
+            scrollTargetTop: Math.round(scrollTargetRect.top),
+            taskbarBottom: Math.round(taskbar.bottom),
+            viewportHeight: window.innerHeight
+          };
+        })()
+      JS
+
+      break if anchor_metrics["targetExists"] &&
+        anchor_metrics["allParentsOpen"] &&
+        anchor_metrics["scrollTargetTop"] >= anchor_metrics["taskbarBottom"] + 8 &&
+        anchor_metrics["scrollTargetTop"] <= anchor_metrics["taskbarBottom"] + 48
+      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+      sleep 0.05
+    end
+
+    assert anchor_metrics["targetExists"]
+    assert anchor_metrics["allParentsOpen"]
+    assert_operator anchor_metrics["scrollTargetTop"], :>=, anchor_metrics["taskbarBottom"] + 8
+    assert_operator anchor_metrics["scrollTargetTop"], :<=, anchor_metrics["taskbarBottom"] + 48
+  end
+
   test "timeline filters all indexed content" do
     total_items = timeline_items.length
     search_case = timeline_search_case
@@ -1300,25 +1416,41 @@ class SitePagesTest < ApplicationSystemTestCase
     timeline_year_count_style = page.evaluate_script(<<~JS)
       (() => {
         const count = document.querySelector(".timeline-year-count");
+        const filterCount = document.querySelector("[data-filter-count='timeline']");
         const style = window.getComputedStyle(count);
+        const filterCountStyle = window.getComputedStyle(filterCount);
 
         return {
           className: count.className,
           backgroundColor: style.backgroundColor,
-          borderColor: style.borderTopColor,
+          borderWidth: style.borderTopWidth,
+          borderRadius: style.borderTopLeftRadius,
+          boxShadow: style.boxShadow,
           color: style.color,
+          cursor: style.cursor,
           fontSize: style.fontSize,
-          fontWeight: style.fontWeight
+          fontWeight: style.fontWeight,
+          paddingLeft: style.paddingLeft,
+          userSelect: style.userSelect,
+          filterCountCursor: filterCountStyle.cursor,
+          filterCountUserSelect: filterCountStyle.userSelect
         };
       })()
     JS
     assert_includes timeline_year_count_style["className"], "timeline-year-count"
     assert_not_includes timeline_year_count_style["className"], "bg-slate-800"
-    assert_equal "rgba(125, 211, 252, 0.16)", timeline_year_count_style["backgroundColor"]
-    assert_equal "rgba(125, 211, 252, 0.46)", timeline_year_count_style["borderColor"]
-    assert_equal "rgb(248, 250, 252)", timeline_year_count_style["color"]
-    assert_equal "12.48px", timeline_year_count_style["fontSize"]
-    assert_equal "900", timeline_year_count_style["fontWeight"]
+    assert_equal "rgba(0, 0, 0, 0)", timeline_year_count_style["backgroundColor"]
+    assert_equal "0px", timeline_year_count_style["borderWidth"]
+    assert_equal "0px", timeline_year_count_style["borderRadius"]
+    assert_equal "0px", timeline_year_count_style["paddingLeft"]
+    assert_equal "none", timeline_year_count_style["boxShadow"]
+    assert_equal "rgb(254, 243, 199)", timeline_year_count_style["color"]
+    assert_equal "default", timeline_year_count_style["cursor"]
+    assert_equal "16px", timeline_year_count_style["fontSize"]
+    assert_equal "700", timeline_year_count_style["fontWeight"]
+    assert_equal "none", timeline_year_count_style["userSelect"]
+    assert_equal "default", timeline_year_count_style["filterCountCursor"]
+    assert_equal "none", timeline_year_count_style["filterCountUserSelect"]
     timeline_tag_positions = page.evaluate_script(<<~JS)
       (() => {
         const card = [...document.querySelectorAll(".timeline-content")].find((entry) => entry.querySelector(".timeline-tags"));
@@ -1739,7 +1871,7 @@ class SitePagesTest < ApplicationSystemTestCase
     within scanwich_card do
       assert_selector ".writeup-post-card-logo .category-split-icon[data-category-count='#{category_keys.length}'][aria-label='#{categories.to_sentence} categories']"
       category_keys.each_with_index do |category_key, index|
-        assert_selector ".category-split-icon-slice[data-category='#{category_key}'][style*='--category-index: #{index}; --category-count: #{category_keys.length}; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/#{category_key}-']", visible: :all
+        assert_selector ".category-split-icon-slice[data-category='#{category_key}'][style*='--category-index: #{index}; --category-count: #{category_keys.length}; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='ctf/categories/#{category_key}-']", visible: :all
       end
       assert_selector ".category-split-icon-divider", count: category_keys.length, visible: :all
     end
@@ -1747,7 +1879,7 @@ class SitePagesTest < ApplicationSystemTestCase
     single_category_card = find(".writeup-post-card", text: "Smile at me")
     within single_category_card do
       assert_no_selector ".category-split-icon"
-      assert_selector ".writeup-post-card-logo img.blog-logo[src*='categories/web-'][alt='Web category']"
+      assert_selector ".writeup-post-card-logo img.blog-logo[src*='ctf/categories/web-'][alt='Web category']"
     end
   end
 
@@ -2153,6 +2285,29 @@ class SitePagesTest < ApplicationSystemTestCase
     assert article_tag_styles.all? { |styles| styles["transform"] == "none" }
   end
 
+  test "article previous and next navigation stays within its content type" do
+    blog_case = adjacent_post_case(blog_posts, "blog posts")
+    ctf_case = adjacent_post_case(ctf_posts, "CTF writeups")
+
+    visit blog_case[:post][:link]
+    assert_selector ".next-previous-writeups"
+    assert_selector ".previous-writeup-btn", text: blog_case[:previous][:title]
+    assert_selector ".next-writeup-btn", text: blog_case[:next][:title]
+    assert_no_selector ".next-previous-writeups a[href^='/ctf/']", visible: :all
+
+    find(".previous-writeup-btn").click
+    assert_current_path blog_case[:previous][:link]
+
+    visit ctf_case[:post][:link]
+    assert_selector ".next-previous-writeups"
+    assert_selector ".previous-writeup-btn", text: "#{ctf_case[:previous][:which].upcase} - #{ctf_case[:previous][:title]}"
+    assert_selector ".next-writeup-btn", text: "#{ctf_case[:next][:which].upcase} - #{ctf_case[:next][:title]}"
+    assert_no_selector ".next-previous-writeups a[href^='/blog/']", visible: :all
+
+    find(".next-writeup-btn").click
+    assert_current_path ctf_case[:next][:link]
+  end
+
   test "writeup optional hints render as overview counts and article spoilers" do
     page.current_window.resize_to(1440, 1200)
     post = ctf_post_with_hints
@@ -2306,6 +2461,26 @@ class SitePagesTest < ApplicationSystemTestCase
     visit first_winner[:link]
     assert_selector ".writeup-winner-article .writeup-winner-badge[href='#{first_winner_badge[:proof_url]}']", text: first_winner_badge[:label]
     assert_selector ".writeup-recognition-badges-article .writeup-winner-badge .content-tag-arrow", text: ">"
+
+    mobile_winner = winner_case[:winner_posts].find { |post| post[:link].include?("A%20Minecraft%20Movie") } || first_winner
+    page.current_window.resize_to(320, 900)
+    visit mobile_winner[:link]
+    mobile_badge_metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const badge = document.querySelector(".writeup-recognition-badges-article .writeup-winner-badge");
+        const badgeRect = badge.getBoundingClientRect();
+        const viewportWidth = document.documentElement.clientWidth;
+        const scrollWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+
+        return {
+          badgeRight: Math.round(badgeRect.right),
+          viewportWidth,
+          overflowX: scrollWidth - viewportWidth
+        };
+      })()
+    JS
+    assert_operator mobile_badge_metrics["badgeRight"], :<=, mobile_badge_metrics["viewportWidth"]
+    assert_operator mobile_badge_metrics["overflowX"], :<=, 2
 
     if (external_winner = first_external_winning_writeup)
       external_badge = WriteupWinner.from_metadata(external_winner[:metadata])
@@ -2542,11 +2717,33 @@ class SitePagesTest < ApplicationSystemTestCase
 
     width_script = "Math.round(document.querySelector('.writeup-container').getBoundingClientRect().width)"
     wrapper_width_script = "Math.round(document.querySelector('.writeup-wrapper').getBoundingClientRect().width)"
-    original_width = page.evaluate_script(width_script)
-    wrapper_width = page.evaluate_script(wrapper_width_script)
     assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all
     assert_no_selector "#toc[hidden]", visible: :all
     assert_selector "#toc-toggle[aria-expanded='true']"
+    original_width = page.evaluate_script(width_script)
+    wrapper_width = page.evaluate_script(wrapper_width_script)
+    initial_layout_metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const wrapper = document.querySelector(".writeup-wrapper");
+        const container = document.querySelector(".writeup-container");
+        const toc = document.getElementById("toc");
+        const wrapperChildren = [...wrapper.children];
+        const wrapperStyle = window.getComputedStyle(wrapper);
+        const containerRect = container.getBoundingClientRect();
+        const tocRect = toc.getBoundingClientRect();
+        const wrapperRect = wrapper.getBoundingClientRect();
+
+        return {
+          tocBeforeArticleInDom: wrapperChildren.indexOf(toc) < wrapperChildren.indexOf(container),
+          tocVisuallyRightOfArticle: tocRect.left >= containerRect.right - 1,
+          reservedWidth: Math.round(containerRect.width + tocRect.width + parseFloat(wrapperStyle.columnGap || wrapperStyle.gap || 0)),
+          wrapperWidth: Math.round(wrapperRect.width)
+        };
+      })()
+    JS
+    assert_equal true, initial_layout_metrics["tocBeforeArticleInDom"]
+    assert_equal true, initial_layout_metrics["tocVisuallyRightOfArticle"]
+    assert_in_delta initial_layout_metrics["wrapperWidth"], initial_layout_metrics["reservedWidth"], 2
     expanded_button_metrics = page.evaluate_script("#{button_metrics_script}('#toc-toggle')")
     assert_equal "absolute", expanded_button_metrics["position"]
     assert_in_delta expanded_button_metrics["tocTopInset"], expanded_button_metrics["tocRightInset"], 1
@@ -2703,6 +2900,17 @@ class SitePagesTest < ApplicationSystemTestCase
 
   def first_ctf_post
     ctf_posts.first || flunk("expected at least one CTF writeup")
+  end
+
+  def adjacent_post_case(posts, label)
+    skip "expected at least three #{label}" if posts.length < 3
+
+    index = 1
+    {
+      post: posts[index],
+      previous: posts[index + 1],
+      next: posts[index - 1]
+    }
   end
 
   def first_ctf_event_with_writeups
@@ -3024,6 +3232,11 @@ class SitePagesTest < ApplicationSystemTestCase
   def first_timeline_post_with_tags
     timeline_items.find { |item| item[:link].to_s.match?(%r{\A/(blog|ctf)/}) && visible_timeline_tags(item).any? } ||
       flunk("expected at least one timeline item with visible tags")
+  end
+
+  def first_timeline_about_achievement
+    timeline_items.find { |item| item[:kind] == "achievement" && item[:link].to_s.start_with?("/about#") } ||
+      flunk("expected at least one timeline achievement linking to about")
   end
 
   def first_visible_timeline_tag

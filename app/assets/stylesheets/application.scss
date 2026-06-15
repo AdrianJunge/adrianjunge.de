@@ -805,6 +805,11 @@ mjx-container[display="true"] {
         opacity: 1;
         transform: rotate(225deg);
     }
+
+    .top-taskbar .taskbar-feed-dropdown {
+        right: 0;
+        left: auto;
+    }
 }
 
 .back-button-floating {

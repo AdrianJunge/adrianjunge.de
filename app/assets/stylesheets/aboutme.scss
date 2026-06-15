@@ -184,14 +184,18 @@
 }
 
 .aboutme-section-header {
-    display: flex;
+    display: grid;
     position: relative;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 1rem;
     margin-bottom: 1.15rem;
     padding-bottom: 0.85rem;
+}
+
+.aboutme-section-header > div {
+    min-width: 0;
 }
 
 .aboutme-section-header::after {
@@ -207,23 +211,29 @@
 
 .aboutme-section-title {
     margin: 0;
+    max-width: 100%;
     font-size: 2rem;
     font-weight: 800;
     line-height: 1.15;
+    overflow-wrap: anywhere;
 }
 
 .aboutme-section-count {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2rem;
-    padding: 0.28rem 0.72rem;
-    border: 1px solid color-mix(in srgb, var(--aboutme-section-accent) 46%, transparent);
-    border-radius: var(--radius-ui-pill);
-    color: #f8fafc;
-    background: var(--aboutme-section-accent-soft);
-    font-size: 0.78rem;
-    font-weight: 900;
-    line-height: 1.1;
+    display: inline;
+    justify-self: end;
+    margin-left: auto;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: #fef3c7;
+    background: transparent;
+    box-shadow: none;
+    cursor: default;
+    font-weight: 700;
+    pointer-events: auto;
+    transition: none;
+    user-select: none;
     white-space: nowrap;
 }
 
@@ -299,7 +309,7 @@ details.aboutme-card[open] > .aboutme-card-header {
     border-bottom: 1px solid rgba(93, 116, 158, 0.55);
 }
 
-details.aboutme-card > summary > * {
+details.aboutme-card > summary > :not(.aboutme-card-toggle) {
     position: relative;
     z-index: 1;
 }
@@ -420,9 +430,7 @@ details.aboutme-card[open] > .aboutme-card-header .aboutme-card-toggle {
 .aboutme-severity,
 .aboutme-card-tag,
 .aboutme-cve-id,
-.aboutme-cwe-id,
-.aboutme-achievement-meta span,
-.aboutme-achievement-meta time {
+.aboutme-cwe-id {
     display: inline-flex;
     align-items: center;
     min-height: 1.8rem;
@@ -843,15 +851,16 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
 
 .aboutme-detail-block p {
     margin: 0;
-    color: rgba(226, 232, 240, 0.86);
-    line-height: 1.7;
+    color: rgba(226, 232, 240, 0.82);
+    font-size: 0.95rem;
+    line-height: 1.55;
 }
 
 .aboutme-card-title a,
 .aboutme-card-summary a,
 .aboutme-finding-project a,
 .aboutme-finding-summary a,
-.aboutme-achievement-card h3 a {
+.aboutme-achievement-card .aboutme-card-title a {
     color: inherit;
     text-decoration: none;
 }
@@ -860,7 +869,7 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
 .aboutme-card-summary a:hover,
 .aboutme-finding-project a:hover,
 .aboutme-finding-summary a:hover,
-.aboutme-achievement-card h3 a:hover {
+.aboutme-achievement-card .aboutme-card-title a:hover {
     color: #7dd3fc;
     text-decoration: underline;
     text-decoration-thickness: 2px;
@@ -1023,15 +1032,7 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
     padding: 0;
 }
 
-.aboutme-achievement-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 0.45rem 0 1rem;
-}
-
-.aboutme-achievement-card .aboutme-card-title,
-.aboutme-achievement-card h3 {
+.aboutme-achievement-card .aboutme-card-title {
     margin: 0;
     color: #ffffff;
     font-size: 1.25rem;
@@ -1040,12 +1041,11 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
     overflow-wrap: anywhere;
 }
 
-.aboutme-achievement-card .aboutme-card-summary,
-.aboutme-achievement-card p {
+.aboutme-achievement-card .aboutme-card-summary {
     margin: 0 0 1rem;
-    color: rgba(226, 232, 240, 0.84);
+    color: rgba(226, 232, 240, 0.82);
     font-size: 0.95rem;
-    line-height: 1.58;
+    line-height: 1.55;
 }
 
 .aboutme-card-details {
@@ -1119,8 +1119,8 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
 .aboutme-achievement-event p {
     margin: 0;
     color: rgba(226, 232, 240, 0.82);
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: 0.95rem;
+    line-height: 1.55;
 }
 
 .aboutme-achievement-event-details {
@@ -1198,7 +1198,10 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
     }
 
     .aboutme-card .blog-post-card-logo {
+        flex: 0 0 auto;
+        align-self: stretch;
         width: 100%;
+        max-width: 100%;
         min-width: 0;
         min-height: 5.75rem;
         border-right: 0;
@@ -1210,8 +1213,8 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
     }
 
     .aboutme-card-toggle {
-        top: 1.05rem;
-        right: 1.05rem;
+        top: 1rem;
+        right: 1rem;
     }
 
     .aboutme-finding-badges {
@@ -1220,7 +1223,7 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
     }
 
     .aboutme-finding-project,
-    .aboutme-achievement-card h3 {
+    .aboutme-achievement-card .aboutme-card-title {
         font-size: 1.15rem;
     }
 
@@ -1270,9 +1273,7 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
     .aboutme-severity,
     .aboutme-card-tag,
     .aboutme-cve-id,
-    .aboutme-cwe-id,
-    .aboutme-achievement-meta span,
-    .aboutme-achievement-meta time {
+    .aboutme-cwe-id {
         min-height: 1.65rem;
         padding: 0.22rem 0.55rem;
         font-size: 0.72rem;
@@ -1316,8 +1317,6 @@ details.aboutme-card.ui-card-surface.details-is-animating,
 .aboutme-card-tag,
 .aboutme-cve-id,
 .aboutme-cwe-id,
-.aboutme-achievement-meta span,
-.aboutme-achievement-meta time,
 :not(a).aboutme-card-tag,
 :not(a).aboutme-cve-id,
 :not(a).aboutme-cwe-id,
@@ -1411,9 +1410,7 @@ a.aboutme-card-tag.aboutme-tag-action:focus-visible {
 }
 
 .aboutme-section-title {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
+    display: block;
 }
 
 .aboutme-section-title::before {
@@ -1422,20 +1419,22 @@ a.aboutme-card-tag.aboutme-tag-action:focus-visible {
 }
 
 .aboutme-section-title::after {
-    flex: 0 0 auto;
+    display: inline-block;
     width: 0.58rem;
     height: 0.58rem;
     border-right: 2px solid currentColor;
     border-bottom: 2px solid currentColor;
     content: "";
+    margin-left: 0.55rem;
     opacity: 0.78;
-    transform: rotate(-45deg);
+    transform: rotate(45deg);
     transition: transform 140ms ease, opacity 140ms ease;
+    vertical-align: 0.12em;
 }
 
 .aboutme-section[open] .aboutme-section-title::after {
     opacity: 1;
-    transform: rotate(45deg);
+    transform: rotate(225deg);
 }
 
 .aboutme-section-header:focus-visible {

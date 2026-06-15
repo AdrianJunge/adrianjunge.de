@@ -50,29 +50,25 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert_match(/\A\d+ min read\z/, repository.format_reading_time(repository.total_post_reading_time_minutes))
   end
 
-  test "authored challenges are derived from ctf markdown metadata" do
+  test "authored challenges are read from compact about json" do
     repository = ContentRepository.new
     challenges = repository.authored_challenges
+    raw_challenges = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
 
+    assert_equal raw_challenges, challenges
     assert_equal [ "scanwich-station", "smile-at-me" ], challenges.map { |entry| entry["id"] }
-    assert_equal "GPNCTF 2026", challenges.first["category"]
-    assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["card_url"]
-    assert_equal "https://gpn24.ctf.kitctf.de/", challenges.first["category_url"]
+    assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["url"]
     assert_equal [
-      {
-        "label" => "Hard",
-        "class_name" => "aboutme-difficulty-tag aboutme-difficulty-tag-hard"
-      }
+      { "label" => "GPNCTF 2026", "url" => "https://gpn24.ctf.kitctf.de/" },
+      "Hard",
+      { "label" => "Writeup", "url" => "/ctf/gpnctf/Scanwich%20Station" }
     ], challenges.first["tags"]
     assert_includes challenges.first["summary"], "Published for GPNCTF 2026"
-    assert_equal "GPNCTF 2025", challenges.second["category"]
-    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["card_url"]
-    assert_equal "https://gpn23.ctf.kitctf.de/", challenges.second["category_url"]
+    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["url"]
     assert_equal [
-      {
-        "label" => "Hard",
-        "class_name" => "aboutme-difficulty-tag aboutme-difficulty-tag-hard"
-      }
+      { "label" => "GPNCTF 2025", "url" => "https://gpn23.ctf.kitctf.de/" },
+      "Hard",
+      { "label" => "Writeup", "url" => "/ctf/gpnctf/Smile%20at%20me" }
     ], challenges.second["tags"]
   end
 
@@ -123,6 +119,8 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert_not repository.feed_posts.any? { |post| post[:guid] == "/blog/frankendancer-net-shred-overrun" }
 
     hidden_cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH, include_hidden: true)
-    assert hidden_cves.any? { |entry| entry["id"] == "suitecrm-tba-1" && entry["hidden"] }
+    assert_not hidden_cves.any? { |entry| entry["id"].include?("suitecrm-tba") }
+    hidden_bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH, include_hidden: true)
+    assert_equal [ "firedancer-tba" ], hidden_bug_bounties.map { |entry| entry["id"] }
   end
 end

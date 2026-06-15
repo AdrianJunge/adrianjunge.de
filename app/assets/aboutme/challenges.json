@@ -1,22 +1,39 @@
 [
   {
+    "id": "scanwich-station",
+    "title": "Scanwich Station",
+    "icon": "ctf/gpnctf.png",
+    "url": "/ctf/gpnctf/Scanwich%20Station",
+    "date": "2026-06-05",
+    "summary": "Hybrid web and pwn challenge about mass assignment, QR-code decoding, signed integer overflow, and GLIBC dynamic symbol poisoning. Published for GPNCTF 2026.",
+    "tags": [
+      {
+        "label": "GPNCTF 2026",
+        "url": "https://gpn24.ctf.kitctf.de/"
+      },
+      "Hard",
+      {
+        "label": "Writeup",
+        "url": "/ctf/gpnctf/Scanwich%20Station"
+      }
+    ]
+  },
+  {
     "id": "smile-at-me",
     "title": "Smile at me",
-    "title_url": "/ctf/gpnctf/Smile%20at%20me",
     "icon": "ctf/gpnctf.png",
-    "card_url": "/ctf/gpnctf/Smile%20at%20me",
-    "category": "GPNCTF 2025",
-    "category_url": "https://ctftime.org/ctf/854/",
+    "url": "/ctf/gpnctf/Smile%20at%20me",
     "date": "2025-06-21",
     "summary": "Web challenge about URL parser differentials, strict CSP, and an XS-Leak using Scroll-to-Text Fragment behavior with lazy-loaded images. Published for GPNCTF 2025.",
-    "links": [
+    "tags": [
       {
-        "label": "Read writeup",
-        "url": "/ctf/gpnctf/Smile%20at%20me"
+        "label": "GPNCTF 2025",
+        "url": "https://gpn23.ctf.kitctf.de/"
       },
+      "Hard",
       {
-        "label": "GPNCTF on CTFtime",
-        "url": "https://ctftime.org/ctf/854/"
+        "label": "Writeup",
+        "url": "/ctf/gpnctf/Smile%20at%20me"
       }
     ]
   }

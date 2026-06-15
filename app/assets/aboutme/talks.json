@@ -2,17 +2,18 @@
   {
     "id": "kitctf-web-intro-2026",
     "title": "KITCTF Web Intro",
-    "title_url": "https://kitctf.de/intro/",
     "icon": "other/talk-slides.png",
-    "card_url": "https://kitctf.de/intro/",
-    "category": "Slides",
-    "category_url": "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf",
+    "url": "https://kitctf.de/intro/",
     "date": "2026-05-07",
     "summary": "Introductory web security talk for KITCTF.",
-    "links": [
+    "tags": [
       {
         "label": "Slides",
         "url": "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf"
+      },
+      {
+        "label": "Overview",
+        "url": "https://kitctf.de/intro/"
       }
     ]
   }

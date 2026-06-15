@@ -2,25 +2,23 @@ require "test_helper"
 
 class AboutmeFindingCardTest < ActionView::TestCase
   test "finding card renders collapsible vulnerability details" do
-    render partial: "aboutme/finding_card", locals: {
+    render partial: "aboutme/card", locals: {
       kind: "cve",
       entry: {
-        "project" => "Example Project",
-        "project_url" => "https://github.com/example/project",
-        "title" => "Example advisory title",
-        "title_url" => "https://github.com/example/project/security/advisories/GHSA-example",
-        "cve_id" => "CVE-2026-0001",
-        "cwe_id" => "CWE-79",
-        "severity" => "High",
-        "short_summary" => "Stored cross-site scripting in report titles.",
+        "title" => "Example Project",
+        "subtitle" => "Example advisory title",
         "summary" => "An authenticated user could inject script into a report title rendered to other users, allowing session actions in affected user contexts.",
-        "timeline" => [
-          { "date" => "2026-01-01", "event" => "Reported to maintainer" }
+        "tags" => [
+          "High",
+          { "label" => "CVE-2026-0001", "url" => "https://www.cve.org/CVERecord?id=CVE-2026-0001" },
+          { "label" => "CWE-79", "url" => "https://cwe.mitre.org/data/definitions/79.html" }
         ],
-        "references" => [
-          { "label" => "Duplicate CVE reference", "url" => "https://www.cve.org/CVERecord?id=CVE-2026-0001" },
-          { "label" => "Duplicate project reference", "url" => "https://github.com/example/project" },
-          { "label" => "External analysis", "url" => "https://example.com/advisory-notes" }
+        "links" => [
+          { "label" => "Repository", "url" => "https://github.com/example/project" },
+          { "label" => "Advisory source", "url" => "https://github.com/example/project/security/advisories/GHSA-example" }
+        ],
+        "timeline" => [
+          { "date" => "2026-01-01", "title" => "Reported to maintainer" }
         ]
       }
     }
@@ -39,15 +37,15 @@ class AboutmeFindingCardTest < ActionView::TestCase
     assert_select ".aboutme-detail-block h3", text: "References"
     assert_select ".aboutme-card-details .aboutme-reference-link[href=?][aria-label=?][title=?]",
                   "https://github.com/example/project",
-                  "Open repository for Example Project",
-                  "Open repository",
+                  "Open Repository",
+                  "Open Repository",
                   text: "Repository"
     assert_select ".aboutme-card-details .aboutme-reference-link", { text: /CVE record:/, count: 0 }
     assert_select ".aboutme-card-details .aboutme-reference-link", { text: /CWE entry:/, count: 0 }
-    assert_select ".aboutme-card-details .aboutme-finding-advisory-link[href=?][aria-label=?][title=?]",
+    assert_select ".aboutme-card-details .aboutme-reference-link[href=?][aria-label=?][title=?]",
                   "https://github.com/example/project/security/advisories/GHSA-example",
-                  "Open advisory for Example advisory title",
-                  "Open advisory source",
+                  "Open Advisory source",
+                  "Open Advisory source",
                   text: "Advisory source"
     assert_select "dt", 0
     assert_no_match(/Status/, rendered)
@@ -60,14 +58,11 @@ class AboutmeFindingCardTest < ActionView::TestCase
   end
 
   test "finding card omits CVE fields when no CVE ID is present" do
-    render partial: "aboutme/finding_card", locals: {
+    render partial: "aboutme/card", locals: {
       kind: "bug-bounty",
       entry: {
-        "project" => "Firedancer",
-        "project_url" => "https://github.com/firedancer-io/firedancer",
-        "title" => "Firedancer bug bounty finding (TBA)",
-        "title_url" => "https://immunefi.com/bug-bounty/firedancer/information/",
-        "severity" => "TBA"
+        "title" => "Firedancer bug bounty finding",
+        "tags" => [ "TBA" ]
       }
     }
 
@@ -80,50 +75,28 @@ class AboutmeFindingCardTest < ActionView::TestCase
   end
 
   test "TBA CVE finding stays static while showing the expected CVE badge" do
-    render partial: "aboutme/finding_card", locals: {
+    render partial: "aboutme/card", locals: {
       kind: "cve",
       entry: {
-        "project" => "SuiteCRM",
-        "project_url" => "https://github.com/salesagility/SuiteCRM",
-        "title" => "SuiteCRM advisory #1 (TBA)",
-        "title_url" => "https://github.com/salesagility/SuiteCRM",
-        "severity" => "TBA",
-        "cve_id" => "TBA",
-        "summary" => "TBA",
-        "timeline" => [
-          { "date" => "2026-", "event" => "" }
-        ],
-        "references" => [
-          { "label" => "SuiteCRM repository", "url" => "https://github.com/salesagility/SuiteCRM" }
-        ]
+        "title" => "SuiteCRM",
+        "subtitle" => "SuiteCRM advisory #1 (TBA)",
+        "tags" => [ "TBA" ]
       }
     }
 
     assert_select "details.aboutme-finding-card-cve", 0
     assert_select "article.aboutme-finding-card-static.aboutme-finding-card-cve"
-    assert_select ".aboutme-severity", text: "TBA"
-    assert_select ".aboutme-cve-id", text: "TBA"
+    assert_select ".aboutme-tag-tba", text: "TBA"
+    assert_select ".aboutme-cve-id", 0
     assert_no_match(/GHSA-xxxx-xxxx-xxxx/, rendered)
     assert_no_match(/Disclosure timeline/, rendered)
   end
 
   test "finding card omits empty fields and nested empty groups" do
-    render partial: "aboutme/finding_card", locals: {
+    render partial: "aboutme/card", locals: {
       kind: "bug-bounty",
       entry: {
-        "project" => "Firedancer",
-        "project_url" => "https://github.com/firedancer-io/firedancer",
-        "title" => "Firedancer bug bounty finding (TBA)",
-        "title_url" => "https://immunefi.com/bug-bounty/firedancer/information/",
-        "severity" => "",
-        "cve_id" => "",
-        "summary" => "",
-        "timeline" => [
-          { "date" => "", "event" => "" }
-        ],
-        "references" => [
-          { "label" => "", "url" => "" }
-        ]
+        "title" => "Firedancer bug bounty finding"
       }
     }
 

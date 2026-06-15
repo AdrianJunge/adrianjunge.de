@@ -56,7 +56,7 @@ class CtfController < ApplicationController
     @challenge_file = writeup_public_asset("files", "zip")
     @pdf_writeup = writeup_public_asset("writeups", "pdf")
 
-    @previous_writeup, @next_writeup = get_previous_and_next_writeup(@writeup)
+    @previous_writeup, @next_writeup = get_previous_and_next_writeup(@which, @writeup)
   end
 
   def feed
@@ -81,20 +81,11 @@ class CtfController < ApplicationController
     end
   end
 
-  def get_previous_and_next_writeup(writeup)
-    slug  = writeup.to_s
-    items = content_repository.ctf_posts
-
-    index = items.index { |i| i[:slug].downcase == slug.downcase }
-    return [ nil, nil ] unless index.present?
-
-    nxt  = index > 0 ? items[index - 1] : nil   # newer
-    prev = index < items.length - 1 ? items[index + 1] : nil  # older
-
-    [ prev, nxt ]
-  end
-
   private
+
+  def get_previous_and_next_writeup(which, writeup)
+    adjacent_content_items(content_repository.ctf_posts, writeup, directory: which)
+  end
 
   def ctf_metadata_for(which, ctfs = content_repository.ctf_metadata)
     match = ctfs.find do |name, ctf|

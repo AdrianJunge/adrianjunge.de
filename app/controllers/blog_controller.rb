@@ -30,6 +30,7 @@ class BlogController < ApplicationController
 
     @blog_category = blog_config["category"] || "Post"
     @blog_title = blog_config["title"].presence || @blog_info["title"].presence || @post_slug.humanize
+    @previous_post, @next_post = get_previous_and_next_post(@post_slug)
   end
 
   def feed
@@ -48,5 +49,11 @@ class BlogController < ApplicationController
       format.rss { render layout: false }
       format.atom { render layout: false }
     end
+  end
+
+  private
+
+  def get_previous_and_next_post(post_slug)
+    adjacent_content_items(content_repository.blog_posts, post_slug)
   end
 end

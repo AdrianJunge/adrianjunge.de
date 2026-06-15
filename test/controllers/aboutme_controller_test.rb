@@ -80,59 +80,54 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_kind_of Array, certificates
     assert_kind_of Array, talks
     assert_kind_of Array, achievements
-    assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-39327" }
-    assert_equal 12, cves.length
+    assert_equal 10, cves.length
     assert_equal %w[
       joomla-com-users-batch-task-privilege-escalation
       joomla-com-tags-authenticated-blind-sqli
       joomla-com-finder-authenticated-blind-sqli
-      suitecrm-tba-2
-      suitecrm-tba-1
+      churchcrm-settingsindividual-blind-sqli
+      churchcrm-propertyassign-blind-sqli
     ], cves.first(5).map { |entry| entry["id"] }
-    assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-35221" }
-    assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-35222" }
-    assert cves.any? { |entry| entry["cve_id"] == "CVE-2026-48898" }
-    assert_equal 0, cves.count { |entry| entry["project"] == "Joomla CMS" && entry["cve_id"].blank? }
-    assert_equal 2, cves.count { |entry| entry["project"] == "SuiteCRM" && entry["cve_id"].blank? }
-    assert cves.select { |entry| entry["id"].include?("suitecrm-tba") }.all? { |entry| entry["hidden"] }
-    assert bug_bounties.any? { |entry| entry["project"] == "Firedancer" && entry["title"].include?("TBA") }
-    assert bug_bounties.any? { |entry| entry["project"] == "Firedancer" && entry["cve_id"].blank? }
-    assert bug_bounties.all? { |entry| entry["hidden"] }
+    cve_tag_labels = cves.flat_map { |entry| entry.fetch("tags", []) }.filter_map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }
+    assert_includes cve_tag_labels, "CVE-2026-39327"
+    assert_includes cve_tag_labels, "CVE-2026-35221"
+    assert_includes cve_tag_labels, "CVE-2026-35222"
+    assert_includes cve_tag_labels, "CVE-2026-48898"
+    assert_not cves.any? { |entry| entry["id"].include?("suitecrm-tba") }
+    assert_equal 1, bug_bounties.length
+    assert_equal "firedancer-tba", bug_bounties.first["id"]
+    assert_equal true, bug_bounties.first["hidden"]
     assert_empty ContentRepository.new.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
+    assert_equal 2, challenge_records.length
     assert_equal 2, challenges.length
+    assert_equal challenge_records, challenges
     assert_equal [ "scanwich-station", "smile-at-me" ], challenges.map { |entry| entry["id"] }
     assert_equal "Scanwich Station", challenges.first["title"]
-    assert_nil challenges.first["details"]
+    assert_nil challenges.first["subtitle"]
     assert_includes challenges.first["summary"], "Published for GPNCTF 2026"
-    assert_equal "GPNCTF 2026", challenges.first["category"]
-    assert_equal "Hard", challenges.first["tags"].first["label"]
-    assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["title_url"]
-    assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["card_url"]
-    assert_equal "https://gpn24.ctf.kitctf.de/", challenges.first["category_url"]
+    assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["url"]
+    assert_equal [ "GPNCTF 2026", "Hard", "Writeup" ], challenges.first["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }
+    assert_equal "https://gpn24.ctf.kitctf.de/", challenges.first["tags"].first["url"]
     assert_includes challenges.second["summary"], "Published for GPNCTF 2025"
-    assert_equal "GPNCTF 2025", challenges.second["category"]
-    assert_equal "Hard", challenges.second["tags"].first["label"]
-    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["title_url"]
-    assert_equal "https://gpn23.ctf.kitctf.de/", challenges.second["category_url"]
-    assert_nil certificates.first["details"]
+    assert_equal [ "GPNCTF 2025", "Hard", "Writeup" ], challenges.second["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }
+    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["url"]
+    assert_nil certificates.first["subtitle"]
     assert_includes certificates.first["summary"], "full penetration-test report"
-    assert_equal "/blog/htb-cpts", certificates.first["card_url"]
-    assert_equal "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url", certificates.first["category_url"]
+    assert_equal "/blog/htb-cpts", certificates.first["url"]
+    assert_equal [ "Certificate", "Writeup" ], certificates.first["tags"].map { |tag| tag["label"] }
+    assert_equal "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url", certificates.first["tags"].first["url"]
     assert_equal 1, talks.length
     assert_equal "kitctf-web-intro-2026", talks.first["id"]
     assert_equal "KITCTF Web Intro", talks.first["title"]
     assert_equal "2026-05-07", talks.first["date"]
-    assert_equal "Slides", talks.first["category"]
-    assert_equal "https://kitctf.de/intro/", talks.first["card_url"]
-    assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", talks.first["category_url"]
-    assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", talks.first["links"].first["url"]
+    assert_equal "https://kitctf.de/intro/", talks.first["url"]
+    assert_equal [ "Slides", "Overview" ], talks.first["tags"].map { |tag| tag["label"] }
+    assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", talks.first["tags"].first["url"]
     assert_equal %w[
-      firedancer-v1-audit-competition
       dhm
       cscg
       kitctf
     ], achievements.map { |entry| entry["id"] }
-    assert achievements.find { |entry| entry["id"] == "firedancer-v1-audit-competition" }["events"].all? { |event| event["hidden"] }
     assert_equal %w[
       kitctf
       dhm
@@ -140,18 +135,18 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     ], ContentRepository.new.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).map { |entry| entry["id"] }
     dhm = achievements.find { |entry| entry["id"] == "dhm" }
     cscg = achievements.find { |entry| entry["id"] == "cscg" }
-    assert_equal %w[dhm-2025 dhm-2024], dhm["events"].map { |event| event["id"] }
+    assert_equal %w[dhm-2025 dhm-2024], dhm["timeline"].map { |event| event["id"] }
     assert_equal [
       "Participated in the DHM finals after qualifying through CSCG.",
       "Placed #1 at the Deutsche Hacking Meisterschaft."
-    ], dhm["events"].map { |event| event["summary"] }
-    assert_equal %w[cscg-2025 cscg-2024], cscg["events"].map { |event| event["id"] }
+    ], dhm["timeline"].map { |event| event["summary"] }
+    assert_equal %w[cscg-2025 cscg-2024], cscg["timeline"].map { |event| event["id"] }
     assert_equal [
       "Qualified for DHM again and finished top 10 globally.",
       "Qualified for DHM through CSCG."
-    ], cscg["events"].map { |event| event["summary"] }
+    ], cscg["timeline"].map { |event| event["summary"] }
     kitctf = achievements.find { |entry| entry["id"] == "kitctf" }
-    assert_equal "https://ctftime.org/team/7221/", kitctf["title_url"]
+    assert_equal "https://ctftime.org/team/7221/", kitctf["tags"].find { |tag| tag["label"] == "KITCTF" }["url"]
     assert_equal %w[
       kitctf-glacierctf-2025
       kitctf-googlectf-2025
@@ -159,29 +154,31 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
       kitctf-snakectf-finals-2024
       kitctf-glacierctf-2024
       kitctf-swampctf-2024
-    ], kitctf["events"].map { |event| event["id"] }
-    assert kitctf["events"].any? { |event| event["summary"] == "#3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team." }
-    assert kitctf["events"].any? { |event| event["summary"] == "#3 at SwampCTF." }
-    assert kitctf["events"].any? { |event| event["summary"] == "#1 at SwampCTF." }
-    assert kitctf["events"].any? { |event| event["summary"] == "Qualified for and participated in the SnakeCTF finals in Italy." }
-    assert kitctf["events"].any? { |event| event["summary"] == "#6 at Google CTF as the FluxKITtens merger team (FluxFingers and KITCTF), qualifying for the Hackceler8 finals in Mexico." }
+    ], kitctf["timeline"].map { |event| event["id"] }
+    assert kitctf["timeline"].any? { |event| event["summary"] == "#3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team." }
+    assert kitctf["timeline"].any? { |event| event["summary"] == "#3 at SwampCTF." }
+    assert kitctf["timeline"].any? { |event| event["summary"] == "#1 at SwampCTF." }
+    assert kitctf["timeline"].any? { |event| event["summary"] == "Qualified for and participated in the SnakeCTF finals in Italy." }
+    assert kitctf["timeline"].any? { |event| event["summary"] == "#6 at Google CTF as the FluxKITtens merger team (FluxFingers and KITCTF), qualifying for the Hackceler8 finals in Mexico." }
 
-    (cves + bug_bounties).each do |entry|
-      assert entry["project"].present?
-      assert entry["project_url"].present?
+    cves.each do |entry|
       assert entry["title"].present?
+      assert entry["subtitle"].present?
+      assert entry["tags"].any?
+      assert entry["links"].any? { |link| link["label"] == "Repository" }
+      assert entry["links"].any? { |link| link["label"] == "Advisory source" }
       assert_kind_of Array, entry["timeline"] if entry["timeline"].present?
     end
 
-    cves.reject { |entry| entry["id"].include?("tba") }.each do |entry|
-      assert entry["cve_id"].present?
-      assert entry["cwe_id"].present?
-      assert entry.fetch("references", []).any? { |link| link["url"] == "https://www.cve.org/CVERecord?id=#{entry["cve_id"]}" }
+    cves.each do |entry|
+      labels = entry["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }
+      assert labels.any? { |label| label.start_with?("CVE-") }
+      assert labels.any? { |label| label.start_with?("CWE-") }
     end
 
     (challenges + certificates + talks + achievements).each do |entry|
       assert entry["title"].present?
-      assert entry["category"].present?
+      assert_kind_of Array, entry["tags"] if entry["tags"].present?
     end
   end
 end

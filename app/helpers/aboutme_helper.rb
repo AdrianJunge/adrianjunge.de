@@ -1,76 +1,11 @@
 require "cgi"
 
 module AboutmeHelper
-  CVE_ID_PATTERN = /\ACVE-\d{4}-\d{4,}\z/i
-  CWE_ID_PATTERN = /\ACWE-(\d+)\z/i
-
-  def aboutme_severity_class(severity)
-    ContentSeverityTag.css_class(severity) || "aboutme-severity-info"
-  end
-
-  def aboutme_optional_link(label, url, class_name: nil, aria_label: nil, title: nil)
-    profile_card_optional_link(label, url, class_name: class_name, aria_label: aria_label, title: title)
-  end
-
-  def aboutme_finding_collapsible?(entry)
-    aboutme_visible_detail?(entry["summary"]) || aboutme_timeline_items(entry["timeline"]).any?
-  end
-
-  def aboutme_finding_summary(entry)
-    aboutme_sentence(entry["summary"])
-  end
+  private
 
   def aboutme_visible_detail?(value)
     value.present? && value.to_s.strip.casecmp("tba") != 0
   end
-
-  def aboutme_cve_url(cve_id)
-    id = cve_id.to_s.strip.upcase
-    return nil unless id.match?(CVE_ID_PATTERN)
-
-    "https://www.cve.org/CVERecord?id=#{id}"
-  end
-
-  def aboutme_cwe_url(cwe_id)
-    match = cwe_id.to_s.strip.upcase.match(CWE_ID_PATTERN)
-    return nil unless match
-
-    "https://cwe.mitre.org/data/definitions/#{match[1]}.html"
-  end
-
-  def aboutme_timeline_items(timeline)
-    Array(timeline).select do |item|
-      item.is_a?(Hash) && item["event"].present?
-    end
-  end
-
-  def aboutme_visible_events(events)
-    Array(events).select do |event|
-      event.is_a?(Hash) && %w[title date summary card_url url].any? { |field| event[field].present? }
-    end
-  end
-
-  def aboutme_card_link_attributes(url, label)
-    profile_card_link_attributes(url, label)
-  end
-
-  def aboutme_tag(label:, url: nil, class_name: nil, datetime: nil)
-    profile_card_tag(label: label, url: url, class_name: class_name, datetime: datetime)
-  end
-
-  def aboutme_ordered_tags(tags)
-    profile_card_ordered_tags(tags)
-  end
-
-  def aboutme_finding_card(entry, kind:)
-    profile_finding_card(entry, kind: kind)
-  end
-
-  def aboutme_milestone_card(entry)
-    profile_milestone_card(entry)
-  end
-
-  private
 
   def aboutme_sentence(value)
     return nil unless aboutme_visible_detail?(value)
@@ -85,13 +20,13 @@ module AboutmeHelper
     class_text = classes.join(" ")
 
     if ContentVulnerabilityTag.cve?(label) || classes.include?("aboutme-cve-id")
-      classes << "cve-badge"
+      classes.push("aboutme-cve-id", "cve-badge")
     elsif ContentVulnerabilityTag.cwe?(label) || classes.include?("aboutme-cwe-id")
-      classes << "cwe-badge"
-    elsif (difficulty_key = WriteupDifficulty.css_key(label) || class_text[/\baboutme-difficulty-tag-([a-z0-9-]+)\b/, 1])
-      classes.push("difficulty-badge", "difficulty-badge-#{difficulty_key}")
+      classes.push("aboutme-cwe-id", "cwe-badge")
+    elsif (difficulty_key = (WriteupDifficulty.css_key(label) if WriteupDifficulty.filter_label?(label)) || class_text[/\baboutme-difficulty-tag-([a-z0-9-]+)\b/, 1])
+      classes.push("aboutme-difficulty-tag", "aboutme-difficulty-tag-#{difficulty_key}", "difficulty-badge", "difficulty-badge-#{difficulty_key}")
     elsif (severity_key = ContentSeverityTag.css_key(label) || class_text[/\baboutme-severity-([a-z0-9-]+)\b/, 1])
-      classes.push("severity-badge", "severity-badge-#{severity_key}", "aboutme-severity-#{severity_key}")
+      classes.push("aboutme-severity", "severity-badge", "severity-badge-#{severity_key}", "aboutme-severity-#{severity_key}")
     elsif ContentCategoryTag.recognized?(label)
       category_key = ContentCategoryTag.css_key(label)
       classes.push("category-badge", "category-badge-#{category_key}")

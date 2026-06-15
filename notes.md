@@ -1,5 +1,4 @@
 - implement that e.g. for referenced codeblocks you can show the real line numbers instead of counting up from 1
-- search for better icons for the different ctf categories
 
 # Content
 - Next Blog
@@ -64,3 +63,5 @@
 ## normal
 `\`
 ``
+
+https://www.magnific.com/search?format=search&iconType=standard&last_filter=query&last_value=web+security+3d&query=web+security+3d&type=icon#uuid=54ee002c-935c-4814-a015-fc1f2278474c

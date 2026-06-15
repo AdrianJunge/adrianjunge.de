@@ -64,7 +64,7 @@ class ContentIndexTest < ActiveSupport::TestCase
       assert_not_includes ids, about_challenge_id
       assert item, "Expected #{about_challenge_id} to be represented by a merged writeup timeline item"
       assert_equal "writeup", item[:kind]
-      assert_equal entry["card_url"], item[:link]
+      assert_equal entry["url"], item[:link]
       assert_includes item[:kind_labels], { label: "CTF writeup", tag_value: "CTF writeup" }
       assert_not_includes item[:kind_labels], { label: "Created CTF challenge", tag_value: AuthoredChallenge::FILTER_LABEL }
       assert_includes item[:tags], AuthoredChallenge::FILTER_LABEL
@@ -128,7 +128,7 @@ class ContentIndexTest < ActiveSupport::TestCase
   def achievement_event_ids(entries = @repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
     entries.flat_map do |entry|
       parent_id = entry["id"].presence || entry["title"].to_s.parameterize
-      events = Array(entry["events"]).select { |event| event.is_a?(Hash) && event["title"].present? }
+      events = Array(entry["timeline"]).select { |event| event.is_a?(Hash) && event["title"].present? }
 
       if events.empty?
         [ "about-achievement-#{parent_id.parameterize}" ]

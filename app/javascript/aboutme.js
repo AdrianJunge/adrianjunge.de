@@ -28,15 +28,38 @@ function openDetailsForTarget(target) {
     return details.length > 0;
 }
 
+function aboutScrollTargetFor(target) {
+    return target.closest(".aboutme-card") || target.closest(".aboutme-section") || target;
+}
+
+function aboutTopScrollOffset() {
+    const taskbar = document.getElementById("top-taskbar") || document.querySelector(".top-taskbar");
+    const taskbarBottom = taskbar ? taskbar.getBoundingClientRect().bottom : 0;
+    const configuredHeight = parseFloat(
+        window.getComputedStyle(document.documentElement).getPropertyValue("--top-taskbar-height")
+    ) || 0;
+
+    return Math.max(taskbarBottom, configuredHeight) + 16;
+}
+
+function performAboutTargetScroll(target, options = {}) {
+    const scrollTarget = aboutScrollTargetFor(target);
+    const targetTop = window.scrollY + scrollTarget.getBoundingClientRect().top - aboutTopScrollOffset();
+
+    window.scrollTo({
+        top: Math.max(targetTop, 0),
+        behavior: options.behavior || "auto",
+    });
+}
+
 function scrollToAboutTarget(target, options = {}) {
     if (!target) return;
 
+    performAboutTargetScroll(target, options);
+
     window.requestAnimationFrame(() => {
         window.requestAnimationFrame(() => {
-            target.scrollIntoView({
-                behavior: options.behavior || "auto",
-                block: "start",
-            });
+            performAboutTargetScroll(target, options);
         });
     });
 }
@@ -51,6 +74,22 @@ function revealAboutHashTarget(options = {}) {
 
     if (options.scroll) {
         scrollToAboutTarget(target, options);
+    }
+}
+
+function revealAboutHashTargetAfterLoad() {
+    if (!window.location.hash || window.__aboutHashLoadRevealBound === true) return;
+
+    window.__aboutHashLoadRevealBound = true;
+
+    const reveal = () => {
+        revealAboutHashTarget({ scroll: true, behavior: "auto" });
+    };
+
+    if (document.readyState === "complete") {
+        window.setTimeout(reveal, 0);
+    } else {
+        window.addEventListener("load", reveal, { once: true });
     }
 }
 
@@ -83,6 +122,7 @@ function initializeAboutStatsNavigation() {
     window.requestAnimationFrame(() => {
         revealAboutHashTarget({ scroll: true, behavior: "auto" });
     });
+    revealAboutHashTargetAfterLoad();
 }
 
 document.addEventListener("DOMContentLoaded", initializeAboutStatsNavigation);

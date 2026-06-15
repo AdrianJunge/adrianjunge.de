@@ -14,7 +14,7 @@
     <% if entries.any? %>
       <div class="<%= section[:grid_class] %>">
         <% entries.each do |entry| %>
-          <%= render partial: section[:partial], locals: { entry: entry }.merge(section[:card_locals] || {}) %>
+          <%= render partial: "aboutme/card", locals: { entry: entry, kind: section[:kind] } %>
         <% end %>
       </div>
     <% else %>

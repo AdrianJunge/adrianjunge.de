@@ -146,7 +146,14 @@ class ContentRepository
   end
 
   def authored_challenges(link_prefix: "/ctf")
-    authored_challenges_cache[link_prefix] ||= ctf_posts(link_prefix: link_prefix).filter_map do |post|
+    authored_challenges_cache[link_prefix] ||= begin
+      configured_challenges = about_entries(ApplicationController::ABOUTME_CHALLENGES_PATH)
+      configured_challenges.presence || authored_challenges_from_ctf_metadata(link_prefix: link_prefix)
+    end
+  end
+
+  def authored_challenges_from_ctf_metadata(link_prefix: "/ctf")
+    ctf_posts(link_prefix: link_prefix).filter_map do |post|
       authored = AuthoredChallenge.from_metadata(post[:metadata] || {})
       next unless authored
 
@@ -162,22 +169,21 @@ class ContentRepository
       {
         "id" => authored[:id].presence || post[:slug].parameterize,
         "title" => post[:title],
-        "title_url" => link,
         "icon" => post[:logo],
-        "card_url" => link,
-        "category" => event,
-        "category_url" => event_url,
+        "url" => link,
         "date" => date,
         "summary" => summary,
         "tags" => [
-          {
-            "label" => difficulty[:label],
-            "class_name" => "aboutme-difficulty-tag aboutme-difficulty-tag-#{difficulty[:key]}"
-          }
-        ],
-        "links" => [
-          { "label" => "Read writeup", "url" => link }
-        ]
+          { "label" => event, "url" => event_url },
+          difficulty[:label],
+          { "label" => "Writeup", "url" => link }
+        ].filter_map do |tag|
+          if tag.is_a?(Hash)
+            tag["label"].present? ? tag.compact : nil
+          else
+            tag.presence
+          end
+        end
       }
     end
   end
@@ -236,9 +242,9 @@ class ContentRepository
     Array(entries).sum do |entry|
       next 0 if hidden_content?(entry)
 
-      events = Array(entry["events"]).select { |event| event.is_a?(Hash) && event["title"].present? }
-      visible_events = events.reject { |event| hidden_content?(event) }
-      events.any? ? visible_events.length : 1
+      timeline = Array(entry["timeline"]).select { |event| event.is_a?(Hash) && event["title"].present? }
+      visible_timeline = timeline.reject { |event| hidden_content?(event) }
+      timeline.any? ? visible_timeline.length : 1
     end
   end
 
@@ -250,7 +256,6 @@ class ContentRepository
 
   def about_entry_time(entry, fallback_path: nil)
     latest_nested_entry_time(entry, "timeline") ||
-      latest_nested_entry_time(entry, "events") ||
       parsed_time(entry["date"], fallback: fallback_path.present? ? file_time(fallback_path) : nil)
   end
 
@@ -342,10 +347,10 @@ class ContentRepository
       next if hidden_content?(entry)
 
       if path.to_s == ApplicationController::ABOUTME_ACHIEVEMENTS_PATH.to_s
-        visible_events = Array(entry["events"]).reject { |event| hidden_content?(event) }
-        next if visible_events.empty?
+        visible_timeline = Array(entry["timeline"]).reject { |event| hidden_content?(event) }
+        next if visible_timeline.empty?
 
-        entry.merge("events" => sorted_about_entries(visible_events, fallback_path: path))
+        entry.merge("timeline" => sorted_about_entries(visible_timeline, fallback_path: path))
       else
         entry
       end

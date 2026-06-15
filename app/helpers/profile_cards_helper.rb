@@ -34,6 +34,7 @@ module ProfileCardsHelper
     linked = url.present?
     tag_classes = [
       "aboutme-card-tag",
+      ("aboutme-tag-#{label.parameterize}" if label.present?),
       (linked ? "aboutme-tag-action" : "aboutme-tag-static"),
       ("aboutme-tag-timeline" if timeline_link),
       *aboutme_tag_style_classes(label, class_name),
@@ -53,73 +54,37 @@ module ProfileCardsHelper
     Array(tags).compact.partition { |tag| tag[:url].blank? }.flatten
   end
 
-  def profile_finding_card(entry, kind:)
-    title_label = entry["title"].presence || entry["short_summary"].presence || entry["summary"].presence
-    summary_text = aboutme_finding_summary(entry)
-    collapsible = aboutme_finding_collapsible?(entry)
-    card_url = entry["card_url"].presence || (collapsible ? nil : entry["title_url"].presence)
+  def profile_about_card(entry, kind:)
+    timeline_items = profile_about_timeline_items(entry["timeline"], kind: kind)
     body_blocks = []
-    body_blocks << { title: "Summary", text: summary_text } if aboutme_visible_detail?(summary_text)
-    reference_links = profile_finding_reference_links(entry, kind: kind)
+    summary_text = aboutme_sentence(entry["summary"])
+    body_blocks << { title: "Summary", text: summary_text } if summary_text.present?
+
+    reference_links = profile_about_reference_links(entry)
     body_blocks << { title: "References", items: reference_links } if reference_links.any?
+
+    collapsible = body_blocks.any? || timeline_items.any?
+    primary_url = profile_about_primary_url(entry)
 
     {
       id: entry["id"],
-      class_name: [ "aboutme-finding-card", "aboutme-finding-card-#{kind}", ("aboutme-finding-card-static" unless collapsible) ].compact.join(" "),
+      class_name: profile_about_card_classes(kind, collapsible),
       main_class: "aboutme-finding-main",
       title_class: "aboutme-finding-project",
       tags_class: "aboutme-finding-badges",
       description_class: "aboutme-finding-summary",
-      icon: entry["icon"].presence || profile_finding_default_icon(kind),
-      title: entry["project"],
-      title_url: nil,
-      title_link: false,
-      title_link_class: nil,
-      description: title_label,
-      description_url: nil,
-      description_link_class: nil,
-      description_aria_label: nil,
-      description_title: nil,
-      tags: profile_finding_tags(entry),
-      body_blocks: body_blocks,
-      timeline: aboutme_timeline_items(entry["timeline"]),
-      collapsible: collapsible,
-      card_url: card_url,
-      reading_time: aboutme_reading_time_for_url(card_url),
-      aria_label: "Open #{entry["project"].presence || title_label}"
-    }
-  end
-
-  def profile_milestone_card(entry)
-    events = aboutme_visible_events(entry["events"])
-    card_url = entry["card_url"].presence || entry["title_url"].presence
-    summary_text = aboutme_sentence(entry["summary"])
-    reference_links = profile_milestone_reference_links(entry, events)
-    timeline_items = profile_milestone_timeline_items(events)
-    body_blocks = []
-    body_blocks << { title: "Summary", text: summary_text } if summary_text.present?
-    body_blocks << { title: "References", items: reference_links } if reference_links.any?
-
-    {
-      id: entry["id"],
-      class_name: "aboutme-finding-card aboutme-finding-card-milestone aboutme-achievement-card",
-      main_class: "aboutme-finding-main",
-      title_class: "aboutme-finding-project",
-      tags_class: "aboutme-finding-badges aboutme-achievement-meta",
-      description_class: "aboutme-finding-summary",
-      icon: entry["icon"].presence || profile_milestone_default_icon(entry, events),
+      icon: entry["icon"].presence || profile_about_default_icon(kind),
       title: entry["title"],
-      title_link: false,
-      description: nil,
-      tags: profile_milestone_tags(entry, events),
+      description: entry["subtitle"].presence,
+      tags: profile_about_tags(entry),
       body_blocks: body_blocks,
       timeline: timeline_items,
-      timeline_title: "Timeline",
+      timeline_title: profile_about_timeline_title(kind),
       children: [],
-      collapsible: body_blocks.any? || timeline_items.any?,
-      card_url: card_url,
-      reading_time: aboutme_reading_time_for_url(card_url),
-      aria_label: "Open #{entry["title"]}"
+      collapsible: collapsible,
+      card_url: primary_url,
+      reading_time: aboutme_reading_time_for_url(primary_url),
+      aria_label: "Open #{entry["title"].presence || entry["subtitle"].presence || "item"}"
     }
   end
 
@@ -129,187 +94,99 @@ module ProfileCardsHelper
     url.to_s.start_with?("/") ? {} : { target: "_blank", rel: "noopener noreferrer" }
   end
 
-  def profile_finding_default_icon(kind)
-    kind == "bug-bounty" ? "other/bug-bounty.svg" : "other/cve.svg"
+  def profile_about_card_classes(kind, collapsible)
+    [
+      "aboutme-finding-card",
+      "aboutme-about-card",
+      "aboutme-about-card-#{kind}",
+      ("aboutme-finding-card-#{kind}" if %w[cve bug-bounty].include?(kind.to_s)),
+      ("aboutme-achievement-card" unless %w[cve bug-bounty].include?(kind.to_s)),
+      ("aboutme-finding-card-static" unless collapsible)
+    ].compact.join(" ")
   end
 
-  def profile_milestone_default_icon(entry, events)
-    category = ContentTagTaxonomy.canonical_label(entry["category"]).to_s.downcase
-    title = entry["title"].to_s.downcase
-
-    return "other/talk-slides.png" if category.match?(/slide|talk/) || title.match?(/\btalk\b|intro/)
-    return "other/certificate.svg" if category.match?(/certif/) || title.match?(/certif|cpts/)
-    return "other/achievement.svg" if events.any?
-
-    "other/achievement.svg"
-  end
-
-  def profile_finding_tags(entry)
-    [].tap do |tags|
-      tags << { label: entry["severity"], class_name: "aboutme-severity severity-badge #{aboutme_severity_class(entry["severity"])}" } if entry["severity"].present?
-      tags << { label: entry["cve_id"], url: aboutme_cve_url(entry["cve_id"]), class_name: "aboutme-cve-id" } if entry["cve_id"].present?
-      tags << { label: entry["cwe_id"], url: aboutme_cwe_url(entry["cwe_id"]), class_name: "aboutme-cwe-id" } if entry["cwe_id"].present?
+  def profile_about_default_icon(kind)
+    case kind.to_s
+    when "cve"
+      "other/cve.svg"
+    when "bug-bounty"
+      "other/bug-bounty.svg"
+    when "certificate"
+      "other/certificate.svg"
+    when "talk"
+      "other/talk-slides.png"
+    when "challenge"
+      "ctf/kitctf.png"
+    else
+      "other/achievement.svg"
     end
   end
 
-  def profile_finding_reference_links(entry, kind:)
-    [].tap do |links|
-      if kind == "cve" && entry["project_url"].present?
-        links << profile_card_optional_link(
-          "Repository",
-          entry["project_url"],
-          class_name: "aboutme-reference-link",
-          aria_label: "Open repository for #{entry["project"].presence || entry["title"].presence || "finding"}",
-          title: "Open repository"
-        )
-      end
-
-      next unless kind == "cve" && entry["title_url"].present?
-
-      links << profile_card_optional_link(
-        "Advisory source",
-        entry["title_url"],
-        class_name: "aboutme-reference-link aboutme-finding-advisory-link",
-        aria_label: "Open advisory for #{entry["title"].presence || entry["short_summary"].presence || entry["summary"]}",
-        title: "Open advisory source"
-      )
-    end
+  def profile_about_tags(entry)
+    [
+      profile_about_date_tag(entry),
+      *aboutme_extra_tags(entry["tags"])
+    ].compact
   end
 
-  def profile_milestone_tags(entry, events)
-    [].tap do |tags|
-      if entry["category"].present?
-        category_label = ContentTagTaxonomy.canonical_label(entry["category"])
-        tags << { label: category_label, url: entry["category_url"], class_name: "aboutme-tag-#{category_label.parameterize}" }
-      end
-      tags.concat(aboutme_extra_tags(entry["tags"]))
-      tags.concat(profile_milestone_action_tags(entry, events))
-      tags << { label: entry["date"], datetime: entry["date"], class_name: "aboutme-tag-date" } if entry["date"].present? && events.empty?
-    end
+  def profile_about_date_tag(entry)
+    return nil if entry["date"].blank?
+
+    { label: entry["date"], datetime: entry["date"], class_name: "aboutme-tag-date" }
   end
 
-  def profile_milestone_reference_links(entry, events)
-    seen_urls = []
-
-    profile_milestone_link_entries(entry).filter_map do |link|
-      url = link[:url]
-      next if seen_urls.include?(url) || profile_milestone_link_has_tag?(entry, events, link)
-
-      seen_urls << url
-      profile_card_optional_link(
-        link[:label],
-        url,
-        class_name: "aboutme-reference-link",
-        aria_label: "Open #{link[:label]}",
-        title: "Open #{link[:label]}"
-      )
-    end
-  end
-
-  def profile_milestone_link_entries(entry)
-    link_entries = Array(entry["links"]).filter_map do |link|
+  def profile_about_reference_links(entry)
+    Array(entry["links"]).filter_map do |link|
       next unless link.is_a?(Hash)
 
       label = link["label"].presence || link[:label].presence
       url = link["url"].presence || link[:url].presence
       next if label.blank? || url.blank?
 
-      { label: label, url: url }
-    end
-
-    primary_url = entry["card_url"].presence || entry["title_url"].presence
-    if primary_url.present? && link_entries.none? { |link| link[:url] == primary_url }
-      link_entries.unshift({ label: "Overview", url: primary_url })
-    end
-
-    link_entries
-  end
-
-  def profile_milestone_action_tags(entry, events)
-    seen_urls = [ entry["category_url"].presence ].compact
-
-    profile_milestone_link_entries(entry).filter_map do |link|
-      next unless profile_milestone_link_has_tag?(entry, events, link)
-
-      url = link[:url]
-      next if seen_urls.include?(url)
-
-      seen_urls << url
-      {
-        label: profile_milestone_action_tag_label(entry, events, link),
-        url: url,
-        class_name: "aboutme-milestone-action-tag #{profile_milestone_action_tag_class(entry, events, link)}"
-      }
+      profile_card_optional_link(
+        label,
+        url,
+        class_name: "aboutme-reference-link",
+        aria_label: "Open #{label}",
+        title: "Open #{label}"
+      )
     end
   end
 
-  def profile_milestone_link_has_tag?(entry, events, link)
-    url = link[:url]
-    return true if url.present? && url == entry["category_url"].presence
+  def profile_about_timeline_items(timeline, kind:)
+    Array(timeline).filter_map do |event|
+      next unless event.is_a?(Hash)
 
-    profile_milestone_action_tag_label(entry, events, link).present?
-  end
+      label = event["title"].presence || event["event"].presence
+      next if label.blank?
 
-  def profile_milestone_action_tag_label(entry, events, link)
-    url = link[:url]
-    return nil if url.blank? || url == entry["category_url"].presence
-
-    return link[:label] if profile_milestone_achievement_entry?(entry, events)
-
-    primary_url = entry["card_url"].presence || entry["title_url"].presence
-    if primary_url.present? && url == primary_url
-      return url.start_with?("/") ? "Writeup" : "Overview"
-    end
-
-    nil
-  end
-
-  def profile_milestone_action_tag_class(entry, events, link)
-    return "aboutme-tag-writeup" if link[:url].to_s.start_with?("/")
-    return "aboutme-tag-event" if profile_milestone_achievement_entry?(entry, events)
-
-    "aboutme-tag-overview"
-  end
-
-  def profile_milestone_achievement_entry?(entry, events)
-    events.any? && entry["card_url"].blank?
-  end
-
-  def profile_milestone_timeline_items(events)
-    events.map do |event|
       {
         "id" => event["id"],
         "date" => event["date"],
-        "event" => event["title"],
+        "event" => label,
         "summary" => event["summary"],
-        "url" => event["url"].presence || event["card_url"].presence,
-        "link_style" => "tag"
+        "url" => event["url"].presence,
+        "link_style" => ("tag" if kind.to_s == "achievement")
       }.compact
     end
   end
 
-  def profile_event_card(entry, event)
-    event_id = event["id"].presence || [ entry["id"].presence || entry["title"], event["date"], event["title"] ].compact.join("-").parameterize
-    card_url = event["card_url"].presence || event["url"].presence || entry["card_url"].presence || entry["title_url"].presence
-
-    {
-      id: event_id,
-      class_name: "aboutme-achievement-event",
-      icon: event["icon"].presence || entry["icon"].presence || "other/achievement.svg",
-      title: event["title"],
-      description: event["summary"],
-      tags: profile_event_tags(event),
-      body_blocks: [],
-      collapsible: false,
-      card_url: card_url,
-      reading_time: aboutme_reading_time_for_url(card_url),
-      aria_label: "Open #{event["title"].presence || entry["title"]}"
-    }
+  def profile_about_timeline_title(kind)
+    %w[cve bug-bounty].include?(kind.to_s) ? "Disclosure timeline" : "Timeline"
   end
 
-  def profile_event_tags(event)
-    return [] if event["date"].blank?
+  def profile_about_primary_url(entry)
+    entry["url"].presence ||
+      profile_about_first_local_url(entry["tags"]) ||
+      profile_about_first_local_url(entry["links"])
+  end
 
-    [ { label: event["date"], datetime: event["date"], class_name: "aboutme-tag-date" } ]
+  def profile_about_first_local_url(items)
+    Array(items).filter_map do |item|
+      next unless item.respond_to?(:to_h)
+
+      url = item.to_h["url"].presence || item.to_h[:url].presence
+      url if url.to_s.start_with?("/")
+    end.first
   end
 end

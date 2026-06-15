@@ -238,8 +238,8 @@ class CtfHelperTest < ActionView::TestCase
     assert_select ".blog-post-meta-row > button.category-badge.category-badge-pwn.category-badge-filter[data-filter-tag='Pwn'] .content-tag-label", text: "Pwn"
     assert_select ".blog-post-meta-row > button.category-badge.category-badge-crypto.category-badge-filter[data-filter-tag='Crypto'] .content-tag-label", text: "Crypto"
     assert_select ".writeup-post-card-logo .category-split-icon[data-category-count='2'][role='img'][aria-label='Pwn and Crypto categories']"
-    assert_select ".category-split-icon-slice[data-category='pwn'][style*='--category-index: 0; --category-count: 2; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/pwn-']"
-    assert_select ".category-split-icon-slice[data-category='crypto'][style*='--category-index: 1; --category-count: 2; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/crypto-']"
+    assert_select ".category-split-icon-slice[data-category='pwn'][style*='--category-index: 0; --category-count: 2; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='ctf/categories/pwn-']"
+    assert_select ".category-split-icon-slice[data-category='crypto'][style*='--category-index: 1; --category-count: 2; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='ctf/categories/crypto-']"
     assert_select ".category-split-icon-divider[data-boundary]", 2
   end
 
@@ -256,9 +256,9 @@ class CtfHelperTest < ActionView::TestCase
 
     assert_select ".writeup-post-card-logo .category-split-icon[data-category-count='3'][aria-label='Web, Pwn, and Crypto categories']"
     assert_select ".category-split-icon-slice", 3
-    assert_select ".category-split-icon-slice[data-category='web'][style*='--category-index: 0; --category-count: 3; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/web-']"
-    assert_select ".category-split-icon-slice[data-category='pwn'][style*='--category-index: 1; --category-count: 3; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/pwn-']"
-    assert_select ".category-split-icon-slice[data-category='crypto'][style*='--category-index: 2; --category-count: 3; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='categories/crypto-']"
+    assert_select ".category-split-icon-slice[data-category='web'][style*='--category-index: 0; --category-count: 3; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='ctf/categories/web-']"
+    assert_select ".category-split-icon-slice[data-category='pwn'][style*='--category-index: 1; --category-count: 3; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='ctf/categories/pwn-']"
+    assert_select ".category-split-icon-slice[data-category='crypto'][style*='--category-index: 2; --category-count: 3; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='ctf/categories/crypto-']"
     assert_select ".category-split-icon-divider", 3
   end
 
@@ -273,13 +273,13 @@ class CtfHelperTest < ActionView::TestCase
     }
 
     assert_select ".writeup-post-card-logo .category-split-icon", false
-    assert_select ".writeup-post-card-logo img.blog-logo[src*='categories/web-'][alt='Web category']"
+    assert_select ".writeup-post-card-logo img.blog-logo[src*='ctf/categories/web-'][alt='Web category']"
   end
 
   test "category icons use normalized aliases for dotnet" do
     html = get_category_svg(".NET")
 
-    assert_includes html, "categories/dotnet"
+    assert_includes html, "ctf/categories/dotnet"
     assert_includes html, ".NET category"
     refute_includes html, CtfHelper::DEFAULT_CATEGORY_ICON
   end
@@ -380,7 +380,7 @@ class CtfHelperTest < ActionView::TestCase
 
     html = get_category_svg("Temporary-Category-Icon")
 
-    assert_includes html, "categories/temporary-category-icon.png"
+    assert_includes html, "ctf/categories/temporary-category-icon.png"
     assert_no_match(/<svg/, html)
   ensure
     FileUtils.rm_f([ png_path, svg_path ])

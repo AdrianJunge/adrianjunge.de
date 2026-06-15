@@ -187,7 +187,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_no_selector "#achievements #firedancer-v1-audit-competition"
     assert_no_selector "#achievements .aboutme-card-link-overlay", visible: :all
     assert_no_selector "#achievements #kitctf .aboutme-reference-link[href='https://ctftime.org/team/7221/']", visible: :all
-    assert_selector "#achievements #kitctf .aboutme-tag-event[href='https://ctftime.org/team/7221/']", text: "KITCTF", visible: :all
+    assert_selector "#achievements #kitctf .aboutme-tag-kitctf[href='https://ctftime.org/team/7221/']", text: "KITCTF", visible: :all
     assert_no_text "KITCTF on CTFtime"
     assert_no_selector "#achievements #kitctf .aboutme-timeline-event-tag", visible: :all
     assert_selector "#achievements #kitctf .aboutme-timeline-event-link[href='https://ctftime.org/event/2714']", text: "KITCTF #3 at GlacierCTF 2025", visible: :all
@@ -256,10 +256,65 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#certificates .aboutme-section-count", text: /certificate/
     assert_selector "#talks .aboutme-section-count", text: "1 talk"
     assert_selector "#achievements .aboutme-section-count", text: /events/
+    section_count_surface = page.evaluate_script(<<~JS)
+      (() => {
+        const count = document.querySelector("#cves .aboutme-section-count");
+        const style = window.getComputedStyle(count);
+
+        return {
+          backgroundColor: style.backgroundColor,
+          borderWidth: style.borderTopWidth,
+          borderRadius: style.borderTopLeftRadius,
+          boxShadow: style.boxShadow,
+          color: style.color,
+          cursor: style.cursor,
+          fontSize: style.fontSize,
+          fontWeight: style.fontWeight,
+          paddingLeft: style.paddingLeft,
+          userSelect: style.userSelect
+        };
+      })()
+    JS
+    assert_equal "rgba(0, 0, 0, 0)", section_count_surface["backgroundColor"]
+    assert_equal "rgb(254, 243, 199)", section_count_surface["color"]
+    assert_equal "0px", section_count_surface["borderWidth"]
+    assert_equal "0px", section_count_surface["borderRadius"]
+    assert_equal "0px", section_count_surface["paddingLeft"]
+    assert_equal "none", section_count_surface["boxShadow"]
+    assert_equal "default", section_count_surface["cursor"]
+    assert_equal "16px", section_count_surface["fontSize"]
+    assert_equal "700", section_count_surface["fontWeight"]
+    assert_equal "none", section_count_surface["userSelect"]
 
     section_arrow = page.evaluate_script(<<~JS)
       (() => {
+        const section = document.querySelector("#certificates");
         const title = document.querySelector("#certificates .aboutme-section-title");
+        const card = document.querySelector("details.aboutme-card");
+        const cardToggle = card.querySelector(".aboutme-card-toggle");
+        const transitionOverride = document.createElement("style");
+        transitionOverride.textContent = ".aboutme-section-title::after, .aboutme-card-toggle { transition: none !important; }";
+        document.head.appendChild(transitionOverride);
+        const rotation = (transform) => {
+          const matrix = new DOMMatrixReadOnly(transform);
+          const angle = Math.round(Math.atan2(matrix.b, matrix.a) * (180 / Math.PI));
+
+          return angle < 0 ? angle + 360 : angle;
+        };
+        const arrowAngle = () => rotation(window.getComputedStyle(title, "::after").transform);
+        const cardAngle = () => rotation(window.getComputedStyle(cardToggle).transform);
+        title.offsetHeight;
+        section.open = false;
+        card.open = false;
+        title.offsetHeight;
+        const collapsedArrowAngle = arrowAngle();
+        const collapsedCardAngle = cardAngle();
+        section.open = true;
+        card.open = true;
+        title.offsetHeight;
+        const openArrowAngle = arrowAngle();
+        const openCardAngle = cardAngle();
+        transitionOverride.remove();
         const titleRect = title.getBoundingClientRect();
         const countRect = document.querySelector("#certificates .aboutme-section-count").getBoundingClientRect();
         const beforeStyle = window.getComputedStyle(title, "::before");
@@ -271,6 +326,10 @@ class AboutmeTest < ApplicationSystemTestCase
           afterContent: afterStyle.content,
           afterBorderRightWidth: afterStyle.borderRightWidth,
           afterWidth: afterStyle.width,
+          collapsedArrowAngle,
+          collapsedCardAngle,
+          openArrowAngle,
+          openCardAngle,
           titleSeparatedFromCount:
             titleRect.right < countRect.left ||
             titleRect.bottom <= countRect.top ||
@@ -283,42 +342,51 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal '""', section_arrow["afterContent"]
     assert_equal "2px", section_arrow["afterBorderRightWidth"]
     assert_not_equal "0px", section_arrow["afterWidth"]
+    assert_equal section_arrow["collapsedCardAngle"], section_arrow["collapsedArrowAngle"]
+    assert_equal 45, section_arrow["collapsedArrowAngle"]
+    assert_equal section_arrow["openCardAngle"], section_arrow["openArrowAngle"]
+    assert_equal 225, section_arrow["openArrowAngle"]
     assert_equal true, section_arrow["titleSeparatedFromCount"]
   end
 
   test "about counters scroll to their sections" do
+    page.current_window.resize_to(1280, 900)
     visit about_path
-
-    page.execute_script(<<~JS)
-      window.__aboutScrollOptions = null;
-      Element.prototype.scrollIntoView = function(options) {
-        window.__aboutScrollOptions = {
-          targetId: this.id,
-          behavior: options && options.behavior,
-          block: options && options.block
-        };
-      };
-    JS
+    assert_selector ".aboutme-stat[href='#my-challenges'][data-smooth-scroll-bound='true']"
 
     find(".aboutme-stat[href='#my-challenges']").click
 
     assert_current_path "/about"
     assert_equal "#my-challenges", page.evaluate_script("window.location.hash")
-    scroll_options = nil
+    scroll_metrics = nil
     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
 
     loop do
-      scroll_options = page.evaluate_script("window.__aboutScrollOptions")
-      break if scroll_options.present?
+      scroll_metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const taskbar = document.getElementById("top-taskbar").getBoundingClientRect();
+          const section = document.getElementById("my-challenges");
+          const sectionRect = section.getBoundingClientRect();
+
+          return {
+            sectionOpen: section.open,
+            sectionTop: Math.round(sectionRect.top),
+            taskbarBottom: Math.round(taskbar.bottom)
+          };
+        })()
+      JS
+
+      break if scroll_metrics["sectionOpen"] &&
+        scroll_metrics["sectionTop"] >= scroll_metrics["taskbarBottom"] + 8 &&
+        scroll_metrics["sectionTop"] <= scroll_metrics["taskbarBottom"] + 48
       break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
 
       sleep 0.05
     end
 
-    assert_equal(
-      { "targetId" => "my-challenges", "behavior" => "smooth", "block" => "start" },
-      scroll_options
-    )
+    assert_equal true, scroll_metrics["sectionOpen"]
+    assert_operator scroll_metrics["sectionTop"], :>=, scroll_metrics["taskbarBottom"] + 8
+    assert_operator scroll_metrics["sectionTop"], :<=, scroll_metrics["taskbarBottom"] + 48
     assert_equal true, page.evaluate_script("document.querySelector('#my-challenges').open")
     assert_selector "#my-challenges", text: "Created CTF Challenges"
   end
@@ -361,6 +429,7 @@ class AboutmeTest < ApplicationSystemTestCase
             sectionOpen: section.open,
             cardOpen: card.open,
             cardOffset: Math.round(cardRect.top - taskbar.bottom),
+            cardTop: Math.round(cardRect.top),
             targetTop: Math.round(targetRect.top),
             targetBottom: Math.round(targetRect.bottom),
             taskbarBottom: Math.round(taskbar.bottom),
@@ -372,7 +441,8 @@ class AboutmeTest < ApplicationSystemTestCase
       break if anchor_metrics["targetExists"] &&
         anchor_metrics["sectionOpen"] &&
         anchor_metrics["cardOpen"] &&
-        anchor_metrics["targetTop"] >= anchor_metrics["taskbarBottom"] - 1 &&
+        anchor_metrics["cardTop"] >= anchor_metrics["taskbarBottom"] + 8 &&
+        anchor_metrics["cardTop"] <= anchor_metrics["taskbarBottom"] + 48 &&
         anchor_metrics["targetBottom"] <= anchor_metrics["viewportHeight"] + 1
       break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
 
@@ -382,7 +452,8 @@ class AboutmeTest < ApplicationSystemTestCase
     assert anchor_metrics["targetExists"]
     assert anchor_metrics["sectionOpen"]
     assert anchor_metrics["cardOpen"]
-    assert_operator anchor_metrics["targetTop"], :>=, anchor_metrics["taskbarBottom"] - 1
+    assert_operator anchor_metrics["cardTop"], :>=, anchor_metrics["taskbarBottom"] + 8
+    assert_operator anchor_metrics["cardTop"], :<=, anchor_metrics["taskbarBottom"] + 48
     assert_operator anchor_metrics["targetBottom"], :<=, anchor_metrics["viewportHeight"] + 1
   end
 
@@ -421,6 +492,94 @@ class AboutmeTest < ApplicationSystemTestCase
 
       assert_operator stats_layout["lastStatWidth"], :<=, stats_layout["statsWidth"]
       assert_empty stats_layout["overflowingLabels"], "expected about counter labels not to overflow at #{width}px"
+
+      section_header_layout = page.evaluate_script(<<~JS)
+        (() => {
+          const rows = Array.from(document.querySelectorAll(".aboutme-section")).map((section) => {
+            const header = section.querySelector(".aboutme-section-header");
+            const titleWrap = header.firstElementChild;
+            const count = header.querySelector(".aboutme-section-count");
+            const headerRect = header.getBoundingClientRect();
+            const titleRect = titleWrap.getBoundingClientRect();
+            const countRect = count.getBoundingClientRect();
+
+            return {
+              id: section.id,
+              countInsideHeader: countRect.right <= headerRect.right + 1,
+              countRightAligned: Math.abs(headerRect.right - countRect.right) <= 1,
+              countOnTitleRow: countRect.top < titleRect.bottom,
+              titleBeforeCount: titleRect.right <= countRect.left + 1
+            };
+          });
+          const challengeTitle = document.querySelector("#my-challenges .aboutme-section-title");
+          const range = document.createRange();
+          range.selectNodeContents(challengeTitle);
+          const challengeTitleLineCount = range.getClientRects().length;
+          range.detach();
+
+          return { rows, challengeTitleLineCount };
+        })()
+      JS
+
+      broken_rows = section_header_layout["rows"].reject do |row|
+        row["countInsideHeader"] &&
+          row["countRightAligned"] &&
+          row["countOnTitleRow"] &&
+          row["titleBeforeCount"]
+      end
+      assert_empty broken_rows, "expected section counters to stay pinned right at #{width}px"
+      assert_operator section_header_layout["challengeTitleLineCount"], :>, 1 if width == 320
+
+      page.execute_script(<<~JS)
+        document.querySelector("#my-challenges").open = true;
+        document.querySelector("#my-challenges .aboutme-card").open = true;
+      JS
+      mobile_card_layout = page.evaluate_script(<<~JS)
+        (() => {
+          const card = document.querySelector("#my-challenges .aboutme-card");
+          const summary = card.querySelector(".aboutme-card-header");
+          const header = summary.querySelector(".aboutme-card-header-content");
+          const media = summary.querySelector(".content-card-media.blog-post-card-logo");
+          const body = summary.querySelector(".blog-post-card-details");
+          const toggle = summary.querySelector(".aboutme-card-toggle");
+          const summaryRect = summary.getBoundingClientRect();
+          const headerRect = header.getBoundingClientRect();
+          const mediaRect = media.getBoundingClientRect();
+          const bodyRect = body.getBoundingClientRect();
+          const toggleRect = toggle.getBoundingClientRect();
+          const mediaStyle = window.getComputedStyle(media);
+          const headerStyle = window.getComputedStyle(header);
+
+          return {
+            headerDirection: headerStyle.flexDirection,
+            mediaFullWidth: Math.abs(mediaRect.width - summaryRect.width) <= 1,
+            mediaLeftAligned: Math.abs(mediaRect.left - summaryRect.left) <= 1,
+            mediaRightAligned: Math.abs(mediaRect.right - summaryRect.right) <= 1,
+            mediaAboveBody: mediaRect.bottom <= bodyRect.top + 1,
+            mediaFlexBasis: mediaStyle.flexBasis,
+            toggleTopGap: Math.round(toggleRect.top - summaryRect.top),
+            toggleRightGap: Math.round(summaryRect.right - toggleRect.right),
+            toggleInsideSummary:
+              toggleRect.top >= summaryRect.top &&
+              toggleRect.right <= summaryRect.right &&
+              toggleRect.bottom <= summaryRect.bottom,
+            headerInsideSummary:
+              headerRect.left >= summaryRect.left &&
+              headerRect.right <= summaryRect.right + 1
+          };
+        })()
+      JS
+
+      assert_equal "column", mobile_card_layout["headerDirection"]
+      assert_equal true, mobile_card_layout["mediaFullWidth"], "expected about card media to fill card width at #{width}px"
+      assert_equal true, mobile_card_layout["mediaLeftAligned"], "expected about card media left edge to align at #{width}px"
+      assert_equal true, mobile_card_layout["mediaRightAligned"], "expected about card media right edge to align at #{width}px"
+      assert_equal true, mobile_card_layout["mediaAboveBody"]
+      assert_equal "auto", mobile_card_layout["mediaFlexBasis"]
+      assert_in_delta mobile_card_layout["toggleTopGap"], mobile_card_layout["toggleRightGap"], 1
+      assert_operator mobile_card_layout["toggleTopGap"], :>=, 10
+      assert_equal true, mobile_card_layout["toggleInsideSummary"]
+      assert_equal true, mobile_card_layout["headerInsideSummary"]
     end
   end
 
@@ -586,7 +745,7 @@ class AboutmeTest < ApplicationSystemTestCase
         const referenceListItemStyle = window.getComputedStyle(referenceListItem);
         const referenceListItemMarkerStyle = window.getComputedStyle(referenceListItem, "::marker");
         const referenceLinks = [...finding.querySelectorAll(".aboutme-card-body .aboutme-reference-link")];
-        const advisoryLink = finding.querySelector(".aboutme-card-body .aboutme-finding-advisory-link");
+        const advisoryLink = referenceLinks.find((link) => link.textContent.trim() === "Advisory source");
         const advisoryLinkStyle = window.getComputedStyle(advisoryLink);
         const highSeverity = document.querySelector(".aboutme-severity-high");
         const highSeverityStyle = window.getComputedStyle(highSeverity);
@@ -595,14 +754,39 @@ class AboutmeTest < ApplicationSystemTestCase
         const challengeTag = document.querySelector("#my-challenges .aboutme-tag-gpnctf-2025");
         const challengeTagStyle = window.getComputedStyle(challengeTag);
         const challengeTagActionStyle = window.getComputedStyle(challengeTag, "::after");
+        const cveDetailHeading = finding.querySelector(".aboutme-detail-block h3");
+        const cveDetailHeadingStyle = window.getComputedStyle(cveDetailHeading);
+        const cveDetailParagraph = finding.querySelector(".aboutme-detail-block p");
+        const cveDetailParagraphStyle = window.getComputedStyle(cveDetailParagraph);
+        const challenge = document.querySelector("#my-challenges .aboutme-achievement-card");
+        challenge.open = true;
+        const challengeDetailHeading = challenge.querySelector(".aboutme-detail-block h3");
+        const challengeDetailHeadingStyle = window.getComputedStyle(challengeDetailHeading);
+        const challengeDetailParagraph = challenge.querySelector(".aboutme-detail-block p");
+        const challengeDetailParagraphStyle = window.getComputedStyle(challengeDetailParagraph);
+        document
+          .querySelectorAll("#certificates .aboutme-achievement-card, #talks .aboutme-achievement-card, #achievements .aboutme-achievement-card")
+          .forEach((card) => { card.open = true; });
+        const nonCveDetailHeadingStyles = [
+          ...document.querySelectorAll("#my-challenges .aboutme-detail-block h3, #certificates .aboutme-detail-block h3, #talks .aboutme-detail-block h3, #achievements .aboutme-detail-block h3")
+        ].map((heading) => {
+          const style = window.getComputedStyle(heading);
+          return { color: style.color, fontSize: style.fontSize };
+        });
+        const nonCveDetailParagraphStyles = [
+          ...document.querySelectorAll("#my-challenges .aboutme-detail-block p, #certificates .aboutme-detail-block p, #talks .aboutme-detail-block p, #achievements .aboutme-detail-block p")
+        ].map((paragraph) => {
+          const style = window.getComputedStyle(paragraph);
+          return { color: style.color, fontSize: style.fontSize };
+        });
 
         const achievement = document.querySelector("#achievements .aboutme-achievement-card");
         const achievementTitle = achievement.querySelector("h3").getBoundingClientRect();
-        const achievementTags = achievement.querySelector(".aboutme-achievement-meta").getBoundingClientRect();
-        const achievementTag = achievement.querySelector(".aboutme-achievement-meta .aboutme-card-tag");
+        const achievementTags = achievement.querySelector(".aboutme-finding-badges").getBoundingClientRect();
+        const achievementTag = achievement.querySelector(".aboutme-finding-badges .aboutme-card-tag");
         const achievementTagStyle = window.getComputedStyle(achievementTag);
         const achievementTagActionStyle = window.getComputedStyle(achievementTag, "::after");
-        const achievementEventTag = document.querySelector("#achievements #kitctf .aboutme-achievement-meta .aboutme-tag-event");
+        const achievementEventTag = document.querySelector("#achievements #kitctf .aboutme-finding-badges .aboutme-tag-kitctf");
         const achievementEventTagStyle = window.getComputedStyle(achievementEventTag);
         const achievementEventTagActionStyle = window.getComputedStyle(achievementEventTag, "::after");
         const timelinePlainTitle = document.querySelector("#achievements #dhm .aboutme-timeline-title");
@@ -649,6 +833,16 @@ class AboutmeTest < ApplicationSystemTestCase
           challengeTagCursor: challengeTagStyle.cursor,
           challengeTagActionContent: challengeTagActionStyle.content,
           challengeTagActionWidth: challengeTagActionStyle.width,
+          cveDetailHeadingColor: cveDetailHeadingStyle.color,
+          cveDetailHeadingFontSize: cveDetailHeadingStyle.fontSize,
+          challengeDetailHeadingColor: challengeDetailHeadingStyle.color,
+          challengeDetailHeadingFontSize: challengeDetailHeadingStyle.fontSize,
+          cveDetailParagraphColor: cveDetailParagraphStyle.color,
+          cveDetailParagraphFontSize: cveDetailParagraphStyle.fontSize,
+          challengeDetailParagraphColor: challengeDetailParagraphStyle.color,
+          challengeDetailParagraphFontSize: challengeDetailParagraphStyle.fontSize,
+          nonCveDetailHeadingStyles,
+          nonCveDetailParagraphStyles,
           highSeverityTagName: highSeverity.tagName,
           highSeverityHref: highSeverity.getAttribute("href"),
           highSeverityClass: highSeverity.className,
@@ -708,9 +902,9 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "https://cwe.mitre.org/data/definitions/284.html", metrics["cweHref"]
     assert_equal false, metrics["projectLinkPresent"]
     assert_equal "https://developer.joomla.org/security-centre/1045-20260513-core-privilege-escalation-through-com-users-batch-task.html", metrics["advisoryHref"]
-    assert_includes metrics["advisoryClass"], "aboutme-finding-advisory-link"
-    assert_equal "Open advisory for Privilege escalation through com_users batch task", metrics["advisoryAriaLabel"]
-    assert_equal "Open advisory source", metrics["advisoryTitle"]
+    assert_includes metrics["advisoryClass"], "aboutme-reference-link"
+    assert_equal "Open Advisory source", metrics["advisoryAriaLabel"]
+    assert_equal "Open Advisory source", metrics["advisoryTitle"]
     assert_equal "rgb(96, 165, 250)", metrics["advisoryColor"]
     assert_equal "underline", metrics["advisoryTextDecorationLine"]
     assert_equal "block", metrics["referenceListDisplay"]
@@ -742,6 +936,21 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "pointer", metrics["challengeTagCursor"]
     assert_equal '""', metrics["challengeTagActionContent"]
     assert_not_equal "0px", metrics["challengeTagActionWidth"]
+    assert_equal "rgb(254, 243, 199)", metrics["cveDetailHeadingColor"]
+    assert_equal metrics["cveDetailHeadingColor"], metrics["challengeDetailHeadingColor"]
+    assert_equal metrics["cveDetailHeadingFontSize"], metrics["challengeDetailHeadingFontSize"]
+    assert_equal metrics["cveDetailParagraphColor"], metrics["challengeDetailParagraphColor"]
+    assert_equal metrics["cveDetailParagraphFontSize"], metrics["challengeDetailParagraphFontSize"]
+    assert metrics["nonCveDetailHeadingStyles"].any?
+    assert metrics["nonCveDetailParagraphStyles"].any?
+    metrics["nonCveDetailHeadingStyles"].each do |style|
+      assert_equal metrics["cveDetailHeadingColor"], style["color"]
+      assert_equal metrics["cveDetailHeadingFontSize"], style["fontSize"]
+    end
+    metrics["nonCveDetailParagraphStyles"].each do |style|
+      assert_equal metrics["cveDetailParagraphColor"], style["color"]
+      assert_equal metrics["cveDetailParagraphFontSize"], style["fontSize"]
+    end
     assert_equal "A", metrics["highSeverityTagName"]
     assert_equal "/timeline?tag=High", metrics["highSeverityHref"]
     assert_includes metrics["highSeverityClass"], "aboutme-tag-timeline"
@@ -787,7 +996,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal metrics["timelinePlainTitleLineHeight"], metrics["timelineEventTagLineHeight"]
     assert_equal 0, metrics["visibleActionRows"]
 
-    find("#achievements .aboutme-achievement-meta .aboutme-card-tag", match: :first).hover
+    find("#achievements .aboutme-finding-badges .aboutme-card-tag", match: :first).hover
     hovered_timeline_tag = page.evaluate_async_script(<<~JS)
       (() => {
         const done = arguments[0];
@@ -795,7 +1004,7 @@ class AboutmeTest < ApplicationSystemTestCase
         const initialTransform = #{metrics["achievementTagTransform"].to_json};
         const started = performance.now();
         const readState = () => {
-          const tag = document.querySelector("#achievements .aboutme-achievement-meta .aboutme-card-tag");
+          const tag = document.querySelector("#achievements .aboutme-finding-badges .aboutme-card-tag");
           const style = window.getComputedStyle(tag);
 
           return {
@@ -871,7 +1080,7 @@ class AboutmeTest < ApplicationSystemTestCase
           linkAtCenter("#my-challenges .aboutme-tag-gpnctf-2025"),
           linkAtCenter("#certificates .aboutme-tag-certificate"),
           linkAtCenter("#talks .aboutme-tag-slides"),
-          linkAtCenter("#achievements #dhm .aboutme-tag-event[href='https://hacking-meisterschaft.de/']"),
+          linkAtCenter("#achievements #dhm .aboutme-tag-dhm[href='https://hacking-meisterschaft.de/']"),
           linkAtCenter("#achievements #kitctf .aboutme-timeline-event-link[href='https://ctftime.org/event/2714']")
         ];
       })()

@@ -1,0 +1,38 @@
+<% previous_item = local_assigns[:previous_item] %>
+<% next_item = local_assigns[:next_item] %>
+<% include_context = local_assigns.fetch(:include_context, true) %>
+<% navigation_label = lambda do |item|
+     title = item[:title].to_s
+     context = include_context ? item[:which].presence : nil
+     context.present? ? "#{context.to_s.upcase} - #{title}" : title
+   end %>
+
+<div class="next-previous-writeups flex justify-between my-8">
+  <% if previous_item %>
+    <a
+      href="<%= previous_item[:link] %>"
+      class="previous-writeup-btn ui-article-action mt-3"
+    >
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span><%= navigation_label.call(previous_item) %></span>
+    </a>
+  <% else %>
+    <div></div>
+  <% end %>
+
+  <% if next_item %>
+    <a
+      href="<%= next_item[:link] %>"
+      class="next-writeup-btn ui-article-action mt-3"
+    >
+      <span><%= navigation_label.call(next_item) %></span>
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  <% else %>
+    <div></div>
+  <% end %>
+</div>

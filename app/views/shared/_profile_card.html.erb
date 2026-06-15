@@ -5,7 +5,6 @@
 <% child_cards = Array(card[:children]).compact %>
 <% collapsible = card[:collapsible] && (body_blocks.any? || timeline_items.any? || child_cards.any?) %>
 <% card_url = collapsible ? nil : card[:card_url].presence %>
-<% title_url = card[:title_link] ? card[:title_url].presence : nil %>
 <% reading_time = card[:reading_time].to_s.presence %>
 <% icon_path = card[:icon].to_s.presence %>
 <% card_classes = [ "profile-card", "aboutme-card", "ui-card-surface", ("ui-hover-lift" if card_url.present?), card[:class_name], ("aboutme-card-static" unless collapsible), ("aboutme-card-linked" if card_url.present?), ("aboutme-card-nested" if card[:nested]) ].compact.join(" ") %>
@@ -20,7 +19,7 @@
       <span class="aboutme-card-kicker"><%= card[:kicker] %></span>
     <% end %>
     <%= content_tag(heading_tag, class: title_classes) do %>
-      <%= profile_card_optional_link(card[:title], title_url, class_name: card[:title_link_class]) %>
+      <%= card[:title] %>
     <% end %>
   <% end %>
 
@@ -89,7 +88,7 @@
       <ol class="aboutme-timeline">
         <% timeline_items.each do |item| %>
           <% event_label = item["event"].presence || item["title"].presence %>
-          <% event_url = item["url"].presence || item["card_url"].presence %>
+          <% event_url = item["url"].presence %>
           <%= content_tag(:li, id: item["id"].presence) do %>
             <% if item["date"].present? %>
               <time datetime="<%= item["date"] %>"><%= item["date"] %></time>

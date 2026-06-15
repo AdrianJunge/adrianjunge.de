@@ -34,100 +34,53 @@ class ContentJsonSchemas
     }
   }.freeze
 
-  FINDING = {
-    "type" => "object",
-    "required" => %w[
-      id project project_url title title_url cve_id severity short_summary summary
-      timeline references
-    ],
-    "additionalProperties" => false,
-    "properties" => {
-      "id" => STRING,
-      "project" => STRING,
-      "project_url" => STRING,
-      "icon" => STRING,
-      "title" => STRING,
-      "title_url" => STRING,
-      "card_url" => STRING,
-      "timeline_group" => STRING,
-      "cve_id" => STRING,
-      "cwe_id" => STRING,
-      "severity" => STRING,
-      "short_summary" => STRING,
-      "summary" => STRING,
-      "hidden" => { "type" => "boolean" },
-      "timeline" => {
-        "type" => "array",
-        "items" => {
-          "type" => "object",
-          "required" => %w[date event],
-          "additionalProperties" => false,
-          "properties" => {
-            "date" => OPTIONAL_DATE,
-            "event" => STRING
-          }
-        }
-      },
-      "references" => { "type" => "array", "items" => LINK }
-    }
-  }.freeze
-
-  MILESTONE = {
-    "type" => "object",
-    "required" => %w[id title title_url category date summary links],
-    "additionalProperties" => false,
-    "properties" => {
-      "id" => STRING,
-      "title" => STRING,
-      "title_url" => STRING,
-      "icon" => STRING,
-      "card_url" => STRING,
-      "timeline_group" => STRING,
-      "category" => STRING,
-      "category_url" => STRING,
-      "date" => DATE,
-      "summary" => STRING,
-      "hidden" => { "type" => "boolean" },
-      "links" => { "type" => "array", "items" => LINK }
-    }
-  }.freeze
-
-  ACHIEVEMENT = {
-    "type" => "object",
-    "required" => %w[id title title_url category links events],
-    "additionalProperties" => false,
-    "properties" => {
-      "id" => STRING,
-      "title" => STRING,
-      "title_url" => STRING,
-      "icon" => STRING,
-      "card_url" => STRING,
-      "timeline_group" => STRING,
-      "category" => STRING,
-      "category_url" => STRING,
-      "summary" => STRING,
-      "hidden" => { "type" => "boolean" },
-      "links" => { "type" => "array", "items" => LINK },
-      "events" => {
-        "type" => "array",
-        "minItems" => 1,
-        "items" => {
-          "type" => "object",
-          "required" => %w[id title date],
-          "additionalProperties" => false,
-          "properties" => {
-            "id" => STRING,
-            "title" => STRING,
-            "date" => DATE,
-            "icon" => STRING,
-            "summary" => STRING,
-            "url" => STRING,
-            "card_url" => STRING,
-            "timeline_group" => STRING,
-            "hidden" => { "type" => "boolean" }
-          }
+  TAG = {
+    "oneOf" => [
+      STRING,
+      {
+        "type" => "object",
+        "required" => %w[label],
+        "additionalProperties" => false,
+        "properties" => {
+          "label" => STRING,
+          "url" => STRING
         }
       }
+    ]
+  }.freeze
+
+  ABOUT_TIMELINE_ITEM = {
+    "type" => "object",
+    "additionalProperties" => false,
+    "properties" => {
+      "id" => STRING,
+      "title" => STRING,
+      "date" => DATE,
+      "summary" => STRING,
+      "url" => STRING,
+      "timeline_group" => STRING,
+      "hidden" => { "type" => "boolean" }
+    }
+  }.freeze
+
+  ABOUT_CARD = {
+    "type" => "object",
+    "required" => %w[id title],
+    "additionalProperties" => false,
+    "properties" => {
+      "id" => STRING,
+      "title" => STRING,
+      "subtitle" => STRING,
+      "icon" => STRING,
+      "url" => STRING,
+      "date" => DATE,
+      "summary" => STRING,
+      "timeline_group" => STRING,
+      "tags" => { "type" => "array", "items" => TAG },
+      "links" => { "type" => "array", "items" => LINK },
+      "timeline" => { "type" => "array", "items" => ABOUT_TIMELINE_ITEM },
+      "hidden" => { "type" => "boolean" },
+      "draft" => { "type" => "boolean" }
     }
   }.freeze
 
@@ -161,12 +114,12 @@ class ContentJsonSchemas
   }.freeze
 
   ARRAY_SCHEMAS = {
-    ApplicationController::ABOUTME_CVES_PATH.to_s => FINDING,
-    ApplicationController::ABOUTME_BUG_BOUNTIES_PATH.to_s => FINDING,
-    ApplicationController::ABOUTME_CERTIFICATES_PATH.to_s => MILESTONE,
-    ApplicationController::ABOUTME_CHALLENGES_PATH.to_s => MILESTONE,
-    ApplicationController::ABOUTME_TALKS_PATH.to_s => MILESTONE,
-    ApplicationController::ABOUTME_ACHIEVEMENTS_PATH.to_s => ACHIEVEMENT
+    ApplicationController::ABOUTME_CVES_PATH.to_s => ABOUT_CARD,
+    ApplicationController::ABOUTME_BUG_BOUNTIES_PATH.to_s => ABOUT_CARD,
+    ApplicationController::ABOUTME_CERTIFICATES_PATH.to_s => ABOUT_CARD,
+    ApplicationController::ABOUTME_CHALLENGES_PATH.to_s => ABOUT_CARD,
+    ApplicationController::ABOUTME_TALKS_PATH.to_s => ABOUT_CARD,
+    ApplicationController::ABOUTME_ACHIEVEMENTS_PATH.to_s => ABOUT_CARD
   }.freeze
 
   OBJECT_SCHEMAS = {

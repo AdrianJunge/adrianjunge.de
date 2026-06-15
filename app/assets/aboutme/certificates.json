@@ -2,21 +2,18 @@
   {
     "id": "htb-cpts",
     "title": "Hack The Box Certified Penetration Testing Specialist",
-    "title_url": "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url",
     "icon": "blog/htb-cpts.png",
-    "card_url": "/blog/htb-cpts",
+    "url": "/blog/htb-cpts",
     "timeline_group": "htb-cpts",
-    "category": "Certification",
-    "category_url": "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url",
     "date": "2026-03-23",
     "summary": "Completed the HTB CPTS path and passed the practical exam on the first attempt, including a full penetration-test report for the exam environment. The work focused on disciplined enumeration, Active Directory attack paths, web findings, and reproducible reporting.",
-    "links": [
+    "tags": [
       {
-        "label": "Credential",
+        "label": "Certificate",
         "url": "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url"
       },
       {
-        "label": "Read writeup",
+        "label": "Writeup",
         "url": "/blog/htb-cpts"
       }
     ]
