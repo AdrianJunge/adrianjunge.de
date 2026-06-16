@@ -33,6 +33,6 @@ gem "front_matter_parser"
 gem "rouge"
 gem "sass-rails"
 
-gem "tailwindcss-rails", "~> 4.0"
+gem "tailwindcss-rails", "~> 4.5"
 
 gem "json_schemer", "~> 2.5"
