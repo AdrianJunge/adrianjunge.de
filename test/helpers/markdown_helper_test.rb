@@ -29,4 +29,22 @@ class MarkdownHelperTest < ActionView::TestCase
     assert_includes link["rel"].split, "noopener"
     assert_includes link["rel"].split, "noreferrer"
   end
+
+  test "markdown links to local article sections stay in the same tab" do
+    html = render_markdown("[section 2.1](/blog/joomla-sqli#how-joomla-interacts-with-the-database)")
+    fragment = Nokogiri::HTML.fragment(html)
+    link = fragment.at_css(".markdown-content a[href='/blog/joomla-sqli#how-joomla-interacts-with-the-database']")
+
+    assert_nil link["target"]
+    assert_equal "noopener", link["rel"]
+  end
+
+  test "markdown links to same-page anchors stay in the same tab" do
+    html = render_markdown("[section 2.1](#how-joomla-interacts-with-the-database)")
+    fragment = Nokogiri::HTML.fragment(html)
+    link = fragment.at_css(".markdown-content a[href='#how-joomla-interacts-with-the-database']")
+
+    assert_nil link["target"]
+    assert_equal "noopener", link["rel"]
+  end
 end

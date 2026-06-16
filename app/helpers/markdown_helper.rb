@@ -8,8 +8,7 @@ module MarkdownHelper
 
     render_options = {
       no_links: false,
-      hard_wrap: true,
-      link_attributes: { target: "_blank", rel: "noopener noreferrer" }
+      hard_wrap: true
     }
     extensions = {
       disable_indented_code_blocks: true,

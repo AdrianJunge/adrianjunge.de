@@ -370,17 +370,20 @@ $this->filters[$modifier][(int) $return->id] = $return->title;
 
 # 6. Final Thoughts<a id="final-thoughts"></a>
 
-Before falling into this rabbit hole, I did not really expect **SQL injections** to still be this present in large applications. But it makes sense. A lot of old codebases were written before prepared statements became the default habit everywhere. Later, they grew their own sanitizer functions, query builders, table abstractions, and framework conventions. Rewriting all of that is expensive, and the dangerous parts are often exactly in the compatibility layer between old and new patterns.
+Before falling into this rabbit hole, I did not really expect **SQL injections** to still be this common in large applications. But it makes sense. Many old codebases were written before prepared statements became the default habit everywhere. Later, they grew their own sanitizer functions, query builders, table abstractions, and framework conventions. Rewriting all of that is expensive, and the dangerous parts are often exactly in the compatibility layer between old and new patterns.
 
-Prepared statements also cannot be the whole answer for a framework like [Joomla](https://github.com/joomla/joomla-cms). They are the right tool for values, but not for every dynamic SQL fragment. Ordering, column names, table names, aliases, and raw expressions still need strict whitelisting, hardcoded mappings, type normalization, or other structural controls.
+Prepared statements also cannot solve everything for a framework like [Joomla](https://github.com/joomla/joomla-cms). They are the right tool for values, but not for every dynamic SQL fragment. Sort orders, column names, table names, aliases, and raw expressions still need strict whitelisting, hardcoded mappings, type normalization, or other structural controls.
 
-Moreover the workflow with AI worked surprisingly well when splitting the task into reviewable units:
+The workflow with AI also worked surprisingly well when splitting the task into reviewable units:
+
 - enumerate concrete sinks
 - remove clearly safe ones
 - give the agent one sink at a time
 - force source-to-sink tracing
 - require runtime proof
 - manually verify the result before reporting
+
+This kind of workflow should be applicable to every vulnerability type. But I think it works especially well for **SQL injection**, because the potentially vulnerable sinks are quite easy to find using simple keywords, as explained in [section 2.1](#how-joomla-interacts-with-the-database). My guess is that vulnerabilities like **XSS** are harder to find with this workflow, because there are many different ways to execute **JavaScript**. On top of that, JavaScript code often has many different places where user-controlled input could end up being executed in another user's browser.
 
 # 7. Disclosure Timeline<a id="disclosure-timeline"></a>
 

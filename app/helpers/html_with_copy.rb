@@ -54,7 +54,38 @@ class HtmlWithCopy < Redcarpet::Render::HTML
     HTML
   end
 
+  def link(link, title, content)
+    href = link.to_s
+    attributes = { href: href }.merge(link_attributes_for(href))
+    attributes[:title] = title unless title.to_s.empty?
+
+    %(<a#{html_attributes(attributes)}>#{content}</a>)
+  end
+
   private
+
+  def link_attributes_for(href)
+    return { rel: "noopener" } if internal_link?(href)
+    return { target: "_blank", rel: "noopener noreferrer" } if external_link?(href)
+
+    {}
+  end
+
+  def internal_link?(href)
+    href.start_with?("#") || (href.start_with?("/") && !href.start_with?("//"))
+  end
+
+  def external_link?(href)
+    href.match?(%r{\Ahttps?://}i)
+  end
+
+  def html_attributes(attributes)
+    attributes.filter_map do |name, value|
+      next if value.nil? || value.to_s.empty?
+
+      %( #{name}="#{CGI.escapeHTML(value.to_s)}")
+    end.join
+  end
 
   def code_for_display(code)
     code.to_s.sub(/\r?\n\z/, "")
