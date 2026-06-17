@@ -1,4 +1,7 @@
 - implement that e.g. for referenced codeblocks you can show the real line numbers instead of counting up from 1
+- post content
+    - automatic numbering of header sections so there is no need anymore for having e.g. `# 1. Intro` and `## 1.1 Subintro`
+    - display image descriptions/captions
 
 # Content
 - Next Blog
