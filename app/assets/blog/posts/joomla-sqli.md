@@ -37,7 +37,7 @@ It's quite easy to see that this implementation is vulnerable to **SQL injection
 
 In this repository the common theme was not just some missing sanitizer. The bigger issue was architectural. There were raw **SQL** strings everywhere, partial filtering, custom sanitizer helpers used inconsistently, wrong assumptions about request shapes, and almost no usage of prepared statements.
 
-After reporting everything I found to [ChurchCRM](https://github.com/ChurchCRM/CRM), I wanted to know whether the same workflow would still work on a more popular, larger and better reviewed codebase. At first I found another interesting looking **CRM** called [SuiteCRM](https://github.com/SuiteCRM/SuiteCRM), and after reporting a bunch of **SQL injections** there I went over to [Joomla](https://github.com/joomla/joomla-cms) which is a **CMS** like [WordPress](https://wordpress.com/) but not as popular. But still [Joomla](https://github.com/joomla/joomla-cms) has more than **5k** GitHub stars and a large amount of legacy **PHP** code. When counting only the Joomla source directories, the tagged [Joomla 5.4.5](https://github.com/joomla/joomla-cms/tree/5.4.5) tree contains about **250k PHP** code lines.
+After reporting everything I found to [ChurchCRM](https://github.com/ChurchCRM/CRM), I wanted to know whether the same workflow would still work on a more popular, larger and better reviewed codebase. At first I found another interesting looking **CRM** called [SuiteCRM](https://github.com/SuiteCRM/SuiteCRM), and after reporting a bunch of **SQL injections** there, which have not been resolved yet, I went over to [Joomla](https://github.com/joomla/joomla-cms) which is a **CMS** like [WordPress](https://wordpress.com/) but not as popular. But still [Joomla](https://github.com/joomla/joomla-cms) has more than **5k** GitHub stars and a large amount of legacy **PHP** code. When counting only the Joomla source directories, the tagged [Joomla 5.4.5](https://github.com/joomla/joomla-cms/tree/5.4.5) tree contains about **250k PHP** code lines.
 
 # 2. Turning Manual Review Into An AI Workflow<a id="turning-manual-review-into-an-ai-workflow"></a>
 
@@ -96,7 +96,7 @@ The important filtering rules were:
 - Remove fully static queries, because a hardcoded query with no dynamic fragment cannot be influenced by an attacker
 - Remove a dynamic query only when every attacker-controlled input is used as a bound **SQL** value, for example through a placeholder and `$query->bind()`. If attacker-controlled data can influence **SQL** structure such as table names, column names, aliases, `ORDER BY`, sort direction, `GROUP BY`, `HAVING`, unbound `LIMIT` or `OFFSET` fragments, manually built `WHERE ... IN (...)` lists, or raw expression fragments, the query has to stay in the candidate list.
 
-The important output of this phase was `sinks.json`, which kept the unique dynamic candidates in **JSON** format:
+The important output of this phase was `sinks.json`, which kept the unique dynamic candidates in **JSON** format containing different information like the file name and line number where the used keyword was found, which variables are dynamic and more:
 
 ```json
 {
@@ -104,8 +104,6 @@ The important output of this phase was `sinks.json`, which kept the unique dynam
     "class": "SearchModel",
     "function": "getListQuery",
     "line": 158,
-    "construction_location": "components/com_finder/src/Model/SearchModel.php:158",
-    "execution_location": "libraries/src/MVC/Model/ListModel.php:283 and libraries/src/MVC/Model/ListModel.php:373",
     "full_query_logics": [
         "<line-number>: <code>",
     ],
@@ -141,14 +139,14 @@ Both are second-order **SQL injections**. Below I focus on the one in `com_finde
 # 3. The Vulnerability In com_finder<a id="the-vulnerability"></a>
 
 Some [Joomla](https://github.com/joomla/joomla-cms) terminology is worth explaining before going into the source-to-sink trace:
-- A **component** is the main application unit behind a request. In e.g. `index.php?option=com_finder&view=search`, `option=com_finder` selects the Smart Search component and `view=search` selects the search view/model
-- **Finder** is [Joomla](https://github.com/joomla/joomla-cms)'s Smart Search system. It builds its own search index instead of querying articles directly for every search request
+- A **component** is the main application unit behind a request. In e.g. `index.php?option=com_finder&view=search`, `option=com_finder` selects the **Smart Search** component and `view=search` selects the search view/model
+- **Finder** is [Joomla](https://github.com/joomla/joomla-cms)'s **Smart Search** system. It builds its own search index instead of querying articles directly for every search request
 
 The short version of the bug is:
 - An authenticated content user stores text as the title of a **Finder** taxonomy node.
 - A later public **Finder** search loads that stored title by prefix.
 - Joomla accidentally stores the title as an array key.
-- `SearchModel::getListQuery()` later treats that key as a numeric taxonomy id and concatenates it into `IN (...)` without any sanitization.
+- `SearchModel::getListQuery` later treats that key as a numeric taxonomy id and concatenates it into `IN (...)` without any sanitization.
 
 ## 3.1. Storing The Payload<a id="storing-the-payload"></a>
 
@@ -172,7 +170,7 @@ The query explicitly selects `a.created_by_alias` in [Content::getListQuery()](h
 ->select('a.created_by_alias, a.modified, a.modified_by, a.attribs AS params')
 ```
 
-Then the **Finder** content plugin turns article metadata into Smart Search taxonomy metadata. In [plugins/finder/content/src/Extension/Content.php](https://github.com/joomla/joomla-cms/blob/5.4.5/plugins/finder/content/src/Extension/Content.php#L339-L342), it adds an `Author` taxonomy node like this:
+In the following step, the **Finder** content plugin turns article metadata into **Smart Search** taxonomy metadata. In [plugins/finder/content/src/Extension/Content.php](https://github.com/joomla/joomla-cms/blob/5.4.5/plugins/finder/content/src/Extension/Content.php#L339-L342), it adds an `Author` taxonomy node like this:
 
 ```php
 if (\in_array('author', $taxonomies) && (!empty($item->author) || !empty($item->created_by_alias))) {
@@ -180,7 +178,7 @@ if (\in_array('author', $taxonomies) && (!empty($item->author) || !empty($item->
 }
 ```
 
-`Author` is the taxonomy branch. The second argument is the taxonomy title. `Result::addTaxonomy()` then receives these arguments as `$branch` and `$title` in [Result.php](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Result.php#L395-L414):
+`Author` is the taxonomy branch. The second argument is the taxonomy title. `Result::addTaxonomy` then receives these arguments as `$branch` and `$title` in [Result.php](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Result.php#L395-L414):
 
 ```php
 public function addTaxonomy($branch, $title, $state = 1, $access = 1, $language = '*')
@@ -206,15 +204,15 @@ So the write-side path is:
 1. The article form stores the payload in `$data['created_by_alias']`.
 2. **Finder** reloads the saved article and exposes the same value as `$item->created_by_alias`.
 3. The content plugin passes it into `addTaxonomy('Author', $item->created_by_alias, ...)`.
-4. Inside `Result::addTaxonomy()`, this second argument becomes `$title` and is copied into `$node->title`.
-5. `Taxonomy::storeNode()` copies `$node->title` into `$nodeTable->title`.
+4. Inside `Result::addTaxonomy`, this second argument becomes the `$node->title`.
+5. `Taxonomy::storeNode` copies `$node->title` into `$nodeTable->title`.
 6. The table object persists it as `#__finder_taxonomy.title`.
 
 At this point the attacker-controlled value is persistent in the database.
 
 ## 3.2. Loading The Stored Title<a id="loading-the-stored-title"></a>
 
-The trigger is a frontend **Finder** search request. The `q` parameter is the Smart Search query string, and `author:<prefix>` is **Finder's** modifier syntax for filtering by the `Author` taxonomy branch:
+The trigger is a frontend **Finder** search request. The `q` parameter is the **Smart Search** query string, and `author:<prefix>` is **Finder's** modifier syntax for filtering by the `Author` taxonomy branch:
 
 ```text
 GET /index.php?option=com_finder&view=search&q=<article-title>+author:<prefix>
@@ -352,7 +350,7 @@ This is basically a binary search to extract table names character by character 
 
 # 5. The Fix<a id="the-fix"></a>
 
-The vulnerability is a typical second-order bug, although it also relies on a logical bug and a broken contract between [Query::processString()](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Query.php#L843) and [SearchModel::getListQuery()](https://github.com/joomla/joomla-cms/blob/5.4.5/components/com_finder/src/Model/SearchModel.php#L193-L194). The stored value is safe enough for one query, returned as data, placed into the wrong side of an array, and later interpreted as **SQL**. The main issue is the data shape between those steps. `Query::processString()` creates `title => id`, while `SearchModel::getListQuery()` expects `id => title`.
+The vulnerability is a typical second-order bug, although it also relies on a logical bug and a broken contract between [Query::processString()](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Query.php#L843) and [SearchModel::getListQuery()](https://github.com/joomla/joomla-cms/blob/5.4.5/components/com_finder/src/Model/SearchModel.php#L193-L194). The stored value is safe enough for one query, returned as data, placed into the wrong side of an array, and later interpreted as **SQL**. The main issue is the data shape between those steps. `Query::processString` creates `title => id`, while `SearchModel::getListQuery` expects `id => title`.
 
 The [Joomla](https://github.com/joomla/joomla-cms) fix in 5.4.6 is small and targets the key/value bug directly. In [Query.php on tag 5.4.6](https://github.com/joomla/joomla-cms/blob/5.4.6/administrator/components/com_finder/src/Indexer/Query.php#L842-L843), the filter map is changed to store the integer id as the key and the taxonomy title as the value:
 
