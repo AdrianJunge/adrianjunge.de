@@ -10,7 +10,7 @@ published: "2026-06-13"
 
 # 1. A Random PHP Detour<a id="a-random-php-detour"></a>
 
-This whole journey started by me randomly finding a **CRM** repository written in **PHP** for managing churches called [ChurchCRM](https://github.com/ChurchCRM/CRM). It had an interesting [advisory history](https://github.com/ChurchCRM/CRM/security/advisories) already: several **SQL injections**, **XSS** issues, and other typical web application bugs. Having a closer look at the **SQL injection** advisories, the bugs looked to me very simple including some text book **SQL injections**. So I became curious whether there are more **SQL** related issues present in this repository and started having a look how this application talks to the database. In [ChurchCRM](https://github.com/ChurchCRM/CRM) this turned out quite easy. A lot of legacy code constructs **SQL** strings manually and then passes them into the `RunQuery` function, a function that delegates the query execution to the underlying database. That gives you a very direct source-to-sink search strategy. You just need to search for `RunQuery`, inspect the **SQL** construction directly above it, and then trace the variables backwards. One representative example for this is the vulnerable [ChurchCRM 7.0.5 SettingsUser.php](https://github.com/ChurchCRM/CRM/blob/7.0.5/src/SettingsUser.php#L14-L47):
+This whole journey started by me randomly finding a **CRM** repository written in **PHP** for managing churches called [ChurchCRM](https://github.com/ChurchCRM/CRM). In the [advisory history](https://github.com/ChurchCRM/CRM/security/advisories) were already a couple of interesting vulnerabilities reported. Several **SQL injections**, **XSS** issues, and other typical web application bugs. Having a closer look at the **SQL injection** advisories, the bugs looked to me very simple including some text book **SQL injections**. So I became curious whether there are more **SQL** related issues present in this repository and started having a look how this application talks to the database. In [ChurchCRM](https://github.com/ChurchCRM/CRM) this turned out quite easy. A lot of legacy code constructs **SQL** strings manually and then passes them into the `RunQuery` function, a function that delegates the query execution to the underlying database. That gives you a very direct source-to-sink search strategy. You just need to search for `RunQuery`, inspect the **SQL** construction directly above it, and then trace the variables backwards. One representative example for this is the vulnerable [ChurchCRM 7.0.5 SettingsUser.php](https://github.com/ChurchCRM/CRM/blob/7.0.5/src/SettingsUser.php#L14-L47):
 
 ```php
 if (isset($_POST['save'])) {
@@ -35,13 +35,13 @@ if (isset($_POST['save'])) {
 
 It's quite easy to see that this implementation is vulnerable to **SQL injection** due to the missing sanitization of `$_POST['type']` and thus also `$id` which is directly placed into the `WHERE` clause. This became [CVE-2026-39325](https://github.com/ChurchCRM/CRM/security/advisories/GHSA-cf68-g7vf-9xrq) among several other **SQL injections** I reported.
 
-In this repository the common theme was not just some missing sanitizer. The bigger issue was architectural. There were raw **SQL** strings everywhere, partial filtering, custom sanitizer helpers used inconsistently, wrong assumptions about request shapes, and almost no usage of prepared statements.
+In this repository the common theme was not just some missing sanitizer. A lot raw **SQL** strings were used, partial filtering, custom sanitizer functions used in a wrong way, and almost no usage of prepared statements.
 
-After reporting everything I found to [ChurchCRM](https://github.com/ChurchCRM/CRM), I wanted to know whether the same workflow would still work on a more popular, larger and better reviewed codebase. At first I found another interesting looking **CRM** called [SuiteCRM](https://github.com/SuiteCRM/SuiteCRM), and after reporting a bunch of **SQL injections** there, which have not been resolved yet, I went over to [Joomla](https://github.com/joomla/joomla-cms) which is a **CMS** like [WordPress](https://wordpress.com/) but not as popular. But still [Joomla](https://github.com/joomla/joomla-cms) has more than **5k** GitHub stars and a large amount of legacy **PHP** code. When counting only the Joomla source directories, the tagged [Joomla 5.4.5](https://github.com/joomla/joomla-cms/tree/5.4.5) tree contains about **250k PHP** code lines.
+After reporting to [ChurchCRM](https://github.com/ChurchCRM/CRM) everything I found, I wanted to know if the same workflow can be applied to more popular, larger and better reviewed codebase. At first I found another interesting looking **CRM** called [SuiteCRM](https://github.com/SuiteCRM/SuiteCRM), and after reporting a bunch of **SQL injections** there, which have not been resolved yet, I went over to [Joomla](https://github.com/joomla/joomla-cms) which is a **CMS** like [WordPress](https://wordpress.com/) but not as popular. But still [Joomla](https://github.com/joomla/joomla-cms) has more than **5k** GitHub stars and a large amount of legacy **PHP** code. When counting only the Joomla source directories, the tagged [Joomla 5.4.5](https://github.com/joomla/joomla-cms/tree/5.4.5) tree contains about **250k PHP** code lines.
 
 # 2. Turning Manual Review Into An AI Workflow<a id="turning-manual-review-into-an-ai-workflow"></a>
 
-At this point the [ChurchCRM](https://github.com/ChurchCRM/CRM) process felt mechanical enough that I wanted to automate parts of it with an AI agent. I was using **Codex 5.3** at the time. For this kind of security research you have to go through the verification flow at [chatgpt.com/cyber](https://chatgpt.com/cyber). In my case that was straightforward: explain what you want to do, provide some information about yourself, and link something like your LinkedIn profile or personal website.
+The workflow which I applied manually to [ChurchCRM](https://github.com/ChurchCRM/CRM) felt mechanical enough to automate parts of it with AI agents. I was using **Codex 5.3** at the time. To use any **OpenAI** models for security research, you have to go through the verification flow at [chatgpt.com/cyber](https://chatgpt.com/cyber) which is farily straightforward. You just have to explain what you want to do with the models, provide some information about yourself, and link something like your LinkedIn profile or personal website.
 
 ## 2.1. How Joomla Interacts With The Database<a id="how-joomla-interacts-with-the-database"></a>
 
@@ -76,7 +76,7 @@ However these searches overlap heavily. Searching all of them produces duplicate
 
 ## 2.2. Removing Safe Sinks<a id="removing-obvious-safe-sinks"></a>
 
-After removing duplicates, the broad search still had a lot of sinks that are not worth deeper analysis. I defined a dynamic input as any **SQL** fragment using a variable, concatenation, or interpolation. From there, the agent had to keep only query candidates where any of the used parameters is derived dynamically. The agent also had to check how the query uses prepared statements. [Joomla](https://github.com/joomla/joomla-cms) commonly represents dynamic values with SQL parameter placeholders like `:id`, `:username`, or `?`, and then binds the real **PHP** value separately, for example in [UserGroupsHelper::getTitle()](https://github.com/joomla/joomla-cms/blob/5.4.5/libraries/src/Helper/UserGroupsHelper.php#L229-L233):
+After removing duplicates, the broad search still had a lot of sinks that are not worth deeper analysis. From there, the agent had to keep only query candidates where any of the used parameters is derived dynamically for example by concatenation or interpolation of variables. The agent also had to check how the query uses prepared statements. [Joomla](https://github.com/joomla/joomla-cms) commonly uses for dynamic values **SQL** parameter placeholders like `:id`, `:username`, or `?`, and then binds the real **PHP** value separately, for example in [UserGroupsHelper::getTitle()](https://github.com/joomla/joomla-cms/blob/5.4.5/libraries/src/Helper/UserGroupsHelper.php#L229-L233):
 
 ```php
 $query = $db->getQuery(true)
@@ -90,10 +90,10 @@ Even if `$id` came from an attacker, it is not copied into the **SQL** text as s
 
 The important filtering rules were:
 
-- Remove fully static queries, because a hardcoded query with no dynamic fragment cannot be influenced by an attacker
-- Remove a dynamic query only when every attacker-controlled input is used as a bound **SQL** value, for example through a placeholder and `$query->bind()`. If attacker-controlled data can influence **SQL** structure such as table names, column names, aliases, `ORDER BY`, sort direction, `GROUP BY`, `HAVING`, unbound `LIMIT` or `OFFSET` fragments, manually built `WHERE ... IN (...)` lists, or raw expression fragments, the query has to stay in the candidate list.
+- Remove fully static queries as hardcoded queries can't be influenced by any attacker
+- Remove all dynamic queries that use for every dynamic input prepared statements
 
-The important output of this phase was `sinks.json`, which kept the unique dynamic candidates in **JSON** format containing different information like the file name and line number where the used keyword was found, which variables are dynamic and more:
+The important output of this phase was `sinks.json`, which kept the remaining candidates in **JSON** format containing different information like the file name and line number where the used keyword was found, which variables are dynamic and more:
 
 ```json
 {
@@ -115,31 +115,31 @@ The important output of this phase was `sinks.json`, which kept the unique dynam
 }
 ```
 
-After removing static queries, duplicates, and queries where all dynamic values were safely bound, **247** entries remained in `sinks.json`.
+After removing duplicates, static queries, and queries where all dynamic values were safely bound, **247** entries remained in `sinks.json`.
 
 ## 2.3. Deep Inspection Of The Remaining Sinks<a id="deep-inspection-of-the-remaining-sinks"></a>
 
 After these filtering steps, the remaining candidates are all potentially vulnerable sinks worth some deeper analysis. The next step was to automate the focused analysis by giving an agent one candidate at a time.
 
-In short the instructions I gave to the agents were basically the following:
+In short the instructions I gave to the agents looked like the following:
 
-- Prove external reachability before calling anything a vulnerability e.g. via the UI with any privileges, API, etc
-- Identify the concrete source, propagation path, route, sink, and SQL context
-- Inspect transformations such as trimming, escaping, encoding, decoding, type coercion, and query-builder behavior
-- Treat stored values as untrusted until the writer path, persistence behavior, and later reader path were understood
+- Prove external reachability before calling anything a vulnerability e.g. via the UI with any user privileges (except for super user), API, etc
+- Identify the concrete source with its web route, propagation path, sink, and **SQL** context
+- Inspect transformations such as trimming, escaping, encoding, decoding, type coercion, and more
+- Treat any stored attacker controlled values as untrusted
 
-I also gave the agent the opportunity to test against a locally running [Joomla](https://github.com/joomla/joomla-cms) Docker environment. After iterating over all the candidates, which actually took a couple of days, **Codex** found several interesting issues. I thoroughly analyzed the results of every claimed vulnerability and two of them caught my attention. After a comprehensive review of these bugs, improving the POCs and writing a detailed report, I sent every necessary information of these two vulnerabilities to the [Joomla! Security Strike Team](https://developer.joomla.org/security.html), and both reports resulted in a CVE:
+I also gave the agent the opportunity to dynamically test against a locally running [Joomla](https://github.com/joomla/joomla-cms) Docker environment. After iterating over all the candidates, which actually took a couple of days, **Codex** found several interesting issues. I thoroughly analyzed the results of every claimed vulnerability and two of them caught my attention. After a comprehensive review of these bugs, improving the POCs and writing a detailed report, I sent every necessary information of these two vulnerabilities to the [Joomla! Security Strike Team](https://developer.joomla.org/security.html), and each of the reports resulted in a CVE:
 
 - [CVE-2026-35221](https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html), authenticated blind SQLi in `com_finder`.
 - [CVE-2026-35222](https://developer.joomla.org/security-centre/1039-20260507-core-authenticated-blind-sqli-in-com-tags.html), authenticated blind SQLi in `com_tags`.
 
-Both are second-order **SQL injections**. Below I focus on the one in `com_finder`.
+Both are **second-order SQL injections**. Below I focus on the one in `com_finder`.
 
 # 3. The Vulnerability In com_finder<a id="the-vulnerability"></a>
 
-Some [Joomla](https://github.com/joomla/joomla-cms) terminology is worth explaining before going into the source-to-sink trace:
+Some [Joomla](https://github.com/joomla/joomla-cms) terminology is worth an explanation before going into the source-to-sink trace:
 
-- A **component** is the main application unit behind a request. In e.g. `index.php?option=com_finder&view=search`, `option=com_finder` selects the **Smart Search** component and `view=search` selects the search view/model
+- A **component** is the main application unit behind a request. In e.g. `index.php?option=com_finder&view=search`, the `option=com_finder` selects the **Smart Search** component and `view=search` selects the search view/model
 - **Finder** is [Joomla](https://github.com/joomla/joomla-cms)'s **Smart Search** system. It builds its own search index instead of querying articles directly for every search request
 
 The short version of the bug is:
@@ -367,6 +367,8 @@ After:
 ```php
 $this->filters[$modifier][(int) $return->id] = $return->title;
 ```
+
+Here the integer cast is the sanitization strategy against **SQL** injections and also commonly seen in [Joomla](https://github.com/joomla/joomla-cms) and other software written in **PHP**.
 
 # 6. Final Thoughts<a id="final-thoughts"></a>
 
