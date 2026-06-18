@@ -2,6 +2,7 @@
 - post content
     - automatic numbering of header sections so there is no need anymore for having e.g. `# 1. Intro` and `## 1.1 Subintro`
     - display image descriptions/captions
+    - links/urls when hovering should turn into ternary color
 
 # Content
 - Next Blog
