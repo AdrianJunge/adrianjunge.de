@@ -1,5 +1,5 @@
 ---
-description: How a manual SQLi hunt turned into an AI-assisted Joomla audit and two assigned CVEs.
+description: How a manual SQLi hunt turned into an AI-assisted Joomla audit and multiple assigned CVEs.
 categories:
     - PHP
     - SQLI
@@ -10,7 +10,7 @@ published: "2026-06-13"
 
 # 1. A Random PHP Detour<a id="a-random-php-detour"></a>
 
-This whole journey started by me randomly finding a **CRM** repository written in **PHP** for managing churches called [ChurchCRM](https://github.com/ChurchCRM/CRM). In the [advisory history](https://github.com/ChurchCRM/CRM/security/advisories) were already a couple of interesting vulnerabilities reported. Several **SQL injections**, **XSS** issues, and other typical web application bugs. Having a closer look at the **SQL injection** advisories, the bugs looked to me very simple including some text book **SQL injections**. So I became curious whether there are more **SQL** related issues present in this repository and started having a look how this application talks to the database. In [ChurchCRM](https://github.com/ChurchCRM/CRM) this turned out quite easy. A lot of legacy code constructs **SQL** strings manually and then passes them into the `RunQuery` function, a function that delegates the query execution to the underlying database. That gives you a very direct source-to-sink search strategy. You just need to search for `RunQuery`, inspect the **SQL** construction directly above it, and then trace the variables backwards. One representative example for this is the vulnerable [ChurchCRM 7.0.5 SettingsUser.php](https://github.com/ChurchCRM/CRM/blob/7.0.5/src/SettingsUser.php#L14-L47):
+This whole journey started by me randomly finding a **CRM** repository written in **PHP** for managing churches called [ChurchCRM](https://github.com/ChurchCRM/CRM). In the [GitHub advisory history](https://github.com/ChurchCRM/CRM/security/advisories) were already a couple of interesting vulnerabilities reported like several **SQL injections**, **XSS** issues, and other typical web application bugs. Having a closer look at the **SQL injection** advisories, the vulnerable code looked to me fairly simple including some text book **SQL injections**. So I became curious whether there are more **SQL** related issues present in this repository and started having a look how this application interacts with the database. In [ChurchCRM](https://github.com/ChurchCRM/CRM) this turned out quite easy. A lot of legacy code constructs raw **SQL** strings and then passes them into the `RunQuery` function which delegates the query execution to the underlying database. That gives you a pretty simple source-to-sink search strategy. By just searching for `RunQuery` and inspecting the code constructing the **SQL** query, you can manually trace all the relevant variables backwards. One representative example for this is the vulnerable code in [ChurchCRM 7.0.5 SettingsUser.php](https://github.com/ChurchCRM/CRM/blob/7.0.5/src/SettingsUser.php#L14-L47):
 
 ```php
 if (isset($_POST['save'])) {
@@ -33,15 +33,13 @@ if (isset($_POST['save'])) {
 }
 ```
 
-It's quite easy to see that this implementation is vulnerable to **SQL injection** due to the missing sanitization of `$_POST['type']` and thus also `$id` which is directly placed into the `WHERE` clause. This became [CVE-2026-39325](https://github.com/ChurchCRM/CRM/security/advisories/GHSA-cf68-g7vf-9xrq) among several other **SQL injections** I reported.
+It's quite easy to see that this implementation is vulnerable to **SQL injection** due to the missing sanitization of `$_POST['type']` and thus also `$id` which is directly placed into the `WHERE` clause of the **SQL** query. This became [CVE-2026-39325](https://github.com/ChurchCRM/CRM/security/advisories/GHSA-cf68-g7vf-9xrq) among several other **SQL injections** I reported. In this repository the common theme was not just some missing sanitizer. A lot raw **SQL** strings were used with just partial filtering, custom sanitizer functions used in a wrong way, and almost no usage of prepared statements.
 
-In this repository the common theme was not just some missing sanitizer. A lot raw **SQL** strings were used, partial filtering, custom sanitizer functions used in a wrong way, and almost no usage of prepared statements.
-
-After reporting to [ChurchCRM](https://github.com/ChurchCRM/CRM) everything I found, I wanted to know if the same workflow can be applied to more popular, larger and better reviewed codebase. At first I found another interesting looking **CRM** called [SuiteCRM](https://github.com/SuiteCRM/SuiteCRM), and after reporting a bunch of **SQL injections** there, which have not been resolved yet, I went over to [Joomla](https://github.com/joomla/joomla-cms) which is a **CMS** like [WordPress](https://wordpress.com/) but not as popular. But still [Joomla](https://github.com/joomla/joomla-cms) has more than **5k** GitHub stars and a large amount of legacy **PHP** code. When counting only the Joomla source directories, the tagged [Joomla 5.4.5](https://github.com/joomla/joomla-cms/tree/5.4.5) tree contains about **250k PHP** code lines.
+After reporting to [ChurchCRM](https://github.com/ChurchCRM/CRM) everything I found, I wanted to know if the same workflow can be applied to more popular, larger and better reviewed codebase. At first I found another interesting looking **CRM** called [SuiteCRM](https://github.com/SuiteCRM/SuiteCRM), and after reporting a bunch of **SQL injections** there, which have not been resolved yet, I went over to [Joomla](https://github.com/joomla/joomla-cms) which is a **CMS** like [WordPress](https://wordpress.com/) but not as popular. However [Joomla](https://github.com/joomla/joomla-cms) got more than **5k** GitHub stars and a large amount of legacy **PHP** code with about **250k PHP** code lines in total in the tagged [Joomla 5.4.5](https://github.com/joomla/joomla-cms/tree/5.4.5).
 
 # 2. Turning Manual Review Into An AI Workflow<a id="turning-manual-review-into-an-ai-workflow"></a>
 
-The workflow which I applied manually to [ChurchCRM](https://github.com/ChurchCRM/CRM) felt mechanical enough to automate parts of it with AI agents. I was using **Codex 5.3** at the time. To use any **OpenAI** models for security research, you have to go through the verification flow at [chatgpt.com/cyber](https://chatgpt.com/cyber) which is farily straightforward. You just have to explain what you want to do with the models, provide some information about yourself, and link something like your LinkedIn profile or personal website.
+The workflow which I applied manually to [ChurchCRM](https://github.com/ChurchCRM/CRM) felt mechanical enough to automate parts of it with AI agents. I was using **Codex 5.3** at the time. To use any **OpenAI** models for security research, you have to go through a verification flow at [chatgpt.com/cyber](https://chatgpt.com/cyber) which is fairly straightforward. You just have to explain what you want to do with the models, provide some information about yourself, and link something like your LinkedIn profile or personal website.
 
 ## 2.1. How Joomla Interacts With The Database<a id="how-joomla-interacts-with-the-database"></a>
 
@@ -72,11 +70,11 @@ $query = $db->getQuery(true);
 $db->setQuery($query);
 ```
 
-However these searches overlap heavily. Searching all of them produces duplicate sinks. So the next logical step was to have the agent remove duplicates and then reduce the candidate list further.
+To avoid that any of these searches produce duplicate sinks, the next logical step was to have the agent remove duplicates and keep reducing the candidate list further.
 
 ## 2.2. Removing Safe Sinks<a id="removing-obvious-safe-sinks"></a>
 
-After removing duplicates, the broad search still had a lot of sinks that are not worth deeper analysis. From there, the agent had to keep only query candidates where any of the used parameters is derived dynamically for example by concatenation or interpolation of variables. The agent also had to check how the query uses prepared statements. [Joomla](https://github.com/joomla/joomla-cms) commonly uses for dynamic values **SQL** parameter placeholders like `:id`, `:username`, or `?`, and then binds the real **PHP** value separately, for example in [UserGroupsHelper::getTitle()](https://github.com/joomla/joomla-cms/blob/5.4.5/libraries/src/Helper/UserGroupsHelper.php#L229-L233):
+After removing duplicates, the broad search still had a lot of sinks that are not worth deeper analysis. From there, the agent had to keep only candidates where any of the used parameters is derived dynamically for example by concatenation or interpolation of variables. The agent also had to check how the query uses prepared statements. [Joomla](https://github.com/joomla/joomla-cms) commonly uses for dynamic values **SQL** parameter placeholders like `:id`, `:username`, or `?`, and then binds the real **PHP** value separately, for example in [UserGroupsHelper::getTitle()](https://github.com/joomla/joomla-cms/blob/5.4.5/libraries/src/Helper/UserGroupsHelper.php#L229-L233):
 
 ```php
 $query = $db->getQuery(true)
@@ -86,14 +84,14 @@ $query = $db->getQuery(true)
     ->bind(':id', $id, ParameterType::INTEGER);
 ```
 
-Even if `$id` came from an attacker, it is not copied into the **SQL** text as syntax. A correctly bound value placeholder protects that specific value from becoming **SQL** grammar. However, that only proves safety for the value represented by the placeholder. The whole query can still be unsafe if another attacker-controlled value is concatenated into **SQL** structure, for example an `ORDER BY` column, a sort direction, a table name, a column name, a raw `LIMIT` fragment, or a manually built `IN (...)` list.
+Even if `$id` came from an attacker, it is not copied into the **SQL** text as syntax. A correctly bound value placeholder protects that specific value from becoming **SQL** grammar. However the whole query can still be unsafe if another attacker-controlled value is concatenated without a prepared statement into the **SQL** structure, for example an `ORDER BY` column, a sort direction, a table name, a column name, a raw `LIMIT` fragment, or a manually built `IN (...)` list.
 
-The important filtering rules were:
+So basically the filtering rules were:
 
 - Remove fully static queries as hardcoded queries can't be influenced by any attacker
-- Remove all dynamic queries that use for every dynamic input prepared statements
+- Remove all dynamic queries that apply for every dynamic input prepared statements
 
-The important output of this phase was `sinks.json`, which kept the remaining candidates in **JSON** format containing different information like the file name and line number where the used keyword was found, which variables are dynamic and more:
+The important output of this phase was a **JSON** file `sinks.json`, which contains the remaining candidates with different information like the file name and line number where the used keyword was found, which variables are dynamic and more:
 
 ```json
 {
@@ -128,7 +126,7 @@ In short the instructions I gave to the agents looked like the following:
 - Inspect transformations such as trimming, escaping, encoding, decoding, type coercion, and more
 - Treat any stored attacker controlled values as untrusted
 
-I also gave the agent the opportunity to dynamically test against a locally running [Joomla](https://github.com/joomla/joomla-cms) Docker environment. After iterating over all the candidates, which actually took a couple of days, **Codex** found several interesting issues. I thoroughly analyzed the results of every claimed vulnerability and two of them caught my attention. After a comprehensive review of these bugs, improving the POCs and writing a detailed report, I sent every necessary information of these two vulnerabilities to the [Joomla! Security Strike Team](https://developer.joomla.org/security.html), and each of the reports resulted in a CVE:
+I also gave the agent the opportunity to dynamically test against a locally running [Joomla](https://github.com/joomla/joomla-cms) Docker environment so the agent could also produce working POCs to prove any vulnerabilities. After iterating over all the candidates, which actually took a couple of days, **Codex** found several interesting issues. I thoroughly analyzed the results of every claimed vulnerability and two of them caught my attention. After a comprehensive review of these bugs, improving the POCs and writing a detailed report, I sent every necessary information related to these vulnerabilities to the [Joomla! Security Strike Team](https://developer.joomla.org/security.html), and each of the reports resulted in a CVE:
 
 - [CVE-2026-35221](https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html), authenticated blind SQLi in `com_finder`.
 - [CVE-2026-35222](https://developer.joomla.org/security-centre/1039-20260507-core-authenticated-blind-sqli-in-com-tags.html), authenticated blind SQLi in `com_tags`.
@@ -144,14 +142,14 @@ Some [Joomla](https://github.com/joomla/joomla-cms) terminology is worth an expl
 
 The short version of the bug is:
 
-- An authenticated content user stores text as the title of a **Finder** taxonomy node.
-- A later public **Finder** search loads that stored title by prefix.
-- Joomla accidentally stores the title as an array key.
-- `SearchModel::getListQuery` later treats that key as a numeric taxonomy id and concatenates it into `IN (...)` without any sanitization.
+- An authenticated content user stores text as the title of a **Finder** taxonomy node
+- A later public **Finder** search loads that stored title by prefix
+- [Joomla](https://github.com/joomla/joomla-cms) accidentally stores the title as an array key instead of a value
+- `SearchModel::getListQuery` later treats that key as a numeric taxonomy id and concatenates it into `IN (...)` without any sanitization
 
 ## 3.1. Storing The Payload<a id="storing-the-payload"></a>
 
-The whole exploitation process starts with the article `created_by_alias` field which is the **Created by Alias** metadata field for articles. It lets an author display another author's name instead of the account name. A user with enough content permissions, for example the **Publisher** role with `core.create` and `core.edit.state` privileges, can create a published article and set this field. If the user cannot publish directly, the value can still become a second-order payload, but it needs another workflow step where someone publishes or indexes the content.
+The whole exploitation process starts with the article `created_by_alias` field which is the **Created by Alias** metadata field for articles. It lets an author display another author's name instead of the account name. A user with enough content permissions, for example the **Publisher** role with `core.create` and `core.edit.state` privileges, can create a published article and set this field. If the user cannot publish directly, the value can still become a second-order payload, but it needs another workflow step of another authorized user to publish or index the content.
 
 ![Publisher article form with the SQLi payload in Created by Alias](blog/posts/joomla-sqli/publisher-created-by-alias-browser.png "Publisher Created by Alias payload")
 
@@ -163,7 +161,7 @@ if (isset($data['created_by_alias'])) {
 }
 ```
 
-So after saving the article, the attacker-controlled value is still the same value, except for leading and trailing whitespace. [Joomla](https://github.com/joomla/joomla-cms)'s content event plugin starts **Finder** indexing through [onContentAfterSave()](https://github.com/joomla/joomla-cms/blob/5.4.5/plugins/content/finder/src/Extension/Finder.php#L72-L81). That handler imports the `finder` plugin group and dispatches `onFinderAfterSave`. The Finder content plugin receives that event, calls `reindex($row->id)`, and the inherited adapter logic eventually calls this plugin's `getListQuery()` to reload the saved article for indexing.
+So after saving the article, the attacker-controlled value is still the same value, except for leading and trailing whitespace. [Joomla](https://github.com/joomla/joomla-cms)'s content event plugin starts the **Finder** indexing through [onContentAfterSave()](https://github.com/joomla/joomla-cms/blob/5.4.5/plugins/content/finder/src/Extension/Finder.php#L72-L81). That handler imports the `finder` plugin group and dispatches `onFinderAfterSave`. The Finder content plugin receives that event, calls `reindex($row->id)`, and the inherited adapter logic eventually calls this plugin's `getListQuery()` to reload the saved article for indexing.
 
 The query explicitly selects `a.created_by_alias` in [Content::getListQuery()](https://github.com/joomla/joomla-cms/blob/5.4.5/plugins/finder/content/src/Extension/Content.php#L384-L388):
 
@@ -202,12 +200,12 @@ $nodeTable->language = $node->language;
 
 So the write-side path is:
 
-1. The article form stores the payload in `$data['created_by_alias']`.
-2. **Finder** reloads the saved article and exposes the same value as `$item->created_by_alias`.
-3. The content plugin passes it into `addTaxonomy('Author', $item->created_by_alias, ...)`.
-4. Inside `Result::addTaxonomy`, this second argument becomes the `$node->title`.
-5. `Taxonomy::storeNode` copies `$node->title` into `$nodeTable->title`.
-6. The table object persists it as `#__finder_taxonomy.title`.
+1. The article form stores the payload in `$data['created_by_alias']`
+2. **Finder** reloads the saved article and exposes the same value as `$item->created_by_alias`
+3. The content plugin passes it into `addTaxonomy('Author', $item->created_by_alias, ...)`
+4. Inside `Result::addTaxonomy`, this second argument becomes the `$node->title`
+5. `Taxonomy::storeNode` copies `$node->title` into `$nodeTable->title`
+6. The table object persists it as `#__finder_taxonomy.title`
 
 At this point the attacker-controlled value is persistent in the database.
 
@@ -234,7 +232,7 @@ foreach (Taxonomy::getBranchTitles() as $branch) {
 }
 ```
 
-On a normal English install, the `Author` branch therefore matches the search modifier `author:<value>`. After the regex match in [Query::processString()](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Query.php#L793-L843), the relevant variables are set as `$modifier = 'Author'` and `$value = '13371337'`. [Joomla](https://github.com/joomla/joomla-cms) then loads the taxonomy node by prefix:
+The `Author` branch matches the search modifier `author:<value>`. After the regex match in [Query::processString()](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Query.php#L793-L843), the relevant variables are set as `$modifier = 'Author'` and `$value = '13371337'`. [Joomla](https://github.com/joomla/joomla-cms) then loads the taxonomy node by prefix:
 
 ```php
 $return = Taxonomy::getNodeByTitle($modifier, $value);
@@ -285,7 +283,7 @@ if (!empty($this->searchquery->filters)) {
 }
 ```
 
-At this point the relevant object state looks like this, where `123` is an example Finder taxonomy node id:
+At this point the relevant object state looks like this, where `123` is an example id for the **Finder** taxonomy node:
 
 ```php
 $this->searchquery->filters = [
@@ -295,7 +293,7 @@ $this->searchquery->filters = [
 ];
 ```
 
-Later in `array_keys($group)` [Joomla](https://github.com/joomla/joomla-cms) expects the array key to be the numeric taxonomy id, but because of the earlier assignment the key is the malicious stored taxonomy title. The `implode()` just turns the payload into raw **SQL** as it is just inserted in the expression context. So the generated query contains a fragment like this:
+Later in `array_keys($group)` [Joomla](https://github.com/joomla/joomla-cms) expects the array key to be the numeric taxonomy id, but because of the earlier assignment the key is the malicious stored taxonomy title. The [implode()](https://www.php.net/implode) turns the payload into raw **SQL** by joining the array elements with a string, so the malicious title is just inserted into the expression context. The generated query then contains a fragment like this:
 
 ```sql
 SUM(CASE WHEN t.node_id IN (13371337*0+IF((1=1),t.node_id,0)) THEN 1 ELSE 0 END) > 0
@@ -305,12 +303,12 @@ SUM(CASE WHEN t.node_id IN (13371337*0+IF((1=1),t.node_id,0)) THEN 1 ELSE 0 END)
 
 The payload `13371337*0+IF((1=1),t.node_id,0)` was created to work exactly in this numeric expression context. The individual parts are:
 
-- `13371337` is just a random numeric marker. The public search later uses e.g. `author:13371337`, and the prefix lookup loads the full stored taxonomy title with `LIKE '13371337%'`
-- `*0` makes the marker contribute `0` to the expression. This lets the payload start with the searchable numeric prefix without changing the result of the following `IF(...)` expression
-- `IF((1=1),t.node_id,0)` is a **MySQL** conditional expression. For real extraction, the `1=1` test is replaced with a valid boolean condition, for example `ASCII(SUBSTRING((SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() ORDER BY table_name LIMIT 1 OFFSET 0),1,1)) >= 109`. This reads the first character of the first table name in the current database, converts it to its ASCII number, and checks whether that number is at least `109` which corresponds to the ASCII character `m`.
+- `13371337` is just a random numeric marker. The public search later uses e.g. `author:13371337`, so the prefix lookup loads the full stored taxonomy title with `LIKE '13371337%'`
+- `*0` makes the marker contribute literally `0` to the expression. This lets the payload start with the searchable numeric prefix without changing the result of the following `IF(...)` expression
+- `IF((1=1),t.node_id,0)` is a **MySQL** conditional expression. For real extraction, the `1=1` test is replaced with a valid boolean condition, for example `ASCII(SUBSTRING((SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() ORDER BY table_name LIMIT 1 OFFSET 0),1,1)) >= 109`. This reads the first character of the first table name in the current database, converts it to its ASCII number, and checks whether that number is at least `109` which corresponds to the ASCII character `m`. By using this we can dump for example the table names.
 - `t.node_id` comes from [Joomla](https://github.com/joomla/joomla-cms)'s own query. Because the payload is wrapped with `t.node_id IN (...)`, it returns either the current `t.node_id` or `0` depending on the condition.
 
-This turns the search result page into a boolean oracle. To dump parts of the database you can just reuse the same shape and replace `<condition>` in each iteration.
+This turns the search result page into a boolean oracle.
 
 Triggering a `True` condition by creating an article with alias `13371337*0+IF((1=1),t.node_id,0)` will look like:
 
@@ -320,7 +318,7 @@ The `False` condition just returns nothing via the search filter after creating 
 
 ![Finder search returning no results for the false SQL condition](blog/posts/joomla-sqli/finder-search-false-browser.png "Finder false condition")
 
-The very simplified extraction script to dump the database table names looks like this. `search_term` just has to be a normal indexed word from the published article, while `author:<prefix>` triggers the vulnerable taxonomy filter:
+The very simplified extraction script to dump the database table names looks like this:
 
 ```python
 def cond(table_offset, pos, mid):
@@ -348,13 +346,13 @@ for pos in range(1, 65):
             hi = mid - 1
 ```
 
-This is basically a binary search to extract table names character by character through the boolean oracle.
+`search_term` just has to be a normal indexed word from the published article, while `author:<prefix>` triggers the vulnerable taxonomy filter. Then we basically do a binary search to extract table names character by character through the boolean oracle.
 
 # 5. The Fix<a id="the-fix"></a>
 
-The vulnerability is a typical second-order bug, although it also relies on a logical bug and a broken contract between [Query::processString()](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Query.php#L843) and [SearchModel::getListQuery()](https://github.com/joomla/joomla-cms/blob/5.4.5/components/com_finder/src/Model/SearchModel.php#L193-L194). The stored value is safe enough for one query, returned as data, placed into the wrong side of an array, and later interpreted as **SQL**. The main issue is the data shape between those steps. `Query::processString` creates `title => id`, while `SearchModel::getListQuery` expects `id => title`.
+The vulnerability is a typical second-order bug, although it also relies on a logical bug and a broken contract between [Query::processString()](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Query.php#L843) and [SearchModel::getListQuery()](https://github.com/joomla/joomla-cms/blob/5.4.5/components/com_finder/src/Model/SearchModel.php#L193-L194). `Query::processString` creates `title => id`, while `SearchModel::getListQuery` expects `id => title`.
 
-The [Joomla](https://github.com/joomla/joomla-cms) fix in 5.4.6 is small and targets the key/value bug directly. In [Query.php on tag 5.4.6](https://github.com/joomla/joomla-cms/blob/5.4.6/administrator/components/com_finder/src/Indexer/Query.php#L842-L843), the filter map is changed to store the integer id as the key and the taxonomy title as the value:
+The fix in [Joomla 5.4.6](https://github.com/joomla/joomla-cms/tree/5.4.6) is small and targets the key/value bug directly. In [Query.php on tag 5.4.6](https://github.com/joomla/joomla-cms/blob/5.4.6/administrator/components/com_finder/src/Indexer/Query.php#L842-L843), the filter map is changed to store the integer id as the key and the taxonomy title as the value:
 
 Before:
 
@@ -368,15 +366,13 @@ After:
 $this->filters[$modifier][(int) $return->id] = $return->title;
 ```
 
-Here the integer cast is the sanitization strategy against **SQL** injections and also commonly seen in [Joomla](https://github.com/joomla/joomla-cms) and other software written in **PHP**.
+Additionally the integer cast is part of the sanitization strategy against **SQL** injections and also commonly seen in [Joomla](https://github.com/joomla/joomla-cms) and other software written in **PHP**.
 
 # 6. Final Thoughts<a id="final-thoughts"></a>
 
-Before falling into this rabbit hole, I did not really expect **SQL injections** to still be this common in large applications. But it makes sense. Many old codebases were written before prepared statements became the default habit everywhere. Later, they grew their own sanitizer functions, query builders, table abstractions, and framework conventions. Rewriting all of that is expensive, and the dangerous parts are often exactly in the compatibility layer between old and new patterns.
+Before falling into this rabbit hole, I did not really expect **SQL injections** to still be this common in large applications. But it makes sense. Many old codebases were written before prepared statements became popular. During that time these code bases added their own sanitizer functions, query builders, and table abstractions. Rewriting all of that is very time consuming. Moreover prepared statements cannot solve everything in a framework like [Joomla](https://github.com/joomla/joomla-cms). They are the right tool for values, but not for every dynamic **SQL** fragment. Sort orders, column names, table names, aliases, and raw expressions still need strict whitelisting, hardcoded mappings, type normalization, or other structural controls.
 
-Prepared statements also cannot solve everything for a framework like [Joomla](https://github.com/joomla/joomla-cms). They are the right tool for values, but not for every dynamic **SQL** fragment. Sort orders, column names, table names, aliases, and raw expressions still need strict whitelisting, hardcoded mappings, type normalization, or other structural controls.
-
-The workflow with AI also worked surprisingly well when splitting the task into reviewable units:
+To my surprise the workflow with AI worked pretty well after splitting the task into reviewable units:
 
 - enumerate concrete sinks
 - remove clearly safe ones
@@ -385,11 +381,11 @@ The workflow with AI also worked surprisingly well when splitting the task into 
 - require runtime proof
 - manually verify the result before reporting
 
-This kind of workflow should be applicable to every vulnerability type. But I think it works especially well for **SQL injection**, because the potentially vulnerable sinks are quite easy to find using simple keywords, as explained in [section 2.1](#how-joomla-interacts-with-the-database). My guess is that vulnerabilities like **XSS** are harder to find with this workflow, because there are many different ways to execute **JavaScript**. On top of that, JavaScript code often has many different places where user-controlled input could end up being executed in another user's browser.
+This kind of workflow should be applicable to every vulnerability type. But I think it works especially well for **SQL injections**, because the potentially vulnerable sinks are quite easy to find using simple keywords, as explained in [section 2.1](#how-joomla-interacts-with-the-database). My guess is that vulnerabilities like **XSS** are harder to find with this workflow, because there are many different ways to execute **JavaScript**. On top of that, **JavaScript** code often has many different variations how user-controlled input could end up being executed in another user's browser.
 
 # 7. Disclosure Timeline<a id="disclosure-timeline"></a>
 
-The [Joomla advisory](https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html) classifies the `com_finder` issue with **Impact: High**, **Severity: Moderate**, **Probability: Moderate**, and **Exploit type: SQLi**. Joomla uses its own advisory fields here and does not publish a **CVSS** score or vector for this entry. I read the rating as: the impact is high because blind **SQL injection** can expose database contents, but the practical severity and probability are lower because exploitation needs an authenticated content user, a stored second-order payload, Finder indexing, and blind extraction through search-result differences.
+The [Joomla advisory](https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html) classifies the `com_finder` issue with **Impact: High**, **Severity: Moderate**, **Probability: Moderate**, and **Exploit type: SQLi**. [Joomla](https://github.com/joomla/joomla-cms) uses its own advisory fields here and does not publish a **CVSS** score or vector for this entry. I read the rating as: the impact is high because blind **SQL injection** can expose database contents, but the practical severity and probability are lower because exploitation needs an authenticated user with publisher privileges, a stored second-order payload, Finder indexing, and blind extraction through search-result differences.
 
 The disclosure timeline for the two Joomla **SQL injection** reports looked like this:
 
