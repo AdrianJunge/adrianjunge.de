@@ -16,17 +16,17 @@ challengefiles: gamedev
 published: "2025-02-15"
 ---
 
-# TL;DR<a id="TL;DR"></a>
+# TL;DR
 
     **- Challenge Setup:** This challenge is a typical CRUD heap challenge.
     **- Vulnerability:** Heap overflow
     **- Exploitation:** Use the overflow to overwrite a pointer and thus overwriting the GOT
 
-# 1. Introduction<a id="introduction"></a>
+# Introduction
 
 The challenge is about some levels we are able to create and modify with the typical set of CRUD operations.
 
-# 2. Reconnaissance<a id="reconnaissance"></a>
+# Reconnaissance
 
 Examining the code we notice a heap overflow in the `edit_level` functionality:
 
@@ -36,11 +36,11 @@ fgets(curr->data, 0x40, stdin);
 
 The `curr->data` buffer can only hold 0x20 bytes so we have an overflow of 0x20 bytes.
 
-# 3. Vulnerability Description<a id="vulnerability description"></a>
+# Vulnerability Description
 
 The overflow should be enough to modify meta data of the following chunk and even overwrite content of it. Moreover we get a `PIE` leak for free just right at the start, so we already know the address of the `GOT`.
 
-# 4. Exploitation<a id="exploitation"></a>
+# Exploitation
 
 The only annoying thing about this challenge are the checks that we are not allowed to modify the chunks if the current level is the same as the previous level which can be circumvented by using the `reset` functionality to set our current level back to the very first one.
 At first we need a libc leak. This can be done by overwriting one of the `next` pointers of the level struct. As we don't have any leaks yet except for the binary base we need a pointer to libc within the binary itself.
@@ -49,11 +49,11 @@ At first we need a libc leak. This can be done by overwriting one of the `next` 
 
 I chose the pointer to `__libc_start_main`. So by overwriting the `next` pointer with the pointer containing the pointer to `__libc_start_main`, we can traverse the different levels via the `explore` functionality until we are in the faked level and thus can leak the libc with the `test_level` functionality. Now we just need to overwrite an entry in the `GOT` with a working onegadget by applying the same trick as for the leak and pop a shell.
 
-# 5. Mitigation<a id="mitigation"></a>
+# Mitigation
 
 Check the bounds of used buffers and use variables saving these bounds instead of hardcoding magic numbers one by one.
 
-# 6. Solve Script<a id="solve script"></a>
+# Solve Script
 
 ```python
 #!/usr/bin/env python3
@@ -255,6 +255,6 @@ if __name__ == "__main__":
 
 ```
 
-# 7. Flag<a id="flag"></a>
+# Flag
 
 lactf{ro9u3_LIk3_No7_R34LlY_RO9U3_H34P_LIK3_nO7_r34llY_H34P}

@@ -51,8 +51,8 @@ class CtfController < ApplicationController
     @ctf_info = writeup_info_with_ctf_event_url(content_repository.post_metadata_from(parse_markdown_content(@markdown_content)))
     return render_error_page(:not_found) if content_repository.hidden_content?(@ctf_info)
 
-    @headings = get_headings_from_content(@markdown_content)
-    @html_content = render_markdown(@markdown_content)
+    @headings = []
+    @html_content = render_markdown(@markdown_content, headings: @headings)
     @challenge_file = writeup_public_asset("files", "zip")
     @pdf_writeup = writeup_public_asset("writeups", "pdf")
 

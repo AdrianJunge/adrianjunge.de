@@ -7,7 +7,7 @@ categories:
     - Memory
 published: "2026-05-27"
 ---
-# 1. The Tiny Problem With Strings<a id="the-tiny-problem-with-strings"></a>
+# The Tiny Problem With Strings
 
 Imagine some Java service where you type in `"some secret"`, its getting passed through a few libraries, authenticate somewhere, and you move on with your life. Then you remember that the Java `String` class is immutable, often shared, sometimes interned, and not something you can reliably scrub from memory afterwards. So the core question is simple:
 
@@ -17,7 +17,7 @@ Short answer: not really.
 
 Longer answer: Java is doing exactly what it is designed to do, but that design is very inconvenient for secret handling.
 
-# 2. Threat Model<a id="threat-model"></a>
+# Threat Model
 
 Assume an attacker can obtain heap dumps, process snapshots, or comparable memory disclosures. In Java applications this can happen in a variety of different ways:
 
@@ -28,7 +28,7 @@ Assume an attacker can obtain heap dumps, process snapshots, or comparable memor
 
 If an attacker can continuously read live process memory, this becomes impossible to solve in-process because credentials must exist in memory while authentication is happening. Sending password-equivalent material, such as a reusable client-side hash, would only lead to more problems. So the more realistic model is that an attacker obtains one or a few dumps.
 
-# 3. What Java Promises<a id="what-java-promises"></a>
+# What Java Promises
 
 The Java API promise is straightforward:
 
@@ -56,7 +56,7 @@ System.out.println(literal == object.intern()); // true
 
 The first comparison is false because `new String(...)` creates a distinct `String` object on the heap. The second comparison is true because `intern()` returns the canonical pooled instance for the same contents. In `new String("teststring")`, the `"teststring"` argument is a string literal, and the literal is interned by the language. The result of `new String(...)` is the separate object, and it is not automatically added to the pool.
 
-# 4. The String Layout<a id="hotspot-string-layout"></a>
+# The String Layout
 
 On OpenJDK/HotSpot `26.0.1`, [`String` uses compact strings internally](https://openjdk.org/jeps/254). The [`String.java` implementation](https://github.com/openjdk/jdk26u/blob/jdk-26.0.1-ga/src/java.base/share/classes/java/lang/String.java#L177-L260) shows the internal `private final byte[] value` byte array, the `private final byte coder` field with `LATIN1` / `UTF16` values, and the `COMPACT_STRINGS` switch. Latin-1 strings use one byte per character. Strings requiring UTF-16 use two bytes per character. However, this implementation detail matters because the [`public String(String original)` constructor](https://github.com/openjdk/jdk26u/blob/jdk-26.0.1-ga/src/java.base/share/classes/java/lang/String.java#L295-L300) copies the reference `value` to `original.value`. In other words:
 
@@ -67,7 +67,7 @@ String object = new String("somepassword");
 
 `literal` and `object` are different `String` objects, but they can share the same `byte[]` internally. That detail is where things become cursed.
 
-# 5. Mutating The Immutable<a id="mutating-the-immutable"></a>
+# Mutating The Immutable
 
 Now let's take a closer look at the tempting idea: just erase the memory where the string lives and clean up the service afterwards. Modern Java does not let normal reflection access `String.value` directly because [`AccessibleObject.setAccessible(true)` can only suppress access checks when the declaring package is open to the caller's module](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/reflect/AccessibleObject.html#setAccessible(boolean)). To run the experiment the `java.lang` package has to be opened:
 
@@ -135,13 +135,13 @@ String runtimeConcat = "some" + runtimePart;
 
 Those strings do not share the literal `byte[]` array. The public [`String(char[])` constructor](https://github.com/openjdk/jdk26u/blob/jdk-26.0.1-ga/src/java.base/share/classes/java/lang/String.java#L314-L343) copies character data, the public [`String(byte[])` constructor](https://github.com/openjdk/jdk26u/blob/jdk-26.0.1-ga/src/java.base/share/classes/java/lang/String.java#L1673-L1698) decodes bytes into a new string, and runtime concatenation is not the same as passing an existing `String` object into `new String(String)`. So the weird mutation behavior is real, but the exact sharing is an implementation detail and depends on how the `String` was created.
 
-# 6. Why Reflection Is Not Cleanup<a id="why-reflection-is-not-cleanup"></a>
+# Why Reflection Is Not Cleanup
 
 The reflection trick looks tempting if your goal is to erase secrets. But it is also a trap. It depends on private internals. It needs the `--add-opens` hack and it can corrupt literals and unrelated code that shares the same internal storage. Using this trick might break authentication, maps, caches, logs, protocol code, and anything else that assumes strings are immutable.
 
 Moreover, as we saw in the `char[]` array example after the reflection, not every equal string points to the same `byte[]`. Strings built from request bytes, character arrays, runtime concatenation, parsers, encoders, or library code can have their own backing arrays. Zeroing one internal array only affects strings that happen to use that exact array. Thus finding and scrubbing every representation might be very tedious, doesn't scale at all and likely break on dependency updates.
 
-# 7. The Library Problem<a id="the-library-problem"></a>
+# The Library Problem
 
 Another issue is that our credential-handling service can still hit awkward API boundaries.
 
@@ -155,13 +155,13 @@ Base64.getEncoder().encodeToString(plaintext)
 
 [Java's `Base64.Encoder.encodeToString(byte[])`](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/util/Base64.Encoder.html#encodeToString(byte%5B%5D)) returns a `String` containing the Base64-encoded bytes. As `Base64` is an easily reversible encoding, the `Base64` string is sensitive too. Even if your own code starts with a mutable `byte[]`, a dependency can still create immutable sensitive `String` copies internally.
 
-# 8. What About The Garbage Collector?<a id="what-about-the-garbage-collector"></a>
+# What About The Garbage Collector?
 
 The garbage collector is not a secret-erasure mechanism. An object becoming unreachable does not mean it is collected immediately. Moreover collection does not guarantee that the old bytes are overwritten with zeroes. Depending on the collector and heap state, stale data could remain in heap regions, copied regions, survivor spaces, old generations, or heap dumps until that memory is reused or the process exits.
 
 String literals are especially long-lived in typical services. A literal like `"somepassword"` is part of the class that contains it, and [Java interns string literals](https://docs.oracle.com/javase/specs/jls/se26/html/jls-3.html#jls-3.10.5). The class can only be unloaded when its defining class loader can be reclaimed, as described by the [JLS class unloading rules](https://docs.oracle.com/javase/specs/jls/se26/html/jls-12.html#jls-12.7). In a normal long-running application, the main application class loader is usually alive until the process exits. So literals from those classes often stay reachable for the whole process lifetime. Other interned strings can become collectible when nothing references them anymore, but relying on that for secret cleanup is still not a useful defense in this threat model.
 
-# 9. What Actually Helps<a id="what-actually-helps"></a>
+# What Actually Helps
 
 There is no magic in-process fix when assuming an attacker can read your memory. Still, there are practical mitigations:
 
@@ -176,7 +176,7 @@ There is no magic in-process fix when assuming an attacker can read your memory.
 
 [Secure string wrappers like `GuardedString`](https://docs.oracle.com/cd/E23943_01/apirefs.1111/e24834/org/identityconnectors/common/security/package-summary.html) can make secret handling safer in code you control, because they avoid keeping the secret as a plain `String` all the time. But once you pass the secret to a library that asks for a normal `String`, that library can still create ordinary string copies.
 
-# 10. Conclusion<a id="conclusion"></a>
+# Conclusion
 
 Java strings are not broken. They are optimized for being immutable, shareable, and efficient. But you have to pay attention when using them for secrets. The funny part is that you can mutate a `String` anyway if you kick the module system open hard enough. The less funny part is that this leads to fragile code instead of a secure cleanup strategy. If a secret reaches a `String`, assume it will remain in the memory and may have multiple copies, probably even encoded ones with reversible encodings. If an attacker can obtain heap dumps or process memory, the real defense is preventing that access in the first place.
 

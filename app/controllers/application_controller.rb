@@ -52,21 +52,6 @@ class ApplicationController < ActionController::Base
     content_repository.parse_markdown(content)
   end
 
-  def get_headings_from_content(content)
-    headings = []
-    content.scan(/^(#+)\s*(.+?)\s*<a id="(.+)"><\/a>/) do |heading_marks, heading_text, anchor_name|
-      markdown_depth = heading_marks.length - 1
-      numbered_depth = heading_text.strip[/\A\d+(?:\.\d+)+\./].to_s.count(".") - 1
-
-      headings << {
-        text: heading_text.strip,
-        anchor: anchor_name.strip,
-        depth: [ markdown_depth, numbered_depth, 0 ].max
-      }
-    end
-    headings
-  end
-
   private
 
   def content_repository

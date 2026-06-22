@@ -13,20 +13,20 @@ challengefiles: vidplow
 published: "2025-05-03"
 ---
 
-# TL;DR<a id="TL;DR"></a>
+# TL;DR
 
     **- Challenge Setup:** The website is build with the old web framework **Helma**
     **- Key Discoveries:** Users can traverse a chain of `HopObjects`
     **- Vulnerability:** The video `HopObject` allows to access arbitrary properties
     **- Exploitation:** Accessing the `__parent__` property leads us to the `Global HopObject` and eventually via the `accessKey` property to the flag
 
-# 1. Introduction<a id="introduction"></a>
+# Introduction
 
 The challenge is about the old web framework [Helma](https://github.com/helma-org/helma), which has not been maintained for more than 7 years. The challenge's objective is to retrieve the access key of the configuration file.
 <span>
 In the following sections, we walk through the entire process, from the initial analysis to the final exploitation.
 
-# 2. Reconnaissance<a id="reconnaissance"></a>
+# Reconnaissance
 
 Starting with the landing page, we have a selection of different movie categories containing movies and subcategories.
 
@@ -42,7 +42,7 @@ The main `HopObject` is the `root` object, defining the entry point of the web p
 
 The `Root/type.properties` describes that accessing the `Root` object's collection goes via the `name` properties of the underlying `HopObjects`. Added categories via `add_category` are added to the collection of `Root`. The same goes for subcategories and videos, which can be added to categories. This effectively means by clicking through the hyperlinks in the website we can traverse the collections of the `HopObjects` starting with `Root`, going recursively over `Category`, if subcategories were added, and finally reaching `Video` and the `Property` objects.
 
-# 3. Vulnerability Description<a id="vulnerability description"></a>
+# Vulnerability Description
 
 The challenge files overwrite the usual `HopObjects` behaviour. They will always call the `getProperty` function of a `HopObject` to retrieve its properties:
 
@@ -72,13 +72,13 @@ function getProperty(name) {
 
 We control the `name` parameter for this function via the URL path. Due to `this[name]`, we can retrieve any property of the object `this` like `name` and `producer`. But more importantly, we can also get internal properties like `_id` or `__parent__`. The `accessKey` is part of the `Global` object, so effectively we need to traverse the properties of any `Video` object, reaching the `Global` object and its `accessKey` property to retrieve the flag.
 
-# 5. Setting Up A Local Instance<a id="setting up a local instance"></a>
+# Setting Up A Local Instance
 
 Setting up a local instance is not quite necessary, but it makes debugging much easier. For this, we need to leak the used **Helma** version, which turns out pretty simple. We can trigger an error, for example, by checking out the `__created__` property, revealing it is **Helma** v1.5.2:
 
 ![error](ctf/writeups/cscg/vidplow/error.png "error")
 
-# 6. Exploitation<a id="exploitation"></a>
+# Exploitation
 
 As the code is the best documentation, let's have a look at the source code of [HopObjects](https://github.com/helma-org/helma/blob/helma_1_5_2/src/helma/scripting/rhino/HopObject.java#L890). Here we find all of the different internal properties. Playing around with `__parent__` will result in following URL to obtain the flag:
 
@@ -86,10 +86,10 @@ As the code is the best documentation, let's have a look at the source code of [
 /Documentary/The+Fall+of+Arasaka+Tower/__parent__/accessKey
 ```
 
-# 5. Mitigation<a id="mitigation"></a>
+# Mitigation
 
 All of the information leaks come from handling unvalidated and unsanitized user input in the `getProperty` function of the `Video` object. Moreover, dynamically handling access to properties like this always creates openings for attackers. Using for example a white list would be much more secure in this case only allowing specific properties to be accessed. Finally, avoid using an unmaintained web framework like **Helma** - migrate to a more modern alternative.
 
-# 6. Flag<a id="flag"></a>
+# Flag
 
 dach2025{wh0_n33ds_n0de_j5_anyw4y_edabc46f6280250fc7e646dee1a3937c}

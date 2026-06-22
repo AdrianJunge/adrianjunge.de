@@ -37,25 +37,25 @@ optional:
         - "Optional hint shown collapsed on the writeup page."
 ---
 
-# TL;DR<a id="TL;DR"></a>
+# TL;DR
     **- Challenge Setup:**
     **- Key Discoveries:**
     **- Vulnerability:**
     **- Exploitation:**
 
-# 1. Introduction<a id="introduction"></a>
+# Introduction
 
-# 2. Reconnaissance<a id="reconnaissance"></a>
+# Reconnaissance
 
-# 3. Vulnerability Description<a id="vulnerability description"></a>
+# Vulnerability Description
 
-# 4. Exploitation<a id="exploitation"></a>
+# Exploitation
 
-# 5. Mitigation<a id="mitigation"></a>
+# Mitigation
 
-# 6. Solve script<a id="solve script"></a>
+# Solve script
 ```python
 
 ```
 
-# 7. Flag<a id="flag"></a>
+# Flag

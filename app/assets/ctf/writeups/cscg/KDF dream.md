@@ -17,22 +17,22 @@ optional:
         proof_url: /ctf/certifications/cscg25-best-writeup-kdfdream.pdf
 ---
 
-# TL;DR<a id="TL;DR"></a>
+# TL;DR
 
     **- Challenge Setup:** We are an established Man-in-the-Middle between Alice and Bob
     **- Key Discoveries:** To initially exchange a shared key, the **Diffie-Hellman Key Exchange** is used and the OTPs are calculated via the KDF **SP800 108 Counter Mode**
     **- Vulnerability:** **Diffie-Hellman Key Exchange** is vulnerable for a Man-in-the-Middle attacker and **SP800 108 Counter Mode** breaks by the wrong usage of the underlying PRF
     **- Exploitation:** Just exploit the vulnerable crypto components :P
 
-# 1. Introduction<a id="introduction"></a>
+# Introduction
 
 We are given some **Python** files simulating a series of communication exchanges between **Alice** and **Bob**. Luckily enough, we are already an established **Man-in-the-Middle**, so we can intercept, modify and drop any communication between these two parties. The goal of the challenge is to modify the exchanged messages so that **Bob** will receive the message with content like `allgoodprintflag` from **Alice**. The twist of this challenge lies in the used crypto algorithms like the used key derivation function (KDF) **SP800 108 Counter Mode** and its underlying primitives.
 
-# 2. Reconnaissance<a id="reconnaissance"></a>
+# Reconnaissance
 
 The communication starts with the popular **Diffie-Hellman Key Exchange** using a secure group. After both parties calculated the shared key **Alice** and **Bob** agree on one of the three **NIST** certified pseudo random functions (PRF) HMAC, CMAC and KMAC, for the KDF. Both parties randomly select a nonce and exchange these to have a common KDF context. After that, the shared key, the chosen PRF, the common context and some hardcoded string are used to derive a common key out of the KDF algorithm **SP800 108 Counter Mode**. **Alice** then sends **Bob** a message `wearecompromised` because she is already suspicious about the connection, as the description tells us. The only way to receive the flag is by somehow making sure **Bob** receives `allgoodprintflag` as a message.
 
-# 3. We Are The Man In The Middle<a id="we are the man in the middle"></a>
+# We Are The Man In The Middle
 
 At first, we want to make sure we get to know the shared secret being calculated via the **Diffie-Hellman Key Exchange**. Both parties calculate the same shared secret `\(K = g^{ab} \bmod P\)` through modular exponentiation with a prime `P`, which can then be used for symmetric encryption:
 
@@ -86,7 +86,7 @@ The probability of both parties choosing even exponents is:
 
 
 
-# 4. Deriving Some Flags<a id="deriving some flags"></a>
+# Deriving Some Flags
 
 Now that we know the shared secret, we can decrypt every message **Alice** and **Bob** send each other via the KDF-derived OTPs, as we can calculate these ourselves. But this is not enough for the challenge, we need to influence the output and thus the derived OTPs.
 <span>
@@ -230,7 +230,7 @@ def forge_nonce_for_target(key, T, ctx_second_half):
 
 The returned value from the `forge_nonce_for_target` function is the calculated first half of the context from **Bob**. After sending **Bob** the forged nonce, he will receive `allgoodprintflag` and we get the flag `dach2025{But_n1st_said_it_was_fine?!???_15f7a069}`. The **NIST** once proposed **CMAC** as one of the PRFs you could use together with the KDF **SP800 108 Counter Mode**. But when some employees from **Amazon** reported some security issues with this combination, **NIST** revoked it and added a precise description of the attack in the [appendix](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-108r1-upd1.pdf) of their publication.
 
-# 5. Mitigation<a id="mitigation"></a>
+# Mitigation
 
 The first problem is the usage of the **Diffie-Hellman Key Exchange** without any authentication. By using signatures or a public key infrastructure (PKI), the parties could have validated each other's identities, preventing the **Man-in-the-Middle** from sharing their keys or manipulating the key exchange. For the KDF part, obviously you shouldn't use **SP800 108 Counter Mode** with **CMAC** but with for example **HMAC**. Overall, you must be very careful when any crypto modules come into play. Although the **Python** library **cryptography** wasn't used in this challenge but instead **pycryptodome**, they got a great note in their [documentation](https://cryptography.io/en/latest/hazmat/primitives/key-derivation-functions/) to KDFs:
 
@@ -238,6 +238,6 @@ The first problem is the usage of the **Diffie-Hellman Key Exchange** without an
 [...] this module is full of land mines, dragons, and dinosaurs with laser guns.
 ```
 
-# 76. Flag<a id="flag"></a>
+# Flag
 
 dach2025{But_n1st_said_it_was_fine?!???_15f7a069}

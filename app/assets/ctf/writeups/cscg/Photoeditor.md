@@ -14,14 +14,14 @@ challengefiles: photoeditor
 published: "2024-05-17"
 ---
 
-# TL;DR<a id="TL;DR"></a>
+# TL;DR
 
     **- Challenge Setup:** `.NET` web application written in `C#` allowing image uploads
     **- Key Discoveries:** Image manipulation is done by dynamically calling functions
     **- Vulnerability:** Unsanitized user input is used to dynamically call functions
     **- Exploitation:** Calling `GetUsername` method allows us to set arbitrary env vars and thus overwriting the functionality of arbitrary commands e.g. via `BASH_FUNC_whoami%%`
 
-# 1. Introduction<a id="introduction"></a>
+# Introduction
 
 This challenge was about some interesting dynamic implementation to process user generated input calling appropriate functions in the application:
 
@@ -34,7 +34,7 @@ That surely didn't introduce any vulnerabilities, right?
 ```
 
 
-# 2. Reconnaissance<a id="reconnaissance"></a>
+# Reconnaissance
 
 Looking around on the webpage you have access to, you can play around uploading some pictures and editing these with special options.
 
@@ -91,7 +91,7 @@ Definitely a way to make your application very dynamic – but also very vulnera
 ```
 
 
-# 3. Vulnerability Description<a id="vulnerability description"></a>
+# Vulnerability Description
 
 At first, it seems like there are no interesting functions to call but taking a closer look at the code you realize the `DynamicPhotoEditorController` is inheriting from the `BaseAPIController` which implements the `GetUsername` function. So maybe you can call this one and make the application execute `whoami`? The given `DynamicAction` is not being sanitized and validated by the server. By setting `DynamicAction` to `GetUsername` you get:
 
@@ -132,7 +132,7 @@ var transformedImage = (Image)actionMethod.Invoke(this, editParams);
 But what now?
 
 
-# 4. Exploitation<a id="exploitation"></a>
+# Exploitation
 
 Only being able to execute some hard-coded commands like `whoami` and being able to set the environment variables can’t be enough for RCE right? But indeed it is enough! After searching for some weird bash environment variables I found something interesting. By setting `BASH_FUNC_whoami%%=() { id; }` you could override the behavior of the `whoami` command executing for example the `id` command. By setting the request parameters like following:
 
@@ -153,11 +153,11 @@ you can extract the flag to your request bin
 There are some other solutions with different bash environment variables like `BASH_ENV` and `LD_PRELOAD`.
 
 
-# 5. Mitigation<a id="mitigation"></a>
+# Mitigation
 
 This is clearly a problem of the implementation. At least some input sanitization and validation of the `DynamicAction` parameter should have been added like limiting the allowed character, length etc. But input validation should never be the only security measurement. With some weird edge cases an attacker could still bypass it. Another option would be some kind of static mapping from parameter to function. Moreover executing shell commands via the code is a bad idea. There are most of the time safe built-in functions in **C#** doing the same job. Also setting the environment variables dynamically can lead to security issues as already described. Setting the environment variables should be part of the deployment e.g. in a docker container and not part of the code.
 
 
-# 6. Flag<a id="flag"></a>
+# Flag
 
 CSCG\{AppSec\_Chall3nge\_disguised\_as\_W3b\_sorry:)\}

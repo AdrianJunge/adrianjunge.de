@@ -16,20 +16,20 @@ challengefiles: xmalloc
 published: "2026-05-25"
 ---
 
-# TL;DR<a id="TL;DR"></a>
+# TL;DR
 
     **- Challenge Setup:** Heap challenge using a custom allocator instead of the normal **glibc** heap
     **- Key Discoveries:** The custom heap has a fixed heap mapping at `0x31337000`, metadata cookies can be leaked with `puts`, and **libsecureheap.so** only has partial **RELRO** active
     **- Vulnerability:** The `edit` functionality always writes `0x1000` bytes into chunks of arbitrary smaller size, allowing heap metadata and freelist pointers to be overwritten
     **- Exploitation:** Leak the allocator cookies and `xmain_arena`, poison the small chunk freelist to allocate on `verify_cookies@got.plt`, overwrite it with a **One Gadget**, and trigger another allocation to obtain RCE
 
-# 1. Introduction<a id="introduction"></a>
+# Introduction
 
 This challenge was about exploiting a custom heap implementation. The actual binary is called `sandbox` which prompts the user with a menu of different options, but there is no seccomp filter or syscall sandbox involved. The "sandbox" is the allocator itself, which is implemented in `libsecureheap.so`.
 
 The binary gives us the usual heap menu with typical heap challenge options like `alloc`, `delete`, `edit` and `show`. The interesting part about this challenge is that allocations and frees are not implemented by calling **malloc** and **free** from **glibc**. Instead, the challenge uses `xmalloc` and `xfree` from the custom shared library. So basically the challenge implements its own small allocator with metadata, freelists and integrity checks. The description already hints at the idea of the challenge: this allocator tries to be more secure than **glibc**, but it still has to manage all of this state correctly.
 
-# 2. Reconnaissance<a id="reconnaissance"></a>
+# Reconnaissance
 
 Checking with `checksec` we discover that the deployed `sandbox` has a lot of the relevant hardening properties enabled:
 
@@ -109,7 +109,7 @@ void verify_cookies() {
 
 So for a useful overflow we either have to avoid touching cookies or leak and restore the correct cookie values. Otherwise, after corrupting a cookie, we must not trigger another `verify_cookies` call until the **GOT** entry of `verify_cookies` has already been overwritten.
 
-# 3. Vulnerability Description<a id="vulnerability description"></a>
+# Vulnerability Description
 
 The vulnerability is directly in the menu binary. The challenge even points at it via a comment:
 
@@ -162,7 +162,7 @@ There is another important implementation bug in the large freelist. Large chunk
 
 The final control flow target is the writable **GOT** entry of `verify_cookies` in `libsecureheap.so`. This function is perfect, because every future call to `xmalloc` and `xfree` reaches it before doing any allocator work and we can reliably trigger it via the menu.
 
-# 4. Exploitation<a id="exploitation"></a>
+# Exploitation
 
 The exploit starts by allocating three chunks and freeing the second one:
 
@@ -320,11 +320,11 @@ alloc(b'50')
 
 This calls `xmalloc`, which calls `verify_cookies@plt`, which now resolves to the **one_gadget**. The result is a shell, and because there is no seccomp filter, reading the flag is straightforward.
 
-# 5. Mitigation<a id="mitigation"></a>
+# Mitigation
 
 The primary bug is the fixed-size write in `edit`. The binary has to store the size of every allocation and only allow writes up to that size. A custom allocator with canaries can't compensate for arbitrary out-of-bounds writes into its metadata. Moreover, the allocator library should be linked with full **RELRO** so its **GOT** is not writable. Also, using a custom heap implementation for security is almost always risky. The normal **glibc** heap has had many years of hardening work. Reimplementing this correctly is much harder than it first looks.
 
-# 6. Solve Script<a id="solve script"></a>
+# Solve Script
 
 ```python
 #!/usr/bin/env python3
@@ -462,6 +462,6 @@ if __name__ == "__main__":
     main()
 ```
 
-# 7. Flag<a id="flag"></a>
+# Flag
 
 KITCTF{dQw4w9WgXcQ}

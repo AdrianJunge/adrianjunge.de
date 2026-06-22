@@ -4,6 +4,6 @@ categories:
     - WIP
 published: "2026-xx-xx"
 ---
-# 1. WIP<a id="wip"></a>
+# WIP
 
 Coming soon TM

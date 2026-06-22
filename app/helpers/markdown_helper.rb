@@ -3,7 +3,7 @@ module MarkdownHelper
   require "rouge"
   require "rouge/plugins/redcarpet"
 
-  def render_markdown(text)
+  def render_markdown(text, headings: nil)
     sanitized_text = text.to_s.sub(/\A---\s*\n.*?\n---\s*\n/m, "").strip
 
     render_options = {
@@ -26,9 +26,11 @@ module MarkdownHelper
       underline: true
     }
     renderer = HtmlWithCopy.new(render_options)
+    rendered_markdown = Redcarpet::Markdown.new(renderer, extensions).render(sanitized_text)
+    headings.replace(renderer.headings) if headings
 
     html_content = "<div class='markdown-content'>
-      #{Redcarpet::Markdown.new(renderer, extensions).render(sanitized_text)}
+      #{rendered_markdown}
     </div>"
 
     replace_asset_paths(html_content)

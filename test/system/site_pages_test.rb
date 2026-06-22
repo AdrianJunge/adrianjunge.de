@@ -1676,14 +1676,14 @@ class SitePagesTest < ApplicationSystemTestCase
     visit post[:link]
     assert_no_selector ".writeup-wrapper.toc-collapsed", visible: :all
 
-    assert_selector "#toc-body .toc-depth-#{top_heading[:level] - 1}", text: top_heading[:text]
-    assert_selector "#toc-body .toc-depth-#{nested_heading[:level] - 1}", text: nested_heading[:text]
+    assert_selector "#toc-body .toc-depth-#{top_heading[:level] - 1}", text: top_heading[:rendered_text]
+    assert_selector "#toc-body .toc-depth-#{nested_heading[:level] - 1}", text: nested_heading[:rendered_text]
 
     metrics = page.evaluate_script(<<~JS)
       (() => {
         const links = [...document.querySelectorAll("#toc-body .toc-anchor")];
-        const top = links.find((link) => link.innerText.trim() === #{top_heading[:text].to_json});
-        const nested = links.find((link) => link.innerText.trim() === #{nested_heading[:text].to_json});
+        const top = links.find((link) => link.innerText.trim() === #{top_heading[:rendered_text].to_json});
+        const nested = links.find((link) => link.innerText.trim() === #{nested_heading[:rendered_text].to_json});
 
         return {
           topLeft: Math.round(top.getBoundingClientRect().left),
@@ -3581,12 +3581,13 @@ class SitePagesTest < ApplicationSystemTestCase
 
   def article_heading_cases
     [ ctf_post_with_headings, blog_posts.find { |post| markdown_headings(post[:content]).any? } ].compact.map do |post|
-      [ post[:link], markdown_headings(post[:content]).first[:text] ]
+      [ post[:link], markdown_headings(post[:content]).first[:rendered_text] ]
     end
   end
 
   def markdown_headings(markdown)
     headings = []
+    heading_counters = []
     in_fence = false
 
     markdown.to_s.each_line do |line|
@@ -3600,7 +3601,27 @@ class SitePagesTest < ApplicationSystemTestCase
       next unless match
 
       text = match[2].sub(/<a\b.*\z/i, "").gsub(/<[^>]+>/, "").strip
-      headings << { level: match[1].length, text: text } if text.present?
+      next if text.blank?
+
+      text = text.sub(/\A\d+(?:\.\d+)*\.?\s+/, "")
+      depth = match[1].length - 1
+      number = nil
+
+      unless text.match?(/\A(?:tl;?dr|tldr)\z/i)
+        (0...depth).each do |index|
+          heading_counters[index] = 1 if heading_counters[index].to_i.zero?
+        end
+
+        heading_counters[depth] = heading_counters[depth].to_i + 1
+        heading_counters = heading_counters[0..depth]
+        number = "#{heading_counters.join(".")}."
+      end
+
+      headings << {
+        level: match[1].length,
+        text: text,
+        rendered_text: [ number, text ].compact.join(" ")
+      }
     end
 
     headings

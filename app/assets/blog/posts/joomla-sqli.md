@@ -8,7 +8,7 @@ categories:
 published: "2026-06-13"
 ---
 
-# 1. A Random PHP Detour<a id="a-random-php-detour"></a>
+# A Random PHP Detour
 
 This whole journey started by me randomly finding a **CRM** repository written in **PHP** for managing churches called [ChurchCRM](https://github.com/ChurchCRM/CRM). In the [GitHub advisory history](https://github.com/ChurchCRM/CRM/security/advisories) were already a couple of interesting vulnerabilities reported like several **SQL injections**, **XSS** issues, and other typical web application bugs. Having a closer look at the **SQL injection** advisories, the vulnerable code looked to me fairly simple including some text book **SQL injections**. So I became curious whether there are more **SQL** related issues present in this repository and started having a look how this application interacts with the database. In [ChurchCRM](https://github.com/ChurchCRM/CRM) this turned out quite easy. A lot of legacy code constructs raw **SQL** strings and then passes them into the `RunQuery` function which delegates the query execution to the underlying database. That gives you a pretty simple source-to-sink search strategy. By just searching for `RunQuery` and inspecting the code constructing the **SQL** query, you can manually trace all the relevant variables backwards. One representative example for this is the vulnerable code in [ChurchCRM 7.0.5 SettingsUser.php](https://github.com/ChurchCRM/CRM/blob/7.0.5/src/SettingsUser.php#L14-L47):
 
@@ -37,11 +37,11 @@ It's quite easy to see that this implementation is vulnerable to **SQL injection
 
 After reporting to [ChurchCRM](https://github.com/ChurchCRM/CRM) everything I found, I wanted to know if the same workflow can be applied to more popular, larger and better reviewed codebase. At first I found another interesting looking **CRM** called [SuiteCRM](https://github.com/SuiteCRM/SuiteCRM), and after reporting a bunch of **SQL injections** there, which have not been resolved yet, I went over to [Joomla](https://github.com/joomla/joomla-cms) which is a **CMS** like [WordPress](https://wordpress.com/) but not as popular. However [Joomla](https://github.com/joomla/joomla-cms) got more than **5k** GitHub stars and a large amount of legacy **PHP** code with about **250k PHP** code lines in total in the tagged [Joomla 5.4.5](https://github.com/joomla/joomla-cms/tree/5.4.5).
 
-# 2. Turning Manual Review Into An AI Workflow<a id="turning-manual-review-into-an-ai-workflow"></a>
+# Turning Manual Review Into An AI Workflow
 
 The workflow which I applied manually to [ChurchCRM](https://github.com/ChurchCRM/CRM) felt mechanical enough to automate parts of it with AI agents. I was using **Codex 5.3** at the time. To use any **OpenAI** models for security research, you have to go through a verification flow at [chatgpt.com/cyber](https://chatgpt.com/cyber) which is fairly straightforward. You just have to explain what you want to do with the models, provide some information about yourself, and link something like your LinkedIn profile or personal website.
 
-## 2.1. How Joomla Interacts With The Database<a id="how-joomla-interacts-with-the-database"></a>
+## How Joomla Interacts With The Database
 
 The way [Joomla](https://github.com/joomla/joomla-cms) implements database interaction is by using a database abstraction layer, a query builder, and table/model classes. So by instructing an agent to search for specific function calls, it was possible to discover potentially vulnerable **SQL** sinks:
 
@@ -72,7 +72,7 @@ $db->setQuery($query);
 
 To avoid that any of these searches produce duplicate sinks, the next logical step was to have the agent remove duplicates and keep reducing the candidate list further.
 
-## 2.2. Removing Safe Sinks<a id="removing-obvious-safe-sinks"></a>
+## Removing Safe Sinks
 
 After removing duplicates, the broad search still had a lot of sinks that are not worth deeper analysis. From there, the agent had to keep only candidates where any of the used parameters is derived dynamically for example by concatenation or interpolation of variables. The agent also had to check how the query uses prepared statements. [Joomla](https://github.com/joomla/joomla-cms) commonly uses for dynamic values **SQL** parameter placeholders like `:id`, `:username`, or `?`, and then binds the real **PHP** value separately, for example in [UserGroupsHelper::getTitle()](https://github.com/joomla/joomla-cms/blob/5.4.5/libraries/src/Helper/UserGroupsHelper.php#L229-L233):
 
@@ -115,7 +115,7 @@ The important output of this phase was a **JSON** file `sinks.json`, which conta
 
 After removing duplicates, static queries, and queries where all dynamic values were safely bound, **247** entries remained in `sinks.json`.
 
-## 2.3. Deep Inspection Of The Remaining Sinks<a id="deep-inspection-of-the-remaining-sinks"></a>
+## Deep Inspection Of The Remaining Sinks
 
 After these filtering steps, the remaining candidates are all potentially vulnerable sinks worth some deeper analysis. The next step was to automate the focused analysis by giving an agent one candidate at a time.
 
@@ -133,7 +133,7 @@ I also gave the agent the opportunity to dynamically test against a locally runn
 
 Both are **second-order SQL injections**. Below I focus on the one in `com_finder`.
 
-# 3. The Vulnerability In com_finder<a id="the-vulnerability"></a>
+# The Vulnerability In com_finder
 
 Some [Joomla](https://github.com/joomla/joomla-cms) terminology is worth an explanation before going into the source-to-sink trace:
 
@@ -147,7 +147,7 @@ The short version of the bug is:
 - [Joomla](https://github.com/joomla/joomla-cms) accidentally stores the title as an array key instead of a value
 - `SearchModel::getListQuery` later treats that key as a numeric taxonomy id and concatenates it into `IN (...)` without any sanitization
 
-## 3.1. Storing The Payload<a id="storing-the-payload"></a>
+## Storing The Payload
 
 The whole exploitation process starts with the article `created_by_alias` field which is the **Created by Alias** metadata field for articles. It lets an author display another author's name instead of the account name. A user with enough content permissions, for example the **Publisher** role with `core.create` and `core.edit.state` privileges, can create a published article and set this field. If the user cannot publish directly, the value can still become a second-order payload, but it needs another workflow step of another authorized user to publish or index the content.
 
@@ -209,7 +209,7 @@ So the write-side path is:
 
 At this point the attacker-controlled value is persistent in the database.
 
-## 3.2. Loading The Stored Title<a id="loading-the-stored-title"></a>
+## Loading The Stored Title
 
 The trigger is a frontend **Finder** search request. The `q` parameter is the **Smart Search** query string, and `author:<prefix>` is **Finder's** modifier syntax for filtering by the `Author` taxonomy branch:
 
@@ -252,7 +252,7 @@ public static function getNodeByTitle($branch, $title)
 
 The lookup itself safely quotes and escapes the prefix in a `LIKE` query to make sure it is not possible to escape out of the string context, and returns the matching row.
 
-## 3.3. The Key/Value Mix-up<a id="the-key-value-mix-up"></a>
+## The Key/Value Mix-up
 
 The vulnerable code is directly afterwards, in [Query::processString()](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Query.php#L829-L843):
 
@@ -265,7 +265,7 @@ if ($return) {
 
 The key becomes the malicious stored taxonomy **title**, and the value becomes the integer taxonomy **id**. But the later query-building code expects the opposite data shape with the numeric taxonomy ids as array keys. Static filters in the same class already use that shape, for example in [Query.php::processStaticTaxonomy()](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Query.php#L568-L570).
 
-## 3.4. The Sink<a id="the-sink"></a>
+## The Sink
 
 The sink is in [SearchModel::getListQuery()](https://github.com/joomla/joomla-cms/blob/5.4.5/components/com_finder/src/Model/SearchModel.php#L192-L203):
 
@@ -299,7 +299,7 @@ Later in `array_keys($group)` [Joomla](https://github.com/joomla/joomla-cms) exp
 SUM(CASE WHEN t.node_id IN (13371337*0+IF((1=1),t.node_id,0)) THEN 1 ELSE 0 END) > 0
 ```
 
-# 4. Exploitation<a id="exploitation"></a>
+# Exploitation
 
 The payload `13371337*0+IF((1=1),t.node_id,0)` was created to work exactly in this numeric expression context. The individual parts are:
 
@@ -348,7 +348,7 @@ for pos in range(1, 65):
 
 `search_term` just has to be a normal indexed word from the published article, while `author:<prefix>` triggers the vulnerable taxonomy filter. Then we basically do a binary search to extract table names character by character through the boolean oracle.
 
-# 5. The Fix<a id="the-fix"></a>
+# The Fix
 
 The vulnerability is a typical second-order bug, although it also relies on a logical bug and a broken contract between [Query::processString()](https://github.com/joomla/joomla-cms/blob/5.4.5/administrator/components/com_finder/src/Indexer/Query.php#L843) and [SearchModel::getListQuery()](https://github.com/joomla/joomla-cms/blob/5.4.5/components/com_finder/src/Model/SearchModel.php#L193-L194). `Query::processString` creates `title => id`, while `SearchModel::getListQuery` expects `id => title`.
 
@@ -368,7 +368,7 @@ $this->filters[$modifier][(int) $return->id] = $return->title;
 
 Additionally the integer cast is part of the sanitization strategy against **SQL** injections and also commonly seen in [Joomla](https://github.com/joomla/joomla-cms) and other software written in **PHP**.
 
-# 6. Final Thoughts<a id="final-thoughts"></a>
+# Final Thoughts
 
 Before falling into this rabbit hole, I did not really expect **SQL injections** to still be this common in large applications. But it makes sense. Many old codebases were written before prepared statements became popular. During that time these code bases added their own sanitizer functions, query builders, and table abstractions. Rewriting all of that is very time consuming. Moreover prepared statements cannot solve everything in a framework like [Joomla](https://github.com/joomla/joomla-cms). They are the right tool for values, but not for every dynamic **SQL** fragment. Sort orders, column names, table names, aliases, and raw expressions still need strict whitelisting, hardcoded mappings, type normalization, or other structural controls.
 
@@ -383,7 +383,7 @@ To my surprise the workflow with AI worked pretty well after splitting the task 
 
 This kind of workflow should be applicable to every vulnerability type. But I think it works especially well for **SQL injections**, because the potentially vulnerable sinks are quite easy to find using simple keywords, as explained in [section 2.1](#how-joomla-interacts-with-the-database). My guess is that vulnerabilities like **XSS** are harder to find with this workflow, because there are many different ways to execute **JavaScript**. On top of that, **JavaScript** code often has many different variations how user-controlled input could end up being executed in another user's browser.
 
-# 7. Disclosure Timeline<a id="disclosure-timeline"></a>
+# Disclosure Timeline
 
 The [Joomla advisory](https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html) classifies the `com_finder` issue with **Impact: High**, **Severity: Moderate**, **Probability: Moderate**, and **Exploit type: SQLi**. [Joomla](https://github.com/joomla/joomla-cms) uses its own advisory fields here and does not publish a **CVSS** score or vector for this entry. I read the rating as: the impact is high because blind **SQL injection** can expose database contents, but the practical severity and probability are lower because exploitation needs an authenticated user with publisher privileges, a stored second-order payload, Finder indexing, and blind extraction through search-result differences.
 

@@ -21,14 +21,14 @@ optional:
         summary: Hybrid web and pwn challenge about mass assignment, QR-code decoding, signed integer overflow, and GLIBC dynamic symbol poisoning. Published for GPNCTF 2026.
 ---
 
-# TL;DR<a id="TL;DR"></a>
+# TL;DR
 
     **- Challenge Setup:** A **Flask** web server, implementing a QR scanner, accepts PNG uploads, decodes ordinary guest tickets with a **Python** QR library, and has a faster alternative path backed by the C library [quirc](https://github.com/dlbeer/quirc) requiring some special authorization
     **- Key Discoveries:** User controlled form fields are passed into a dataclass constructor, allowing `station=kitchen`. The QR-code scanner accepts raw image dimensions where `width * height` fits neither signed 32-bit arithmetic nor several [quirc](https://github.com/dlbeer/quirc) indexing expressions
     **- Vulnerability:** A **signed integer overflow** in [quirc](https://github.com/dlbeer/quirc) lets a finder-pattern scan discover pixels at a high in-bounds offset, then re-use the same coordinates through signed arithmetic and write one byte before the **mmap**-backed image buffer
     **- Exploitation:** Corrupt **GLIBC** **mmap** chunk size metadata, free the oversized mapping, reclaim the **LIBC** prefix, then use a [House-of-Muney](https://maxwelldulin.com/BlogPost/House-of-Muney-Heap-Exploitation)-style dynamic symbol poisoning chain to make lazy binding turn `puts(<payload>)` into `system(<payload>)`
 
-# 1. Introduction<a id="introduction"></a>
+# Introduction
 
 **Scanwich Station** was a hybrid web and pwn challenge which I created for [GPNCTF](https://ctftime.org/event/3041) held at the [24th Gulaschprogrammiernacht](https://entropia.de/GPN24) in Karlsruhe. So if you played my challenge, I hope you had some fun digging in some random QR-code library and maybe even learned something about the incredible **GLIBC** heap. I used **codex** to assist me creating this challenge, which was very helpful as there are a lot of details you need to be aware of to successfully exploit the challenge.
 
@@ -38,7 +38,7 @@ The visible application is a restaurant-themed QR-code scanner. A guest uploads 
 
 Casual users can enjoy the guest QR-code decoder path using [pyzbar](https://github.com/NaturalHistoryMuseum/pyzbar/), a Python wrapper around the [ZBar](https://github.com/mchehab/zbar) barcode library. The pwn part is hidden behind the faster kitchen scanner, which uses [quirc](https://github.com/dlbeer/quirc), but is only available for the kitchen staff.
 
-# 2. Access To The Kitchen<a id="access to the kitchen"></a>
+# Access To The Kitchen
 
 The first part of the challenge is about reaching the code path that starts the vulnerable [quirc](https://github.com/dlbeer/quirc) scanner. The public upload form behaves like a normal guest scanner, but the **Flask** route also forwards all submitted form fields into the decoder:
 
@@ -114,7 +114,7 @@ Fortifiable:        4
 
 The important detail is **Partial RELRO**. The final exploit does not overwrite the binary **GOT** directly, but it still relies on lazy binding of the `puts` function.
 
-# 3. From PNG Upload To quirc Input<a id="from png upload to quirc input"></a>
+# From PNG Upload To quirc Input
 
 The kitchen scanner does not hand the PNG file to [quirc](https://github.com/dlbeer/quirc) directly. The web layer parses uploaded PNG data with [PyPNG](https://gitlab.com/drj11/pypng/) and converts it into the tiny raw format expected by the `qrscan.c` challenge binary:
 
@@ -186,7 +186,7 @@ static int scan_frame(struct quirc *qr, uint32_t width, uint32_t height)
 
 The dangerous input is just the image geometry and the grayscale pixels that [quirc](https://github.com/dlbeer/quirc) processes.
 
-# 4. The quirc Integer Overflow<a id="the quirc integer overflow"></a>
+# The quirc Integer Overflow
 
 The first malicious frame uses dimensions that are individually valid signed integers with `width  = 0x1000` and `height = 0x10000f`.  The exact product is a little more than 4 GB with `0x1000 * 0x10000f = 0x10000f000`, which is the reason why this challenge needed a quite fair amount of RAM during the competition. That matters because several [quirc](https://github.com/dlbeer/quirc) internals store dimensions and offsets as a signed `int`. To me, this doesn't make any sense, as sizes like the width and height of an image can't be logically negative anyways, but still thats how the authors of this library implemented it. Funny enough, in [quirc_resize](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/quirc.c#L48), the dimensions are checked for negativity and then used for allocation:
 
@@ -213,7 +213,7 @@ For the enormous exploit dimensions, **GLIBC** services the image allocation wit
 
 The screenshot was taken in **GDB** at that point right after [calloc](https://linux.die.net/man/3/calloc) in [quirc_resize](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/quirc.c#L48) was called and therefore the `RAX` register contains the pointer to the allocated memory region. We can see due to allocating such a huge memory area, the chunk is not part of the **heap** anymore but instead of an **anon** region sitting right before the area where **LIBC** lives.
 
-## 4.1. Setup Wraps The Pixel Count<a id="setup wraps the pixel count"></a>
+## Setup Wraps The Pixel Count
 
 [quirc_end](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/identify.c#L1104) is the core of the whole exploitation:
 
@@ -262,7 +262,7 @@ We can also see that in this build, `q->pixels` aliases `q->image` with having `
 
 At source level the multiplication is a **signed integer overflow**. In the deployed build it behaves as a two's-complement wrap. So having `width = 0x1000` and `height = 0x10000f`, this multiplication results in a product of `0x10000f000` and the low 32 bits of this product are `0x0000f000`. So setup routine only touches the low `0xf000` bytes. The high offsets of the huge image remain fully attacker-controlled. This is highly important for the next step as this allows us to place arbitrary bytes in the remaining memory which is not set up and normalized. This allows us in the next step to put specific markers inplace, processed by later functionality, which changes the calculations of [quirc](https://github.com/dlbeer/quirc).
 
-## 4.2. Reading A High In-Bounds Marker<a id="reading a high in bounds marker"></a>
+## Reading A High In-Bounds Marker
 
 Because [pixels_setup](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/identify.c#L1075) only normalized the low `0xf000` bytes and `q->pixels` aliases `q->image`, these high bytes are read directly as [quirc](https://github.com/dlbeer/quirc) pixel states. The exploit therefore places `0x01` and `0x00` bytes there, corresponding to `QUIRC_PIXEL_BLACK` and `QUIRC_PIXEL_WHITE`:
 
@@ -328,7 +328,7 @@ y  = 0xfffff
 pb = { 1, 1, 3, 1, 1 }
 ```
 
-## 4.3. Reusing The Coordinate With Signed Arithmetic<a id="reusing the coordinate with signed arithmetic"></a>
+## Reusing The Coordinate With Signed Arithmetic
 
 When the run lengths look like a finder pattern, [test_capstone](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/identify.c#L496) asks [region_code](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/identify.c#L347) about nearby regions:
 
@@ -398,7 +398,7 @@ ring_left  = region_code(q, 0xff4, 0xfffff) -> -0x1000 + 0xff4 = -12
 
 So the first [region_code](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/identify.c#L347) call reads `q->pixels[-6]`. That byte is actually part of the [mmap](https://man7.org/linux/man-pages/man2/mmap.2.html) chunk size field directly before `q->image`. Before the call it contains `0x01`, which is `QUIRC_PIXEL_BLACK`. Therefore `region_code()` treats it as a new black region. The later `stone` and `ring_left` probes fail and [test_capstone](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/identify.c#L496) eventually rejects the candidate, but that happens after the first `region_code()` call has already started flood fill from `q->pixels[-6]`.
 
-## 4.4. Turning The Wrapped Index Into A Write<a id="turning the wrapped index into a write"></a>
+## Turning The Wrapped Index Into A Write
 
 If [region_code](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/identify.c#L347) decides the selected byte is a new black region, it calls [flood_fill_seed](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/identify.c#L209). The write happens in [flood_fill_line](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/identify.c#L132):
 
@@ -422,11 +422,11 @@ static void flood_fill_line(struct quirc *q, int x, int y,
 
 So now we got a one-byte write just before the mmap-backed image allocation.
 
-# 5. From One Byte To RCE<a id="from one byte to rce"></a>
+# From One Byte To RCE
 
 The byte at `q->image - 6` is not random heap data as already mentioned. For a **GLIBC** mmapped allocation, the user pointer is returned after a chunk header filled with metadata like `prev_size` and `mchunk_size` which is exactly `q->image[-6]`. The exploit changes one byte of the mmapped chunk size from the original `0x100010002` value to the larger `0x100030002` value. Although this is very constrained, we can still obtain RCE and we don't even need any memory leak as the huge image mapping sits directly before **LIBC**, having a relative offset to it.
 
-## 5.1. Frame 1 - Corrupting The mmap Chunk Size<a id="frame 1 - corrupting the mmap chunk size"></a>
+## Frame 1 - Corrupting The mmap Chunk Size
 
 The exploit uses three frames with different sizes:
 
@@ -450,7 +450,7 @@ def frame1():
 
 The low rows shape early region ids. The high row at `0xfffffff4` is the actual integer wrap trigger. After [quirc_end](https://github.com/dlbeer/quirc/blob/927d680904dc95fdff4cd9d022eb374b438ff8f2/lib/identify.c#L1104) processes this frame, the old image chunk header has the enlarged size byte.
 
-## 5.2. Frame 2 - Freeing The Corrupted Mapping<a id="frame 2 - freeing the corrupted mapping"></a>
+## Frame 2 - Freeing The Corrupted Mapping
 
 Frame 2 is intentionally very small:
 
@@ -479,7 +479,7 @@ Because the old `mchunk_size` is now too large, **GLIBC**'s `free` calls [munmap
 
 One neat detail: the exploit is not writing through a `r--p` **LIBC** mapping. Page permissions like `r--p` only apply while that virtual memory area exists. `munmap()` removes mappings from the process address space. So when the corrupted free reaches into the first read-only **LIBC** mapping, the kernel simply splits/removes that VMA. The process no longer has a `r--p` **LIBC** mapping for that prefix at all. It has a free virtual address hole which a later [mmap](https://man7.org/linux/man-pages/man2/mmap.2.html) can reuse with different permissions.
 
-## 5.3. Frame 3 - Reclaiming libc's Prefix<a id="frame 3 - reclaiming libcs prefix"></a>
+## Frame 3 - Reclaiming libc's Prefix
 
 Frame 3 is another large image. Its size is chosen so [calloc](https://linux.die.net/man/3/calloc) reuses the address range that was just unmapped. Since the new image overlaps addresses that previously belonged to the beginning of **LIBC**, selected image bytes become writes into the dynamic-linking metadata at those virtual addresses. At this point those bytes live in the new writable anonymous image mapping:
 
@@ -522,13 +522,13 @@ Under Partial RELRO, this first `puts` call is lazily resolved. The dynamic link
 system("/read_flag");
 ```
 
-# 6. Mitigation<a id="mitigation"></a>
+# Mitigation
 
 There are two independent fixes. For the web layer, never unpack arbitrary request fields into internal state or explicitly allowlist fields that are meant to be public. A field like `station` should not be controlled by the upload request.
 
 For [quirc](https://github.com/dlbeer/quirc), the dimension arithmetic needs to use a type that can represent the product, and bounds checks need to validate the combined product and offset, not only the individual coordinates.
 
-# 7. Solve Script<a id="solve script"></a>
+# Solve Script
 
 ```python
 #!/usr/bin/env python3
@@ -686,6 +686,6 @@ if __name__ == "__main__":
     main()
 ```
 
-# 8. Flag<a id="flag"></a>
+# Flag
 
 GPNCTF{scANwiCh_5TATioN_SP3cI4L_oRdER_3x7R4_sH31l5}

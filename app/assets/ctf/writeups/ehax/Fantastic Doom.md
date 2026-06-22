@@ -15,13 +15,13 @@ challengefiles: fantasticdoom
 published: "2025-04-24"
 ---
 
-# TL;DR<a id="TL;DR"></a>
+# TL;DR
 
     **- Challenge Setup:** This is a pretty easy pwn challenge allowing the user to input an auth code once.
     **- Key Discoveries:** There is a free libc leak and a stack buffer overflow.
     **- Exploitation:** Due to the leak we can defeat ASLR and by exploiting the overflow as an attacker we can control the return address.
 
-# 1. Introduction<a id="introduction"></a>
+# Introduction
 
 By starting the binary we are greeted with some random stuff and an input for some kind of auth code:
 
@@ -29,7 +29,7 @@ By starting the binary we are greeted with some random stuff and an input for so
 
 At first it seems like we need to reveal the code.
 
-# 2. Reconnaissance<a id="reconnaissance"></a>
+# Reconnaissance
 
 At first we need to know the enabled protections:
 
@@ -41,11 +41,11 @@ Interesting enough there are no stack canaries and more over `PIE` is inactive. 
 
 This binary got a very obvious stack buffer overflow by using the `gets` functionality which just reads the whole user input until it reaches a `\n` and saves it the given buffer. The main problem about `gets` is, the buffer to which the user input is copied got limited size, while the user input got unknown size. More over as we can see in the decompiled code, we get a free leak of the address of the libc function `wctrans`.
 
-# 3. Vulnerability Description<a id="vulnerability description"></a>
+# Vulnerability Description
 
 The usage of `gets` leads to an arbitrary large stack buffer overflow and by leaking the address of `wctrans` we can easily defeat `ASLR` - at least for everything libc related. Unfortunately the `NX` protection is enabled, so we can't just return to the stack buffer and injecting some shell code.
 
-# 4. Exploitation<a id="exploitation"></a>
+# Exploitation
 
 Only knowing the randomized libc base address is already enough to get a shell, as we can just pop a shell via a [OneGadget](https://github.com/david942j/one_gadget). This tool is absolutely great. By executing it like `one_gadget libc.so.6` we get the offsets of potentially useful onegadgets which can be exploited to pop a shell without any ROP:
 
@@ -73,11 +73,11 @@ constraints:
 
 As these onegadgets got some requirements to work, we can easily just try out everyone of these. The one with libc offset `0x4f2a5` will work for us. After determining the offset to the return address e.g. by using the `cyclic` command in `gdb` we can construct our payload and eventually pop our shell.
 
-# 5. Mitigation<a id="mitigation"></a>
+# Mitigation
 
 The vulnerabilities can be easily mitigated by not intentionally leaking some addresses and moreover using some safe alternatives for `gets` like `fgets`.
 
-# 6. Solve Script<a id="solve script"></a>
+# Solve Script
 
 ```python
 #!/usr/bin/env python3
@@ -208,10 +208,10 @@ if __name__ == "__main__":
 
 ```
 
-# 7. Flag<a id="flag"></a>
+# Flag
 
 EH4X{st4n_l33_c4m30_m1ss1ng_dOOoOoOoOoOOm}
 
-# 8. References<a id="references"></a>
+# References
 
 - [OneGadget](https://github.com/david942j/one_gadget)

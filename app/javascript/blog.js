@@ -2,7 +2,7 @@ function initBlogTOC() {
   const tocLinks = document.querySelectorAll(".toc-anchor");
   const article = document.querySelector(".writeup-container > .markdown-content") || document.querySelector(".markdown-content");
   const articlePage = document.querySelector(".article-page");
-  const headings = article ? article.querySelectorAll("h1, h2, h3") : [];
+  const headings = article ? article.querySelectorAll("h1, h2, h3, h4, h5, h6") : [];
   const tocAnimationDuration = 240;
 
   function prefersReducedMotion() {

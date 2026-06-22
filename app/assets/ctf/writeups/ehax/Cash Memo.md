@@ -13,18 +13,18 @@ challengefiles: cashmemo
 published: "2025-04-17"
 ---
 
-# TL;DR<a id="TL;DR"></a>
+# TL;DR
 
     **- Challenge Setup:** Simple CRUD heap challenge
     **- Vulnerability:** Heap Overflow up to 0x40 Bytes, double free vulnerability and a UAF bug leading to a write-what-where primitive
     **- Exploitation Variant 1:** Abuse free_hook pointing to an arbitrary function
     **- Exploitation Variant 2:** Abuse setcontext32 to execute arbitrary functions
 
-# 1. Introduction<a id="introduction"></a>
+# Introduction
 
 Sadly there is not much of a story behind this challenge so essentially this is a heap challenge where we can create heap chunks of arbitrary size, free, edit and view these. The chunks are managed in an array.
 
-# 2. Reconnaissance<a id="reconnaissance"></a>
+# Reconnaissance
 
 Checking with `checksec` reveals a lot of security mechanisms activated for the binary - even `FULL RELRO` so we can't just overwrite the `GOT` of the binary. Lucky enough the `GOT` of the libc got only `partial RELRO` so we can just overwrite parts of it. Having a look in binja at the `edit` functionality we can easily discover a heap overflow of up to 0x40 bytes:
 
@@ -32,7 +32,7 @@ Checking with `checksec` reveals a lot of security mechanisms activated for the 
 
 Moreover when freeing chunks the appropriate pointer in the chunk array is not being set to `NULL` which allows us to view chunks even after we freed them - this is also known as a Use-After-Free bug. Theoretically this could lead to a double free vulnerability which could also be exploited for tcache poisoning. But in the following I will show you an exploit abusing the UAF for leaking and overwriting and another exploit where we exploit the heap overflow.
 
-# 3. Vulnerability Description<a id="vulnerability description"></a>
+# Vulnerability Description
 
 The UAF bug allows us to leak the heap and libc base by allocating enough space and freeing it, so the chunk will be inserted into the tcache bin and the second into the unsorted bin. The tcache bin lets us leak the heap base and the unsorted bin the libc base, as the chunks are managed as a double linked list and the first and last entry of the list have a pointer into the libc.
 
@@ -68,7 +68,7 @@ typedef struct tcache_perthread_struct
 
 There is one thing we need to consider when dealing with non-tcache bins. Bins like the unsorted bin will be consolidated with the heap top if they are adjacent to each other. For this reason we need to make sure that the chunk in the unsorted bin got another chunk after it.
 
-# 4. Exploitation<a id="exploitation"></a>
+# Exploitation
 
 With the heap overflow we can overwrite parts of the following chunk and thus exploit some tcache poisoning. For example if we got a tcache chunk as our next chunk, we can simply overwrite the pointer pointing to the next tcache chunk. If we now allocate a new chunk, malloc will take the first fitting free chunk from our single linked list and the `tcache_perthread_struct` will get the next free chunk via the `next` pointer of the newly allocated chunk and save it in the `entries` array as the start of the chain. If this pointer was overwritten by us, we essentially have a write-what-where primitive as the next allocation allows us to write arbitrary data into that chunk e.g. into the libc `GOT`.
 
@@ -76,22 +76,22 @@ With the heap overflow we can overwrite parts of the following chunk and thus ex
 
 Instead of the heap overflow we can also exploit the UAF bug by editing a chunk which was freed beforehand, thus overwriting the `next` pointer. Now there are multiple possible solutions how to abuse this constructed primitive.
 
-## 4.1. Exploitation Variant 1<a id="exploitation variant 1"></a>
+## Exploitation Variant 1
 
 To turn an arbitrary write into RCE we can abuse the `free_hook` as the challenge just uses glibc version 2.31. Usually the `free_hook` is used to overwrite the behaviour of the `free` functionality e.g. for debugging purposes. But we can also use this hook to call `system` by overwriting it or executing a onegadget. So when e.g. `free("/bin/sh")` is called, actually `system("/bin/sh")` is called. Since glibc 2.34 such hooks were removed.
 
-## 4.2. Exploitation Variant 2<a id="exploitation variant 2"></a>
+## Exploitation Variant 2
 
 For this challenge the following technique is a bit of an overkill. I got it from [this blog](https://hackmd.io/@pepsipu/SyqPbk94a) where it is explained in a more detailed way. There are some constraints you need to consider before you can apply this technique. First of all the `GOT` of the libc must be writeable. Second you need either one huge arbitrary write primitive or a primitive you can apply multiple times, as the payload is pretty big.
 To apply this technique to the current challenge we need to make sure we can write enough for the `setcontext` payload. Moreover we can't exploit any bins other than the tcache bin, so with a size of 1010 we are still in tcache range and can write up to 1010 + 0x40 bytes which is just enough for the payload to write it as a whole.
 
-# 5. Mitigation<a id="mitigation"></a>
+# Mitigation
 
 First of all there is absolutely no need for the heap overflow. Just make sure the buffer size and the input size are an exact match. Moreover you should always explicitly set pointers to null when they are not used anymore.
 
-# 6. Solve Script<a id="solve script"></a>
+# Solve Script
 
-## 6.1. Solve Script - Exploit 1<a id="solve script exploit 1"></a>
+## Solve Script - Exploit 1
 
 Leak via UAF + tcache poisoning via UAF + free_hook
 
@@ -254,7 +254,7 @@ if __name__ == "__main__":
 
 ```
 
-## 6.2. Solve Script - Exploit 2<a id="solve script exploit 2"></a>
+## Solve Script - Exploit 2
 
 Leak via UAF + tcache poisoning via heap overflow + setcontext
 
@@ -480,10 +480,10 @@ if __name__ == "__main__":
 
 ```
 
-# 7. Flag<a id="flag"></a>
+# Flag
 
 EH4X{fr33_h00k_c4n_b3_p01ns0n3d_1t_s33m5}
 
-# 8. References<a id="references"></a>
+# References
 
 - [setcontext32](https://hackmd.io/@pepsipu/SyqPbk94a)

@@ -2080,6 +2080,15 @@
     overflow-wrap: anywhere;
 }
 
+.content-page .markdown-heading-number {
+    color: var(--color-tertiary);
+    font-variant-numeric: tabular-nums;
+}
+
+.content-page .markdown-heading-text {
+    min-width: 0;
+}
+
 .content-page .markdown-content [id] {
     scroll-margin-top: calc(var(--top-taskbar-height) + 1rem);
 }
@@ -2273,6 +2282,29 @@
     border-radius: var(--radius-ui);
 }
 
+.content-page .markdown-content .markdown-figure {
+    display: grid;
+    justify-items: center;
+    width: fit-content;
+    max-width: 100%;
+    margin: 1.5rem auto;
+}
+
+.content-page .markdown-content .markdown-figure img {
+    margin: 0 auto;
+}
+
+.content-page .markdown-content .markdown-figure figcaption {
+    width: 100%;
+    max-width: 48rem;
+    margin-top: 0.55rem;
+    color: rgba(203, 213, 225, 0.78);
+    font-size: 0.9rem;
+    font-style: italic;
+    line-height: 1.55;
+    text-align: center;
+}
+
 .content-page .copy-btn {
     position: absolute;
     top: 0.45rem;
@@ -2303,8 +2335,18 @@
 }
 
 .content-page .markdown-content a {
-    color: #7dd3fc;
+    position: relative;
+    top: 0;
+    color: var(--color-tertiary);
     font-weight: 700;
+    transition: color var(--motion-fast), top var(--motion-fast), text-decoration-color var(--motion-fast);
+}
+
+.content-page .markdown-content a:hover,
+.content-page .markdown-content a:focus-visible {
+    top: -0.08rem;
+    color: #7dd3fc;
+    text-decoration-color: currentColor;
 }
 
 .content-page .table-of-content {
