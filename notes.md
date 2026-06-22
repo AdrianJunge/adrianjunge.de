@@ -1,4 +1,5 @@
 - implement that e.g. for referenced codeblocks you can show the real line numbers instead of counting up from 1
+- everything having the "jumping" hovering CSS interaction, the "hitbox" sould stay the same so it doesn't trigger the whole time when hovering exactly the border
 
 # Content
 - Next Blog
