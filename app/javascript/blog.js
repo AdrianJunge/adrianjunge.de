@@ -4,9 +4,43 @@ function initBlogTOC() {
   const articlePage = document.querySelector(".article-page");
   const headings = article ? article.querySelectorAll("h1, h2, h3, h4, h5, h6") : [];
   const tocAnimationDuration = 240;
+  const shouldControlInitialHashScroll = Boolean(articlePage && window.location.hash);
+  const previousScrollRestoration = 'scrollRestoration' in window.history ? window.history.scrollRestoration : null;
+  let initialHashScrollInterrupted = false;
 
   function prefersReducedMotion() {
     return true;
+  }
+
+  if (shouldControlInitialHashScroll && 'scrollRestoration' in window.history) {
+    window.history.scrollRestoration = 'manual';
+  }
+
+  function restoreInitialHashScrollRestoration() {
+    if (previousScrollRestoration && 'scrollRestoration' in window.history) {
+      window.history.scrollRestoration = previousScrollRestoration;
+    }
+  }
+
+  function markInitialHashScrollInterrupted(event) {
+    if (event.type === 'keydown') {
+      const scrollKeys = new Set([ 'ArrowDown', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp', ' ', 'Spacebar' ]);
+      if (!scrollKeys.has(event.key)) return;
+    }
+
+    initialHashScrollInterrupted = true;
+  }
+
+  function addInitialHashScrollInterruptionListeners() {
+    window.addEventListener('wheel', markInitialHashScrollInterrupted, { passive: true });
+    window.addEventListener('touchmove', markInitialHashScrollInterrupted, { passive: true });
+    window.addEventListener('keydown', markInitialHashScrollInterrupted);
+  }
+
+  function removeInitialHashScrollInterruptionListeners() {
+    window.removeEventListener('wheel', markInitialHashScrollInterrupted);
+    window.removeEventListener('touchmove', markInitialHashScrollInterrupted);
+    window.removeEventListener('keydown', markInitialHashScrollInterrupted);
   }
 
   function hashToId(hash) {
@@ -119,9 +153,26 @@ function initBlogTOC() {
     if (target) scrollToAnchor(target);
   }
 
-  if (articlePage && window.location.hash) {
-    window.requestAnimationFrame(correctCurrentHashScroll);
-    window.addEventListener('load', correctCurrentHashScroll, { once: true });
+  function finishInitialHashScroll() {
+    if (!initialHashScrollInterrupted) {
+      correctCurrentHashScroll();
+    }
+
+    removeInitialHashScrollInterruptionListeners();
+    window.setTimeout(restoreInitialHashScrollRestoration, 0);
+  }
+
+  if (shouldControlInitialHashScroll) {
+    addInitialHashScrollInterruptionListeners();
+    window.requestAnimationFrame(() => {
+      if (!initialHashScrollInterrupted) correctCurrentHashScroll();
+    });
+
+    if (document.readyState === 'complete') {
+      finishInitialHashScroll();
+    } else {
+      window.addEventListener('load', finishInitialHashScroll, { once: true });
+    }
   }
 
   if (articlePage) {
