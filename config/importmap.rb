@@ -3,6 +3,7 @@
 pin "application", preload: true
 
 pin "sidebar", to: "sidebar.js"
+pin "stable_hover", to: "stable_hover.js"
 pin "landing", to: "landing.js"
 pin "terminal", to: "terminal.js"
 pin "ctf", to: "ctf.js"

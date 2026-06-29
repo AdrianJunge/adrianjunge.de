@@ -115,22 +115,39 @@ html {
 
 @media (hover: hover) and (pointer: fine) {
     .back-button:hover,
+    .back-button.is-hover-intent,
     .collapse-toc-button:hover,
+    .collapse-toc-button.is-hover-intent,
     .ui-article-action:hover,
+    .ui-article-action.is-hover-intent,
     .content-link-button:hover,
+    .content-link-button.is-hover-intent,
     .content-page .content-filter-year-button:hover,
+    .content-page .content-filter-year-button.is-hover-intent,
     .content-page .download-btn:hover,
+    .content-page .download-btn.is-hover-intent,
     .content-page .open-pdf-btn:hover,
+    .content-page .open-pdf-btn.is-hover-intent,
     .content-page .previous-writeup-btn:hover,
+    .content-page .previous-writeup-btn.is-hover-intent,
     .content-page .next-writeup-btn:hover,
+    .content-page .next-writeup-btn.is-hover-intent,
     .content-page .ctf-rss-feed:hover,
+    .content-page .ctf-rss-feed.is-hover-intent,
     .content-page .ctf-atom-feed:hover,
+    .content-page .ctf-atom-feed.is-hover-intent,
     .content-page .blog-rss-feed:hover,
+    .content-page .blog-rss-feed.is-hover-intent,
     .content-page .blog-atom-feed:hover,
+    .content-page .blog-atom-feed.is-hover-intent,
     .content-page .content-hero-feed-link:hover,
+    .content-page .content-hero-feed-link.is-hover-intent,
     .landing-page .landing-action:hover,
+    .landing-page .landing-action.is-hover-intent,
     .landing-page .landing-affiliation-link:hover,
-    .footer-link:hover {
+    .landing-page .landing-affiliation-link.is-hover-intent,
+    .footer-link:hover,
+    .footer-link.is-hover-intent {
         border-color: var(--button-border);
         color: var(--button-color-hover);
         background-color: var(--button-bg-hover);
@@ -294,10 +311,15 @@ html {
 
 @media (hover: hover) and (pointer: fine) {
     .ui-card-surface:hover,
+    .ui-card-surface.is-hover-intent,
     .content-page .ui-card-surface:hover,
+    .content-page .ui-card-surface.is-hover-intent,
     .landing-page .ui-card-surface:hover,
+    .landing-page .ui-card-surface.is-hover-intent,
     .landing-page .landing-writeup-cards .ui-card-surface:hover,
-    .aboutme-page .ui-card-surface:hover {
+    .landing-page .landing-writeup-cards .ui-card-surface.is-hover-intent,
+    .aboutme-page .ui-card-surface:hover,
+    .aboutme-page .ui-card-surface.is-hover-intent {
         border-color: rgba(125, 211, 252, 0.76);
         background-color: rgba(24, 54, 84, 0.92);
         box-shadow: 0 1rem 2rem rgba(2, 12, 24, 0.28);
@@ -318,14 +340,16 @@ html {
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .profile-card.ui-card-surface[open]:hover {
+    .profile-card.ui-card-surface[open]:hover,
+    .profile-card.ui-card-surface[open].is-hover-intent {
         border-color: var(--profile-card-border);
         background-color: var(--profile-card-bg);
         box-shadow: var(--profile-card-shadow);
         transform: none;
     }
 
-    .profile-card.ui-card-surface[open]:hover::before {
+    .profile-card.ui-card-surface[open]:hover::before,
+    .profile-card.ui-card-surface[open].is-hover-intent::before {
         opacity: 0;
     }
 }
@@ -461,7 +485,9 @@ mjx-container[display="true"] {
 }
 
 .taskbar-link:hover .taskbar-icon,
-.taskbar-button-container:hover .taskbar-icon {
+.taskbar-link.is-hover-intent .taskbar-icon,
+.taskbar-button-container:hover .taskbar-icon,
+.taskbar-button-container.is-hover-intent .taskbar-icon {
     border-color: rgba(125, 211, 252, 0.62);
     background:
         linear-gradient(180deg, rgba(38, 170, 232, 0.25), rgba(27, 54, 85, 0.94));
@@ -470,7 +496,9 @@ mjx-container[display="true"] {
 }
 
 .taskbar-link:hover,
+.taskbar-link.is-hover-intent,
 .taskbar-button-container:hover,
+.taskbar-button-container.is-hover-intent,
 .taskbar-link:focus-visible,
 .taskbar-button-container:focus-visible {
     border-color: rgba(125, 211, 252, 0.36);
@@ -518,7 +546,9 @@ mjx-container[display="true"] {
 }
 
 .taskbar-link:hover .taskbar-icon-image,
+.taskbar-link.is-hover-intent .taskbar-icon-image,
 .taskbar-button-container:hover .taskbar-icon-image,
+.taskbar-button-container.is-hover-intent .taskbar-icon-image,
 .taskbar-link.is-active .taskbar-icon-image,
 .taskbar-button-container.is-active .taskbar-icon-image {
     filter: brightness(0) saturate(100%) invert(100%) sepia(14%) saturate(841%) hue-rotate(163deg) brightness(106%) contrast(101%) drop-shadow(0 0 0.36rem rgba(125, 211, 252, 0.38));
@@ -594,7 +624,9 @@ mjx-container[display="true"] {
 }
 
 .top-taskbar .taskbar-link:hover,
+.top-taskbar .taskbar-link.is-hover-intent,
 .top-taskbar .taskbar-button-container:hover,
+.top-taskbar .taskbar-button-container.is-hover-intent,
 .top-taskbar .taskbar-link:focus-visible,
 .top-taskbar .taskbar-button-container:focus-visible {
     border-color: var(--button-border-hover);
@@ -621,7 +653,9 @@ mjx-container[display="true"] {
 }
 
 .top-taskbar .taskbar-link:hover .taskbar-icon,
-.top-taskbar .taskbar-button-container:hover .taskbar-icon {
+.top-taskbar .taskbar-link.is-hover-intent .taskbar-icon,
+.top-taskbar .taskbar-button-container:hover .taskbar-icon,
+.top-taskbar .taskbar-button-container.is-hover-intent .taskbar-icon {
     border-color: transparent;
     background: transparent;
     box-shadow: none;
@@ -723,6 +757,7 @@ mjx-container[display="true"] {
 }
 
 .top-taskbar .taskbar-feed-option:hover,
+.top-taskbar .taskbar-feed-option.is-hover-intent,
 .top-taskbar .taskbar-feed-option:focus-visible {
     border-color: var(--button-border-hover);
     color: var(--button-color-hover);
@@ -897,7 +932,8 @@ mjx-container[display="true"] {
     box-sizing: border-box;
     appearance: none;
     transition: var(--button-transition);
-    &:hover {
+    &:hover,
+    &.is-hover-intent {
         border-color: var(--button-border-hover);
         background-color: var(--button-bg-hover);
         box-shadow: var(--button-shadow-hover);
@@ -1101,7 +1137,9 @@ mjx-container[display="true"] {
 }
 
 .content-page .content-tag-action:hover,
+.content-page .content-tag-action.is-hover-intent,
 .landing-page .landing-writeup-cards .content-tag-action:hover,
+.landing-page .landing-writeup-cards .content-tag-action.is-hover-intent,
 .content-page .content-tag-link:focus-visible,
 .landing-page .landing-writeup-cards .content-tag-link:focus-visible,
 .content-page button.filter-chip:focus-visible,
@@ -1109,6 +1147,7 @@ mjx-container[display="true"] {
 .landing-page .landing-writeup-cards button.filter-chip:focus-visible,
 .landing-page .landing-writeup-cards button.filter-chip.is-active,
 .aboutme-card-tag.aboutme-tag-action:hover,
+.aboutme-card-tag.aboutme-tag-action.is-hover-intent,
 a.aboutme-card-tag.aboutme-tag-action:focus-visible {
     border-color: var(--tag-border-hover);
     color: var(--tag-color-hover);
@@ -1157,22 +1196,39 @@ a.aboutme-card-tag.aboutme-tag-action:focus-visible {
 }
 
 .content-page .filter-chip.writeup-winner-badge-filter:hover,
+.content-page .filter-chip.writeup-winner-badge-filter.is-hover-intent,
 .content-page .filter-chip.authored-challenge-badge-filter:hover,
+.content-page .filter-chip.authored-challenge-badge-filter.is-hover-intent,
 .content-page .filter-chip.category-badge-filter:hover,
+.content-page .filter-chip.category-badge-filter.is-hover-intent,
 .landing-page .landing-writeup-cards .filter-chip.category-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter.is-hover-intent,
 .content-page .filter-chip.severity-badge-filter:hover,
+.content-page .filter-chip.severity-badge-filter.is-hover-intent,
 .landing-page .landing-writeup-cards .filter-chip.severity-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter.is-hover-intent,
 .content-page .filter-chip.cve-badge-filter:hover,
+.content-page .filter-chip.cve-badge-filter.is-hover-intent,
 .landing-page .landing-writeup-cards .filter-chip.cve-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter.is-hover-intent,
 .content-page .filter-chip.cwe-badge-filter:hover,
+.content-page .filter-chip.cwe-badge-filter.is-hover-intent,
 .landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter.is-hover-intent,
 .content-page .filter-chip.difficulty-badge-filter:hover,
+.content-page .filter-chip.difficulty-badge-filter.is-hover-intent,
 .content-page .filter-chip.difficulty-badge-intro:hover,
+.content-page .filter-chip.difficulty-badge-intro.is-hover-intent,
 .content-page .filter-chip.difficulty-badge-easy:hover,
+.content-page .filter-chip.difficulty-badge-easy.is-hover-intent,
 .content-page .filter-chip.difficulty-badge-medium:hover,
+.content-page .filter-chip.difficulty-badge-medium.is-hover-intent,
 .content-page .filter-chip.difficulty-badge-hard:hover,
+.content-page .filter-chip.difficulty-badge-hard.is-hover-intent,
 .content-page .filter-chip.difficulty-badge-insane:hover,
+.content-page .filter-chip.difficulty-badge-insane.is-hover-intent,
 .content-page .filter-chip.difficulty-badge-unknown:hover,
+.content-page .filter-chip.difficulty-badge-unknown.is-hover-intent,
 .content-page .filter-chip.writeup-winner-badge-filter:focus-visible,
 .content-page .filter-chip.authored-challenge-badge-filter:focus-visible,
 .content-page .filter-chip.category-badge-filter:focus-visible,
@@ -1224,17 +1280,24 @@ a.aboutme-card-tag.aboutme-tag-action.cwe-badge {
 }
 
 .content-page .content-tag-action:hover,
+.content-page .content-tag-action.is-hover-intent,
 .landing-page .landing-writeup-cards .content-tag-action:hover,
+.landing-page .landing-writeup-cards .content-tag-action.is-hover-intent,
 .content-page .content-tag-link:focus-visible,
 .landing-page .landing-writeup-cards .content-tag-link:focus-visible,
 .content-page button.filter-chip:focus-visible,
 .landing-page .landing-writeup-cards button.filter-chip:focus-visible,
 .aboutme-card-tag.aboutme-tag-action:hover,
+.aboutme-card-tag.aboutme-tag-action.is-hover-intent,
 a.aboutme-card-tag.aboutme-tag-action:focus-visible,
 a.aboutme-card-tag.aboutme-tag-action.aboutme-cve-id:hover,
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cve-id.is-hover-intent,
 a.aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id:hover,
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id.is-hover-intent,
 a.aboutme-card-tag.aboutme-tag-action.cve-badge:hover,
-a.aboutme-card-tag.aboutme-tag-action.cwe-badge:hover {
+a.aboutme-card-tag.aboutme-tag-action.cve-badge.is-hover-intent,
+a.aboutme-card-tag.aboutme-tag-action.cwe-badge:hover,
+a.aboutme-card-tag.aboutme-tag-action.cwe-badge.is-hover-intent {
     border-color: var(--tag-border-hover);
     color: var(--tag-color-hover);
     background: var(--tag-bg-hover);
@@ -1331,4 +1394,129 @@ details.aboutme-card.ui-card-surface.details-is-animating,
 .aboutme-card-header,
 .aboutme-card-body {
     transition: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .ui-hover-lift:hover:not(.is-hover-intent),
+    .back-button:hover:not(.is-hover-intent),
+    .collapse-toc-button:hover:not(.is-hover-intent),
+    .ui-article-action:hover:not(.is-hover-intent),
+    .content-link-button:hover:not(.is-hover-intent),
+    .content-page .content-filter-year-button:hover:not(.is-hover-intent),
+    .content-page .download-btn:hover:not(.is-hover-intent),
+    .content-page .open-pdf-btn:hover:not(.is-hover-intent),
+    .content-page .previous-writeup-btn:hover:not(.is-hover-intent),
+    .content-page .next-writeup-btn:hover:not(.is-hover-intent),
+    .content-page .ctf-rss-feed:hover:not(.is-hover-intent),
+    .content-page .ctf-atom-feed:hover:not(.is-hover-intent),
+    .content-page .blog-rss-feed:hover:not(.is-hover-intent),
+    .content-page .blog-atom-feed:hover:not(.is-hover-intent),
+    .content-page .content-hero-feed-link:hover:not(.is-hover-intent),
+    .landing-page .landing-action:hover:not(.is-hover-intent),
+    .landing-page .landing-affiliation-link:hover:not(.is-hover-intent),
+    .footer-link:hover:not(.is-hover-intent),
+    .terminal-button:hover:not(.is-hover-intent),
+    .ui-card-surface:hover:not(.is-hover-intent),
+    .content-page .ui-card-surface:hover:not(.is-hover-intent),
+    .landing-page .ui-card-surface:hover:not(.is-hover-intent),
+    .landing-page .landing-writeup-cards .ui-card-surface:hover:not(.is-hover-intent),
+    .aboutme-page .ui-card-surface:hover:not(.is-hover-intent),
+    .content-hero-title-link:hover:not(.is-hover-intent),
+    .content-page .content-tag-action:hover:not(.is-hover-intent),
+    .landing-page .landing-writeup-cards .content-tag-action:hover:not(.is-hover-intent),
+    .aboutme-card-tag.aboutme-tag-action:hover:not(.is-hover-intent),
+    .aboutme-stat:hover:not(.is-hover-intent),
+    .landing-page .landing-metric:hover:not(.is-hover-intent),
+    .taskbar-link:hover:not(.is-hover-intent),
+    .taskbar-button-container:hover:not(.is-hover-intent),
+    .top-taskbar .taskbar-link:hover:not(.is-hover-intent),
+    .top-taskbar .taskbar-button-container:hover:not(.is-hover-intent),
+    .top-taskbar .taskbar-feed-option:hover:not(.is-hover-intent) {
+        transform: none;
+    }
+
+    .ui-hover-lift.is-hover-intent {
+        transform: translateY(-2px);
+    }
+
+    .back-button.is-hover-intent,
+    .collapse-toc-button.is-hover-intent,
+    .ui-article-action.is-hover-intent,
+    .content-link-button.is-hover-intent,
+    .content-page .content-filter-year-button.is-hover-intent,
+    .content-page .download-btn.is-hover-intent,
+    .content-page .open-pdf-btn.is-hover-intent,
+    .content-page .previous-writeup-btn.is-hover-intent,
+    .content-page .next-writeup-btn.is-hover-intent,
+    .content-page .ctf-rss-feed.is-hover-intent,
+    .content-page .ctf-atom-feed.is-hover-intent,
+    .content-page .blog-rss-feed.is-hover-intent,
+    .content-page .blog-atom-feed.is-hover-intent,
+    .content-page .content-hero-feed-link.is-hover-intent,
+    .landing-page .landing-action.is-hover-intent,
+    .landing-page .landing-affiliation-link.is-hover-intent,
+    .footer-link.is-hover-intent,
+    .terminal-button.is-hover-intent {
+        transform: var(--button-hover-transform);
+    }
+
+    .ui-card-surface.is-hover-intent,
+    .content-page .ui-card-surface.is-hover-intent,
+    .landing-page .ui-card-surface.is-hover-intent,
+    .landing-page .landing-writeup-cards .ui-card-surface.is-hover-intent,
+    .aboutme-page .ui-card-surface.is-hover-intent {
+        transform: translateY(-1px);
+    }
+
+    .profile-card.ui-card-surface[open].is-hover-intent {
+        transform: none;
+    }
+
+    .content-page .content-tag-action.is-hover-intent,
+    .landing-page .landing-writeup-cards .content-tag-action.is-hover-intent,
+    .aboutme-card-tag.aboutme-tag-action.is-hover-intent,
+    .aboutme-card-tag.aboutme-tag-action.aboutme-cve-id.is-hover-intent,
+    .aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id.is-hover-intent,
+    .aboutme-card-tag.aboutme-tag-action.cve-badge.is-hover-intent,
+    .aboutme-card-tag.aboutme-tag-action.cwe-badge.is-hover-intent {
+        transform: translateY(-1px);
+    }
+
+    .content-page button.filter-chip.is-active.is-hover-intent,
+    .landing-page .landing-writeup-cards button.filter-chip.is-active.is-hover-intent {
+        transform: none;
+    }
+
+    .content-hero-title-link.is-hover-intent {
+        color: #7dd3fc;
+        transform: translateY(-1px);
+    }
+
+    .content-hero-title-link.is-hover-intent h1 {
+        text-decoration: none;
+    }
+
+    .content-hero-title-link.is-hover-intent::after {
+        opacity: 1;
+        transform: translate(0.14rem, -0.08rem) rotate(45deg);
+    }
+
+    .content-page .markdown-content a:hover:not(.is-hover-intent) {
+        top: 0;
+    }
+
+    .content-page .markdown-content a.is-hover-intent,
+    .content-page .markdown-content a:focus-visible {
+        top: -0.08rem;
+        color: #7dd3fc;
+        text-decoration-color: currentColor;
+    }
+
+    .aboutme-stat.is-hover-intent,
+    .landing-page .landing-metric.is-hover-intent {
+        color: #f8feff;
+        background: rgba(24, 76, 112, 0.94);
+        box-shadow: inset 1px 0 0 rgba(165, 243, 252, 0.28), 0 0.55rem 1.08rem rgba(2, 12, 24, 0.26);
+        transform: translateY(-1px);
+    }
 }

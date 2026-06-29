@@ -1,4 +1,5 @@
 import "sidebar";
+import "stable_hover";
 import "landing";
 import "terminal";
 import "content_filters";

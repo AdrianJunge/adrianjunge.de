@@ -1,6 +1,3 @@
-- implement that e.g. for referenced codeblocks you can show the real line numbers instead of counting up from 1
-- everything having the "jumping" hovering CSS interaction, the "hitbox" sould stay the same so it doesn't trigger the whole time when hovering exactly the border
-
 # Content
 - Next Blog
     - Firedancer Bug Bounty overrun race condition
@@ -18,6 +15,7 @@
         - Joomla dafür ziemlich sorgfältig, haben auch interessantes severity system (kein CVSS score sondern was custom) und duplicates zählen vermutlich auch solange der bug noch nicht triaged wurde
             - hatte andere SQLI reported, die aber abgelehnt wurde wegen duplicate aber trotzdem stehen bei 2 meiner 3 CVEs noch weitere Leute mit dabei
 - Aboutme to add (with specific dates)
+    - ffmpeg CVEs
     - Firedancer Bug Bounty
     - Firedancer Audit Competition
     - SuiteCRM CVEs
@@ -28,6 +26,7 @@
     - live Rendering des Markdowns
 
 # Misc
+- implement that e.g. for referenced codeblocks you can show the real line numbers instead of counting up from 1
 - global search e.g. as gear icon drop down together with scroll up/down buttons
     => the problem is should the global search be backend or frontend sided
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
@@ -65,4 +64,6 @@
 `\`
 ``
 
-https://www.magnific.com/search?format=search&iconType=standard&last_filter=query&last_value=web+security+3d&query=web+security+3d&type=icon#uuid=54ee002c-935c-4814-a015-fc1f2278474c
+# Useful websites
+- https://www.magnific.com/search?format=search&iconType=standard&last_filter=query&last_value=web+security+3d&query=web+security+3d&type=icon#uuid=54ee002c-935c-4814-a015-fc1f2278474c
+- https://www.remove.bg/
