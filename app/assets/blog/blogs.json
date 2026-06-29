@@ -10,7 +10,7 @@
   "joomla-sqli": {
     "terminal_path": "joomla-sqli",
     "logo": "blog/joomla.png",
-    "title": "Discovering SQL Injections in Joomla with AI-Assisted Research",
+    "title": "Teaching AI to hack Joomla so I can skip my homework",
     "category": "Security Research",
     "description": "How a manual SQLi hunt turned into an AI-assisted Joomla audit and two assigned CVEs."
   },
