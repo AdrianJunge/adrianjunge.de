@@ -325,7 +325,7 @@ class ContentRepository
   end
 
   def read_json_array(path)
-    data = JSON.parse(read_file(path))
+    data = parse_json_content(path)
     ContentJsonSchemas.validate!(path, data)
     data.is_a?(Array) ? data : []
   rescue JSON::ParserError
@@ -333,7 +333,7 @@ class ContentRepository
   end
 
   def read_json_object(path)
-    data = JSON.parse(read_file(path))
+    data = parse_json_content(path)
     ContentJsonSchemas.validate!(path, data)
     data.is_a?(Hash) ? data : {}
   rescue JSON::ParserError
@@ -363,6 +363,10 @@ class ContentRepository
 
   def read_file(path)
     File.exist?(path) ? File.read(path) : ""
+  end
+
+  def parse_json_content(path)
+    JSON.parse(read_file(path), allow_comments: true)
   end
 
   def legacy_year(metadata)

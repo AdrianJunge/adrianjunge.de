@@ -66,7 +66,7 @@ class PublicPagesIntegrityTest < ActionDispatch::IntegrationTest
 
   def ignored_internal_path?(path)
     path.start_with?(
-      "/assets/",
+      "#{asset_path_prefix}/",
       "/ctf/files/",
       "/rails/",
       "/pgp-vurlo.asc"

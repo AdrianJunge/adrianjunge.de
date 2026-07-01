@@ -9,7 +9,7 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
 
   test "all content json files match their json_schemer schemas" do
     ContentJsonSchemas.registered_paths.each do |path|
-      data = JSON.parse(File.read(path))
+      data = parse_content_json(path)
       errors = ContentJsonSchemas.errors_for(path, data)
 
       assert_empty errors, schema_error_message(path, errors)
@@ -25,19 +25,19 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
       ApplicationController::ABOUTME_TALKS_PATH,
       ApplicationController::ABOUTME_ACHIEVEMENTS_PATH
     ].each do |path|
-      ids = JSON.parse(File.read(path)).map { |entry| entry["id"] }
+      ids = parse_content_json(path).map { |entry| entry["id"] }
 
       assert_equal ids.uniq, ids, "duplicate ids in #{path}"
     end
   end
 
   test "ctf and blog metadata keys point at their configured paths" do
-    ctf_metadata = JSON.parse(File.read(ApplicationController::CTF_INFO_PATH))
+    ctf_metadata = parse_content_json(ApplicationController::CTF_INFO_PATH)
     ctf_metadata.each do |_name, entry|
       assert_match %r{\A/ctf/#{Regexp.escape(entry.fetch("terminal_path"))}\z}, entry.fetch("writeups")
     end
 
-    blog_metadata = JSON.parse(File.read(ApplicationController::BLOG_INFO_PATH))
+    blog_metadata = parse_content_json(ApplicationController::BLOG_INFO_PATH)
     blog_metadata.each do |slug, entry|
       assert_equal slug, entry.fetch("terminal_path")
     end
@@ -55,7 +55,7 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
       ApplicationController::ABOUTME_TALKS_PATH,
       ApplicationController::ABOUTME_ACHIEVEMENTS_PATH
     ].each do |path|
-      JSON.parse(File.read(path)).each do |entry|
+      parse_content_json(path).each do |entry|
         asset_refs << entry["icon"]
         Array(entry["timeline"]).each { |event| asset_refs << event["icon"] if event.is_a?(Hash) }
       end
@@ -72,7 +72,7 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
   end
 
   test "invalid content json reports useful schema errors" do
-    data = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
+    data = parse_content_json(ApplicationController::ABOUTME_CVES_PATH)
     data.first.delete("title")
 
     error = assert_raises(ContentJsonSchemas::ValidationError) do

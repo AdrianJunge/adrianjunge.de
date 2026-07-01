@@ -69,13 +69,13 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
 
   test "about me content files have expected shape" do
     repository = ContentRepository.new
-    cves = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
-    bug_bounties = JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
-    challenge_records = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
+    cves = parse_content_json(ApplicationController::ABOUTME_CVES_PATH)
+    bug_bounties = parse_content_json(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
+    challenge_records = parse_content_json(ApplicationController::ABOUTME_CHALLENGES_PATH)
     challenges = repository.authored_challenges
-    certificates = JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH))
-    talks = JSON.parse(File.read(ApplicationController::ABOUTME_TALKS_PATH))
-    achievements = JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
+    certificates = parse_content_json(ApplicationController::ABOUTME_CERTIFICATES_PATH)
+    talks = parse_content_json(ApplicationController::ABOUTME_TALKS_PATH)
+    achievements = parse_content_json(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH)
 
     assert_kind_of Array, cves
     assert_kind_of Array, bug_bounties

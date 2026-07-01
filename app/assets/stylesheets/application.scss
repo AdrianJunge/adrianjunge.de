@@ -1304,6 +1304,29 @@ a.aboutme-card-tag.aboutme-tag-action.cwe-badge.is-hover-intent {
     background-image: none;
 }
 
+.content-page .content-filter-panel button.filter-chip.is-uncombinable:not(.is-active),
+.content-page .content-filter-panel button.filter-chip.is-uncombinable:not(.is-active):hover,
+.content-page .content-filter-panel button.filter-chip.is-uncombinable:not(.is-active).is-hover-intent,
+.content-page .content-filter-panel button.filter-chip.is-uncombinable:not(.is-active):focus-visible {
+    --tag-border: rgba(148, 163, 184, 0.22);
+    --tag-border-hover: var(--tag-border);
+    --tag-color: rgba(203, 213, 225, 0.72);
+    --tag-color-hover: var(--tag-color);
+    --tag-bg: rgba(30, 41, 59, 0.4);
+    --tag-bg-hover: var(--tag-bg);
+    --tag-shadow: transparent;
+    --tag-shadow-hover: transparent;
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.54;
+    outline: none;
+    transform: none;
+}
+
 a.aboutme-card-tag.aboutme-tag-timeline::after,
 a.aboutme-card-tag.aboutme-tag-timeline:hover::after,
 a.aboutme-card-tag.aboutme-tag-timeline:focus-visible::after {

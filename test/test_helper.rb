@@ -11,5 +11,12 @@ module ActiveSupport
     fixtures :all
 
     # Add more helper methods to be used by all tests here...
+    def parse_content_json(path)
+      ::JSON.parse(File.read(path), allow_comments: true)
+    end
+
+    def asset_path_prefix
+      Rails.application.config.assets.prefix
+    end
   end
 end

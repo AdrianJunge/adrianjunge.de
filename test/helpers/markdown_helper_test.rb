@@ -96,7 +96,7 @@ class MarkdownHelperTest < ActionView::TestCase
 
     assert figure
     assert_equal "Diagram alt text", figure.at_css("img")["alt"]
-    assert_includes figure.at_css("img")["src"], "/assets/blog/posts/java-strings/java-string-pool"
+    assert_includes figure.at_css("img")["src"], "#{asset_path_prefix}/blog/posts/java-strings/java-string-pool"
     assert_equal "Diagram alt text", figure.at_css("figcaption").text
   end
 end

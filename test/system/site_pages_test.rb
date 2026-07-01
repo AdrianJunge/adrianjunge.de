@@ -283,6 +283,14 @@ class SitePagesTest < ApplicationSystemTestCase
     [ "/blog", "/timeline", "/about" ].each do |path|
       page.current_window.resize_to(1280, 900)
       visit path
+      assert_selector "body", wait: Capybara.default_max_wait_time do
+        page.evaluate_script(<<~JS)
+          (() => {
+            const icon = document.querySelector(".content-hero-icon-wrap");
+            return icon && window.getComputedStyle(icon).width !== "auto";
+          })()
+        JS
+      end
 
       metrics = page.evaluate_script(<<~JS)
         (() => {
@@ -610,7 +618,7 @@ class SitePagesTest < ApplicationSystemTestCase
     if expected_card_scopes.include?("writeups")
       ctf_logo_count = landing_latest_posts.count { |post| post[:type] == "ctf" && landing_post_logo?(post) }
       assert_selector ".landing-writeup-cards .writeup-post-card .blog-post-authors", count: expected_writeup_count
-      assert_selector_count ".landing-writeup-cards .writeup-post-card .blog-logo[src*='/assets/ctf/']", ctf_logo_count
+      assert_selector_count ".landing-writeup-cards .writeup-post-card .blog-logo[src*='#{asset_path_prefix}/ctf/']", ctf_logo_count
     end
     landing_authored_posts = landing_latest_posts.select { |post| post[:type] == "ctf" && AuthoredChallenge.from_metadata(post[:metadata] || {}) }
     if landing_authored_posts.any?
@@ -644,7 +652,7 @@ class SitePagesTest < ApplicationSystemTestCase
     end
     if expected_card_scopes.include?("blogs")
       blog_logo_count = landing_latest_posts.count { |post| post[:type] == "blog" && landing_post_logo?(post) }
-      assert_selector_count ".landing-writeup-cards .blog-post-card[data-filter-card='blogs'] .blog-logo[src*='/assets/blog/']", blog_logo_count
+      assert_selector_count ".landing-writeup-cards .blog-post-card[data-filter-card='blogs'] .blog-logo[src*='#{asset_path_prefix}/blog/']", blog_logo_count
     end
     assert_no_selector ".landing-writeup-cards .filter-chip[data-filter-tag]", visible: :all
     assert_no_selector ".landing-writeup-cards .filter-chip.ui-hover-lift", visible: :all
@@ -1667,7 +1675,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_text post[:title]
     assert_selector ".markdown-content a[href^='#']"
     assert_selector ".markdown-content a[href^='http']"
-    assert_selector ".markdown-content img[src*='/assets/ctf/writeups/']"
+    assert_selector ".markdown-content img[src*='#{asset_path_prefix}/ctf/writeups/']"
   end
 
   test "table of contents indents nested headings by depth" do
@@ -2167,6 +2175,49 @@ class SitePagesTest < ApplicationSystemTestCase
     chip.click
     assert_no_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_overview_items.length, ctf_overview_items.length)
+  end
+
+  test "filter panel marks tags that cannot combine with the current filters" do
+    tag_pair = ctf_uncombinable_tag_pair
+
+    visit "/ctf"
+
+    find(".content-filter-panel .filter-chip", text: /^#{Regexp.escape(tag_pair[:first])}$/i).click
+    assert_current_path "/ctf?#{Rack::Utils.build_query(tag: tag_pair[:first])}"
+    assert_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(tag_pair[:first])}$/i
+
+    uncombinable_state = page.evaluate_script(<<~JS)
+      (() => {
+        const chip = [...document.querySelectorAll(".content-filter-panel .filter-chip")]
+          .find((candidate) => candidate.dataset.filterTag === #{tag_pair[:second].to_json});
+
+        return {
+          found: Boolean(chip),
+          className: chip?.className || "",
+          ariaDisabled: chip?.getAttribute("aria-disabled"),
+          ariaLabel: chip?.getAttribute("aria-label"),
+          combinable: chip?.dataset.filterCombinable,
+          tabIndex: chip?.tabIndex,
+          title: chip?.getAttribute("title")
+        };
+      })()
+    JS
+
+    assert_equal true, uncombinable_state["found"]
+    assert_includes uncombinable_state["className"], "is-uncombinable"
+    assert_equal "true", uncombinable_state["ariaDisabled"]
+    assert_equal "false", uncombinable_state["combinable"]
+    assert_equal(-1, uncombinable_state["tabIndex"])
+    assert_includes uncombinable_state["ariaLabel"], "no results"
+    assert_equal "No results with current filters", uncombinable_state["title"]
+
+    find(".content-filter-panel .filter-chip", text: /^#{Regexp.escape(tag_pair[:second])}$/i).click
+    assert_current_path "/ctf?#{Rack::Utils.build_query(tag: tag_pair[:first])}"
+    assert_selector ".content-filter-panel .filter-chip.is-active", count: 1
+    assert_no_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(tag_pair[:second])}$/i
+
+    find("[data-filter-reset='ctfs']").click
+    assert_no_selector ".content-filter-panel .filter-chip.is-uncombinable"
   end
 
   test "blog filters search text and publish year" do
@@ -3064,6 +3115,23 @@ class SitePagesTest < ApplicationSystemTestCase
     groups.values.find { |group| group[:items].length < ctf_overview_items.length } ||
       groups.values.first ||
       flunk("expected at least one CTF filter tag")
+  end
+
+  def ctf_uncombinable_tag_pair
+    groups = {}
+    ctf_overview_items.each do |item|
+      item[:tags].each do |tag|
+        key = tag.downcase
+        groups[key] ||= { tag: tag, items: [] }
+        groups[key][:items] << item
+      end
+    end
+
+    groups.values.combination(2) do |first, second|
+      return { first: first[:tag], second: second[:tag] } if (first[:items] & second[:items]).empty?
+    end
+
+    flunk("expected at least two CTF filter tags without a shared result")
   end
 
   def ctf_overview_difficulty_case

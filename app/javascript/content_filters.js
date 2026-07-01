@@ -48,7 +48,10 @@ function searchTermsFrom(text, tags) {
 }
 
 function matchesSearchQuery(query, terms) {
-  const queryTerms = normalizeSearchWords(query);
+  return matchesSearchTerms(normalizeSearchWords(query), terms);
+}
+
+function matchesSearchTerms(queryTerms, terms) {
   if (queryTerms.length === 0) return true;
 
   return queryTerms.every(queryTerm => terms.some(term => orderedCharacterMatch(queryTerm, term)));
@@ -61,12 +64,115 @@ function tokensFrom(value) {
     .filter(Boolean);
 }
 
-function setChipState(scope, activeTags) {
+function buildCardRecord(card) {
+  const record = {
+    card,
+    displayTarget: card.closest('.blog-post-entry') || card.closest('.timeline-item') || card,
+    rawText: null,
+    rawTags: null,
+    rawYears: null,
+    tags: [],
+    tagSet: new Set(),
+    yearSet: new Set(),
+    searchTerms: []
+  };
+
+  syncCardRecord(record);
+  return record;
+}
+
+function syncCardRecord(record) {
+  const { card } = record;
+  const rawText = card.dataset.filterText || '';
+  const rawTags = card.dataset.filterTags || '';
+  const rawYears = card.dataset.filterYears || card.dataset.filterYear || '';
+
+  if (rawText === record.rawText && rawTags === record.rawTags && rawYears === record.rawYears) return;
+
+  record.rawText = rawText;
+  record.rawTags = rawTags;
+  record.rawYears = rawYears;
+  record.tags = tokensFrom(rawTags);
+  record.tagSet = new Set(record.tags);
+  record.yearSet = new Set(tokensFrom(rawYears));
+  record.searchTerms = searchTermsFrom(rawText, record.tags);
+}
+
+function matchesCardRecord(record, queryTerms, selectedYear, activeTagList) {
+  return matchesSearchTerms(queryTerms, record.searchTerms) &&
+    (selectedYear === '' || record.yearSet.has(selectedYear)) &&
+    activeTagList.every(tag => record.tagSet.has(tag));
+}
+
+function uncombinableTagsFor(records, activeTags, chips) {
+  if (chips.length === 0) return new Set();
+
+  const candidateTags = new Set(chips.map(chip => normalizeToken(chip.dataset.filterTag)).filter(Boolean));
+  const availableTags = new Set();
+
+  records.forEach(record => {
+    record.tags.forEach(tag => {
+      if (candidateTags.has(tag)) availableTags.add(tag);
+    });
+  });
+
+  const unavailableTags = new Set();
+  candidateTags.forEach(tag => {
+    if (!activeTags.has(tag) && !availableTags.has(tag)) unavailableTags.add(tag);
+  });
+
+  return unavailableTags;
+}
+
+function storeOriginalChipAttribute(chip, key, attribute) {
+  if (!Object.prototype.hasOwnProperty.call(chip.dataset, key)) {
+    chip.dataset[key] = chip.getAttribute(attribute) || '';
+  }
+
+  return chip.dataset[key];
+}
+
+function restoreChipAttribute(chip, attribute, value) {
+  if (value) {
+    chip.setAttribute(attribute, value);
+  } else {
+    chip.removeAttribute(attribute);
+  }
+}
+
+function setChipCombinability(chip, uncombinable) {
+  const originalTitle = storeOriginalChipAttribute(chip, 'filterOriginalTitle', 'title');
+  const originalAriaLabel = storeOriginalChipAttribute(chip, 'filterOriginalAriaLabel', 'aria-label');
+  const originalTabIndex = storeOriginalChipAttribute(chip, 'filterOriginalTabIndex', 'tabindex');
+
+  chip.classList.toggle('is-uncombinable', uncombinable);
+  chip.dataset.filterCombinable = (!uncombinable).toString();
+  chip.setAttribute('aria-disabled', uncombinable.toString());
+
+  if (uncombinable) {
+    const baseLabel = originalAriaLabel || chip.textContent.trim() || 'Filter';
+    chip.setAttribute('aria-label', `${baseLabel} (no results with current filters)`);
+    chip.setAttribute('title', 'No results with current filters');
+    chip.tabIndex = -1;
+    return;
+  }
+
+  restoreChipAttribute(chip, 'title', originalTitle);
+  restoreChipAttribute(chip, 'aria-label', originalAriaLabel);
+  restoreChipAttribute(chip, 'tabindex', originalTabIndex);
+}
+
+function setChipState(scope, activeTags, uncombinableTags = new Set(), panelChips = []) {
   document.querySelectorAll(`[data-filter-tag][data-filter-scope="${scope}"]`).forEach(chip => {
     const tag = normalizeToken(chip.dataset.filterTag);
     const active = activeTags.has(tag);
     chip.classList.toggle('is-active', active);
     chip.setAttribute('aria-pressed', active.toString());
+  });
+
+  panelChips.forEach(chip => {
+    const tag = normalizeToken(chip.dataset.filterTag);
+    setChipCombinability(chip, !activeTags.has(tag) && uncombinableTags.has(tag));
   });
 }
 
@@ -226,7 +332,9 @@ function initFilterPanel(panel) {
   const empty = document.querySelector(`[data-filter-empty="${scope}"]`);
   const resultContainers = Array.from(document.querySelectorAll(`[data-filter-results="${scope}"]`));
   const cards = Array.from(document.querySelectorAll(`[data-filter-card="${scope}"]`));
+  const cardRecords = cards.map(buildCardRecord);
   const chips = Array.from(document.querySelectorAll(`[data-filter-tag][data-filter-scope="${scope}"]`));
+  const panelChips = Array.from(panel.querySelectorAll(`[data-filter-tag][data-filter-scope="${scope}"]`));
   const tagLabels = new Map(chips.map(chip => [normalizeToken(chip.dataset.filterTag), chip.dataset.filterTag]));
   const activeTags = new Set();
   let yearDropdown = null;
@@ -265,25 +373,25 @@ function initFilterPanel(panel) {
   function applyFilters(options = {}) {
     const updateUrl = options.updateUrl !== false;
     const query = normalizeToken(search && search.value);
+    const queryTerms = normalizeSearchWords(query);
     const selectedYear = normalizeToken(year && year.value);
+    const activeTagList = [...activeTags];
+    const visibleRecords = [];
     let visible = 0;
 
-    cards.forEach(card => {
-      const displayTarget = card.closest('.blog-post-entry') || card.closest('.timeline-item') || card;
-      const text = normalizeToken(card.dataset.filterText);
-      const cardTags = tokensFrom(card.dataset.filterTags);
-      const cardYears = tokensFrom(card.dataset.filterYears || card.dataset.filterYear);
-      const searchTerms = searchTermsFrom(text, cardTags);
+    cardRecords.forEach(record => {
+      syncCardRecord(record);
 
-      const matchesText = matchesSearchQuery(query, searchTerms);
-      const matchesYear = selectedYear === '' || cardYears.includes(selectedYear);
-      const matchesTags = [...activeTags].every(tag => cardTags.includes(tag));
-      const matched = matchesText && matchesYear && matchesTags;
+      const { card, displayTarget } = record;
+      const matched = matchesCardRecord(record, queryTerms, selectedYear, activeTagList);
 
       displayTarget.hidden = !matched;
       card.setAttribute('aria-hidden', (!matched).toString());
       displayTarget.setAttribute('aria-hidden', (!matched).toString());
-      if (matched) visible += 1;
+      if (matched) {
+        visible += 1;
+        visibleRecords.push(record);
+      }
     });
 
     document.querySelectorAll(`[data-filter-group="${scope}"]`).forEach(group => {
@@ -298,7 +406,7 @@ function initFilterPanel(panel) {
       }
     });
 
-    setChipState(scope, activeTags);
+    setChipState(scope, activeTags, uncombinableTagsFor(visibleRecords, activeTags, panelChips), panelChips);
 
     if (count) {
       const label = cards.length === 1 ? 'item' : 'items';
@@ -356,6 +464,12 @@ function initFilterPanel(panel) {
     chip.addEventListener('click', event => {
       event.preventDefault();
       event.stopPropagation();
+
+      if (chip.classList.contains('is-uncombinable')) {
+        if (shouldReleaseChipFocus(pointerType)) chip.blur();
+        pointerType = '';
+        return;
+      }
 
       const tag = normalizeToken(chip.dataset.filterTag);
       if (activeTags.has(tag)) {

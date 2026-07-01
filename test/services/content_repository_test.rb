@@ -53,7 +53,7 @@ class ContentRepositoryTest < ActiveSupport::TestCase
   test "authored challenges are read from compact about json" do
     repository = ContentRepository.new
     challenges = repository.authored_challenges
-    raw_challenges = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
+    raw_challenges = parse_content_json(ApplicationController::ABOUTME_CHALLENGES_PATH)
     scanwich = challenges.find { |entry| entry["id"] == "scanwich-station" }
     smile_at_me = challenges.find { |entry| entry["id"] == "smile-at-me" }
 

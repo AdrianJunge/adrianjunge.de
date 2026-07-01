@@ -15,7 +15,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_select "script[type='application/ld+json']", text: /"@type":"SearchAction"/
     assert_select "script[type='application/ld+json']", text: %r{/timeline\?q=\{search_term_string\}}
     assert_select "link[rel='stylesheet'][href=?]", TerminalHelper::XTERM_CSS_CDN_URL
-    assert_select "link[rel='stylesheet'][href^='/assets'][href*='xterm.css']", 0
+    assert_select "link[rel='stylesheet'][href^='#{asset_path_prefix}'][href*='xterm.css']", 0
     assert_select "link[rel='alternate'][title='adrianjunge.de (RSS)'][href=?]", feed_xml_url
     assert_select "link[rel='alternate'][title='adrianjunge.de (Atom)'][href=?]", feed_url(format: :atom)
     assert_select "link[rel='alternate'][title='adrianjunge.de (JSON Feed)'][href=?]", feed_json_url
