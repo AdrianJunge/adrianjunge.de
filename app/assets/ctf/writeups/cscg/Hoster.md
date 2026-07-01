@@ -15,11 +15,11 @@ published: "2024-05-23"
 
 # TL;DR
 
-    **- Challenge Setup:** SSH access as low privileged user - `/flag` is only accessible as root
-    **- Key Discoveries:** Identifying root cron job via **PSPY** running `dig` and `curl` commands
-    **- Vulnerability:** Cron job relying on `/config/domains.txt` is accessible by low privileged user
-    **- Exploitation Variant 1:** Creating symlink `/config/domains.txt` to `/flag`
-    **- Exploitation Variant 2:** Command option injection using `-K/tmp/config` to upload the flag by the used `curl`
+- **Challenge Setup:** SSH access as low privileged user - `/flag` is only accessible as root
+- **Key Discoveries:** Identifying root cron job via **PSPY** running `dig` and `curl` commands
+- **Vulnerability:** Cron job relying on `/config/domains.txt` is accessible by low privileged user
+- **Exploitation Variant 1:** Creating symlink `/config/domains.txt` to `/flag`
+- **Exploitation Variant 2:** Command option injection using `-K/tmp/config` to upload the flag by the used `curl`
 
 # Introduction
 

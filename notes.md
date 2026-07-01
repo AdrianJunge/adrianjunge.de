@@ -16,8 +16,7 @@
             - hatte andere SQLI reported, die aber abgelehnt wurde wegen duplicate aber trotzdem stehen bei 2 meiner 3 CVEs noch weitere Leute mit dabei
 - Aboutme to add (with specific dates)
     - ffmpeg CVEs
-    - Firedancer Bug Bounty
-    - Firedancer Audit Competition
+    - Firedancer Bug Bounty Payout Timeline Date ergänzen
     - SuiteCRM CVEs
     - Wordpress Bug Bounty + CVE
 

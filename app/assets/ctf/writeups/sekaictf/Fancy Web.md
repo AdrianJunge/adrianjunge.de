@@ -22,10 +22,10 @@ optional:
 
 # TL;DR
 
-    **- Challenge Setup:** **Wordpress** website with custom plugin
-    **- Key Discoveries:** custom table generation by making use of **PHP** `unserialize` and a bunch of tries to sanitize the user input
-    **- Vulnerability:** insecure deserialization due to insufficient input validation and sanitization
-    **- Exploitation:** triggering the **PHP** `unserialize` and exploiting a POP chain in the **Wordpress** core
+- **Challenge Setup:** **Wordpress** website with custom plugin
+- **Key Discoveries:** custom table generation by making use of **PHP** `unserialize` and a bunch of tries to sanitize the user input
+- **Vulnerability:** insecure deserialization due to insufficient input validation and sanitization
+- **Exploitation:** triggering the **PHP** `unserialize` and exploiting a POP chain in the **Wordpress** core
 
 # Introduction
 

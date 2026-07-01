@@ -38,10 +38,11 @@ optional:
 ---
 
 # TL;DR
-    **- Challenge Setup:**
-    **- Key Discoveries:**
-    **- Vulnerability:**
-    **- Exploitation:**
+
+- **Challenge Setup:**
+- **Key Discoveries:**
+- **Vulnerability:**
+- **Exploitation:**
 
 # Introduction
 

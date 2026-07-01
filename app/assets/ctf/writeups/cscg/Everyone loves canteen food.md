@@ -15,10 +15,10 @@ published: "2025-05-09"
 
 # TL;DR
 
-    **- Challenge Setup:** **PHP** website offering canteen food which can be filtered by a simple input
-    **- Key Discoveries:** Input is processed via **SQL** and **PHP** `unserialize`
-    **- Vulnerability:** The **SQL** query is injectable making the used **PHP** `unserialize` exploitable
-    **- Exploitation:** Bypassing the **PHP** `unserialize` object regex via a `+` before the `uiv` part will result in RCE
+- **Challenge Setup:** **PHP** website offering canteen food which can be filtered by a simple input
+- **Key Discoveries:** Input is processed via **SQL** and **PHP** `unserialize`
+- **Vulnerability:** The **SQL** query is injectable making the used **PHP** `unserialize` exploitable
+- **Exploitation:** Bypassing the **PHP** `unserialize` object regex via a `+` before the `uiv` part will result in RCE
 
 # Introduction
 

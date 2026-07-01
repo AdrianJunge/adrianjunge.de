@@ -1,15 +1,16 @@
 [
   {
-    "id": "firedancer-tba",
-    "hidden": true,
+    "id": "frankendancer-netshred-overrun",
     "title": "Firedancer",
-    "subtitle": "Bug bounty finding (TBA)",
-    "icon": "other/bug-bounty.svg",
-    "url": "https://immunefi.com/bug-bounty/firedancer/information/",
+    "subtitle": "Race condition in the netshred module",
+    "icon": "other/solana-firedancer.png",
+    "summary": "Before Frankendancer Mainnet v0.910.40000 a race condition in the netshred module could lead to a remotely triggerable Denial of Service.",
+    "url": "https://immunefi.com/bug-bounty/Frankendancer/information/",
     "tags": [
+      "Medium",
       {
-        "label": "Bug bounty",
-        "url": "https://immunefi.com/bug-bounty/firedancer/information/"
+        "label": "CWE-617",
+        "url": "https://cwe.mitre.org/data/definitions/617.html"
       }
     ],
     "links": [
@@ -18,8 +19,30 @@
         "url": "https://github.com/firedancer-io/firedancer"
       },
       {
-        "label": "Firedancer bug bounty",
-        "url": "https://immunefi.com/bug-bounty/firedancer/information/"
+        "label": "Frankendancer bug bounty",
+        "url": "https://immunefi.com/bug-bounty/Frankendancer/information/"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-04-22",
+        "title": "Reported to Immunefi via the Firedancer v1 audit competition."
+      },
+      {
+        "date": "2026-05-07",
+        "title": "First acknowledgment."
+      },
+      {
+        "date": "2026-05-09",
+        "title": "Confirmation of the issue, initial patch development and acknowledgment that the finding is also valid for the Frankendancer bug bounty program."
+      },
+      {
+        "date": "2026-05-21",
+        "title": "Fixed in Frankendancer Mainnet v0.910.40000."
+      },
+      {
+        "date": "2026-00-00",
+        "title": "Bounty payout."
       }
     ]
   }

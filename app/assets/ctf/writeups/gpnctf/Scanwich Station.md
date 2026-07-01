@@ -23,10 +23,10 @@ optional:
 
 # TL;DR
 
-    **- Challenge Setup:** A **Flask** web server, implementing a QR scanner, accepts PNG uploads, decodes ordinary guest tickets with a **Python** QR library, and has a faster alternative path backed by the C library [quirc](https://github.com/dlbeer/quirc) requiring some special authorization
-    **- Key Discoveries:** User controlled form fields are passed into a dataclass constructor, allowing `station=kitchen`. The QR-code scanner accepts raw image dimensions where `width * height` fits neither signed 32-bit arithmetic nor several [quirc](https://github.com/dlbeer/quirc) indexing expressions
-    **- Vulnerability:** A **signed integer overflow** in [quirc](https://github.com/dlbeer/quirc) lets a finder-pattern scan discover pixels at a high in-bounds offset, then re-use the same coordinates through signed arithmetic and write one byte before the **mmap**-backed image buffer
-    **- Exploitation:** Corrupt **GLIBC** **mmap** chunk size metadata, free the oversized mapping, reclaim the **LIBC** prefix, then use a [House-of-Muney](https://maxwelldulin.com/BlogPost/House-of-Muney-Heap-Exploitation)-style dynamic symbol poisoning chain to make lazy binding turn `puts(<payload>)` into `system(<payload>)`
+- **Challenge Setup:** A **Flask** web server, implementing a QR scanner, accepts PNG uploads, decodes ordinary guest tickets with a **Python** QR library, and has a faster alternative path backed by the C library [quirc](https://github.com/dlbeer/quirc) requiring some special authorization
+- **Key Discoveries:** User controlled form fields are passed into a dataclass constructor, allowing `station=kitchen`. The QR-code scanner accepts raw image dimensions where `width * height` fits neither signed 32-bit arithmetic nor several [quirc](https://github.com/dlbeer/quirc) indexing expressions
+- **Vulnerability:** A **signed integer overflow** in [quirc](https://github.com/dlbeer/quirc) lets a finder-pattern scan discover pixels at a high in-bounds offset, then re-use the same coordinates through signed arithmetic and write one byte before the **mmap**-backed image buffer
+- **Exploitation:** Corrupt **GLIBC** **mmap** chunk size metadata, free the oversized mapping, reclaim the **LIBC** prefix, then use a [House-of-Muney](https://maxwelldulin.com/BlogPost/House-of-Muney-Heap-Exploitation)-style dynamic symbol poisoning chain to make lazy binding turn `puts(<payload>)` into `system(<payload>)`
 
 # Introduction
 

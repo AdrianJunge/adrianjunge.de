@@ -18,10 +18,10 @@ published: "2025-06-09"
 
 # TL;DR
 
-    **- Challenge Setup:** Small website reflecting user input via URL query parameter
-    **- Key Discoveries:** Due to **Jinja2** `safe` attribute you basically have **HTML** injection
-    **- Vulnerability:** The website is vulnerable to a special form of **XSLeak**: **STTF** - **Scroll-To-Text-Fragment**
-    **- Exploitation:** By injecting lazy loading iframes, you can measure the time it takes for the bot to load the website
+- **Challenge Setup:** Small website reflecting user input via URL query parameter
+- **Key Discoveries:** Due to **Jinja2** `safe` attribute you basically have **HTML** injection
+- **Vulnerability:** The website is vulnerable to a special form of **XSLeak**: **STTF** - **Scroll-To-Text-Fragment**
+- **Exploitation:** By injecting lazy loading iframes, you can measure the time it takes for the bot to load the website
 
 # Introduction
 

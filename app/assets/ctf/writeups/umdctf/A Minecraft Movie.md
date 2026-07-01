@@ -20,10 +20,10 @@ optional:
 
 # TL;DR
 
-    **- Challenge Setup:** **React** webapp with account management to create simple posts and let it rate by the others and the admin - you get the flag if the admin likes your post
-    **- Key Discoveries:** Client-side XSS sanitization with **DOMPurify**
-    **- Vulnerability:** HTML injection in the content of posts
-    **- Exploitation:** There were several ways of exploiting the 1 click of the admin to get CSRF from a simple form submit to a clickjacking styled attack to CSS shenanigans to DOM clobbering and finally just 🧀 the challenge by logging into others' accounts
+- **Challenge Setup:** **React** webapp with account management to create simple posts and let it rate by the others and the admin - you get the flag if the admin likes your post
+- **Key Discoveries:** Client-side XSS sanitization with **DOMPurify**
+- **Vulnerability:** HTML injection in the content of posts
+- **Exploitation:** There were several ways of exploiting the 1 click of the admin to get CSRF from a simple form submit to a clickjacking styled attack to CSS shenanigans to DOM clobbering and finally just 🧀 the challenge by logging into others' accounts
 
 # Introduction
 

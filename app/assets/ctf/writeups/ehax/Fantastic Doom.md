@@ -17,9 +17,9 @@ published: "2025-04-24"
 
 # TL;DR
 
-    **- Challenge Setup:** This is a pretty easy pwn challenge allowing the user to input an auth code once.
-    **- Key Discoveries:** There is a free libc leak and a stack buffer overflow.
-    **- Exploitation:** Due to the leak we can defeat ASLR and by exploiting the overflow as an attacker we can control the return address.
+- **Challenge Setup:** This is a pretty easy pwn challenge allowing the user to input an auth code once.
+- **Key Discoveries:** There is a free libc leak and a stack buffer overflow.
+- **Exploitation:** Due to the leak we can defeat ASLR and by exploiting the overflow as an attacker we can control the return address.
 
 # Introduction
 

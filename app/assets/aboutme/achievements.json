@@ -1,5 +1,32 @@
 [
   {
+    "id": "immunefi",
+    "title": "Immunefi",
+    "summary": "Immunefi bug bounty & audit platform for smart contracts and DeFi projects.",
+    "icon": "other/immunefi.png",
+    "tags": [
+      "Bug Bounty",
+      "Audit Competition",
+      {
+        "label": "Immunefi Bug Bounty",
+        "url": "https://immunefi.com/bug-bounty/"
+      },
+      {
+        "label": "Immunefi Audit Competition",
+        "url": "https://immunefi.com/audit-competition/"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "firedancer-v1-audit-competition",
+        "title": "Firedancer v1 audit competition",
+        "date": "2024-04-09",
+        "summary": "Participated in the Firedancer v1 audit competition.",
+        "url": "https://immunefi.com/audit-competition/firedancer-v1-audit-comp/leaderboard/#:~:text=vurlo"
+      }
+    ]
+  },
+  {
     "id": "dhm",
     "title": "DHM",
     "icon": "ctf/dhm.png",
@@ -41,7 +68,7 @@
     "timeline": [
       {
         "id": "cscg-2025",
-        "title": "CSCG 2025 top 10 global",
+        "title": "CSCG 2025 top 10 global & DHM qualification",
         "date": "2025-05-01",
         "summary": "Qualified for DHM again and finished top 10 globally."
       },

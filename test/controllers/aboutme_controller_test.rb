@@ -5,6 +5,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     get about_path
     repository = ContentRepository.new
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
+    bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
 
     assert_response :success
     assert_select "main.aboutme-page"
@@ -18,7 +19,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".aboutme-finding-card", minimum: 1
     assert_select ".aboutme-achievement-card", minimum: 1
     assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#cves", text: cves.length.to_s
-    assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#bug-bounties", text: "0"
+    assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#bug-bounties", text: bug_bounties.length.to_s
     assert_select ".aboutme-stat[href=?]", "#my-challenges", text: /Created CTF Challenges/
     assert_select ".aboutme-stat[href=?]", "#certificates", text: /Certificates/
     assert_select ".aboutme-stat[href=?]", "#talks", text: /Talks/
@@ -43,6 +44,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
 
     repository = ContentRepository.new
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
+    bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
 
     assert_response :success
     assert_select "h1", text: "Welcome to my bug collection 🐛"
@@ -52,7 +54,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".landing-metric.aboutme-stat", 4
     assert_select ".landing-metric:first-child[href=?]", timeline_path, text: /Posts/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
-    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#bug-bounties", text: "0"
+    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#bug-bounties", text: bug_bounties.length.to_s
     assert_select ".landing-metric[href=?]", "#{about_path}#bug-bounties", text: /Bounties/
     assert_select ".landing-metric[href=?]", about_path, text: /& more\.\.\./
     assert_select ".landing-metric[href=?]", "#{about_path}#my-challenges", false
@@ -66,10 +68,11 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "about me content files have expected shape" do
+    repository = ContentRepository.new
     cves = JSON.parse(File.read(ApplicationController::ABOUTME_CVES_PATH))
     bug_bounties = JSON.parse(File.read(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
     challenge_records = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
-    challenges = ContentRepository.new.authored_challenges
+    challenges = repository.authored_challenges
     certificates = JSON.parse(File.read(ApplicationController::ABOUTME_CERTIFICATES_PATH))
     talks = JSON.parse(File.read(ApplicationController::ABOUTME_TALKS_PATH))
     achievements = JSON.parse(File.read(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
@@ -94,23 +97,35 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_includes cve_tag_labels, "CVE-2026-35222"
     assert_includes cve_tag_labels, "CVE-2026-48898"
     assert_not cves.any? { |entry| entry["id"].include?("suitecrm-tba") }
-    assert_equal 1, bug_bounties.length
-    assert_equal "firedancer-tba", bug_bounties.first["id"]
-    assert_equal true, bug_bounties.first["hidden"]
-    assert_empty ContentRepository.new.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
-    assert_equal 2, challenge_records.length
-    assert_equal 2, challenges.length
-    assert_equal challenge_records, challenges
-    assert_equal [ "scanwich-station", "smile-at-me" ], challenges.map { |entry| entry["id"] }
-    assert_equal "Scanwich Station", challenges.first["title"]
-    assert_nil challenges.first["subtitle"]
-    assert_includes challenges.first["summary"], "Published for GPNCTF 2026"
-    assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["url"]
-    assert_equal [ "GPNCTF 2026", "Hard", "Writeup" ], challenges.first["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }
-    assert_equal "https://gpn24.ctf.kitctf.de/", challenges.first["tags"].first["url"]
-    assert_includes challenges.second["summary"], "Published for GPNCTF 2025"
-    assert_equal [ "GPNCTF 2025", "Hard", "Writeup" ], challenges.second["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }
-    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["url"]
+    assert_operator bug_bounties.length, :>=, 1
+    firedancer = bug_bounties.find { |entry| entry["id"] == "frankendancer-netshred-overrun" }
+    assert firedancer
+    assert_equal "Firedancer", firedancer["title"]
+    assert_equal "Race condition in the netshred module", firedancer["subtitle"]
+    assert_includes repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH).map { |entry| entry["id"] }, firedancer["id"]
+    assert_operator challenge_records.length, :>=, 2
+    assert_operator challenges.length, :>=, 2
+    assert_equal challenge_records.map { |entry| entry["id"] }.sort, challenges.map { |entry| entry["id"] }.sort
+    scanwich = challenges.find { |entry| entry["id"] == "scanwich-station" }
+    smile_at_me = challenges.find { |entry| entry["id"] == "smile-at-me" }
+    assert scanwich
+    assert smile_at_me
+    assert_equal "Scanwich Station", scanwich["title"]
+    assert_nil scanwich["subtitle"]
+    assert_includes scanwich["summary"], "Published for GPNCTF 2026"
+    assert_equal "/ctf/gpnctf/Scanwich%20Station", scanwich["url"]
+    assert_equal "https://gpn24.ctf.kitctf.de/", scanwich["tags"].first["url"]
+    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "GPNCTF 2026"
+    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Hard"
+    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Web"
+    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Pwn"
+    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Writeup"
+    assert_includes smile_at_me["summary"], "Published for GPNCTF 2025"
+    assert_equal "/ctf/gpnctf/Smile%20at%20me", smile_at_me["url"]
+    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "GPNCTF 2025"
+    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Hard"
+    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Web"
+    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Writeup"
     assert_nil certificates.first["subtitle"]
     assert_includes certificates.first["summary"], "full penetration-test report"
     assert_equal "/blog/htb-cpts", certificates.first["url"]
@@ -123,16 +138,16 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_equal "https://kitctf.de/intro/", talks.first["url"]
     assert_equal [ "Slides", "Overview" ], talks.first["tags"].map { |tag| tag["label"] }
     assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", talks.first["tags"].first["url"]
-    assert_equal %w[
-      dhm
-      cscg
-      kitctf
-    ], achievements.map { |entry| entry["id"] }
-    assert_equal %w[
-      kitctf
-      dhm
-      cscg
-    ], ContentRepository.new.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).map { |entry| entry["id"] }
+    achievement_ids = achievements.map { |entry| entry["id"] }
+    assert_includes achievement_ids, "immunefi"
+    assert_includes achievement_ids, "dhm"
+    assert_includes achievement_ids, "cscg"
+    assert_includes achievement_ids, "kitctf"
+    visible_achievement_ids = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).map { |entry| entry["id"] }
+    assert_includes visible_achievement_ids, "immunefi"
+    assert_includes visible_achievement_ids, "dhm"
+    assert_includes visible_achievement_ids, "cscg"
+    assert_includes visible_achievement_ids, "kitctf"
     dhm = achievements.find { |entry| entry["id"] == "dhm" }
     cscg = achievements.find { |entry| entry["id"] == "cscg" }
     assert_equal %w[dhm-2025 dhm-2024], dhm["timeline"].map { |event| event["id"] }

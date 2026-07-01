@@ -15,10 +15,10 @@ published: "2025-04-17"
 
 # TL;DR
 
-    **- Challenge Setup:** Simple CRUD heap challenge
-    **- Vulnerability:** Heap Overflow up to 0x40 Bytes, double free vulnerability and a UAF bug leading to a write-what-where primitive
-    **- Exploitation Variant 1:** Abuse free_hook pointing to an arbitrary function
-    **- Exploitation Variant 2:** Abuse setcontext32 to execute arbitrary functions
+- **Challenge Setup:** Simple CRUD heap challenge
+- **Vulnerability:** Heap Overflow up to 0x40 Bytes, double free vulnerability and a UAF bug leading to a write-what-where primitive
+- **Exploitation Variant 1:** Abuse free_hook pointing to an arbitrary function
+- **Exploitation Variant 2:** Abuse setcontext32 to execute arbitrary functions
 
 # Introduction
 

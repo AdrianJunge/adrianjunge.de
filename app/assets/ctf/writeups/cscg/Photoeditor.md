@@ -16,10 +16,10 @@ published: "2024-05-17"
 
 # TL;DR
 
-    **- Challenge Setup:** `.NET` web application written in `C#` allowing image uploads
-    **- Key Discoveries:** Image manipulation is done by dynamically calling functions
-    **- Vulnerability:** Unsanitized user input is used to dynamically call functions
-    **- Exploitation:** Calling `GetUsername` method allows us to set arbitrary env vars and thus overwriting the functionality of arbitrary commands e.g. via `BASH_FUNC_whoami%%`
+- **Challenge Setup:** `.NET` web application written in `C#` allowing image uploads
+- **Key Discoveries:** Image manipulation is done by dynamically calling functions
+- **Vulnerability:** Unsanitized user input is used to dynamically call functions
+- **Exploitation:** Calling `GetUsername` method allows us to set arbitrary env vars and thus overwriting the functionality of arbitrary commands e.g. via `BASH_FUNC_whoami%%`
 
 # Introduction
 

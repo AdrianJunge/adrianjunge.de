@@ -1865,6 +1865,11 @@
 
 .content-page .article-meta-panel .writeup-article-actions {
     display: grid;
+    align-items: center;
+}
+
+.content-page .article-meta-panel .writeup-article-actions .article-meta-row-label {
+    padding-top: 0;
 }
 
 .content-page .article-meta-panel .writeup-challengefiles {
@@ -1924,6 +1929,7 @@
 }
 
 .content-page .article-meta-panel .article-description-heading {
+    color: rgba(186, 230, 253, 0.66);
     margin-bottom: 0.36rem;
 }
 

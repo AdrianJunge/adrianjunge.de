@@ -15,9 +15,9 @@ published: "2025-03-27"
 
 # TL;DR
 
-    **- Challenge Setup:** We are given a small **Python Flask** web application allowing the upload of tar archives being unpacked by the backend.
-    **- Vulnerability:** The used **Python** module **tarfile** is vulnerable to path traversal attacks via the file names of the extracted files, allowing the overwrite of arbitrary files.
-    **- Exploitation:** Overwriting the `result.html` template containing an **SSTI** payload results in **RCE**.
+- **Challenge Setup:** We are given a small **Python Flask** web application allowing the upload of tar archives being unpacked by the backend.
+- **Vulnerability:** The used **Python** module **tarfile** is vulnerable to path traversal attacks via the file names of the extracted files, allowing the overwrite of arbitrary files.
+- **Exploitation:** Overwriting the `result.html` template containing an **SSTI** payload results in **RCE**.
 
 # Introduction
 

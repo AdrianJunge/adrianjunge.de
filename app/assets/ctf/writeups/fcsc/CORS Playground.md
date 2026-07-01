@@ -18,11 +18,11 @@ published: "2024-09-07"
 
 # TL;DR
 
-    **- Challenge Setup:** **Node.js** server with **nginx** allows setting arbitrary response headers
-    **- Key Discoveries:** **Nginx** processes `X-Accel-Redirect` header to gain arbitrary file read in workdir e.g. of `.env`
-    **- Check Bypass:** Bypassed X- header restriction using case insensitivity (x-Accel-Redirect)
-    **- Cookie Forgery:** Forged cookies with leaked server secrets to impersonate the internal user using session keys
-    **- Check Bypass:** Bypassed filename `/` check by sending the filename as an array: `filename[]=/flag.txt`
+- **Challenge Setup:** **Node.js** server with **nginx** allows setting arbitrary response headers
+- **Key Discoveries:** **Nginx** processes `X-Accel-Redirect` header to gain arbitrary file read in workdir e.g. of `.env`
+- **Check Bypass:** Bypassed X- header restriction using case insensitivity (x-Accel-Redirect)
+- **Cookie Forgery:** Forged cookies with leaked server secrets to impersonate the internal user using session keys
+- **Check Bypass:** Bypassed filename `/` check by sending the filename as an array: `filename[]=/flag.txt`
 
 # Introduction
 

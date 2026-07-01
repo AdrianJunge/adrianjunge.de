@@ -1243,6 +1243,7 @@ class SitePagesTest < ApplicationSystemTestCase
   test "hidden TBA findings stay out of public finding sections" do
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
     bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
+    bug_bounty_count_label = "#{bug_bounties.length} #{bug_bounties.length == 1 ? 'finding' : 'findings'}"
 
     visit "/about"
     page.execute_script(<<~JS)
@@ -1250,12 +1251,12 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
 
     assert_no_text "TBA"
-    assert_selector "#bug-bounties .aboutme-section-count", text: "0 findings"
-    assert_selector "#bug-bounties .aboutme-empty-state", text: "No public bounties yet - the disclosure timers are still pretending to be load-bearing."
-    assert_no_selector "#bug-bounties .aboutme-finding-card"
+    assert_selector "#bug-bounties .aboutme-section-count", text: bug_bounty_count_label
+    assert_selector_count "#bug-bounties .aboutme-finding-card", bug_bounties.length
+    assert_no_selector "#bug-bounties .aboutme-empty-state"
     assert_selector_count "#cves article.aboutme-finding-card-static", cves.count { |entry| !about_finding_collapsible?(entry) }
     assert_selector_count "#cves details.aboutme-finding-card-cve", cves.count { |entry| about_finding_collapsible?(entry) }
-    assert_empty bug_bounties
+    assert_operator bug_bounties.length, :>=, 1
   end
 
   test "timeline entries are full-card links" do
@@ -3269,7 +3270,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
   def timeline_tag_search_case
     timeline_tag_case_candidates.each do |candidate|
-      matches = timeline_items.select { |item| ordered_search_match?(candidate[:tag], Array(item[:tags]).join(" ")) }
+      matches = timeline_items.select { |item| timeline_tag_search_match?(candidate[:tag], item) }
       next unless matches.any? && matches.length < timeline_items.length
 
       return candidate.merge(query: candidate[:tag], items: matches)
@@ -3310,6 +3311,20 @@ class SitePagesTest < ApplicationSystemTestCase
 
   def timeline_search_match?(query, item)
     ordered_search_match?(query, [ timeline_filter_text(item), item[:tags] ].flatten.join(" "))
+  end
+
+  def timeline_tag_search_match?(query, item)
+    tag_terms = Array(item[:tags]).flat_map do |tag|
+      words = normalized_search_words(tag)
+      compact = words.join
+      compact.present? ? words + [ compact ] : words
+    end.uniq
+    query_terms = normalized_search_words(query)
+    return true if query_terms.empty?
+
+    query_terms.all? do |query_term|
+      tag_terms.any? { |tag_term| ordered_search_term_match?(query_term, tag_term) }
+    end
   end
 
   def timeline_filter_text(item)

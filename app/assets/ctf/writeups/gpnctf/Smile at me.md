@@ -22,10 +22,10 @@ optional:
 
 # TL;DR
 
-    **- Challenge Setup:** The bot has a restricted URL filter and the site enforces a strict **CSP** preventing XSS and CSS exfiltration
-    **- Key Discoveries:** The URL parser of **Python** and **NodeJS** (Puppeteer) are differing in their implementation
-    **- Vulnerability:** There are some URL parser differentials allowing you to bypass the checks and you can inject arbitrary image attributes in your notes
-    **- Exploitation:** We can leverage the image attribute injection to an **XSLeak** via **STTF**
+- **Challenge Setup:** The bot has a restricted URL filter and the site enforces a strict **CSP** preventing XSS and CSS exfiltration
+- **Key Discoveries:** The URL parser of **Python** and **NodeJS** (Puppeteer) are differing in their implementation
+- **Vulnerability:** There are some URL parser differentials allowing you to bypass the checks and you can inject arbitrary image attributes in your notes
+- **Exploitation:** We can leverage the image attribute injection to an **XSLeak** via **STTF**
 
 # Introduction
 

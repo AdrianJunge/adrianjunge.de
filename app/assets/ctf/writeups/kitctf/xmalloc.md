@@ -18,10 +18,10 @@ published: "2026-05-25"
 
 # TL;DR
 
-    **- Challenge Setup:** Heap challenge using a custom allocator instead of the normal **glibc** heap
-    **- Key Discoveries:** The custom heap has a fixed heap mapping at `0x31337000`, metadata cookies can be leaked with `puts`, and **libsecureheap.so** only has partial **RELRO** active
-    **- Vulnerability:** The `edit` functionality always writes `0x1000` bytes into chunks of arbitrary smaller size, allowing heap metadata and freelist pointers to be overwritten
-    **- Exploitation:** Leak the allocator cookies and `xmain_arena`, poison the small chunk freelist to allocate on `verify_cookies@got.plt`, overwrite it with a **One Gadget**, and trigger another allocation to obtain RCE
+- **Challenge Setup:** Heap challenge using a custom allocator instead of the normal **glibc** heap
+- **Key Discoveries:** The custom heap has a fixed heap mapping at `0x31337000`, metadata cookies can be leaked with `puts`, and **libsecureheap.so** only has partial **RELRO** active
+- **Vulnerability:** The `edit` functionality always writes `0x1000` bytes into chunks of arbitrary smaller size, allowing heap metadata and freelist pointers to be overwritten
+- **Exploitation:** Leak the allocator cookies and `xmain_arena`, poison the small chunk freelist to allocate on `verify_cookies@got.plt`, overwrite it with a **One Gadget**, and trigger another allocation to obtain RCE
 
 # Introduction
 

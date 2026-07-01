@@ -12,6 +12,8 @@
         "url": "https://gpn24.ctf.kitctf.de/"
       },
       "Hard",
+      "Web",
+      "Pwn",
       {
         "label": "Writeup",
         "url": "/ctf/gpnctf/Scanwich%20Station"
@@ -31,6 +33,7 @@
         "url": "https://gpn23.ctf.kitctf.de/"
       },
       "Hard",
+      "Web",
       {
         "label": "Writeup",
         "url": "/ctf/gpnctf/Smile%20at%20me"

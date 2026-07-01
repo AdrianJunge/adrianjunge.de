@@ -19,10 +19,10 @@ optional:
 
 # TL;DR
 
-    **- Challenge Setup:** We are an established Man-in-the-Middle between Alice and Bob
-    **- Key Discoveries:** To initially exchange a shared key, the **Diffie-Hellman Key Exchange** is used and the OTPs are calculated via the KDF **SP800 108 Counter Mode**
-    **- Vulnerability:** **Diffie-Hellman Key Exchange** is vulnerable for a Man-in-the-Middle attacker and **SP800 108 Counter Mode** breaks by the wrong usage of the underlying PRF
-    **- Exploitation:** Just exploit the vulnerable crypto components :P
+- **Challenge Setup:** We are an established Man-in-the-Middle between Alice and Bob
+- **Key Discoveries:** To initially exchange a shared key, the **Diffie-Hellman Key Exchange** is used and the OTPs are calculated via the KDF **SP800 108 Counter Mode**
+- **Vulnerability:** **Diffie-Hellman Key Exchange** is vulnerable for a Man-in-the-Middle attacker and **SP800 108 Counter Mode** breaks by the wrong usage of the underlying PRF
+- **Exploitation:** Just exploit the vulnerable crypto components :P
 
 # Introduction
 

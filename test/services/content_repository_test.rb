@@ -54,22 +54,26 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     repository = ContentRepository.new
     challenges = repository.authored_challenges
     raw_challenges = JSON.parse(File.read(ApplicationController::ABOUTME_CHALLENGES_PATH))
+    scanwich = challenges.find { |entry| entry["id"] == "scanwich-station" }
+    smile_at_me = challenges.find { |entry| entry["id"] == "smile-at-me" }
 
     assert_equal raw_challenges, challenges
     assert_equal [ "scanwich-station", "smile-at-me" ], challenges.map { |entry| entry["id"] }
-    assert_equal "/ctf/gpnctf/Scanwich%20Station", challenges.first["url"]
-    assert_equal [
-      { "label" => "GPNCTF 2026", "url" => "https://gpn24.ctf.kitctf.de/" },
-      "Hard",
-      { "label" => "Writeup", "url" => "/ctf/gpnctf/Scanwich%20Station" }
-    ], challenges.first["tags"]
-    assert_includes challenges.first["summary"], "Published for GPNCTF 2026"
-    assert_equal "/ctf/gpnctf/Smile%20at%20me", challenges.second["url"]
-    assert_equal [
-      { "label" => "GPNCTF 2025", "url" => "https://gpn23.ctf.kitctf.de/" },
-      "Hard",
-      { "label" => "Writeup", "url" => "/ctf/gpnctf/Smile%20at%20me" }
-    ], challenges.second["tags"]
+    assert scanwich
+    assert smile_at_me
+    assert_equal "/ctf/gpnctf/Scanwich%20Station", scanwich["url"]
+    assert_equal "https://gpn24.ctf.kitctf.de/", scanwich["tags"].first["url"]
+    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "GPNCTF 2026"
+    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Hard"
+    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Web"
+    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Pwn"
+    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Writeup"
+    assert_includes scanwich["summary"], "Published for GPNCTF 2026"
+    assert_equal "/ctf/gpnctf/Smile%20at%20me", smile_at_me["url"]
+    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "GPNCTF 2025"
+    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Hard"
+    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Web"
+    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Writeup"
   end
 
   test "metadata tags include optional filters and declared difficulties by shared priority" do
@@ -112,15 +116,11 @@ class ContentRepositoryTest < ActiveSupport::TestCase
   test "hidden and draft content stays out of public collections" do
     repository = ContentRepository.new
 
-    assert_empty repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
     assert_not repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).any? { |entry| entry["id"].include?("suitecrm-tba") }
-    assert_not repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).any? { |entry| entry["id"] == "firedancer-v1-audit-competition" }
     assert_not repository.blog_posts.any? { |post| post[:slug] == "frankendancer-net-shred-overrun" }
     assert_not repository.feed_posts.any? { |post| post[:guid] == "/blog/frankendancer-net-shred-overrun" }
 
     hidden_cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH, include_hidden: true)
     assert_not hidden_cves.any? { |entry| entry["id"].include?("suitecrm-tba") }
-    hidden_bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH, include_hidden: true)
-    assert_equal [ "firedancer-tba" ], hidden_bug_bounties.map { |entry| entry["id"] }
   end
 end

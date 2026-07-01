@@ -2,6 +2,10 @@ require "application_system_test_case"
 
 class AboutmeTest < ApplicationSystemTestCase
   test "visiting about me page renders the public profile sections" do
+    repository = ContentRepository.new
+    bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
+    bug_bounty_count_label = "#{bug_bounties.length} #{bug_bounties.length == 1 ? 'finding' : 'findings'}"
+
     page.current_window.resize_to(1440, 1200)
     visit about_path
 
@@ -184,7 +188,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#talks .aboutme-tag-date", text: "2026-05-07"
     assert_selector "#talks .aboutme-tag-slides[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf'][target='_blank'][rel='noopener noreferrer']", text: "Slides"
     assert_selector "#talks .aboutme-card-icon[src*='other/talk-slides']"
-    assert_no_selector "#achievements #firedancer-v1-audit-competition"
+    assert_selector "#achievements #firedancer-v1-audit-competition"
     assert_no_selector "#achievements .aboutme-card-link-overlay", visible: :all
     assert_no_selector "#achievements #kitctf .aboutme-reference-link[href='https://ctftime.org/team/7221/']", visible: :all
     assert_selector "#achievements #kitctf .aboutme-tag-kitctf[href='https://ctftime.org/team/7221/']", text: "KITCTF", visible: :all
@@ -204,10 +208,12 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_no_text "Details will be added"
     assert_no_selector "#cves article.aboutme-finding-card-static"
     assert_selector "#cves details.aboutme-finding-card-cve", minimum: 1
-    assert_selector "#bug-bounties .aboutme-empty-state", text: "No public bounties yet - the disclosure timers are still pretending to be load-bearing."
+    assert_no_selector "#bug-bounties .aboutme-empty-state"
+    assert_selector "#bug-bounties .aboutme-finding-card", count: bug_bounties.length
+    assert_selector "#bug-bounties .aboutme-card-title", text: bug_bounties.first["title"]
     assert_selector ".aboutme-achievement-card", minimum: 1
     assert_selector ".aboutme-stat[href='#cves']", text: "CVEs"
-    assert_selector ".aboutme-stat[href='#bug-bounties']", text: "0"
+    assert_selector ".aboutme-stat[href='#bug-bounties']", text: bug_bounties.length.to_s
     assert_selector ".aboutme-stat[href='#bug-bounties']", text: "Bug bounties"
     assert_selector ".aboutme-stat[href='#my-challenges']", text: "Created CTF Challenges"
     assert_selector ".aboutme-stat[href='#certificates']", text: "Certificates"
@@ -251,7 +257,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "rgba(24, 76, 112, 0.94)", counter_hover_surface["backgroundColor"]
     assert_not_equal "none", counter_hover_surface["boxShadow"]
     assert_selector "#cves .aboutme-section-count", text: /entries/
-    assert_selector "#bug-bounties .aboutme-section-count", text: "0 findings"
+    assert_selector "#bug-bounties .aboutme-section-count", text: bug_bounty_count_label
     assert_selector "#my-challenges .aboutme-section-count", text: /challenge/
     assert_selector "#certificates .aboutme-section-count", text: /certificate/
     assert_selector "#talks .aboutme-section-count", text: "1 talk"
@@ -1094,6 +1100,8 @@ class AboutmeTest < ApplicationSystemTestCase
   end
 
   test "about me entries are ordered newest first" do
+    repository = ContentRepository.new
+
     visit about_path
     page.execute_script(<<~JS)
       document.querySelectorAll(".aboutme-section").forEach((section) => { section.open = true; });
@@ -1122,17 +1130,11 @@ class AboutmeTest < ApplicationSystemTestCase
     JS
 
     assert_equal "Privilege escalation through com_users batch task", first_cve_title
-    assert_equal [ "KITCTF", "DHM", "CSCG" ], achievement_titles
-    assert_equal [ "DHM 2025 participation", "DHM 2024 #1" ], achievement_events["DHM"].map { |event| event["title"] }
-    assert_equal [ "CSCG 2025 top 10 global", "CSCG 2024 DHM qualification" ], achievement_events["CSCG"].map { |event| event["title"] }
-    assert_equal [
-      "KITCTF #3 at GlacierCTF 2025",
-      "FluxKITtens #6 at Google CTF 2025",
-      "KITCTF #3 at SwampCTF 2025",
-      "KITCTF at SnakeCTF 2024 finals",
-      "KITCTF #3 at GlacierCTF 2024",
-      "KITCTF #1 at SwampCTF 2024"
-    ], achievement_events["KITCTF"].map { |event| event["title"] }
+    assert_equal repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).map { |entry| entry["title"] }, achievement_titles
+    achievement_entries = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).index_by { |entry| entry["title"] }
+    assert_equal achievement_entries["DHM"]["timeline"].map { |event| event["title"] }, achievement_events["DHM"].map { |event| event["title"] }
+    assert_equal achievement_entries["CSCG"]["timeline"].map { |event| event["title"] }, achievement_events["CSCG"].map { |event| event["title"] }
+    assert_equal achievement_entries["KITCTF"]["timeline"].map { |event| event["title"] }, achievement_events["KITCTF"].map { |event| event["title"] }
     assert_text "Placed #1 at the Deutsche Hacking Meisterschaft."
     assert_text "Participated in the DHM finals after qualifying through CSCG."
     assert_text "Qualified for DHM through CSCG."

@@ -18,9 +18,9 @@ published: "2025-02-15"
 
 # TL;DR
 
-    **- Challenge Setup:** This challenge is a typical CRUD heap challenge.
-    **- Vulnerability:** Heap overflow
-    **- Exploitation:** Use the overflow to overwrite a pointer and thus overwriting the GOT
+- **Challenge Setup:** This challenge is a typical CRUD heap challenge.
+- **Vulnerability:** Heap overflow
+- **Exploitation:** Use the overflow to overwrite a pointer and thus overwriting the GOT
 
 # Introduction
 

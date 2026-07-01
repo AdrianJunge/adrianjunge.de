@@ -19,10 +19,10 @@ optional:
 
 # TL;DR
 
-    **- Challenge Setup:** This challenge is about a **DOMPurify** bypass
-    **- Key Discoveries:** **DOMPurify** is used server-side
-    **- Vulnerability:** The used **JSDOM** library to offer a DOM parser for **DOMPurify** is outdated
-    **- Exploitation:** By abusing an implementation but in the old **JSDOM** version, we can bypass **DOMPurify**
+- **Challenge Setup:** This challenge is about a **DOMPurify** bypass
+- **Key Discoveries:** **DOMPurify** is used server-side
+- **Vulnerability:** The used **JSDOM** library to offer a DOM parser for **DOMPurify** is outdated
+- **Exploitation:** By abusing an implementation but in the old **JSDOM** version, we can bypass **DOMPurify**
 
 # Introduction
 

@@ -15,10 +15,10 @@ published: "2025-05-03"
 
 # TL;DR
 
-    **- Challenge Setup:** The website is build with the old web framework **Helma**
-    **- Key Discoveries:** Users can traverse a chain of `HopObjects`
-    **- Vulnerability:** The video `HopObject` allows to access arbitrary properties
-    **- Exploitation:** Accessing the `__parent__` property leads us to the `Global HopObject` and eventually via the `accessKey` property to the flag
+- **Challenge Setup:** The website is build with the old web framework **Helma**
+- **Key Discoveries:** Users can traverse a chain of `HopObjects`
+- **Vulnerability:** The video `HopObject` allows to access arbitrary properties
+- **Exploitation:** Accessing the `__parent__` property leads us to the `Global HopObject` and eventually via the `accessKey` property to the flag
 
 # Introduction
 

@@ -18,10 +18,10 @@ published: "2025-09-11"
 
 # TL;DR
 
-    **- Challenge Setup:** **Flask** app hosting an Anime chat where you can text with a simple chatbot
-    **- Key Discoveries:** **Flask** `Debug` is enabled
-    **- Vulnerability:** Free arbitrary file read
-    **- Exploitation:** We can calculate the **Flask** console PIN via the file read and bypass the simple console access filter by spoofing the `Host` header
+- **Challenge Setup:** **Flask** app hosting an Anime chat where you can text with a simple chatbot
+- **Key Discoveries:** **Flask** `Debug` is enabled
+- **Vulnerability:** Free arbitrary file read
+- **Exploitation:** We can calculate the **Flask** console PIN via the file read and bypass the simple console access filter by spoofing the `Host` header
 
 # Introduction
 
