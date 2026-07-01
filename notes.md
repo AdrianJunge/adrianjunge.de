@@ -8,7 +8,17 @@
         - received money from bug bounty or audit competition pod?
 - Writeup
     - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln aka CTF Writeup schreiben für Deadsecctf 2025
+    - googlectf: writeup für mythos
+    - smileyctf: writeup schreiben für teemo-v1
+        - **web/Teemo's Secret**
+        - Autor: Chara
+        - Description: O Teemo i wonder what have u looked at
+    - DHM
+        - DHM TV
+        - Perle einer Website
+        - proxy-foo
 - Blog
+    - leetcode task: fibonacci & binom coeff zusammenhang erläutern
     - Post zu meinen Erfahrungen mit CVE und Bug Bounty Hunting in 2026
         - Projekte die fully vibe coded sind (ChurchCRM)
         - lange triage Zeit zB wordpress 8.5 Monate - suitecrm und joomla auch sehr lange
@@ -25,6 +35,7 @@
     - live Rendering des Markdowns
 
 # Misc
+- Auf Raspberry Pi Server hosten und bei Heroku canceln (auto build pipeline aufbauen für pushes zu main branch)
 - implement that e.g. for referenced codeblocks you can show the real line numbers instead of counting up from 1
 - global search e.g. as gear icon drop down together with scroll up/down buttons
     => the problem is should the global search be backend or frontend sided
