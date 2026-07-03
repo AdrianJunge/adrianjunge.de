@@ -3306,6 +3306,14 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .landing-page .landing-metric {
+        border-top: 0;
+    }
+
+    .landing-page .landing-metric:nth-child(n + 3) {
+        border-top: 1px solid rgba(125, 211, 252, 0.22);
+    }
+
 }
 
 @media (max-width: 720px), (max-height: 760px) {
@@ -3423,6 +3431,10 @@
 
     .landing-page .landing-metrics {
         grid-template-columns: 1fr;
+    }
+
+    .landing-page .landing-metric + .landing-metric {
+        border-top: 1px solid rgba(125, 211, 252, 0.22);
     }
 
     .landing-page .landing-metric::before {
