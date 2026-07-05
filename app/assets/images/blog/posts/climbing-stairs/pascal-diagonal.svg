@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="439" viewBox="0 0 900 520" role="img" aria-labelledby="title desc">
+  <title id="title">Pascal triangle diagonal</title>
+  <desc id="desc">Pascal triangle with the shallow diagonal 1, 4, 3 highlighted.</desc>
+  <style>
+    .bg { fill: #f8fafc; }
+    .cell { fill: #ffffff; stroke: #d8e1ee; stroke-width: 3; }
+    .hit { fill: #fff3d6; stroke: #ed8936; stroke-width: 5; }
+    .line { stroke: #f97316; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; fill: none; opacity: .35; }
+    .num {
+      fill: #334155;
+      font-family: Arial, sans-serif;
+      font-size: 25px;
+      font-weight: 700;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+    .hit-num {
+      fill: #9a3412;
+      font-family: Arial, sans-serif;
+      font-size: 25px;
+      font-weight: 700;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+  </style>
+
+  <rect class="bg" width="900" height="520" rx="26"/>
+  <path class="line" d="M220 420 L358 350 L496 280"/>
+
+  <g>
+    <circle class="cell" cx="450" cy="70" r="32"/>
+    <text class="num" x="450" y="70">1</text>
+  </g>
+
+  <g>
+    <circle class="cell" cx="404" cy="140" r="32"/>
+    <text class="num" x="404" y="140">1</text>
+    <circle class="cell" cx="496" cy="140" r="32"/>
+    <text class="num" x="496" y="140">1</text>
+  </g>
+
+  <g>
+    <circle class="cell" cx="358" cy="210" r="32"/>
+    <text class="num" x="358" y="210">1</text>
+    <circle class="cell" cx="450" cy="210" r="32"/>
+    <text class="num" x="450" y="210">2</text>
+    <circle class="cell" cx="542" cy="210" r="32"/>
+    <text class="num" x="542" y="210">1</text>
+  </g>
+
+  <g>
+    <circle class="cell" cx="312" cy="280" r="32"/>
+    <text class="num" x="312" y="280">1</text>
+    <circle class="cell" cx="404" cy="280" r="32"/>
+    <text class="num" x="404" y="280">3</text>
+    <circle class="hit" cx="496" cy="280" r="35"/>
+    <text class="hit-num" x="496" y="280">3</text>
+    <circle class="cell" cx="588" cy="280" r="32"/>
+    <text class="num" x="588" y="280">1</text>
+  </g>
+
+  <g>
+    <circle class="cell" cx="266" cy="350" r="32"/>
+    <text class="num" x="266" y="350">1</text>
+    <circle class="hit" cx="358" cy="350" r="35"/>
+    <text class="hit-num" x="358" y="350">4</text>
+    <circle class="cell" cx="450" cy="350" r="32"/>
+    <text class="num" x="450" y="350">6</text>
+    <circle class="cell" cx="542" cy="350" r="32"/>
+    <text class="num" x="542" y="350">4</text>
+    <circle class="cell" cx="634" cy="350" r="32"/>
+    <text class="num" x="634" y="350">1</text>
+  </g>
+
+  <g>
+    <circle class="hit" cx="220" cy="420" r="35"/>
+    <text class="hit-num" x="220" y="420">1</text>
+    <circle class="cell" cx="312" cy="420" r="32"/>
+    <text class="num" x="312" y="420">5</text>
+    <circle class="cell" cx="404" cy="420" r="32"/>
+    <text class="num" x="404" y="420">10</text>
+    <circle class="cell" cx="496" cy="420" r="32"/>
+    <text class="num" x="496" y="420">10</text>
+    <circle class="cell" cx="588" cy="420" r="32"/>
+    <text class="num" x="588" y="420">5</text>
+    <circle class="cell" cx="680" cy="420" r="32"/>
+    <text class="num" x="680" y="420">1</text>
+  </g>
+</svg>
