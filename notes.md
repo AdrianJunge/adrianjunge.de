@@ -18,7 +18,6 @@
         - Perle einer Website
         - proxy-foo
 - Blog
-    - leetcode task: fibonacci & binom coeff zusammenhang erläutern
     - Post zu meinen Erfahrungen mit CVE und Bug Bounty Hunting in 2026
         - Projekte die fully vibe coded sind (ChurchCRM)
         - lange triage Zeit zB wordpress 8.5 Monate - suitecrm und joomla auch sehr lange

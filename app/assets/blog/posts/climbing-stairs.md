@@ -1,5 +1,5 @@
 ---
-description: LeetCode's Climbing Stairs problem looks like a tiny dynamic-programming warmup, but it is also a neat meeting point between Fibonacci numbers, binomial coefficients, Pascal's triangle, and tilings.
+description: LeetCode's Climbing Stairs problem looks like a simple dynamic-programming challenge, but a closer look connects Fibonacci numbers, binomial coefficients, and Pascal's triangle.
 categories:
     - LeetCode
     - Algorithms
@@ -10,23 +10,13 @@ published: "2026-07-05"
 
 # Climbing Stairs from Two Angles
 
-The [Climbing Stairs](https://leetcode.com/problems/climbing-stairs/) problem on [LeetCode](https://leetcode.com/) is one of those algorithm questions that looks almost too small. There are `n` stairs, each move can cover either one or two stairs, and the task is to count how many distinct ordered move sequences can reach the top. For example, for `n = 5`, this is a valid climb:
+The [Climbing Stairs](https://leetcode.com/problems/climbing-stairs/) problem on [LeetCode](https://leetcode.com/) is one of those algorithm questions that looks almost too easy. There are `n` stairs, each move can cover either one or two stairs, and the task is to count how many distinct ordered move sequences can reach the top. For example, for `n = 5`, `1 + 2 + 2` is a valid climb, but `2 + 1 + 2` is a different valid climb.
 
-```text
-1 + 2 + 2
-```
-
-But you can also climb like this:
-
-```text
-2 + 1 + 2
-```
-
-There are actually two completely different approaches to solve this task. One is the [Fibonacci](https://en.wikipedia.org/wiki/Fibonacci_sequence) recurrence. The other is a direct [combinatorial](https://en.wikipedia.org/wiki/Combinatorics) count. I solved this challenge some time ago in the **combinatorial** way. Later I discussed the same challenge with a friend of mine, who solved it with the **Fibonacci** approach. Both of us were a bit surprised that two approaches that felt so different on the surface produced exactly the same result. For me, that discussion made the challenge even more interesting, because it showed how completely different perspectives can lead to the same answer.
+There are actually two completely different approaches to solving this task. One is the [Fibonacci](https://en.wikipedia.org/wiki/Fibonacci_sequence) recurrence. The other is a direct [combinatorial](https://en.wikipedia.org/wiki/Combinatorics) count. I solved this challenge some time ago in the **combinatorial** way. Later I discussed the same challenge with a friend of mine, who solved it with the **Fibonacci** approach. Both of us were a bit surprised that these two approaches, which felt so different, produced exactly the same result. For me, that discussion made the challenge even more interesting, because it showed how completely different perspectives can lead to the same answer. There are also several ways to implement both ideas, ranging from very inefficient to very practical.
 
 # The Mental Model: Tiny Tiles
 
-A useful way to look at the problem is to turn the stairs into a board of length `n`. The task then becomes: how many ways can a board of length `n` be tiled with pieces of length `1` and `2`? For `n = 5`, the answer is `8`, where `k` is the number of tiles of length `2`:
+A useful way to look at the problem is to turn the stairs into a board of length `n`. With this view, the task is to count how many ways a board of length `n` can be tiled with pieces of length `1` and `2`. For `n = 5`, the answer is `8`, where `k` is the number of tiles of length `2`:
 
 ![All eight ways to climb five stairs, grouped by how many two-step moves they use.](blog/posts/climbing-stairs/tilings-n5.svg "All tilings for n = 5")
 
@@ -74,7 +64,7 @@ The **Fibonacci** numbers are defined as follows:
     \]
 </div>
 
-The **Fibonacci** view groups climbs by the final move. Every valid climb to `n` must end in exactly one of these two ways:
+The **Fibonacci** approach groups climbs by the final move. Every valid climb to `n` must end in exactly one of these two ways:
 - a valid climb to `n - 1`, then one final `1`-step
 - a valid climb to `n - 2`, then one final `2`-step
 
@@ -106,7 +96,7 @@ After those two starting values, both sequences follow the same recurrence:
     \]
 </div>
 
-So, by induction:
+So, by induction we get:
 
 <div>
     \[
@@ -114,7 +104,7 @@ So, by induction:
     \]
 </div>
 
-The **combinatorics** view starts from the same `W(n)`, but groups the same set of climbs differently. Instead of looking at the final move, fix the number of `2`-step moves. Suppose a sequence uses exactly `k` two-step moves. Those moves cover `2k` stairs, so the remaining stairs must be covered by `n - 2k` one-step moves. That explains the upper bound on `k`: the sequence must not overshoot the staircase.
+The **combinatorics** approach starts from the same `W(n)`, but groups the same set of climbs differently. Instead of looking at the final move, fix the number of `2`-step moves. Suppose a sequence uses exactly `k` two-step moves. Those moves cover `2k` stairs, so the remaining stairs must be covered by `n - 2k` one-step moves. That explains the upper bound on `k` as the sequence must not overshoot the staircase:
 
 <div>
     \[
@@ -165,7 +155,7 @@ So the **Fibonacci** side and the **combinatorial** side are two different descr
 
 # Pascal's Triangle As A Sanity Check
 
-[Pascal's triangle](https://en.wikipedia.org/wiki/Pascal%27s_triangle) is useful here as a visual proof because it stores **binomial coefficients**. The **combinatorial formula** asks for **coefficients** along this pattern:
+[Pascal's triangle](https://en.wikipedia.org/wiki/Pascal%27s_triangle) is useful here as a visual sanity check because it stores **binomial coefficients**. The **combinatorial formula** asks for **coefficients** along this pattern:
 
 <div>
     \[
@@ -181,13 +171,103 @@ So for `n = 5`, we look for:
 
 <div>
     \[
-    \binom{5}{0},
-    \binom{4}{1},
-    \binom{3}{2}
+    \binom{5}{0} = 1,
+    \binom{4}{1} = 4,
+    \binom{3}{2} = 3
     \]
 </div>
 
-In **Pascal's triangle**, those values sit on one shallow diagonal:
+This is exactly the staircase formula with the possible values of `k` plugged in:
+
+<div>
+    \[
+    \begin{aligned}
+    k = 0 &\rightarrow \text{no two-step moves} \rightarrow \binom{5}{0} \\
+    k = 1 &\rightarrow \text{one two-step move} \rightarrow \binom{4}{1} \\
+    k = 2 &\rightarrow \text{two two-step moves} \rightarrow \binom{3}{2}
+    \end{aligned}
+    \]
+</div>
+
+The important part is how this maps into **Pascal's triangle**. I am using the standard zero-based indexing here. The top `1` is row `0`, and the first entry in each row is position `0`. With that convention, the entry
+
+<div>
+    \[
+    \binom{r}{c}
+    \]
+</div>
+
+appears in row `r` and position `c`. The reason is the binomial theorem. Row `r` of **Pascal's triangle** contains the coefficients of:
+
+<div>
+    \[
+    (a + b)^r
+    \]
+</div>
+
+For example:
+
+<div>
+    \[
+    (a + b)^4
+    =
+    1a^4
+    +
+    4a^3b
+    +
+    6a^2b^2
+    +
+    4ab^3
+    +
+    1b^4
+    \]
+</div>
+
+So row `4` is:
+
+<div>
+    \[
+    1,\ 4,\ 6,\ 4,\ 1
+    \]
+</div>
+
+In general, the term at position `c` in row `r` is:
+
+<div>
+    \[
+    \binom{r}{c} a^{r-c} b^c
+    \]
+</div>
+
+The coefficient in front of that term is:
+
+<div>
+    \[
+    \binom{r}{c}
+    \]
+</div>
+
+That is why **Pascal's triangle** places this binomial coefficient at row `r`, position `c`. So the staircase term:
+
+<div>
+    \[
+    \binom{n-k}{k}
+    \]
+</div>
+
+lives in row `n - k` and position `k`. For `n = 5`, that gives:
+
+<div>
+    \[
+    \begin{aligned}
+    k = 0 &\rightarrow \binom{5}{0} \rightarrow \text{row } 5,\ \text{position } 0 \\
+    k = 1 &\rightarrow \binom{4}{1} \rightarrow \text{row } 4,\ \text{position } 1 \\
+    k = 2 &\rightarrow \binom{3}{2} \rightarrow \text{row } 3,\ \text{position } 2
+    \end{aligned}
+    \]
+</div>
+
+Each time `k` increases by `1`, the row number decreases by `1` and the position increases by `1`. Visually, that walks one step up and to the right along the shallow diagonal in the picture. In **Pascal's triangle**, those values sit on one shallow diagonal:
 
 ![Pascal's triangle shallow diagonal C(5,0), C(4,1), C(3,2) summing to F6.](blog/posts/climbing-stairs/pascal-diagonal.svg "Pascal triangle shallow diagonal")
 
@@ -239,13 +319,25 @@ When the correct shallow diagonals are summed, that local addition creates the s
 
 <div>
     \[
-    \text{current diagonal}
+    \text{current diagonal sum}
     =
-    \text{previous diagonal}
+    \text{previous diagonal sum}
     +
-    \text{diagonal before that}
+    \text{diagonal sum before that}
     \]
 </div>
+
+This can also be visualized in **Pascal's triangle** by comparing the diagonal sums. The two previous green diagonal sums add up to the orange diagonal sum:
+
+<div>
+    \[
+    (1 + 4 + 3) + (1 + 3 + 1)
+    =
+    1 + 5 + 6 + 1
+    \]
+</div>
+
+![Pascal's triangle with the orange diagonal 1,5,6,1 and the two previous green diagonals 1,4,3 and 1,3,1.](blog/posts/climbing-stairs/pascal-diagonal-recurrence.svg "Pascal triangle diagonal recurrence")
 
 # Implementation Examples
 
@@ -435,7 +527,9 @@ But it stores only the previous two values:
 
 ### Fibonacci: Matrix Exponentiation
 
-For [LeetCode](https://leetcode.com/)'s constraints, the linear DP version is already more than enough. But because this is **Fibonacci**, the usual **Fibonacci** machinery also applies. Matrix exponentiation computes **Fibonacci** numbers in logarithmic time:
+For [LeetCode](https://leetcode.com/)'s constraints, the linear DP version is already more than enough. But because this is **Fibonacci**, the usual **Fibonacci** machinery also applies.
+
+Matrix exponentiation computes **Fibonacci** numbers in logarithmic time:
 
 <div>
     \[
@@ -597,7 +691,7 @@ This is mathematically clear, but it is not a great implementation. It recompute
     \[
     (n-k)!,
     \qquad
-    (n-2k)!,
+    (n - 2k)!,
     \qquad
     k!
     \]
@@ -611,7 +705,7 @@ Under the standard arithmetic model, the total work is:
     =
     \Theta\!\left(
     \sum_{k=0}^{\lfloor n/2 \rfloor}
-    \bigl((n-k) + (n-2k) + k\bigr)
+    \bigl((n-k) + (n - 2k) + k\bigr)
     \right)
     =
     \Theta(n^2)
@@ -693,7 +787,7 @@ times. So the total work is:
     =
     \Theta\!\left(
     \sum_{k=0}^{\lfloor n/2 \rfloor}
-    \min(k, n-2k)
+    \min(k, n - 2k)
     \right)
     =
     \Theta(n^2)
