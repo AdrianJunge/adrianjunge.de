@@ -8,7 +8,7 @@ categories:
 published: "2026-07-05"
 ---
 
-# Climbing Stairs: Fibonacci and Combinatorics
+# Climbing Stairs from Two Angles
 
 The [Climbing Stairs](https://leetcode.com/problems/climbing-stairs/) problem on [LeetCode](https://leetcode.com/) is one of those algorithm questions that looks almost too small. There are `n` stairs, each move can cover either one or two stairs, and the task is to count how many distinct ordered move sequences can reach the top. For example, for `n = 5`, this is a valid climb:
 

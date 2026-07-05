@@ -10,7 +10,7 @@
   "climbing-stairs": {
     "terminal_path": "climbing-stairs",
     "logo": "blog/leetcode.png",
-    "title": "Climbing Stairs: Fibonacci and Combinatorics",
+    "title": "Climbing Stairs from Two Angles",
     "category": "Algorithms",
     "description": "LeetCode's Climbing Stairs problem as a Fibonacci recurrence, a direct combinatorics count, Pascal's triangle diagonals, and a few implementation variants."
   },
