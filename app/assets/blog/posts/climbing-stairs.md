@@ -22,7 +22,7 @@ But you can also climb like this:
 2 + 1 + 2
 ```
 
-That is the whole problem: no graph theory, no awkward input format, no hidden parsing detail. Still, there are two useful ways to solve it. One is the [Fibonacci](https://en.wikipedia.org/wiki/Fibonacci_sequence) recurrence. The other is a direct [combinatorial](https://en.wikipedia.org/wiki/Combinatorics) count. I solved this challenge some time ago in the combinatorial way. Later I discussed the same challenge with a friend of mine, who solved it with the **Fibonacci** approach. Both of us were a bit surprised that two approaches that felt so different on the surface produced exactly the same result. For me, that discussion made the challenge more interesting, because it showed how different perspectives can lead to the same answer.
+There are actually two completely different approaches to solve this task. One is the [Fibonacci](https://en.wikipedia.org/wiki/Fibonacci_sequence) recurrence. The other is a direct [combinatorial](https://en.wikipedia.org/wiki/Combinatorics) count. I solved this challenge some time ago in the **combinatorial** way. Later I discussed the same challenge with a friend of mine, who solved it with the **Fibonacci** approach. Both of us were a bit surprised that two approaches that felt so different on the surface produced exactly the same result. For me, that discussion made the challenge even more interesting, because it showed how completely different perspectives can lead to the same answer.
 
 # The Mental Model: Tiny Tiles
 
@@ -140,7 +140,7 @@ Now the only question is where the `k` two-step moves are placed among those `n 
     \]
 </div>
 
-Finally, each valid climb has exactly one value of `k`, so the groups for different `k` do not overlap. Summing over all possible `k` values gives the combinatorial formula:
+Finally, each valid climb has exactly one value of `k`, so the groups for different `k` do not overlap. Summing over all possible `k` values gives the **combinatorial** formula:
 
 <div>
     \[
@@ -556,7 +556,7 @@ However, the result has to be rounded back to an integer, and floating-point ari
 
 ## Combinatorics Implementations
 
-The combinatorics family evaluates the direct counting formula:
+The **combinatorics** family evaluates the direct counting formula:
 
 <div>
     \[
