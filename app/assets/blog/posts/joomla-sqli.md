@@ -119,7 +119,7 @@ After removing duplicates, static queries, and queries where all dynamic values 
 
 After these filtering steps, the remaining candidates were all potentially vulnerable sinks worth deeper analysis. The next step was to automate the focused analysis by giving an agent one candidate at a time. In short, the instructions I gave to the agents looked like this:
 
-- Prove **external reachability** before calling anything a vulnerability, for example via the UI with any user privileges (except for super user) or an API
+- Prove **external reachability** before calling anything a vulnerability, for example via the UI with any user privileges or an API
 - Identify the concrete **source**, **web route**, **propagation path**, **sink**, and **SQL** context
 - Inspect transformations such as trimming, escaping, encoding, decoding, type coercion, and more
 - Treat any stored attacker-controlled values as untrusted
