@@ -276,7 +276,7 @@ if ($return) {
 
 ## The Sink
 
-The sink is in [SearchModel::getListQuery()](https://github.com/joomla/joomla-cms/blob/5.4.5/components/com_finder/src/Model/SearchModel.php#L192-L203):
+The sinks are in [SearchModel::getListQuery()](https://github.com/joomla/joomla-cms/blob/5.4.5/components/com_finder/src/Model/SearchModel.php#L192-L203):
 
 ```php
 if (!empty($this->searchquery->filters)) {
@@ -302,10 +302,11 @@ $this->searchquery->filters = [
 ];
 ```
 
-Later in `array_keys($group)`, [Joomla](https://github.com/joomla/joomla-cms) expects the array key to be the numeric taxonomy id. But because of the earlier assignment, the key is the malicious stored taxonomy title. The [implode()](https://www.php.net/implode) call turns the payload into raw **SQL** by joining the array elements with a string, so the malicious title is inserted into the **expression context**. The generated query then contains a fragment like this:
+The bad key is consumed twice. First, `$taxonomies` is built from `array_keys($group)` and inserted into the `WHERE t.node_id IN (...)` clause. This is already enough for the visible boolean oracle, because a false condition filters out the taxonomy-map rows before grouping. Second, the same bad keys are used again in the `HAVING` clause for each taxonomy group. So the generated query contains fragments like this:
 
 ```sql
-SUM(CASE WHEN t.node_id IN (13371337*0+IF((1=1),t.node_id,0)) THEN 1 ELSE 0 END) > 0
+WHERE t.node_id IN (13371337*0+IF((1=1),t.node_id,0))
+HAVING SUM(CASE WHEN t.node_id IN (13371337*0+IF((1=1),t.node_id,0)) THEN 1 ELSE 0 END) > 0
 ```
 
 # Exploitation
