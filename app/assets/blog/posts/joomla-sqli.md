@@ -124,26 +124,37 @@ After these filtering steps, the remaining candidates were all potentially vulne
 - Inspect transformations such as trimming, escaping, encoding, decoding, type coercion, and more
 - Treat any stored attacker-controlled values as untrusted
 
-I also gave the agent the option to test dynamically against a locally running [Joomla](https://github.com/joomla/joomla-cms) **Docker** environment. This allowed the agent to produce working POCs for potential vulnerabilities. After iterating over all candidates, which actually took a couple of days, **Codex** found several interesting issues. I thoroughly analyzed every claimed vulnerability, and two of them caught my attention. After reviewing these bugs, improving the POCs, and writing detailed reports, I sent the necessary information to the [Joomla! Security Strike Team](https://developer.joomla.org/security.html). Each report resulted in a CVE:
+I also gave the agent the option to test dynamically against a locally running [Joomla](https://github.com/joomla/joomla-cms) **Docker** environment. This allowed the agent to produce working POCs for potential vulnerabilities. After iterating over all candidates, **Codex** found several interesting issues. I thoroughly analyzed every claimed vulnerability, and two of them caught my attention. After reviewing these bugs, improving the POCs, and writing detailed reports, I sent the necessary information to the [Joomla! Security Strike Team](https://developer.joomla.org/security.html). Each report resulted in a CVE:
 
 - [CVE-2026-35221](https://developer.joomla.org/security-centre/1038-20260506-core-authenticated-blind-sqli-in-com-finder.html), authenticated blind SQLi in `com_finder`.
 - [CVE-2026-35222](https://developer.joomla.org/security-centre/1039-20260507-core-authenticated-blind-sqli-in-com-tags.html), authenticated blind SQLi in `com_tags`.
 
-Both are **second-order SQL injections**. Below I focus on the one in `com_finder`.
+Both are **second-order SQL injections**.
+
+### Short Version of com_tags
+
+- A **component** is the main Joomla application unit behind a request
+- **Tags** are labels attached to content items like articles, and the all-tags view builds an **SQL** query for the visible **tag** list
+- `com_tags` is the **component** that lists and displays the available **tags**
+- An authenticated **Editor** user with `core.login.api` privileges can save **component** options to store a malicious `all_tags_orderby_direction` value
+- The field was intended to only be `ASC` or `DESC`, but due to missing validation, a maliciously crafted request could contain any value
+- A later public all-tags request reads the stored value and concatenates the raw value into `ORDER BY` and interprets the malicious value as executable **SQL** syntax
+
+### Short Version of com_finder
+
+- **Finder** is Joomla's Smart Search system which builds its own search index instead of querying articles directly for every search request
+- A **Finder taxonomy node** is indexed metadata such as an `Author` branch with one title per author name or alias
+- The article **Created by Alias** field lets an author enter any text value as the displayed author name instead of the account name
+- An authenticated **Publisher** can create and publish content with any value in the `created_by_alias` field
+- A later public **Finder** search loads that stored title by prefix, for example through an `author:<prefix>` search modifier
+- Joomla accidentally stores the loaded title as an array key instead of a value
+- `SearchModel::getListQuery` later treats that key as a numeric taxonomy id and concatenates it into an `IN (...)` **SQL** expression without sanitization
+
+Below I will focus on the one in `com_finder`.
 
 # The Vulnerability In com_finder
 
-Some [Joomla](https://github.com/joomla/joomla-cms) terminology is worth explaining before going into the source-to-sink trace:
-
-- A **component** is the main application unit behind a request. For example, in `index.php?option=com_finder&view=search`, the `option=com_finder` selects the **Smart Search** component and `view=search` selects the search view/model
-- **Finder** is [Joomla](https://github.com/joomla/joomla-cms)'s **Smart Search** system. It builds its own search index instead of querying articles directly for every search request. **Finder** groups indexed metadata into taxonomy branches, which is basically a category for one kind of metadata
-
-The short version of the bug is:
-
-- An authenticated content user stores text as the title of a **Finder** taxonomy node
-- A later public **Finder** search loads that stored title by prefix
-- [Joomla](https://github.com/joomla/joomla-cms) accidentally stores the title as an array key instead of a value
-- `SearchModel::getListQuery` later treats that key as a numeric taxonomy id and concatenates it into an `IN (...)` **SQL** expression without any sanitization
+The detailed source-to-sink trace starts with storing the payload and follows it through indexing, search parsing, and query construction.
 
 ## Storing The Payload
 
@@ -327,6 +338,7 @@ def cond(table_offset, pos, mid):
 
 for pos in range(1, 65):
     lo, hi = 0, 127
+    prefix = "13371337"
     search_term = "1337"
 
     while lo < hi:
