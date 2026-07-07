@@ -7,14 +7,15 @@ module BlogHelper
     categories = ContentTagTaxonomy.canonical_values(raw_categories)
     content_type = ContentTagTaxonomy.canonical_label(post_info["category"])
     content_type = nil unless ContentTagTaxonomy.content_type?(content_type)
+    display_categories = categories.reject { |category| content_type.present? && category.casecmp?(content_type) }
     logo_url = post_info["logo"]
     published_year = blog_post_year(post_info)
     difficulty = WriteupDifficulty.filter_label_for(post_info) ? WriteupDifficulty.from_metadata(post_info) : nil
-    filter_tags = ([ content_type, difficulty&.fetch(:label, nil) ] + categories).compact
+    filter_tags = ([ content_type, difficulty&.fetch(:label, nil) ] + categories).compact.uniq { |tag| tag.downcase }
     filter_text = ([ title, description, published, published_year, post_info["topic"], content_type, difficulty&.fetch(:label, nil) ] + raw_categories + categories).compact.join(" ")
     tags = []
     tags << { label: content_type } if content_type.present?
-    tags.concat(categories.map { |category| { label: category } })
+    tags.concat(display_categories.map { |category| { label: category } })
     if difficulty
       tags.unshift({
         label: difficulty[:label],

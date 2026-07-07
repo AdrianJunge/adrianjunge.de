@@ -37,4 +37,20 @@ class BlogHelperTest < ActionView::TestCase
     assert_select ".blog-post-card[data-filter-tags*='Easy']"
     assert_select ".blog-post-card[data-filter-tags*='Research']"
   end
+
+  test "blog cards do not duplicate content type categories" do
+    render inline: "<%= render_blog_post_card('example', info) %>", locals: {
+      info: {
+        "title" => "Example",
+        "description" => "An algorithms post.",
+        "category" => "Algorithm",
+        "categories" => [ "Algorithms", "LeetCode" ],
+        "published" => "2026-01-01"
+      }
+    }
+
+    assert_select ".blog-post-meta-row > button.filter-chip[data-filter-tag='Algorithms']", 1
+    assert_select ".blog-post-meta-row > button.filter-chip[data-filter-tag='LeetCode']", 1
+    assert_select ".blog-post-card[data-filter-tags='Algorithms|LeetCode']"
+  end
 end

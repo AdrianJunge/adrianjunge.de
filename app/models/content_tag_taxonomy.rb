@@ -3,6 +3,7 @@ module ContentTagTaxonomy
     "CTF writeup",
     "Blog post",
     "Security Research",
+    "Algorithms",
     "CVE",
     "Bug bounty",
     "Certificate",
@@ -28,6 +29,7 @@ module ContentTagTaxonomy
   }.freeze
 
   LABEL_ALIASES = TECHNICAL_LABELS.merge(
+    "algorithm" => "Algorithms",
     "certification" => "Certificate"
   ).freeze
 

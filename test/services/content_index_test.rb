@@ -112,6 +112,14 @@ class ContentIndexTest < ActiveSupport::TestCase
     assert_equal "Security Research", item[:source]
     assert_includes item[:tags], "Blog post"
     assert_includes item[:tags], "Security Research"
+
+    algorithm_item = @items.find { |candidate| candidate[:id] == "blog-climbing-stairs" }
+
+    assert algorithm_item
+    assert_equal "blog", algorithm_item[:kind]
+    assert_equal "Algorithms", algorithm_item[:source]
+    assert_includes algorithm_item[:kind_labels], { label: "Algorithms", tag_value: "Algorithms" }
+    assert_includes algorithm_item[:tags], "Algorithms"
   end
 
   private
