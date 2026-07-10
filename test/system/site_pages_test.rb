@@ -305,13 +305,15 @@ class SitePagesTest < ApplicationSystemTestCase
             iconBackground: iconStyle.backgroundColor,
             iconBorderColor: iconStyle.borderTopColor,
             iconWidth: iconStyle.width,
-            iconHeight: iconStyle.height
+            iconHeight: iconStyle.height,
+            titleFontWeight: window.getComputedStyle(hero.querySelector("h1")).fontWeight
           };
         })()
       JS
 
       baseline ||= metrics
       assert_equal baseline, metrics, "expected #{path} to use shared content hero metrics"
+      assert_equal "700", metrics["titleFontWeight"]
     end
   end
 

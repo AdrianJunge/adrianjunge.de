@@ -12,7 +12,6 @@ challenges in `challenges.json`, certificates in `certificates.json`, talks in
   "subtitle": "Optional short line shown under the title",
   "icon": "other/achievement.svg",
   "url": "/blog/example",
-  "date": "2026-01-01",
   "summary": "Expanded summary text shown inside the dropdown.",
   "timeline_group": "shared-topic-id",
   "tags": [
@@ -57,6 +56,10 @@ timeline entries become separate `/timeline` search/index items. Use
 `timeline_group` only when two content sources represent the same real item and
 should merge in `/timeline`.
 
+Dates belong to `timeline` entries, not to the card itself. For content with a
+single relevant date, add one timeline event such as `Published challenge`,
+`Earned certificate`, or `Presented talk`.
+
 Authored CTF challenges should be listed in `challenges.json` using the same
 card format:
 
@@ -66,12 +69,17 @@ card format:
   "title": "Scanwich Station",
   "icon": "ctf/gpnctf.png",
   "url": "/ctf/gpnctf/Scanwich%20Station",
-  "date": "2026-06-05",
   "summary": "Hybrid web and pwn challenge about mass assignment, QR-code decoding, signed integer overflow, and GLIBC dynamic symbol poisoning. Published for GPNCTF 2026.",
   "tags": [
     { "label": "GPNCTF 2026", "url": "https://gpn24.ctf.kitctf.de/" },
     "Hard",
     { "label": "Writeup", "url": "/ctf/gpnctf/Scanwich%20Station" }
+  ],
+  "timeline": [
+    {
+      "date": "2026-06-05",
+      "title": "Published at GPNCTF 2026."
+    }
   ]
 }
 ```

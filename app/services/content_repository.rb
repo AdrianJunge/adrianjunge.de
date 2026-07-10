@@ -171,7 +171,6 @@ class ContentRepository
         "title" => post[:title],
         "icon" => post[:logo],
         "url" => link,
-        "date" => date,
         "summary" => summary,
         "tags" => [
           { "label" => event, "url" => event_url },
@@ -183,7 +182,13 @@ class ContentRepository
           else
             tag.presence
           end
-        end
+        end,
+        "timeline" => [
+          {
+            "date" => date,
+            "title" => event.present? ? "Published at #{event}." : "Published challenge."
+          }
+        ]
       }
     end
   end
@@ -256,7 +261,7 @@ class ContentRepository
 
   def about_entry_time(entry, fallback_path: nil)
     latest_nested_entry_time(entry, "timeline") ||
-      parsed_time(entry["date"], fallback: fallback_path.present? ? file_time(fallback_path) : nil)
+      (file_time(fallback_path) if fallback_path.present?)
   end
 
   def hidden_content?(metadata)

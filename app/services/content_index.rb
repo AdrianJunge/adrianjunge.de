@@ -127,7 +127,7 @@ class ContentIndex
     return [] if id.blank?
 
     published = about_published_time(entry, collection[:path])
-    display_date = about_display_date(entry, published)
+    display_date = about_card_display_date(entry, published)
     title = entry["title"].presence || collection[:label]
     description = about_description(entry)
     tags = about_tags(entry, collection)
@@ -176,7 +176,7 @@ class ContentIndex
         title: title,
         description: description,
         published: published,
-        display_date: about_display_date(event, published),
+        display_date: about_timeline_event_display_date(event, published),
         link: "/about##{event_id}",
         tags: tags,
         search_parts: [ collection[:label], entry, event ],
@@ -308,26 +308,36 @@ class ContentIndex
 
   def about_entry_timeline_link(entry, id, collection)
     if collection[:kind] == "challenge"
-      entry["url"].presence || "/about##{id}"
+      entry["url"].presence || about_first_local_tag_url(entry["tags"]) || "/about##{id}"
     else
       "/about##{id}"
     end
   end
 
-  def about_published_time(entry, path)
-    latest_timeline_time(entry) ||
-      repository.parsed_time(entry["date"], fallback: repository.file_time(path))
+  def about_first_local_tag_url(tags)
+    Array(tags).filter_map do |tag|
+      next unless tag.respond_to?(:to_h)
+
+      url = tag.to_h["url"].presence || tag.to_h[:url].presence
+      url if url.to_s.start_with?("/")
+    end.first
   end
 
-  def about_display_date(entry, published)
+  def about_published_time(entry, path)
+    latest_timeline_time(entry) ||
+      repository.file_time(path)
+  end
+
+  def about_card_display_date(entry, published)
     latest_timeline = latest_timeline_time(entry)
     return latest_timeline.strftime("%Y-%m-%d") if latest_timeline
-
-    raw_date = entry["date"].to_s.strip
-    return raw_date if raw_date.present?
     return "TBA" if entry["title"].to_s.match?(/\bTBA\b/i)
 
     published.strftime("%Y-%m-%d")
+  end
+
+  def about_timeline_event_display_date(event, published)
+    event["date"].presence || published.strftime("%Y-%m-%d")
   end
 
   def latest_timeline_time(entry)

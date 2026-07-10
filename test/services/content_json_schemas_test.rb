@@ -31,6 +31,14 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
     end
   end
 
+  test "about card dates live in timeline entries" do
+    ContentJsonSchemas::ARRAY_SCHEMAS.each_key do |path|
+      parse_content_json(path).each do |entry|
+        assert_not entry.key?("date"), "card-level date found in #{path}: #{entry["id"]}"
+      end
+    end
+  end
+
   test "ctf and blog metadata keys point at their configured paths" do
     ctf_metadata = parse_content_json(ApplicationController::CTF_INFO_PATH)
     ctf_metadata.each do |_name, entry|

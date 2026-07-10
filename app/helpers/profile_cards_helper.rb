@@ -123,16 +123,7 @@ module ProfileCardsHelper
   end
 
   def profile_about_tags(entry)
-    [
-      profile_about_date_tag(entry),
-      *aboutme_extra_tags(entry["tags"])
-    ].compact
-  end
-
-  def profile_about_date_tag(entry)
-    return nil if entry["date"].blank?
-
-    { label: entry["date"], datetime: entry["date"], class_name: "aboutme-tag-date" }
+    aboutme_extra_tags(entry["tags"])
   end
 
   def profile_about_reference_links(entry)

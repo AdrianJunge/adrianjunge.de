@@ -3,9 +3,7 @@
     "id": "htb-cpts",
     "title": "Hack The Box Certified Penetration Testing Specialist",
     "icon": "blog/htb-cpts.png",
-    "url": "/blog/htb-cpts",
     "timeline_group": "htb-cpts",
-    "date": "2026-03-23",
     "summary": "Completed the HTB CPTS path and passed the practical exam on the first attempt, including a full penetration-test report for the exam environment. The work focused on disciplined enumeration, Active Directory attack paths, web findings, and reproducible reporting.",
     "tags": [
       {
@@ -15,6 +13,20 @@
       {
         "label": "Writeup",
         "url": "/blog/htb-cpts"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-02-02",
+        "title": "Start of the HTB CPTS path."
+      },
+      {
+        "date": "2026-03-13",
+        "title": "Completed the HTB CPTS path and started the practical exam."
+      },
+      {
+        "date": "2026-03-23",
+        "title": "Passed the practical exam and earned the HTB CPTS certificate."
       }
     ]
   }

@@ -1,10 +1,8 @@
 [
   {
-    "id": "kitctf-web-intro-2026",
+    "id": "kitctf-web-intro",
     "title": "KITCTF Web Intro",
     "icon": "other/talk-slides.png",
-    "url": "https://kitctf.de/intro/",
-    "date": "2026-05-07",
     "summary": "Introductory web security talk for KITCTF.",
     "tags": [
       {
@@ -14,6 +12,30 @@
       {
         "label": "Overview",
         "url": "https://kitctf.de/intro/"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-05-07",
+        "title": "Talk at KITCTF."
+      }
+    ]
+  },
+  {
+    "id": "joomla-sqli",
+    "title": "Teaching AI to hack Joomla so I can skip my homework",
+    "icon": "blog/joomla.png",
+    "summary": "How a manual SQLi hunt turned into an AI-assisted Joomla audit and multiple assigned CVEs.",
+    "tags": [
+      {
+        "label": "Slides",
+        "url": "/talks/teaching-ai-to-hack-joomla.pdf"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-07-09",
+        "title": "Talk at KITCTF."
       }
     ]
   }

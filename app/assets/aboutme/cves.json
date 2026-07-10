@@ -58,7 +58,7 @@
         "url": "https://cwe.mitre.org/data/definitions/89.html"
       },
       {
-        "label": "Writeup",
+        "label": "Post",
         "url": "/blog/joomla-sqli"
       }
     ],
@@ -108,7 +108,7 @@
         "url": "https://cwe.mitre.org/data/definitions/89.html"
       },
       {
-        "label": "Writeup",
+        "label": "Post",
         "url": "/blog/joomla-sqli"
       }
     ],

@@ -61,7 +61,7 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert_equal [ "scanwich-station", "smile-at-me" ], challenges.map { |entry| entry["id"] }
     assert scanwich
     assert smile_at_me
-    assert_equal "/ctf/gpnctf/Scanwich%20Station", scanwich["url"]
+    assert_nil scanwich["url"]
     assert_equal "https://gpn24.ctf.kitctf.de/", scanwich["tags"].first["url"]
     assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "GPNCTF 2026"
     assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Hard"
@@ -69,11 +69,15 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Pwn"
     assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Writeup"
     assert_includes scanwich["summary"], "Published for GPNCTF 2026"
-    assert_equal "/ctf/gpnctf/Smile%20at%20me", smile_at_me["url"]
+    assert_nil scanwich["date"]
+    assert_equal "2026-06-05", scanwich.dig("timeline", 0, "date")
+    assert_nil smile_at_me["url"]
     assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "GPNCTF 2025"
     assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Hard"
     assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Web"
     assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Writeup"
+    assert_nil smile_at_me["date"]
+    assert_equal "2025-06-21", smile_at_me.dig("timeline", 0, "date")
   end
 
   test "metadata tags include optional filters and declared difficulties by shared priority" do

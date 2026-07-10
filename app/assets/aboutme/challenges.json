@@ -3,8 +3,6 @@
     "id": "scanwich-station",
     "title": "Scanwich Station",
     "icon": "ctf/gpnctf.png",
-    "url": "/ctf/gpnctf/Scanwich%20Station",
-    "date": "2026-06-05",
     "summary": "Hybrid web and pwn challenge about mass assignment, QR-code decoding, signed integer overflow, and GLIBC dynamic symbol poisoning. Published for GPNCTF 2026.",
     "tags": [
       {
@@ -18,14 +16,18 @@
         "label": "Writeup",
         "url": "/ctf/gpnctf/Scanwich%20Station"
       }
+    ],
+    "timeline": [
+      {
+        "date": "2026-06-05",
+        "title": "Published at GPNCTF 2026."
+      }
     ]
   },
   {
     "id": "smile-at-me",
     "title": "Smile at me",
     "icon": "ctf/gpnctf.png",
-    "url": "/ctf/gpnctf/Smile%20at%20me",
-    "date": "2025-06-21",
     "summary": "Web challenge about URL parser differentials, strict CSP, and an XS-Leak using Scroll-to-Text Fragment behavior with lazy-loaded images. Published for GPNCTF 2025.",
     "tags": [
       {
@@ -37,6 +39,12 @@
       {
         "label": "Writeup",
         "url": "/ctf/gpnctf/Smile%20at%20me"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2025-06-21",
+        "title": "Published at GPNCTF 2025."
       }
     ]
   }

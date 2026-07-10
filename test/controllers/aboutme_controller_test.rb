@@ -113,31 +113,41 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Scanwich Station", scanwich["title"]
     assert_nil scanwich["subtitle"]
     assert_includes scanwich["summary"], "Published for GPNCTF 2026"
-    assert_equal "/ctf/gpnctf/Scanwich%20Station", scanwich["url"]
+    assert_nil scanwich["url"]
     assert_equal "https://gpn24.ctf.kitctf.de/", scanwich["tags"].first["url"]
     assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "GPNCTF 2026"
     assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Hard"
     assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Web"
     assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Pwn"
     assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Writeup"
+    assert_nil scanwich["date"]
+    assert_equal "2026-06-05", scanwich.dig("timeline", 0, "date")
     assert_includes smile_at_me["summary"], "Published for GPNCTF 2025"
-    assert_equal "/ctf/gpnctf/Smile%20at%20me", smile_at_me["url"]
+    assert_nil smile_at_me["url"]
     assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "GPNCTF 2025"
     assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Hard"
     assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Web"
     assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Writeup"
+    assert_nil smile_at_me["date"]
+    assert_equal "2025-06-21", smile_at_me.dig("timeline", 0, "date")
     assert_nil certificates.first["subtitle"]
+    assert_nil certificates.first["date"]
+    assert_equal %w[2026-02-02 2026-03-13 2026-03-23], certificates.first["timeline"].map { |event| event["date"] }
     assert_includes certificates.first["summary"], "full penetration-test report"
-    assert_equal "/blog/htb-cpts", certificates.first["url"]
+    assert_nil certificates.first["url"]
     assert_equal [ "Certificate", "Writeup" ], certificates.first["tags"].map { |tag| tag["label"] }
     assert_equal "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url", certificates.first["tags"].first["url"]
-    assert_equal 1, talks.length
-    assert_equal "kitctf-web-intro-2026", talks.first["id"]
-    assert_equal "KITCTF Web Intro", talks.first["title"]
-    assert_equal "2026-05-07", talks.first["date"]
-    assert_equal "https://kitctf.de/intro/", talks.first["url"]
-    assert_equal [ "Slides", "Overview" ], talks.first["tags"].map { |tag| tag["label"] }
-    assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", talks.first["tags"].first["url"]
+    assert_equal 2, talks.length
+    kitctf_talk = talks.find { |entry| entry["id"] == "kitctf-web-intro" }
+    joomla_talk = talks.find { |entry| entry["id"] == "joomla-sqli" }
+    assert_equal "KITCTF Web Intro", kitctf_talk["title"]
+    assert_nil kitctf_talk["date"]
+    assert_equal "2026-05-07", kitctf_talk.dig("timeline", 0, "date")
+    assert_equal [ "Slides", "Overview" ], kitctf_talk["tags"].map { |tag| tag["label"] }
+    assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", kitctf_talk["tags"].first["url"]
+    assert_equal "Teaching AI to hack Joomla so I can skip my homework", joomla_talk["title"]
+    assert_equal "2026-07-09", joomla_talk.dig("timeline", 0, "date")
+    assert_equal "/talks/teaching-ai-to-hack-joomla.pdf", joomla_talk.dig("tags", 0, "url")
     achievement_ids = achievements.map { |entry| entry["id"] }
     assert_includes achievement_ids, "immunefi"
     assert_includes achievement_ids, "dhm"

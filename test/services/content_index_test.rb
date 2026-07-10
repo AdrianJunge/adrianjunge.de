@@ -64,7 +64,8 @@ class ContentIndexTest < ActiveSupport::TestCase
       assert_not_includes ids, about_challenge_id
       assert item, "Expected #{about_challenge_id} to be represented by a merged writeup timeline item"
       assert_equal "writeup", item[:kind]
-      assert_equal entry["url"], item[:link]
+      writeup_url = entry.fetch("tags").find { |tag| tag.is_a?(Hash) && tag["label"] == "Writeup" }.fetch("url")
+      assert_equal writeup_url, item[:link]
       assert_includes item[:kind_labels], { label: "CTF writeup", tag_value: "CTF writeup" }
       assert_not_includes item[:kind_labels], { label: "Created CTF challenge", tag_value: AuthoredChallenge::FILTER_LABEL }
       assert_includes item[:tags], AuthoredChallenge::FILTER_LABEL
@@ -93,15 +94,21 @@ class ContentIndexTest < ActiveSupport::TestCase
   end
 
   test "talks are indexed with the talk content type and slide tag" do
-    item = @items.find { |candidate| candidate[:id] == "about-talk-kitctf-web-intro-2026" }
+    item = @items.find { |candidate| candidate[:id] == "about-talk-kitctf-web-intro" }
 
     assert item
     assert_equal "talk", item[:kind]
     assert_equal "Talk", item[:label]
     assert_equal "KITCTF Web Intro", item[:title]
-    assert_equal "/about#kitctf-web-intro-2026", item[:link]
+    assert_equal "/about#kitctf-web-intro", item[:link]
+    assert_equal "2026-05-07", item[:display_date]
     assert_includes item[:tags], "Talk"
     assert_includes item[:tags], "Slides"
+
+    joomla_item = @items.find { |candidate| candidate[:id] == "about-talk-joomla-sqli" }
+    assert joomla_item
+    assert_equal "2026-07-09", joomla_item[:display_date]
+    assert_includes joomla_item[:tags], "Slides"
   end
 
   test "blog source categories are indexed as content type tags" do

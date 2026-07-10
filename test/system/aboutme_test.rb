@@ -175,18 +175,26 @@ class AboutmeTest < ApplicationSystemTestCase
       }))
     JS
     assert_equal [
-      { "text" => "2026-03-23", "linked" => false },
       { "text" => "Certificate", "linked" => true },
       { "text" => "Writeup", "linked" => true }
     ], certificate_tags
-    assert_selector "#talks #kitctf-web-intro-2026.aboutme-achievement-card"
+    assert_selector "#certificates .aboutme-timeline time[datetime='2026-03-23']", text: "2026-03-23"
+    assert_selector "#certificates .aboutme-timeline-title", text: "Passed the practical exam and earned the HTB CPTS certificate."
+    assert_selector "#my-challenges .aboutme-timeline time[datetime='2026-06-05']", text: "2026-06-05"
+    assert_selector "#my-challenges .aboutme-timeline time[datetime='2025-06-21']", text: "2025-06-21"
+    assert_selector "#talks #kitctf-web-intro.aboutme-achievement-card"
+    assert_selector "#talks #joomla-sqli.aboutme-achievement-card"
     assert_no_selector "#talks .aboutme-card-link-overlay", visible: :all
     assert_no_selector "#talks .aboutme-reference-link[href='https://kitctf.de/intro/']", visible: :all
     assert_no_selector "#talks .aboutme-reference-link[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf']", visible: :all
     assert_selector "#talks .aboutme-tag-overview[href='https://kitctf.de/intro/']", text: "Overview", visible: :all
     assert_selector "#talks .aboutme-card-title", text: "KITCTF Web Intro"
-    assert_selector "#talks .aboutme-tag-date", text: "2026-05-07"
+    assert_selector "#talks .aboutme-card-title", text: "Teaching AI to hack Joomla so I can skip my homework"
+    assert_no_selector "#talks .aboutme-tag-date", visible: :all
+    assert_selector "#talks .aboutme-timeline time[datetime='2026-05-07']", text: "2026-05-07"
+    assert_selector "#talks .aboutme-timeline-title", text: "Talk at KITCTF."
     assert_selector "#talks .aboutme-tag-slides[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf'][target='_blank'][rel='noopener noreferrer']", text: "Slides"
+    assert_selector "#talks #joomla-sqli .aboutme-tag-slides[href='/talks/teaching-ai-to-hack-joomla.pdf']", text: "Slides"
     assert_selector "#talks .aboutme-card-icon[src*='other/talk-slides']"
     assert_selector "#achievements #firedancer-v1-audit-competition"
     assert_no_selector "#achievements .aboutme-card-link-overlay", visible: :all
@@ -221,6 +229,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector ".aboutme-stat[href='#achievements']", text: "Achievements"
     assert_no_selector ".aboutme-stat .aboutme-stat-icon", visible: :all
     assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.aboutme-stat')).justifyContent")
+    assert_equal "700", page.evaluate_script("window.getComputedStyle(document.querySelector('.aboutme-section-title')).fontWeight")
     counter_surface = page.evaluate_script(<<~JS)
       (() => {
         const group = document.querySelector(".aboutme-stats");
@@ -260,7 +269,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#bug-bounties .aboutme-section-count", text: bug_bounty_count_label
     assert_selector "#my-challenges .aboutme-section-count", text: /challenge/
     assert_selector "#certificates .aboutme-section-count", text: /certificate/
-    assert_selector "#talks .aboutme-section-count", text: "1 talk"
+    assert_selector "#talks .aboutme-section-count", text: "2 talks"
     assert_selector "#achievements .aboutme-section-count", text: /events/
     section_count_surface = page.evaluate_script(<<~JS)
       (() => {
@@ -1085,7 +1094,7 @@ class AboutmeTest < ApplicationSystemTestCase
         return [
           linkAtCenter("#my-challenges .aboutme-tag-gpnctf-2025"),
           linkAtCenter("#certificates .aboutme-tag-certificate"),
-          linkAtCenter("#talks .aboutme-tag-slides"),
+          linkAtCenter("#talks #kitctf-web-intro .aboutme-tag-slides"),
           linkAtCenter("#achievements #dhm .aboutme-tag-dhm[href='https://hacking-meisterschaft.de/']"),
           linkAtCenter("#achievements #kitctf .aboutme-timeline-event-link[href='https://ctftime.org/event/2714']")
         ];
