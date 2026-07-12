@@ -1,5 +1,5 @@
 ---
-description: How a manual SQLi hunt turned into an AI-assisted Joomla audit and multiple assigned CVEs.
+description: How a manual SQLi hunt turned into an AI-assisted Joomla audit, two assigned CVEs, and a surprisingly valid way to pass a university lab.
 categories:
     - PHP
     - SQLI

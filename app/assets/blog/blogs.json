@@ -19,7 +19,7 @@
     "logo": "blog/joomla.png",
     "title": "Teaching AI to hack Joomla so I can skip my homework",
     "category": "Security Research",
-    "description": "How a manual SQLi hunt turned into an AI-assisted Joomla audit and two assigned CVEs."
+    "description": "How a manual SQLi hunt turned into an AI-assisted Joomla audit, two assigned CVEs, and a surprisingly valid way to pass a university lab."
   },
   "java-strings": {
     "terminal_path": "java-strings",
@@ -34,6 +34,6 @@
     "title": "HTB CPTS",
     "category": "Certificate",
     "timeline_group": "htb-cpts",
-    "description": "This blog post documents my experience with the Hack The Box Certified Penetration Testing Specialist (HTB CPTS) certification."
+    "description": "My experience with the Hack The Box Certified Penetration Testing Specialist (HTB CPTS) certification."
   }
 }
