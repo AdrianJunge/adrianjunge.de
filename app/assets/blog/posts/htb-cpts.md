@@ -68,7 +68,7 @@ The most important lesson is simple: **good notes are everything**. If your note
 - The last module felt very similar to one of the exam machines, so do not treat the final module as "just another chapter" but more as a test before the exam.
 - Exam machines are not equally expensive in terms of time; some move fast, others eat your day.
 - During the exam, copy everything relevant: commands, outputs, screenshots, and context, because your future self will thank you for it.
-- Learn and use [ligolo-ng](https://github.com/nicocha30/ligolo-ng). For me, it was a huge quality-of-life improvement for pivoting compared to the more elaborate combination of [Chisel](https://github.com/jpillora/chisel) and [Proxychains](https://github.com/haad/proxychains).
+- Learn and use [ligolo-ng](https://github.com/nicocha30/ligolo-ng). For me, it was a huge quality-of-life improvement for pivoting compared to the more elaborate combination of [Chisel](https://github.com/jpillora/chisel) and [Proxychains](https://github.com/haad/proxychains). I published my [ligolo setup](https://github.com/AdrianJunge/ligolo-setup).
 
 # CPTS Summary
 
