@@ -129,6 +129,10 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_operator icon_coverage["dropdownMetrics"]["bodyBottomGap"], :<=, 1
 
     assert_text "record of what I have worked on and learned from"
+    assert_text "CVE-2026-65703"
+    assert_text "CVE-2026-65704"
+    assert_text "CVE-2026-65705"
+    assert_text "CVE-2026-65706"
     assert_text "CVE-2026-39327"
     assert_text "CVE-2026-35221"
     assert_text "CVE-2026-35222"
@@ -847,7 +851,7 @@ class AboutmeTest < ApplicationSystemTestCase
           challengeTagBorder: challengeTagStyle.borderTopColor,
           challengeTagCursor: challengeTagStyle.cursor,
           challengeTagActionContent: challengeTagActionStyle.content,
-          challengeTagActionWidth: challengeTagActionStyle.width,
+          challengeTagActionBorderTopWidth: challengeTagActionStyle.borderTopWidth,
           cveDetailHeadingColor: cveDetailHeadingStyle.color,
           cveDetailHeadingFontSize: cveDetailHeadingStyle.fontSize,
           challengeDetailHeadingColor: challengeDetailHeadingStyle.color,
@@ -912,11 +916,11 @@ class AboutmeTest < ApplicationSystemTestCase
     assert metrics["findingTagsBelowTitle"]
     assert metrics["achievementTagsBelowTitle"]
     assert_equal "A", metrics["cveTagName"]
-    assert_equal "https://www.cve.org/CVERecord?id=CVE-2026-48898", metrics["cveHref"]
+    assert_equal "https://www.cve.org/CVERecord?id=CVE-2026-65703", metrics["cveHref"]
     assert_equal "A", metrics["cweTagName"]
-    assert_equal "https://cwe.mitre.org/data/definitions/284.html", metrics["cweHref"]
+    assert_equal "https://cwe.mitre.org/data/definitions/787.html", metrics["cweHref"]
     assert_equal false, metrics["projectLinkPresent"]
-    assert_equal "https://developer.joomla.org/security-centre/1045-20260513-core-privilege-escalation-through-com-users-batch-task.html", metrics["advisoryHref"]
+    assert_equal "https://www.vulncheck.com/advisories/ffmpeg-out-of-bounds-write-in-tdsc-video-decoder", metrics["advisoryHref"]
     assert_includes metrics["advisoryClass"], "aboutme-reference-link"
     assert_equal "Open Advisory source", metrics["advisoryAriaLabel"]
     assert_equal "Open Advisory source", metrics["advisoryTitle"]
@@ -928,9 +932,9 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "rgba(96, 165, 250, 0.82)", metrics["referenceListMarkerColor"]
     assert_includes metrics["referenceTexts"], "Repository"
     assert_includes metrics["referenceTexts"], "Advisory source"
-    assert_includes metrics["referenceHrefs"], "https://github.com/joomla/joomla-cms"
-    assert_not_includes metrics["referenceHrefs"], "https://www.cve.org/CVERecord?id=CVE-2026-48898"
-    assert_not_includes metrics["referenceHrefs"], "https://cwe.mitre.org/data/definitions/284.html"
+    assert_includes metrics["referenceHrefs"], "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+    assert_not_includes metrics["referenceHrefs"], "https://www.cve.org/CVERecord?id=CVE-2026-65703"
+    assert_not_includes metrics["referenceHrefs"], "https://cwe.mitre.org/data/definitions/787.html"
     assert_includes metrics["cveTagClass"], "ui-hover-lift"
     assert_includes metrics["cveTagClass"], "cve-badge"
     assert_equal "rgba(14, 116, 144, 0.42)", metrics["cveTagBackground"]
@@ -950,7 +954,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal "rgba(125, 211, 252, 0.34)", metrics["challengeTagBorder"]
     assert_equal "pointer", metrics["challengeTagCursor"]
     assert_equal '""', metrics["challengeTagActionContent"]
-    assert_not_equal "0px", metrics["challengeTagActionWidth"]
+    assert_equal "2px", metrics["challengeTagActionBorderTopWidth"]
     assert_equal "rgb(254, 243, 199)", metrics["cveDetailHeadingColor"]
     assert_equal metrics["cveDetailHeadingColor"], metrics["challengeDetailHeadingColor"]
     assert_equal metrics["cveDetailHeadingFontSize"], metrics["challengeDetailHeadingFontSize"]
@@ -1138,7 +1142,7 @@ class AboutmeTest < ApplicationSystemTestCase
       )
     JS
 
-    assert_equal "Privilege escalation through com_users batch task", first_cve_title
+    assert_equal "Out-of-bounds write in the TDSC video decoder", first_cve_title
     assert_equal repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).map { |entry| entry["title"] }, achievement_titles
     achievement_entries = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).index_by { |entry| entry["title"] }
     assert_equal achievement_entries["DHM"]["timeline"].map { |event| event["title"] }, achievement_events["DHM"].map { |event| event["title"] }

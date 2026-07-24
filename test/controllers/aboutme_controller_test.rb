@@ -83,19 +83,32 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_kind_of Array, certificates
     assert_kind_of Array, talks
     assert_kind_of Array, achievements
-    assert_equal 10, cves.length
+    assert_equal 14, cves.length
     assert_equal %w[
+      ffmpeg-tdsc-video-decoder-out-of-bounds-write
+      ffmpeg-ty-shorten-out-of-bounds-write
+      ffmpeg-vf-floodfill-out-of-bounds-write
+      ffmpeg-vf-swaprect-out-of-bounds-write
       joomla-com-users-batch-task-privilege-escalation
-      joomla-com-tags-authenticated-blind-sqli
-      joomla-com-finder-authenticated-blind-sqli
-      churchcrm-settingsindividual-blind-sqli
-      churchcrm-propertyassign-blind-sqli
     ], cves.first(5).map { |entry| entry["id"] }
     cve_tag_labels = cves.flat_map { |entry| entry.fetch("tags", []) }.filter_map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }
+    assert_includes cve_tag_labels, "CVE-2026-65703"
+    assert_includes cve_tag_labels, "CVE-2026-65704"
+    assert_includes cve_tag_labels, "CVE-2026-65705"
+    assert_includes cve_tag_labels, "CVE-2026-65706"
     assert_includes cve_tag_labels, "CVE-2026-39327"
     assert_includes cve_tag_labels, "CVE-2026-35221"
     assert_includes cve_tag_labels, "CVE-2026-35222"
     assert_includes cve_tag_labels, "CVE-2026-48898"
+    ffmpeg_cves = cves.first(4)
+    assert_equal [
+      %w[2026-06-28 2026-07-11 2026-07-13 2026-07-17 2026-07-23],
+      %w[2026-06-28 2026-07-11 2026-07-13 2026-07-17 2026-07-23],
+      %w[2026-06-29 2026-07-12 2026-07-13 2026-07-17 2026-07-23],
+      %w[2026-06-29 2026-07-11 2026-07-13 2026-07-17 2026-07-23]
+    ], ffmpeg_cves.map { |entry| entry["timeline"].map { |event| event["date"] } }
+    assert ffmpeg_cves.all? { |entry| entry["timeline"].any? { |event| event == { "date" => "2026-07-17", "title" => "Requested a CVE through VulnCheck." } } }
+    assert ffmpeg_cves.all? { |entry| entry["timeline"].last["date"] == "2026-07-23" }
     assert_not cves.any? { |entry| entry["id"].include?("suitecrm-tba") }
     assert_operator bug_bounties.length, :>=, 1
     firedancer = bug_bounties.find { |entry| entry["id"] == "frankendancer-netshred-overrun" }

@@ -1,5 +1,261 @@
 [
   {
+    "id": "ffmpeg-tdsc-video-decoder-out-of-bounds-write",
+    "title": "FFmpeg",
+    "subtitle": "Out-of-bounds write in the TDSC video decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 2.7 through 8.1.2 reused an undersized reference frame when a crafted AVI file changed dimensions between TDSF frames. The TDSC decoder could consequently write attacker-controlled pixel data beyond the frame buffer, causing heap corruption, a crash, or potential code execution.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-65703",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-65703"
+      },
+      {
+        "label": "CWE-787",
+        "url": "https://cwe.mitre.org/data/definitions/787.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23773"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/fd3ee52fab34d98a95b787d0b5ff45685766200c"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-out-of-bounds-write-in-tdsc-video-decoder"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-06-28",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-11",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23773"
+      },
+      {
+        "date": "2026-07-13",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23773"
+      },
+      {
+        "date": "2026-07-17",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-07-23",
+        "title": "CVE-2026-65703 published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-65703"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-ty-shorten-out-of-bounds-write",
+    "title": "FFmpeg",
+    "subtitle": "Out-of-bounds write via the TY demuxer and Shorten decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg through 8.1.2 could underflow a packet size while processing a crafted ffconcat file with the -safe 0 flag. The negative size reached memcpy() in the Shorten decoder as a near-SIZE_MAX value, causing out-of-bounds reads and writes, heap corruption, and a potential crash or code execution.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-65704",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-65704"
+      },
+      {
+        "label": "CWE-787",
+        "url": "https://cwe.mitre.org/data/definitions/787.html"
+      },
+      {
+        "label": "CWE-191",
+        "url": "https://cwe.mitre.org/data/definitions/191.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23767"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/de771bd52774a52d45b0e2c82e56995a1ef40df7"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-out-of-bounds-write-via-ty-demuxer-and-shorten-decoder"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-06-28",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-11",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23767"
+      },
+      {
+        "date": "2026-07-13",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23767"
+      },
+      {
+        "date": "2026-07-17",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-07-23",
+        "title": "CVE-2026-65704 published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-65704"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-vf-floodfill-out-of-bounds-write",
+    "title": "FFmpeg",
+    "subtitle": "Out-of-bounds write in the vf_floodfill video filter",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 3.4 through 8.1.2 sized the vf_floodfill traversal stack from the initial frame dimensions. If a later frame was larger while filtergraph reinitialization was disabled, the filter could push points beyond that allocation, corrupting heap memory and potentially causing a crash or code execution.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-65705",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-65705"
+      },
+      {
+        "label": "CWE-787",
+        "url": "https://cwe.mitre.org/data/definitions/787.html"
+      },
+      {
+        "label": "CWE-131",
+        "url": "https://cwe.mitre.org/data/definitions/131.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23780"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/f186c50cf53aec20e9a29059cb22ca3f2d59201c"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-vf-floodfill-out-of-bounds-write-via-filter-frame"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-06-29",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-12",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23780"
+      },
+      {
+        "date": "2026-07-13",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23780"
+      },
+      {
+        "date": "2026-07-17",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-07-23",
+        "title": "CVE-2026-65705 published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-65705"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-vf-swaprect-out-of-bounds-write",
+    "title": "FFmpeg",
+    "subtitle": "Out-of-bounds write in the vf_swaprect video filter",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 3.0 through 8.1.2 reused a temporary row buffer sized for a one-byte pixel step across every image plane. Processing an odd-width NV12 frame could therefore copy past the heap allocation for its interleaved chroma plane, causing memory corruption, a crash, or potential code execution.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-65706",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-65706"
+      },
+      {
+        "label": "CWE-787",
+        "url": "https://cwe.mitre.org/data/definitions/787.html"
+      },
+      {
+        "label": "CWE-131",
+        "url": "https://cwe.mitre.org/data/definitions/131.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23779"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/a7e38b617b32f996beaa371bbf04b39907d7a527"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-vf-swaprect-out-of-bounds-write-via-nv12-frame-processing"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-06-29",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-11",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23779"
+      },
+      {
+        "date": "2026-07-13",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23779"
+      },
+      {
+        "date": "2026-07-17",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-07-23",
+        "title": "CVE-2026-65706 published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-65706"
+      }
+    ]
+  },
+  {
     "id": "joomla-com-users-batch-task-privilege-escalation",
     "title": "Joomla CMS",
     "subtitle": "Privilege escalation through com_users batch task",
