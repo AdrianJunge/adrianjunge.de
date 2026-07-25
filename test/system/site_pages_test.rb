@@ -3256,7 +3256,7 @@ class SitePagesTest < ApplicationSystemTestCase
   def blog_tag_case
     groups = {}
     blog_posts.each do |post|
-      Array(post[:categories]).each do |tag|
+      ([ post[:which] ] + Array(post[:categories])).compact.uniq { |tag| tag.to_s.downcase }.each do |tag|
         groups[tag.downcase] ||= { tag: tag, posts: [] }
         groups[tag.downcase][:posts] << post
       end
@@ -3294,7 +3294,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
   def blog_filter_text(post)
     published = post[:published].strftime("%Y-%m-%d")
-    ([ post[:title], post[:description], published, post[:published].year, post[:topic] ] + Array(post[:categories]))
+    ([ post[:title], post[:description], published, post[:published].year, post[:topic], post[:which] ] + Array(post[:categories]))
       .compact
       .join(" ")
       .downcase

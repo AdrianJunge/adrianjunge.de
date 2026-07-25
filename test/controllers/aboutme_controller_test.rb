@@ -83,15 +83,29 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_kind_of Array, certificates
     assert_kind_of Array, talks
     assert_kind_of Array, achievements
-    assert_equal 14, cves.length
+    assert_equal 20, cves.length
+    assert_equal %w[
+      ffmpeg-vf-hqdn3d-dynamic-resolution-out-of-bounds-write
+      ffmpeg-iamf-demuxer-uncontrolled-resource-consumption
+      ffmpeg-lcl-zlib-uninitialized-memory-disclosure
+      ffmpeg-mace6-integer-overflow-out-of-bounds-write
+      ffmpeg-png-apng-exif-out-of-bounds-write
+      ffmpeg-vf-quirc-dynamic-resolution-out-of-bounds-write
+    ], cves.first(6).map { |entry| entry["id"] }
     assert_equal %w[
       ffmpeg-tdsc-video-decoder-out-of-bounds-write
       ffmpeg-ty-shorten-out-of-bounds-write
       ffmpeg-vf-floodfill-out-of-bounds-write
       ffmpeg-vf-swaprect-out-of-bounds-write
       joomla-com-users-batch-task-privilege-escalation
-    ], cves.first(5).map { |entry| entry["id"] }
+    ], cves.slice(6, 5).map { |entry| entry["id"] }
     cve_tag_labels = cves.flat_map { |entry| entry.fetch("tags", []) }.filter_map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }
+    assert_includes cve_tag_labels, "CVE-2026-66036"
+    assert_includes cve_tag_labels, "CVE-2026-66037"
+    assert_includes cve_tag_labels, "CVE-2026-66038"
+    assert_includes cve_tag_labels, "CVE-2026-66039"
+    assert_includes cve_tag_labels, "CVE-2026-66040"
+    assert_includes cve_tag_labels, "CVE-2026-66041"
     assert_includes cve_tag_labels, "CVE-2026-65703"
     assert_includes cve_tag_labels, "CVE-2026-65704"
     assert_includes cve_tag_labels, "CVE-2026-65705"
@@ -100,7 +114,24 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_includes cve_tag_labels, "CVE-2026-35221"
     assert_includes cve_tag_labels, "CVE-2026-35222"
     assert_includes cve_tag_labels, "CVE-2026-48898"
-    ffmpeg_cves = cves.first(4)
+    new_ffmpeg_cves = cves.first(6)
+    assert_equal [
+      %w[2026-07-08 2026-07-12 2026-07-22 2026-07-24 2026-07-24],
+      %w[2026-06-24 2026-06-28 2026-06-28 2026-07-24 2026-07-24],
+      %w[2026-06-24 2026-06-28 2026-07-05 2026-07-24 2026-07-24],
+      %w[2026-06-26 2026-06-28 2026-07-03 2026-07-24 2026-07-24],
+      %w[2026-07-11 2026-07-12 2026-07-21 2026-07-24 2026-07-24],
+      %w[2026-06-24 2026-06-28 2026-07-05 2026-07-24 2026-07-24]
+    ], new_ffmpeg_cves.map { |entry| entry["timeline"].map { |event| event["date"] } }
+    assert new_ffmpeg_cves.all? { |entry| entry.dig("timeline", -2) == { "date" => "2026-07-24", "title" => "Requested a CVE through VulnCheck." } }
+    assert new_ffmpeg_cves.all? { |entry| entry["timeline"].last["date"] == "2026-07-24" }
+    previous_ffmpeg_cve_ids = %w[
+      ffmpeg-tdsc-video-decoder-out-of-bounds-write
+      ffmpeg-ty-shorten-out-of-bounds-write
+      ffmpeg-vf-floodfill-out-of-bounds-write
+      ffmpeg-vf-swaprect-out-of-bounds-write
+    ]
+    ffmpeg_cves = cves.select { |entry| previous_ffmpeg_cve_ids.include?(entry["id"]) }
     assert_equal [
       %w[2026-06-28 2026-07-11 2026-07-13 2026-07-17 2026-07-23],
       %w[2026-06-28 2026-07-11 2026-07-13 2026-07-17 2026-07-23],

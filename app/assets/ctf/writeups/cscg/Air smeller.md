@@ -107,9 +107,9 @@ let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 ```
 
 This will internally use the **parse5** [serializer](https://github.com/inikulin/parse5/blob/v6.0.0/packages/parse5/lib/serializer/index.js), which has the aforementioned namespace-dependent bug. Thus, the malicious payload is processed in the following stages, each potentially modifying its HTML structure and representation:
-<span>
+
 Dirty HTML → **parse5** parser → **DOMPurify** sanitizer → **parse5** serializer → **Chromium** **DOMParser**
-<span>
+
 **DOMPurify** assumes that the DOM parser implements the HTML specifications correctly. In this case, it doesn't interpret the `&lt;` as an opening tag, because it relies on the output of the **jsdom** serializer. The serializer treats it as a text node `#text` within the `style` tag, similar to regular content, for example, in a `p` tag. However, after sanitization calling `innerHTML` and thus using the buggy **parse5** serializer, the harmless `&lt;` is decoded as an actual HTML opening tag `<`, causing **DOMPurify** to return a malicious payload with the encoded tag. So effectively, in this challenge **DOMPurify** itself potentially makes harmless inputs harmful.
 <span>
 There are additional bugs in **parse5** v6.0.0, such as [this one](https://github.com/inikulin/parse5/pull/451), which might also be exploitable in this challenge. The difference from the previously described bug is that this one occurs in the **parse5** parser, whereas the earlier bug was in the **parse5** serializer. According to the HTML specification, the closing tags `</br>` and `</p>` must not be children of `<svg>` or `<math>` elements. If they are placed inside these elements, they are automatically moved outside, effectively closing the `<svg>` or `<math>` tags. For instance, a payload like:

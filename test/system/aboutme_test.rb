@@ -129,6 +129,12 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_operator icon_coverage["dropdownMetrics"]["bodyBottomGap"], :<=, 1
 
     assert_text "record of what I have worked on and learned from"
+    assert_text "CVE-2026-66036"
+    assert_text "CVE-2026-66037"
+    assert_text "CVE-2026-66038"
+    assert_text "CVE-2026-66039"
+    assert_text "CVE-2026-66040"
+    assert_text "CVE-2026-66041"
     assert_text "CVE-2026-65703"
     assert_text "CVE-2026-65704"
     assert_text "CVE-2026-65705"
@@ -199,7 +205,8 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#talks .aboutme-timeline-title", text: "Talk at KITCTF."
     assert_selector "#talks .aboutme-tag-slides[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf'][target='_blank'][rel='noopener noreferrer']", text: "Slides"
     assert_selector "#talks #joomla-sqli .aboutme-tag-slides[href='/talks/teaching-ai-to-hack-joomla.pdf']", text: "Slides"
-    assert_selector "#talks .aboutme-card-icon[src*='other/talk-slides']"
+    assert_selector "#talks #kitctf-web-intro .aboutme-card-icon[src*='ctf/kitctf']"
+    assert_selector "#talks #joomla-sqli .aboutme-card-icon[src*='blog/joomla']"
     assert_selector "#achievements #firedancer-v1-audit-competition"
     assert_no_selector "#achievements .aboutme-card-link-overlay", visible: :all
     assert_no_selector "#achievements #kitctf .aboutme-reference-link[href='https://ctftime.org/team/7221/']", visible: :all
@@ -916,11 +923,11 @@ class AboutmeTest < ApplicationSystemTestCase
     assert metrics["findingTagsBelowTitle"]
     assert metrics["achievementTagsBelowTitle"]
     assert_equal "A", metrics["cveTagName"]
-    assert_equal "https://www.cve.org/CVERecord?id=CVE-2026-65703", metrics["cveHref"]
+    assert_equal "https://www.cve.org/CVERecord?id=CVE-2026-66036", metrics["cveHref"]
     assert_equal "A", metrics["cweTagName"]
-    assert_equal "https://cwe.mitre.org/data/definitions/787.html", metrics["cweHref"]
+    assert_equal "https://cwe.mitre.org/data/definitions/122.html", metrics["cweHref"]
     assert_equal false, metrics["projectLinkPresent"]
-    assert_equal "https://www.vulncheck.com/advisories/ffmpeg-out-of-bounds-write-in-tdsc-video-decoder", metrics["advisoryHref"]
+    assert_equal "https://www.vulncheck.com/advisories/ffmpeg-heap-out-of-bounds-write-in-vf-hqdn3d-filter", metrics["advisoryHref"]
     assert_includes metrics["advisoryClass"], "aboutme-reference-link"
     assert_equal "Open Advisory source", metrics["advisoryAriaLabel"]
     assert_equal "Open Advisory source", metrics["advisoryTitle"]
@@ -933,8 +940,8 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_includes metrics["referenceTexts"], "Repository"
     assert_includes metrics["referenceTexts"], "Advisory source"
     assert_includes metrics["referenceHrefs"], "https://code.ffmpeg.org/FFmpeg/FFmpeg"
-    assert_not_includes metrics["referenceHrefs"], "https://www.cve.org/CVERecord?id=CVE-2026-65703"
-    assert_not_includes metrics["referenceHrefs"], "https://cwe.mitre.org/data/definitions/787.html"
+    assert_not_includes metrics["referenceHrefs"], "https://www.cve.org/CVERecord?id=CVE-2026-66036"
+    assert_not_includes metrics["referenceHrefs"], "https://cwe.mitre.org/data/definitions/122.html"
     assert_includes metrics["cveTagClass"], "ui-hover-lift"
     assert_includes metrics["cveTagClass"], "cve-badge"
     assert_equal "rgba(14, 116, 144, 0.42)", metrics["cveTagBackground"]
@@ -1142,7 +1149,7 @@ class AboutmeTest < ApplicationSystemTestCase
       )
     JS
 
-    assert_equal "Out-of-bounds write in the TDSC video decoder", first_cve_title
+    assert_equal "Heap out-of-bounds write in the vf_hqdn3d video filter", first_cve_title
     assert_equal repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).map { |entry| entry["title"] }, achievement_titles
     achievement_entries = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).index_by { |entry| entry["title"] }
     assert_equal achievement_entries["DHM"]["timeline"].map { |event| event["title"] }, achievement_events["DHM"].map { |event| event["title"] }

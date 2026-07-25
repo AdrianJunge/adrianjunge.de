@@ -1,5 +1,375 @@
 [
   {
+    "id": "ffmpeg-vf-hqdn3d-dynamic-resolution-out-of-bounds-write",
+    "title": "FFmpeg",
+    "subtitle": "Heap out-of-bounds write in the vf_hqdn3d video filter",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg through 8.1.2 allocated vf_hqdn3d line-history buffers using the initial frame dimensions. If a crafted video increased its resolution while filtergraph reinitialization was disabled, denoise_spatial() could write beyond those undersized buffers and corrupt heap memory.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-66036",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66036"
+      },
+      {
+        "label": "CWE-122",
+        "url": "https://cwe.mitre.org/data/definitions/122.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23783"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/5d7112c60e6f0f0742ce47d448e6da0718a70f4c"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-heap-out-of-bounds-write-in-vf-hqdn3d-filter"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-07-08",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-12",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23783"
+      },
+      {
+        "date": "2026-07-22",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23783"
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66036"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-iamf-demuxer-uncontrolled-resource-consumption",
+    "title": "FFmpeg",
+    "subtitle": "Uncontrolled resource consumption in the IAMF demuxer",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg through 8.1.2 trusted an attacker-controlled count_label value before checking the available IAMF OBU data. A 17-byte input could consequently trigger a multi-gigabyte allocation during format probing, exhausting process memory or causing an OOM kill.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-66037",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66037"
+      },
+      {
+        "label": "CWE-770",
+        "url": "https://cwe.mitre.org/data/definitions/770.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23627"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/86708357d126af84c16f80d9c57335d1e8c845c5"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-iamf-demuxer-uncontrolled-resource-consumption-via-mix-presentation-obu"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-06-24",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-06-28",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23627"
+      },
+      {
+        "date": "2026-06-28",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23627"
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66037"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-lcl-zlib-uninitialized-memory-disclosure",
+    "title": "FFmpeg",
+    "subtitle": "Uninitialized memory disclosure in the LCL/Zlib video decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg through 8.1.2 treated a short Zlib decompression as non-fatal in the LCL video decoder. The RGB24 conversion path could then copy uninitialized heap contents into the output frame, potentially exposing allocator data and weakening ASLR in long-lived media services.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-66038",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66038"
+      },
+      {
+        "label": "CWE-908",
+        "url": "https://cwe.mitre.org/data/definitions/908.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23626"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/e7cbfd1c507b57a806a5825b87d609963e862c8c"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-lcl-zlib-video-decoder-information-disclosure-via-lcldec-c"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-06-24",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-06-28",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23626"
+      },
+      {
+        "date": "2026-07-05",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23626"
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66038"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-mace6-integer-overflow-out-of-bounds-write",
+    "title": "FFmpeg",
+    "subtitle": "Integer overflow and heap out-of-bounds write in the MACE6 decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg through 8.1.2 could overflow the MACE6 output sample-count calculation when decoding a crafted CAF file. This produced an undersized allocation followed by a heap out-of-bounds write, potentially causing memory corruption, a crash, or code execution.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-66039",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66039"
+      },
+      {
+        "label": "CWE-190",
+        "url": "https://cwe.mitre.org/data/definitions/190.html"
+      },
+      {
+        "label": "CWE-122",
+        "url": "https://cwe.mitre.org/data/definitions/122.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23631"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/aafb5c655edc76a753275c383ebb139feb032718"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-mace6-audio-decoder-heap-out-of-bounds-write-via-caf-file"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-06-26",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-06-28",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23631"
+      },
+      {
+        "date": "2026-07-03",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23631"
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66039"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-png-apng-exif-out-of-bounds-write",
+    "title": "FFmpeg",
+    "subtitle": "Heap out-of-bounds write in the PNG and APNG eXIf encoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg through 8.1.2 could underestimate the space required to serialize a crafted PNG eXIf chunk whose IFD entries reused a large value payload. Canonical serialization could then expand beyond the allocation and cause deterministic heap corruption, a crash, or potential code execution.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-66040",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66040"
+      },
+      {
+        "label": "CWE-122",
+        "url": "https://cwe.mitre.org/data/definitions/122.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23786"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/b506fafec9a19fcbc2be5271875fd4a63d6615bc"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-heap-out-of-bounds-write-via-png-apng-exif-encoder"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-07-11",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-12",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23786"
+      },
+      {
+        "date": "2026-07-21",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23786"
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66040"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-vf-quirc-dynamic-resolution-out-of-bounds-write",
+    "title": "FFmpeg",
+    "subtitle": "Heap out-of-bounds write in the vf_quirc video filter",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 7.0 through 8.1.2 did not resize the vf_quirc grayscale buffer when input dimensions changed. A crafted PGS/SUP subtitle whose second presentation was larger than its first could therefore overflow the initial allocation and cause heap corruption, a crash, or potential code execution.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-66041",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66041"
+      },
+      {
+        "label": "CWE-787",
+        "url": "https://cwe.mitre.org/data/definitions/787.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23625"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/4da9812e25894fb51d62a8875cfa8eb39b5e20f5"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-heap-out-of-bounds-write-via-vf-quirc-filter"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-06-24",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-06-28",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23625"
+      },
+      {
+        "date": "2026-07-05",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23625"
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-66041"
+      }
+    ]
+  },
+  {
     "id": "ffmpeg-tdsc-video-decoder-out-of-bounds-write",
     "title": "FFmpeg",
     "subtitle": "Out-of-bounds write in the TDSC video decoder",
@@ -55,7 +425,7 @@
       },
       {
         "date": "2026-07-23",
-        "title": "CVE-2026-65703 published.",
+        "title": "CVE published.",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-65703"
       }
     ]
@@ -120,7 +490,7 @@
       },
       {
         "date": "2026-07-23",
-        "title": "CVE-2026-65704 published.",
+        "title": "CVE published.",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-65704"
       }
     ]
@@ -185,7 +555,7 @@
       },
       {
         "date": "2026-07-23",
-        "title": "CVE-2026-65705 published.",
+        "title": "CVE published.",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-65705"
       }
     ]
@@ -250,7 +620,7 @@
       },
       {
         "date": "2026-07-23",
-        "title": "CVE-2026-65706 published.",
+        "title": "CVE published.",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-65706"
       }
     ]

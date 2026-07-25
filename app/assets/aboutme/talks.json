@@ -2,7 +2,7 @@
   {
     "id": "kitctf-web-intro",
     "title": "KITCTF Web Intro",
-    "icon": "other/talk-slides.png",
+    "icon": "ctf/kitctf.png",
     "summary": "Introductory web security talk for KITCTF.",
     "tags": [
       {
