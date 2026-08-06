@@ -107,7 +107,7 @@ class ContentIndexTest < ActiveSupport::TestCase
 
     joomla_item = @items.find { |candidate| candidate[:id] == "about-talk-joomla-sqli" }
     assert joomla_item
-    assert_equal "2026-07-09", joomla_item[:display_date]
+    assert_equal "2026-08-11", joomla_item[:display_date]
     assert_includes joomla_item[:tags], "Slides"
   end
 

@@ -121,10 +121,15 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     repository = ContentRepository.new
 
     assert_not repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).any? { |entry| entry["id"].include?("suitecrm-tba") }
-    assert_not repository.blog_posts.any? { |post| post[:slug] == "frankendancer-net-shred-overrun" }
-    assert_not repository.feed_posts.any? { |post| post[:guid] == "/blog/frankendancer-net-shred-overrun" }
 
     hidden_cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH, include_hidden: true)
     assert_not hidden_cves.any? { |entry| entry["id"].include?("suitecrm-tba") }
+  end
+
+  test "Frankendancer metadata without a source post stays out of public collections" do
+    repository = ContentRepository.new
+
+    assert_not repository.blog_posts.any? { |post| post[:slug] == "frankendancer-net-shred-overrun" }
+    assert_not repository.feed_posts.any? { |post| post[:guid] == "/blog/frankendancer-net-shred-overrun" }
   end
 end

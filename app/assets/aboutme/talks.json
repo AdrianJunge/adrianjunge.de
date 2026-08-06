@@ -25,7 +25,7 @@
     "id": "joomla-sqli",
     "title": "Teaching AI to hack Joomla so I can skip my homework",
     "icon": "blog/joomla.png",
-    "summary": "How a manual SQLi hunt turned into an AI-assisted Joomla audit and multiple assigned CVEs.",
+    "summary": "How a manual SQLi hunt turned into an AI-assisted Joomla audit and multiple assigned CVEs for a university course.",
     "tags": [
       {
         "label": "Slides",
@@ -36,6 +36,14 @@
       {
         "date": "2026-07-09",
         "title": "Talk at KITCTF."
+      },
+      {
+        "date": "2026-07-27",
+        "title": "Final presentation for the course."
+      },
+      {
+        "date": "2026-08-11",
+        "title": "Talk at the OWASP Stammtisch Karlsruhe."
       }
     ]
   }

@@ -129,6 +129,12 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_operator icon_coverage["dropdownMetrics"]["bodyBottomGap"], :<=, 1
 
     assert_text "record of what I have worked on and learned from"
+    assert_text "CVE-2026-70628"
+    assert_text "CVE-2026-70629"
+    assert_text "CVE-2026-70630"
+    assert_text "CVE-2026-70631"
+    assert_text "CVE-2026-70632"
+    assert_text "CVE-2026-69142"
     assert_text "CVE-2026-66036"
     assert_text "CVE-2026-66037"
     assert_text "CVE-2026-66038"
@@ -755,7 +761,7 @@ class AboutmeTest < ApplicationSystemTestCase
 
     metrics = page.evaluate_script(<<~JS)
       (() => {
-        const finding = document.querySelector("#cves .aboutme-finding-card");
+        const finding = document.querySelector("#cves #ffmpeg-vf-hqdn3d-dynamic-resolution-out-of-bounds-write");
         const findingTitle = finding.querySelector(".aboutme-finding-project").getBoundingClientRect();
         const findingTags = finding.querySelector(".aboutme-finding-badges").getBoundingClientRect();
         const cveTag = finding.querySelector(".aboutme-cve-id");
@@ -1149,7 +1155,7 @@ class AboutmeTest < ApplicationSystemTestCase
       )
     JS
 
-    assert_equal "Heap out-of-bounds write in the vf_hqdn3d video filter", first_cve_title
+    assert_equal "DVB subtitle parser heap buffer overflow via WTV file", first_cve_title
     assert_equal repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).map { |entry| entry["title"] }, achievement_titles
     achievement_entries = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).index_by { |entry| entry["title"] }
     assert_equal achievement_entries["DHM"]["timeline"].map { |event| event["title"] }, achievement_events["DHM"].map { |event| event["title"] }

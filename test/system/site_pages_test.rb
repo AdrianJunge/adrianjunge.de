@@ -544,21 +544,39 @@ class SitePagesTest < ApplicationSystemTestCase
     page.current_window.resize_to(390, 900)
     visit "/timeline"
 
-    metrics = page.evaluate_script(<<~JS)
-      (() => {
-        const taskbar = document.getElementById("top-taskbar");
-        const before = Math.round(taskbar.getBoundingClientRect().top);
-        window.scrollTo(0, document.documentElement.scrollHeight);
-        const bottom = Math.round(taskbar.getBoundingClientRect().top);
-        window.scrollTo(0, 0);
-        const top = Math.round(taskbar.getBoundingClientRect().top);
+    measure_taskbar = lambda do
+      page.evaluate_script(<<~JS)
+        (() => {
+          const taskbar = document.getElementById("top-taskbar");
 
-        return { before, bottom, top };
-      })()
-    JS
+          return {
+            position: window.getComputedStyle(taskbar).position,
+            top: Math.round(taskbar.getBoundingClientRect().top)
+          };
+        })()
+      JS
+    end
+    wait_for_sticky_taskbar = lambda do
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
 
-    assert_in_delta metrics["before"], metrics["bottom"], 1
-    assert_in_delta metrics["before"], metrics["top"], 1
+      loop do
+        metrics = measure_taskbar.call
+        break metrics if metrics["position"] == "sticky" && metrics["top"].abs <= 1
+
+        flunk("top taskbar did not settle into its sticky position") if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+        sleep 0.05
+      end
+    end
+
+    page.execute_script("window.scrollTo(0, 0)")
+    before = wait_for_sticky_taskbar.call
+    page.execute_script("window.scrollTo(0, document.documentElement.scrollHeight)")
+    bottom = wait_for_sticky_taskbar.call
+    page.execute_script("window.scrollTo(0, 0)")
+    top = wait_for_sticky_taskbar.call
+
+    assert_in_delta before["top"], bottom["top"], 1
+    assert_in_delta before["top"], top["top"], 1
   end
 
   test "landing recent posts render as evenly spaced full-width rows" do
@@ -3380,7 +3398,16 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   def timeline_search_match?(query, item)
-    ordered_search_match?(query, [ timeline_filter_text(item), item[:tags] ].flatten.join(" "))
+    search_terms = normalized_search_words(timeline_filter_text(item))
+    Array(item[:tags]).each do |tag|
+      tag_words = normalized_search_words(tag)
+      search_terms.concat(tag_words)
+      search_terms << tag_words.join if tag_words.any?
+    end
+
+    normalized_search_words(query).all? do |query_term|
+      search_terms.any? { |search_term| ordered_search_term_match?(query_term, search_term) }
+    end
   end
 
   def timeline_tag_search_match?(query, item)

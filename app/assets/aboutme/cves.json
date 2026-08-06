@@ -1,5 +1,381 @@
 [
   {
+    "id": "ffmpeg-dvbsub-parser-integer-overflow-out-of-bounds-write",
+    "title": "FFmpeg",
+    "subtitle": "DVB subtitle parser heap buffer overflow via WTV file",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 0.5 through versions before 9.0 contained a signed integer overflow in the DVB subtitle parser. A crafted WTV file could wrap the capacity check and make memcpy() write attacker-controlled data beyond a heap buffer, potentially causing memory corruption or code execution.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-70628",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70628"
+      },
+      {
+        "label": "CWE-190",
+        "url": "https://cwe.mitre.org/data/definitions/190.html"
+      },
+      {
+        "label": "CWE-787",
+        "url": "https://cwe.mitre.org/data/definitions/787.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23897"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/93f2a525ec6c7b467bae68322720d10188fc6e30"
+      },
+      {
+        "label": "FFmpeg 9.0 backport",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/02fc47e13f903768b75f7985a2706a6223ab4506"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70628"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-07-24",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23897"
+      },
+      {
+        "date": "2026-07-29",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23897"
+      },
+      {
+        "date": "2026-08-04",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-08-06",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70628"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-rscc-uninitialized-heap-memory-disclosure",
+    "title": "FFmpeg",
+    "subtitle": "Uninitialized heap memory read in the RSCC decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 3.0 through versions before 9.0 failed to validate that an RSCC tile decompressed to its declared size. The decoder could copy the unwritten suffix of a persistent heap buffer into the output frame, disclosing data from prior allocations or previously decoded frames.",
+    "tags": [
+      "Moderate",
+      {
+        "label": "CVE-2026-70629",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70629"
+      },
+      {
+        "label": "CWE-908",
+        "url": "https://cwe.mitre.org/data/definitions/908.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23895"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/cd1f545cf27ba08f6f5b31b1e92665d7874d4fd7"
+      },
+      {
+        "label": "FFmpeg 9.0 backport",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/a5fe21a1a410a680fe93c33b0dd696b7e1c3aea4"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70629"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-07-24",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23895"
+      },
+      {
+        "date": "2026-07-29",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23895"
+      },
+      {
+        "date": "2026-08-04",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-08-06",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70629"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-screenpresso-uninitialized-heap-memory-disclosure",
+    "title": "FFmpeg",
+    "subtitle": "Uninitialized heap memory read in the Screenpresso decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 3.0 through versions before 9.0 did not verify that an SPV1 packet's Zlib stream produced a complete frame. Copying the full dimensions from the partially written persistent buffer could expose stale heap contents from earlier allocations or frames.",
+    "tags": [
+      "Moderate",
+      {
+        "label": "CVE-2026-70630",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70630"
+      },
+      {
+        "label": "CWE-908",
+        "url": "https://cwe.mitre.org/data/definitions/908.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23896"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/705890061467ad550ecc1dad5eea07f28ccfb43e"
+      },
+      {
+        "label": "FFmpeg 9.0 backport",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/c22667d0fd7916a33fd3e79685b7246fc48f1a62"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70630"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-07-24",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23896"
+      },
+      {
+        "date": "2026-07-27",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23896"
+      },
+      {
+        "date": "2026-08-04",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-08-06",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70630"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-tiff-uninitialized-heap-memory-disclosure",
+    "title": "FFmpeg",
+    "subtitle": "Uninitialized heap memory read in the TIFF decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 0.5 through versions before 9.0 copied every declared TIFF strip row even when Deflate produced fewer bytes than required. The decoded image could consequently contain unwritten bytes holding sensitive data from prior heap allocations.",
+    "tags": [
+      "Moderate",
+      {
+        "label": "CVE-2026-70631",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70631"
+      },
+      {
+        "label": "CWE-908",
+        "url": "https://cwe.mitre.org/data/definitions/908.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23899"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/2f234ea34c81288e3840fca632dd16481d8de39f"
+      },
+      {
+        "label": "FFmpeg 9.0 backport",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/3c287af3affe1286350faa69c02bcc5d49de18bb"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70631"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-07-24",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23899"
+      },
+      {
+        "date": "2026-07-30",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23899"
+      },
+      {
+        "date": "2026-08-04",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-08-06",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70631"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-cfhd-transform2-out-of-bounds-write",
+    "title": "FFmpeg",
+    "subtitle": "Heap out-of-bounds write in the CFHD decoder via AVI demuxing",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 4.4 through versions before 9.0 failed to enforce the CFHD transform-type-2 output-width invariant. A crafted AVI file could make reconstruction write oversized sample rows beyond the output frame, enabling heap corruption and potentially arbitrary code execution.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-70632",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70632"
+      },
+      {
+        "label": "CWE-787",
+        "url": "https://cwe.mitre.org/data/definitions/787.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23898"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/db05df9d135fb56a4babb836d5e9f5c1d984e087"
+      },
+      {
+        "label": "FFmpeg 9.0 backport",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/16b2049d4d5222db6cd7c031409058571c94f6a9"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70632"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-07-24",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-07-24",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23898"
+      },
+      {
+        "date": "2026-07-31",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/23898"
+      },
+      {
+        "date": "2026-08-04",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-08-06",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-70632"
+      }
+    ]
+  },
+  {
+    "id": "suitecrm-map-markers-distance-authenticated-sqli",
+    "title": "SuiteCRM",
+    "subtitle": "Authenticated SQL injection in the map_markers distance parameter",
+    "icon": "other/suitecrm.png",
+    "summary": "SuiteCRM through 7.15.1 and 8.10.1 inserted the authenticated map marker endpoint's distance parameter into a SQL expression without numeric validation or parameterization. Attackers could use blind SQL injection to extract or manipulate database data and, with sufficiently privileged MySQL deployments, potentially execute code through SELECT INTO OUTFILE.",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2026-69142",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-69142"
+      },
+      {
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://github.com/SuiteCRM/SuiteCRM"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://github.com/SuiteCRM/SuiteCRM/security/advisories/GHSA-pjc8-2w2x-xcgf"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-28",
+        "title": "Reported the vulnerability to SuiteCRM."
+      },
+      {
+        "date": "2026-03-31",
+        "title": "Report acknowledged by SuiteCRM."
+      },
+      {
+        "date": "2026-05-21",
+        "title": "Report accepted by SuiteCRM."
+      },
+      {
+        "date": "2026-08-05",
+        "title": "CVE assigned and security advisory published.",
+        "url": "https://github.com/SuiteCRM/SuiteCRM/security/advisories/GHSA-pjc8-2w2x-xcgf"
+      }
+    ]
+  },
+  {
     "id": "ffmpeg-vf-hqdn3d-dynamic-resolution-out-of-bounds-write",
     "title": "FFmpeg",
     "subtitle": "Heap out-of-bounds write in the vf_hqdn3d video filter",

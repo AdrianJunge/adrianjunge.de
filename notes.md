@@ -1,4 +1,7 @@
 # Content
+- bei aboutme scroll to and open specific box falls es noch nicht direkt über fragments geht
+- aboutme page talks counter: dieser sollte die Anzahl der Timeline events sein, genau wie der counter bei den achievements
+- CTF & Blog Post description nicht truncaten
 - Pagination auf ctf und blog page
 - Next Blog
     - Firedancer Bug Bounty overrun race condition
