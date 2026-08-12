@@ -2357,6 +2357,66 @@ class SitePagesTest < ApplicationSystemTestCase
     assert article_tag_styles.all? { |styles| styles["transform"] == "none" }
   end
 
+  test "blog CTF event and writeup cards show complete descriptions" do
+    blog_post = blog_posts.max_by { |post| post[:description].to_s.length }
+    ctf_post = ctf_posts.max_by { |post| post[:description].to_s.length }
+    ctf_name, ctf_event = repository.ctf_metadata.max_by { |_name, event| event["description"].to_s.length }
+    cases = [
+      {
+        path: blog_path,
+        card_selector: ".blog-post-card",
+        title_selector: ".blog-post-title",
+        description_selector: ".blog-post-description",
+        title: blog_post[:title],
+        description: blog_post[:description]
+      },
+      {
+        path: ctf_path,
+        card_selector: ".ctf-card",
+        title_selector: ".ctf-name",
+        description_selector: ".ctf-description",
+        title: ctf_name,
+        description: ctf_event["description"]
+      },
+      {
+        path: "/ctf/#{ctf_post[:directory]}",
+        card_selector: ".writeup-post-card",
+        title_selector: ".blog-post-title",
+        description_selector: ".blog-post-description",
+        title: ctf_post[:title],
+        description: ctf_post[:description]
+      }
+    ]
+
+    cases.each do |test_case|
+      visit test_case[:path]
+
+      metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const card = [...document.querySelectorAll(#{test_case[:card_selector].to_json})]
+            .find((candidate) => candidate.querySelector(#{test_case[:title_selector].to_json})?.innerText.trim() === #{test_case[:title].to_json});
+          const description = card?.querySelector(#{test_case[:description_selector].to_json});
+          if (!description) return null;
+
+          const style = window.getComputedStyle(description);
+          return {
+            text: description.textContent.replace(/\s+/g, " ").trim(),
+            lineClamp: style.webkitLineClamp,
+            overflow: style.overflow,
+            visibleHeight: Math.ceil(description.getBoundingClientRect().height),
+            contentHeight: description.scrollHeight
+          };
+        })()
+      JS
+
+      assert metrics, "expected description for #{test_case[:title]} on #{test_case[:path]}"
+      assert_equal test_case[:description].to_s.squish, metrics["text"]
+      assert_not_equal "2", metrics["lineClamp"]
+      assert_equal "visible", metrics["overflow"]
+      assert_operator metrics["visibleHeight"] + 1, :>=, metrics["contentHeight"]
+    end
+  end
+
   test "article previous and next navigation stays within its content type" do
     blog_case = adjacent_post_case(blog_posts, "blog posts")
     ctf_case = adjacent_post_case(ctf_posts, "CTF writeups")

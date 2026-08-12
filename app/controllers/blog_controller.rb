@@ -6,24 +6,20 @@ class BlogController < ApplicationController
     @blogs = content_repository.blog_metadata
 
     @blog_posts = content_repository.blog_posts
-    @blog_posts.sort_by! { |post| post[:published] }.reverse!
     @filter_years = @blog_posts.map { |post| post[:published].year }.uniq.sort.reverse
     @filter_tags = sorted_filter_values(@blog_posts.flat_map { |post| [ post[:which] ] + content_repository.metadata_tags(post[:metadata] || {}) })
     @filter_tag_groups = filter_tag_groups(@filter_tags, topic_label: "Blog topics")
   end
 
   def show
-    @post_slug = params[:which].gsub("..", "").gsub("/", "")
+    post = content_repository.blog_post(params[:which])
+    return render_error_page(:not_found) unless post
 
+    @post_slug = post[:slug]
     @blogs = content_repository.blog_metadata
-
-    @markdown_content = safe_markdown_content(BLOG_BASE_PATH, @post_slug, render_error: true)
-    return unless @markdown_content
-
-    parsed = parse_markdown_content(@markdown_content)
-    @blog_info = content_repository.post_metadata_from(parsed)
-    blog_config = @blogs[@post_slug] || {}
-    return render_error_page(:not_found) if content_repository.hidden_content?(@blog_info) || content_repository.hidden_content?(blog_config)
+    @markdown_content = post[:content]
+    @blog_info = post[:metadata]
+    blog_config = @blogs.fetch(@post_slug)
 
     @headings = []
     @html_content = render_markdown(@markdown_content, headings: @headings)

@@ -102,7 +102,7 @@ module CtfHelper
       body_class: "blog-post-card-details",
       title: title,
       title_class: "blog-post-title",
-      description: content_truncate(description),
+      description: description,
       description_class: "blog-post-description",
       description_tag: :p,
       date: published,

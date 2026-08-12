@@ -1,8 +1,4 @@
 # Content
-- bei aboutme scroll to and open specific box falls es noch nicht direkt über fragments geht
-- aboutme page talks counter: dieser sollte die Anzahl der Timeline events sein, genau wie der counter bei den achievements
-- CTF & Blog Post description nicht truncaten
-- Pagination auf ctf und blog page
 - Next Blog
     - Firedancer Bug Bounty overrun race condition
         - verify every single statement
@@ -21,15 +17,8 @@
         - DHM TV
         - Perle einer Website
         - proxy-foo
-- Blog
-    - Post zu meinen Erfahrungen mit CVE und Bug Bounty Hunting in 2026
-        - Projekte die fully vibe coded sind (ChurchCRM)
-        - lange triage Zeit zB wordpress 8.5 Monate - suitecrm und joomla auch sehr lange
-        - Joomla dafür ziemlich sorgfältig, haben auch interessantes severity system (kein CVSS score sondern was custom) und duplicates zählen vermutlich auch solange der bug noch nicht triaged wurde
-            - hatte andere SQLI reported, die aber abgelehnt wurde wegen duplicate aber trotzdem stehen bei 2 meiner 3 CVEs noch weitere Leute mit dabei
 - Aboutme to add (with specific dates)
-    - ffmpeg CVEs
-    - SuiteCRM CVEs
+    - missing SuiteCRM CVE
     - Wordpress Bug Bounty + CVE
 
 # Content Management
@@ -37,13 +26,13 @@
     - live Rendering des Markdowns
 
 # Misc
+- Implement Webmention.io
 - Auf Raspberry Pi Server hosten und bei Heroku canceln (auto build pipeline aufbauen für pushes zu main branch)
 - implement that e.g. for referenced codeblocks you can show the real line numbers instead of counting up from 1
 - global search e.g. as gear icon drop down together with scroll up/down buttons
     => the problem is should the global search be backend or frontend sided
 - Anstatt Screenshots, Challenge HTML embedden und so aussehen lassen als wäre es wie in einem eigenen Browserfenster
     => https://github.com/felixfbecker/dom-to-svg
-- Implement Webmention.io
 - Auf Raspberry Pi Server hosten und bei Heroku canceln (auto build pipeline aufbauen für pushes zu main branch)
 - `vurlo.de` sichern und DNS einrichten sodass sowohl `adrianjunge.de` als auch `vurlo.de` auf dieselbe IP zeigen
 - Email einrichten für Domaine
@@ -55,10 +44,6 @@
     - als contact angeben in Terminal + Footer
 
 # Fix
-- Writeups und paths für ctf file zips in Datenbank verschieben anstatt .md files einzulesen
-    => kein Potenzial mehr für Path Traversals
-    => Brakeman ignore Test wieder rausnehmen (config/brakeman.ignore)
-    => keine Probleme mehr mit upper/lowercasing um bestimmte writeups zu finden etc
 - Pipeline aufsetzen, welche automatisch neue oder edited Markdown Writeups zu HTML parsed, sodass nicht bei jedem Request unnötig neu geparsed wird
 - Heroku Warnings durchgehen und evtl fixen
 

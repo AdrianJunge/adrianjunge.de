@@ -3,6 +3,9 @@ class ApplicationController < ActionController::Base
 
   BASE_PATH = Rails.root.join("app", "assets", "ctf", "writeups")
   CTF_INFO_PATH = Rails.root.join("app", "assets", "ctf", "ctfs.json")
+  CTF_RESOURCE_BASE_PATH = Rails.root.join("content", "ctf")
+  CTF_CHALLENGE_FILES_PATH = CTF_RESOURCE_BASE_PATH.join("files")
+  CTF_PDF_WRITEUPS_PATH = CTF_RESOURCE_BASE_PATH.join("writeups")
   BLOG_BASE_PATH = Rails.root.join("app", "assets", "blog", "posts")
   BLOG_INFO_PATH = Rails.root.join("app", "assets", "blog", "blogs.json")
   ABOUTME_BASE_PATH = Rails.root.join("app", "assets", "aboutme")
@@ -58,80 +61,6 @@ class ApplicationController < ActionController::Base
     @content_repository ||= ContentRepository.new
   end
 
-  def sanitize_path(param)
-    param.to_s.match?(/\A[a-zA-Z0-9\s\-_]+\z/)
-  end
-
-  def sanitize_item(item_name, base_path, render_error = true)
-    unless sanitize_path(item_name)
-      render_error_page(:bad_request) if render_error
-      return false
-    end
-
-    begin
-      candidate_path = File.join(base_path, item_name)
-      unless File.directory?(candidate_path)
-        render_error_page(:not_found) if render_error
-        return false
-      end
-
-      real_base = File.realpath(base_path)
-      folder_path = File.realpath(candidate_path)
-      unless folder_path.to_s.start_with?(real_base + File::SEPARATOR)
-        render_error_page(:bad_request) if render_error
-        return false
-      end
-      available_items = Dir.entries(base_path).select { |entry| File.directory?(File.join(base_path, entry)) && !entry.start_with?(".") }
-      item_exists = available_items.include?(item_name)
-      render_error_page(:not_found) if render_error && !item_exists
-      item_exists
-    rescue StandardError
-      render_error_page(:bad_request) if render_error
-      false
-    end
-  end
-
-  def safe_markdown_file(base_path, *segments, render_error: true)
-    if segments.empty?
-      render_error_page(:bad_request) if render_error
-      return nil
-    end
-
-    unless segments.all? { |segment| sanitize_path(segment) }
-      render_error_page(:bad_request) if render_error
-      return nil
-    end
-
-    directory_segments = segments[0...-1]
-    filename = "#{segments.last}.md"
-    candidate = base_path.join(*directory_segments, filename)
-    real_base = base_path.realpath.to_s
-    real_file = candidate.realpath.to_s
-
-    unless real_file.start_with?(real_base + File::SEPARATOR)
-      render_error_page(:bad_request) if render_error
-      return nil
-    end
-
-    return Pathname.new(real_file) if File.file?(real_file)
-
-    render_error_page(:not_found) if render_error
-    nil
-  rescue Errno::ENOENT
-    render_error_page(:not_found) if render_error
-    nil
-  rescue StandardError
-    render_error_page(:bad_request) if render_error
-    nil
-  end
-
-  def safe_markdown_content(base_path, *segments, render_error: true)
-    file_path = safe_markdown_file(base_path, *segments, render_error: render_error)
-    return nil unless file_path
-
-    File.read(file_path)
-  end
-
   def sorted_filter_values(values, ctf_labels: [], repository_labels: [])
     ContentTagTaxonomy.canonical_values(values)
                       .sort_by do |value|
@@ -181,9 +110,5 @@ class ApplicationController < ActionController::Base
     previous_item = index < items.length - 1 ? items[index + 1] : nil
 
     [ previous_item, next_item ]
-  end
-
-  def sanitize_which(which)
-    sanitize_item(which, BASE_PATH, render_error: true)
   end
 end

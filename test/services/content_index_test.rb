@@ -84,13 +84,15 @@ class ContentIndexTest < ActiveSupport::TestCase
     end
   end
 
-  test "timeline index excludes hidden and draft source entries" do
+  test "timeline index excludes hidden entries and includes catalogued blog posts" do
     ids = @items.map { |item| item[:id] }
 
     hidden_about_ids.each do |id|
       assert_not_includes ids, id
     end
-    assert_not_includes ids, "blog-frankendancer-net-shred-overrun"
+    @repository.blog_posts.each do |post|
+      assert_includes ids, "blog-#{post[:slug]}"
+    end
   end
 
   test "talks are indexed with the talk content type and slide tag" do

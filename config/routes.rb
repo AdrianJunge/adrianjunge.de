@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  content_slug = /[a-z0-9]+(?:-[a-z0-9]+)*/
+  writeup_slug = /[A-Za-z0-9]+(?:(?:%20|[ _-])[A-Za-z0-9]+)*/i
+  asset_id = /[0-9a-f]{64}/
+
   root "landing#index"
 
   get "/about", to: "aboutme#index", as: :about
@@ -9,7 +13,11 @@ Rails.application.routes.draw do
   get "/feed.atom", to: "feeds#show", defaults: { format: :atom }
   get "/feed.json", to: "feeds#show", as: :feed_json, defaults: { format: :json }
 
-  get "/ctf/files/*file_path", to: "ctf_files#download", as: :ctf_file_download
+  get "/ctf/resources/:id",
+      to: "ctf_files#download",
+      as: :ctf_file_download,
+      constraints: { id: asset_id },
+      format: false
 
   get "/ctf/feed.atom", to: redirect("/feed.atom")
   get "/ctf/feed.json", to: redirect("/feed.json")
@@ -17,8 +25,11 @@ Rails.application.routes.draw do
   get "/ctf/feed", to: redirect("/feed.xml"), as: :ctf_feed
 
   get "/ctf", to: "ctf#index"
-  get "/ctf/:which", to: "ctf#which"
-  get "/ctf/:which/:writeup", to: "ctf#writeup"
+  get "/ctf/:which", to: "ctf#which", constraints: { which: content_slug }, format: false
+  get "/ctf/:which/:writeup",
+      to: "ctf#writeup",
+      constraints: { which: content_slug, writeup: writeup_slug },
+      format: false
 
   get "/timeline", to: "posts#timeline", as: :timeline
   get "/posts-timeline", to: redirect("/timeline")
@@ -29,7 +40,7 @@ Rails.application.routes.draw do
   get "/blog/feed", to: redirect("/feed.xml"), as: :blog_feed
 
   get "/blog", to: "blog#index", as: :blog
-  get "/blog/:which", to: "blog#show", as: :blog_post
+  get "/blog/:which", to: "blog#show", as: :blog_post, constraints: { which: content_slug }, format: false
 
   match "/400", to: "errors#bad_request", via: :all
   match "/404", to: "errors#not_found", via: :all

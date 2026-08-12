@@ -1,9 +1,30 @@
 require "cgi"
+require "digest"
 
 class ContentRepository
   READING_WORDS_PER_MINUTE = 225
   HIDDEN_CONTENT_KEYS = %w[hidden draft wip].freeze
   HIDDEN_CONTENT_VALUES = %w[1 true yes y on].freeze
+  BLOG_SLUG_PATTERN = /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/
+  CTF_EVENT_SLUG_PATTERN = BLOG_SLUG_PATTERN
+  CTF_WRITEUP_SLUG_PATTERN = /\A[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*\z/
+  CTF_ASSET_NAME_PATTERN = /\A[A-Za-z0-9][A-Za-z0-9._-]*\z/
+  CTF_ASSET_ID_PATTERN = /\A[0-9a-f]{64}\z/
+  EMPTY_COLLECTION = [].freeze
+  CTF_ASSET_KINDS = {
+    challenge: {
+      root: :ctf_challenge_files_path,
+      extension: "zip",
+      content_type: "application/zip",
+      disposition: "attachment"
+    },
+    writeup: {
+      root: :ctf_pdf_writeups_path,
+      extension: "pdf",
+      content_type: "application/pdf",
+      disposition: "inline"
+    }
+  }.freeze
   FEED_SOURCES = [
     {
       key: :blog,
@@ -16,6 +37,24 @@ class ContentRepository
       method: :ctf_posts
     }
   ].freeze
+
+  class InvalidContentPath < StandardError; end
+
+  def initialize(
+    ctf_base_path: ApplicationController::BASE_PATH,
+    blog_base_path: ApplicationController::BLOG_BASE_PATH,
+    ctf_challenge_files_path: ApplicationController::CTF_CHALLENGE_FILES_PATH,
+    ctf_pdf_writeups_path: ApplicationController::CTF_PDF_WRITEUPS_PATH,
+    ctf_metadata_data: nil,
+    blog_metadata_data: nil
+  )
+    @ctf_base_path = Pathname(ctf_base_path)
+    @blog_base_path = Pathname(blog_base_path)
+    @ctf_challenge_files_path = Pathname(ctf_challenge_files_path)
+    @ctf_pdf_writeups_path = Pathname(ctf_pdf_writeups_path)
+    @ctf_metadata = ctf_metadata_data unless ctf_metadata_data.nil?
+    @blog_metadata = blog_metadata_data unless blog_metadata_data.nil?
+  end
 
   def self.filter_tag_sort_key(value)
     ContentTagTaxonomy.sort_key(value)
@@ -41,83 +80,126 @@ class ContentRepository
     @ctf_metadata ||= read_json_object(ApplicationController::CTF_INFO_PATH)
   end
 
-  def post_metadata(base_path, item)
-    cache_key = [ base_path.to_s, item.to_s ]
-    return post_metadata_cache[cache_key] if post_metadata_cache.key?(cache_key)
+  def ctf_events
+    @ctf_events ||= begin
+      events = ctf_metadata.map do |name, metadata|
+        slug = metadata["terminal_path"].presence || name.downcase
+        validate_identifier!(slug, CTF_EVENT_SLUG_PATTERN, "CTF event slug")
 
-    Dir.glob(base_path.join(item, "*.md")).each_with_object({}) do |file_path, posts_info|
-      next unless File.file?(file_path)
+        {
+          slug: slug,
+          name: name,
+          metadata: metadata
+        }
+      end
 
-      parsed = parse_markdown(read_file(file_path))
-      next unless parsed
+      unique_index(events, :slug, "CTF event slug")
+      events
+    end
+  end
 
-      metadata = post_metadata_from(parsed)
-      next if hidden_content?(metadata)
+  def ctf_event(slug)
+    ctf_events_by_slug[slug.to_s]
+  end
 
-      posts_info[File.basename(file_path, ".md")] = metadata
-    end.tap { |posts_info| post_metadata_cache[cache_key] = posts_info }
+  def ctf_posts_for_event(slug)
+    ctf_posts_by_event.fetch(slug.to_s, EMPTY_COLLECTION)
+  end
+
+  def ctf_post(event_slug, slug)
+    ctf_posts_by_key[[ event_slug.to_s, slug.to_s ]]
+  end
+
+  def blog_post(slug)
+    blog_posts_by_slug[slug.to_s]
+  end
+
+  def ctf_asset(id)
+    asset_id = id.to_s
+    return unless asset_id.match?(CTF_ASSET_ID_PATTERN)
+
+    ctf_asset_catalog[:by_id][asset_id]
+  end
+
+  def ctf_assets
+    ctf_asset_catalog[:by_id].values
+  end
+
+  def ctf_asset_for(post, kind)
+    return unless post
+
+    ctf_asset_catalog[:by_post][[ post[:directory].to_s, post[:slug].to_s, kind.to_sym ]]
   end
 
   def ctf_posts(link_prefix: "/ctf")
-    ctf_posts_cache[link_prefix] ||= ctf_metadata.flat_map do |item_key, item_meta|
-      dir_name = item_meta["terminal_path"].presence || item_key.downcase
+    ctf_posts_cache[link_prefix] ||= ctf_events.flat_map do |event|
+      trusted_files(
+        root: ctf_base_path,
+        pattern: ctf_base_path.join(event[:slug], "*.md")
+      ).filter_map do |discovered_file|
+        slug = File.basename(discovered_file[:candidate], ".md")
+        validate_identifier!(slug, CTF_WRITEUP_SLUG_PATTERN, "CTF writeup slug")
 
-      Dir.glob(ApplicationController::BASE_PATH.join(dir_name, "*.md")).filter_map do |file_path|
-        next unless File.file?(file_path)
-
-        content = read_file(file_path)
+        content = read_file(discovered_file[:canonical])
         parsed = parse_markdown(content)
         next unless parsed
 
         meta = post_metadata_from(parsed)
         next if hidden_content?(meta)
 
-        title = meta["title"].presence || File.basename(file_path, ".md").humanize
-        slug = File.basename(file_path, ".md")
-        published = parsed_time(meta["published"], fallback: file_time(file_path, legacy_year(meta)))
+        title = meta["title"].presence || slug.humanize
+        published = parsed_time(meta["published"], fallback: file_time(discovered_file[:canonical], legacy_year(meta)))
 
         {
           type: "ctf",
-          which: item_key,
-          item: item_key,
-          directory: dir_name,
+          which: event[:name],
+          item: event[:name],
+          directory: event[:slug],
           slug: slug,
           title: title,
           published: published,
-          link: encoded_local_path("#{link_prefix}/#{dir_name}/#{slug}"),
+          link: encoded_local_path("#{link_prefix}/#{event[:slug]}/#{slug}"),
           description: meta["description"].to_s,
           categories: normalized_metadata_categories(meta),
-          logo: item_meta["logo"],
+          logo: event[:metadata]["logo"],
           content: content,
+          source_path: discovered_file[:canonical],
           word_count: meta["word_count"],
           word_count_label: meta["word_count_label"],
           reading_time_minutes: meta["reading_time_minutes"],
           reading_time_label: meta["reading_time_label"],
-          metadata: meta.merge("ctf_event_url" => item_meta["website"])
+          metadata: meta.merge("ctf_event_url" => event[:metadata]["website"])
         }
       end
-    end.sort_by { |item| -item[:published].to_i }
+    end.sort_by { |item| -item[:published].to_i }.tap do |posts|
+      unique_index(posts, ->(post) { [ post[:directory], post[:slug] ] }, "CTF writeup path")
+    end
   end
 
   def blog_posts
     @blog_posts ||= begin
       metadata = blog_metadata
+      metadata.each_key { |slug| validate_identifier!(slug, BLOG_SLUG_PATTERN, "blog post slug") }
 
-      Dir.glob(ApplicationController::BLOG_BASE_PATH.join("*.md")).filter_map do |file_path|
-        next unless File.file?(file_path)
+      trusted_files(
+        root: blog_base_path,
+        pattern: blog_base_path.join("*.md")
+      ).filter_map do |discovered_file|
+        slug = File.basename(discovered_file[:candidate], ".md")
+        next unless metadata.key?(slug)
 
-        content = read_file(file_path)
+        validate_identifier!(slug, BLOG_SLUG_PATTERN, "blog post slug")
+        content = read_file(discovered_file[:canonical])
         parsed = parse_markdown(content)
         next unless parsed
 
         meta = post_metadata_from(parsed)
-        slug = File.basename(file_path, ".md")
-        blog_info = metadata[slug] || {}
+        blog_info = metadata.fetch(slug)
         next if hidden_content?(meta) || hidden_content?(blog_info)
 
         category = blog_info["category"] || "POST"
         title = blog_info["title"].presence || meta["title"].presence || slug.humanize
-        published = parsed_time(meta["published"], fallback: file_time(file_path, legacy_year(meta)))
+        published = parsed_time(meta["published"], fallback: file_time(discovered_file[:canonical], legacy_year(meta)))
 
         {
           type: "blog",
@@ -131,13 +213,16 @@ class ContentRepository
           topic: meta["topic"].to_s,
           categories: normalized_metadata_categories(meta),
           content: content,
+          source_path: discovered_file[:canonical],
           word_count: meta["word_count"],
           word_count_label: meta["word_count_label"],
           reading_time_minutes: meta["reading_time_minutes"],
           reading_time_label: meta["reading_time_label"],
           metadata: meta
         }
-      end.sort_by { |item| -item[:published].to_i }
+      end.sort_by { |item| -item[:published].to_i }.tap do |posts|
+        unique_index(posts, :slug, "blog post slug")
+      end
     end
   end
 
@@ -243,11 +328,11 @@ class ContentRepository
       .reject(&:blank?)
   end
 
-  def achievement_event_count(entries)
+  def timeline_event_count(entries)
     Array(entries).sum do |entry|
       next 0 if hidden_content?(entry)
 
-      timeline = Array(entry["timeline"]).select { |event| event.is_a?(Hash) && event["title"].present? }
+      timeline = Array(entry["timeline"]).select { |event| event.is_a?(Hash) && event["date"].present? }
       visible_timeline = timeline.reject { |event| hidden_content?(event) }
       timeline.any? ? visible_timeline.length : 1
     end
@@ -347,6 +432,107 @@ class ContentRepository
 
   private
 
+  attr_reader :ctf_base_path,
+              :blog_base_path,
+              :ctf_challenge_files_path,
+              :ctf_pdf_writeups_path
+
+  def ctf_events_by_slug
+    @ctf_events_by_slug ||= unique_index(ctf_events, :slug, "CTF event slug")
+  end
+
+  def ctf_posts_by_event
+    @ctf_posts_by_event ||= ctf_posts.group_by { |post| post[:directory] }
+  end
+
+  def ctf_posts_by_key
+    @ctf_posts_by_key ||= unique_index(
+      ctf_posts,
+      ->(post) { [ post[:directory], post[:slug] ] },
+      "CTF writeup path"
+    )
+  end
+
+  def blog_posts_by_slug
+    @blog_posts_by_slug ||= unique_index(blog_posts, :slug, "blog post slug")
+  end
+
+  def ctf_asset_catalog
+    @ctf_asset_catalog ||= begin
+      by_id = {}
+      by_post = {}
+
+      ctf_posts.each do |post|
+        metadata = post[:metadata] || {}
+        year = ctf_event_year(metadata).to_s
+        asset_name = metadata["challengefiles"].to_s
+        next unless year.match?(/\A\d{4}\z/)
+        next unless valid_asset_name?(asset_name)
+
+        CTF_ASSET_KINDS.each do |kind, definition|
+          asset_root = send(definition[:root])
+          candidate = asset_root.join(
+            post[:directory],
+            year,
+            "#{asset_name}.#{definition[:extension]}"
+          )
+          canonical = TrustedContentPath.file(root: asset_root, candidate: candidate)
+          next unless canonical
+
+          id = Digest::SHA256.hexdigest(
+            [ kind, post[:directory], year, asset_name ].join("\0")
+          )
+          asset = {
+            id: id,
+            kind: kind,
+            path: canonical,
+            basename: candidate.basename.to_s,
+            size: canonical.size,
+            content_type: definition[:content_type],
+            disposition: definition[:disposition]
+          }
+
+          if by_id.key?(id) && by_id[id][:path] != canonical
+            raise InvalidContentPath, "Duplicate CTF asset identifier #{id.inspect}"
+          end
+
+          by_id[id] = asset
+          by_post[[ post[:directory], post[:slug], kind ]] = asset
+        end
+      end
+
+      { by_id: by_id, by_post: by_post }
+    end
+  end
+
+  def trusted_files(root:, pattern:)
+    Dir.glob(pattern.to_s).sort.filter_map do |candidate|
+      canonical = TrustedContentPath.file(root: root, candidate: candidate)
+      next unless canonical
+
+      { candidate: candidate, canonical: canonical }
+    end
+  end
+
+  def validate_identifier!(value, pattern, label)
+    return value if value.to_s.match?(pattern)
+
+    raise InvalidContentPath, "Invalid #{label}: #{value.inspect}"
+  end
+
+  def valid_asset_name?(value)
+    value.match?(CTF_ASSET_NAME_PATTERN) && !%w[. ..].include?(value)
+  end
+
+  def unique_index(items, key, label)
+    Array(items).each_with_object({}) do |item, index|
+      item_key = key.respond_to?(:call) ? key.call(item) : item.fetch(key)
+      raise InvalidContentPath, "Duplicate #{label}: #{item_key.inspect}" if index.key?(item_key)
+
+      index[item_key] = item
+    end
+  end
+
   def visible_about_entries(entries, path)
     Array(entries).filter_map do |entry|
       next if hidden_content?(entry)
@@ -442,10 +628,6 @@ class ContentRepository
 
   def about_entries_cache
     @about_entries_cache ||= {}
-  end
-
-  def post_metadata_cache
-    @post_metadata_cache ||= {}
   end
 
   def ctf_posts_cache

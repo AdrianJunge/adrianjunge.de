@@ -29,13 +29,13 @@ class SeoController < ApplicationController
       posts = Array(visible_posts_by_directory[directory])
       next [] if posts.empty?
 
-      files = posts.map { |post| BASE_PATH.join(directory, "#{post[:slug]}.md") }
+      files = posts.map { |post| post[:source_path] }
       entries = [ sitemap_entry("/ctf/#{url_segment(directory)}", newest_mtime(files)) ]
 
       entries.concat(posts.map do |post|
         sitemap_entry(
           "/ctf/#{url_segment(directory)}/#{url_segment(post[:slug])}",
-          metadata_date(post[:metadata], BASE_PATH.join(directory, "#{post[:slug]}.md"))
+          metadata_date(post[:metadata], post[:source_path])
         )
       end)
 
@@ -45,8 +45,7 @@ class SeoController < ApplicationController
 
   def blog_sitemap_entries
     content_repository.blog_posts.map do |post|
-      file_path = BLOG_BASE_PATH.join("#{post[:slug]}.md")
-      sitemap_entry(blog_post_path(post[:slug]), metadata_date(post[:metadata], file_path))
+      sitemap_entry(blog_post_path(post[:slug]), metadata_date(post[:metadata], post[:source_path]))
     end
   end
 

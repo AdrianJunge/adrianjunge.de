@@ -1,6 +1,21 @@
 require "test_helper"
 
 class BlogHelperTest < ActionView::TestCase
+  test "blog cards render complete descriptions" do
+    description = "A" * 220 + " complete ending"
+
+    render inline: "<%= render_blog_post_card('example', info) %>", locals: {
+      info: {
+        "title" => "Example",
+        "description" => description,
+        "category" => "Security Research",
+        "published" => "2026-01-01"
+      }
+    }
+
+    assert_equal description, css_select(".blog-post-description").first.text
+  end
+
   test "blog cards render reading time" do
     render inline: "<%= render_blog_post_card('example', info) %>", locals: {
       info: {

@@ -11,7 +11,11 @@ class FeedsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "<category>CTF writeup</category>"
     assert_match %r{<link>http://www\.example\.com/blog/}, response.body
     assert_match %r{<link>http://www\.example\.com/ctf/}, response.body
-    assert_not_includes response.body, "frankendancer-net-shred-overrun"
+    assert_includes response.body, canonical_spaced_ctf_url
+    assert_not_includes response.body, "%2520"
+    ContentRepository.new.blog_posts.each do |post|
+      assert_includes response.body, post[:slug]
+    end
   end
 
   test "xml feed path renders the rss feed as browser-friendly xml" do
@@ -33,7 +37,11 @@ class FeedsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '<category term="CTF writeup"/>'
     assert_match %r{href="http://www\.example\.com/blog/}, response.body
     assert_match %r{href="http://www\.example\.com/ctf/}, response.body
-    assert_not_includes response.body, "frankendancer-net-shred-overrun"
+    assert_includes response.body, canonical_spaced_ctf_url
+    assert_not_includes response.body, "%2520"
+    ContentRepository.new.blog_posts.each do |post|
+      assert_includes response.body, post[:slug]
+    end
   end
 
   test "json feed merges blog posts and ctf writeups" do
@@ -47,7 +55,11 @@ class FeedsControllerTest < ActionDispatch::IntegrationTest
     assert_equal feed_json_url, feed["feed_url"]
     assert feed["items"].any? { |item| item["url"].start_with?("http://www.example.com/blog/") }
     assert feed["items"].any? { |item| item["url"].start_with?("http://www.example.com/ctf/") }
-    assert_not response.body.include?("frankendancer-net-shred-overrun")
+    assert feed["items"].any? { |item| item["url"] == canonical_spaced_ctf_url }
+    assert_not_includes response.body, "%2520"
+    ContentRepository.new.blog_posts.each do |post|
+      assert feed["items"].any? { |item| item["url"].end_with?("/blog/#{post[:slug]}") }
+    end
   end
 
   test "legacy section feeds point to the generic website feed" do
@@ -68,5 +80,12 @@ class FeedsControllerTest < ActionDispatch::IntegrationTest
 
     get "/blog/feed.json"
     assert_redirected_to feed_json_path
+  end
+
+  private
+
+  def canonical_spaced_ctf_url
+    post = ContentRepository.new.ctf_posts.find { |item| item[:slug].include?(" ") }
+    "#{ctf_url}/#{post[:directory]}/#{ERB::Util.url_encode(post[:slug])}"
   end
 end

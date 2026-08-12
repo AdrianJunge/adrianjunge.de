@@ -126,7 +126,7 @@
           <span class="article-meta-row-label">Resources</span>
           <div class="article-meta-row-value writeup-challengefiles">
             <% if @challenge_file %>
-              <%= link_to ctf_file_download_path(@challenge_file[:relative_path]),
+              <%= link_to ctf_file_download_path(@challenge_file[:id]),
                           class: "download-btn ui-article-action",
                           target: "_blank",
                           rel: "noopener",
@@ -141,7 +141,7 @@
             <% end %>
 
             <% if @pdf_writeup %>
-              <%= link_to "/ctf/writeups/#{@pdf_writeup[:relative_path]}",
+              <%= link_to ctf_file_download_path(@pdf_writeup[:id]),
                           class: "open-pdf-btn ui-article-action",
                           target: "_blank",
                           rel: "noopener",

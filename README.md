@@ -36,6 +36,8 @@ When you have installation problems try out
 `brakeman -I config/brakeman.ignore .`
 or
 exec `bundle exec brakeman -f json -o brakeman-report.json` and add the warnings to be ignored to the `config/brakeman.ignore`
+## Scan
+`bundle exec brakeman --no-pager`
 
 # Adding js
 Add entry in `/config/importmap.rb` and `/assets/config/manifest.js`

@@ -687,10 +687,14 @@
     max-width: none;
     max-height: none;
     margin: 0.6rem 0 1rem;
+    overflow: visible;
     color: rgba(226, 232, 240, 0.84);
     font-size: 0.98rem;
     line-height: 1.65;
     mask-image: none;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
     -webkit-mask-image: none;
 }
 
@@ -790,13 +794,13 @@
 
 .content-page .blog-post-description,
 .landing-page .landing-writeup-cards .blog-post-description {
-    display: -webkit-box;
+    display: block;
+    max-height: none;
     margin: 0.5rem 0;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    text-overflow: ellipsis;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
 }
 
 .content-page .blog-post-date,

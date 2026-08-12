@@ -6,6 +6,9 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     repository = ContentRepository.new
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
     bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
+    talks = repository.about_entries(ApplicationController::ABOUTME_TALKS_PATH)
+    talk_count = repository.timeline_event_count(talks)
+    talk_count_label = "#{talk_count} #{talk_count == 1 ? 'talk' : 'talks'}"
 
     assert_response :success
     assert_select "main.aboutme-page"
@@ -22,7 +25,8 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#bug-bounties", text: bug_bounties.length.to_s
     assert_select ".aboutme-stat[href=?]", "#my-challenges", text: /Created CTF Challenges/
     assert_select ".aboutme-stat[href=?]", "#certificates", text: /Certificates/
-    assert_select ".aboutme-stat[href=?]", "#talks", text: /Talks/
+    assert_select ".aboutme-stat[href=?] .aboutme-stat-value", "#talks", text: talk_count.to_s
+    assert_select "#talks .aboutme-section-count", text: talk_count_label
     assert_select ".aboutme-stat[href=?]", "#achievements", text: /Achievements/
   end
 

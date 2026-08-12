@@ -88,7 +88,9 @@ class FeedsController < ApplicationController
     path = raw.start_with?("/") ? raw : "/#{raw}"
     path_without_fragment, fragment = path.split("#", 2)
     path_without_query, query = path_without_fragment.split("?", 2)
-    encoded_path = path_without_query.split("/", -1).map { |segment| ERB::Util.url_encode(segment) }.join("/")
+    encoded_path = path_without_query.split("/", -1).map do |segment|
+      ERB::Util.url_encode(CGI.unescape(segment))
+    end.join("/")
     encoded_path = "/" if encoded_path.blank?
 
     suffix = +""

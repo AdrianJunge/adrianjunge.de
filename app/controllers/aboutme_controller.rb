@@ -12,6 +12,7 @@ class AboutmeController < ApplicationController
     @talks = content_repository.about_entries(ABOUTME_TALKS_PATH)
     @achievements = content_repository.about_entries(ABOUTME_ACHIEVEMENTS_PATH)
     @cve_entry_count = @cves.length
-    @achievement_event_count = content_repository.achievement_event_count(@achievements)
+    @talk_event_count = content_repository.timeline_event_count(@talks)
+    @achievement_event_count = content_repository.timeline_event_count(@achievements)
   end
 end

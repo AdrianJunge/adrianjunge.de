@@ -1,6 +1,21 @@
 require "test_helper"
 
 class CtfHelperTest < ActionView::TestCase
+  test "writeup cards render complete descriptions" do
+    description = "A" * 220 + " complete ending"
+
+    render inline: "<%= render_writeup_card('Example', '/ctf/demo/Example', info) %>", locals: {
+      info: {
+        "title" => "Example",
+        "description" => description,
+        "categories" => [ "Web" ],
+        "published" => "2026-01-01"
+      }
+    }
+
+    assert_equal description, css_select(".blog-post-description").first.text
+  end
+
   test "content filter chips render shared severity classes" do
     render inline: "<%= content_filter_chip('High', scope: 'timeline', severity_key: 'High') %>"
 

@@ -1,6 +1,4 @@
 module ContentUiHelper
-  DEFAULT_CARD_DESCRIPTION_LIMIT = 200
-
   def render_content_card(card)
     render "shared/content_card", card: card
   end
@@ -215,11 +213,6 @@ module ContentUiHelper
       class: class_name,
       aria: { label: label }
     }.merge(content_link_options(url))
-  end
-
-  def content_truncate(text, length: DEFAULT_CARD_DESCRIPTION_LIMIT)
-    text = text.to_s
-    text.length > length ? "#{text[0, length]}..." : text
   end
 
   def content_link_options(url)

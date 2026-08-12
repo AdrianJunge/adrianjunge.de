@@ -4,7 +4,10 @@ class AboutmeTest < ApplicationSystemTestCase
   test "visiting about me page renders the public profile sections" do
     repository = ContentRepository.new
     bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
+    talks = repository.about_entries(ApplicationController::ABOUTME_TALKS_PATH)
     bug_bounty_count_label = "#{bug_bounties.length} #{bug_bounties.length == 1 ? 'finding' : 'findings'}"
+    talk_count = repository.timeline_event_count(talks)
+    talk_count_label = "#{talk_count} #{talk_count == 1 ? 'talk' : 'talks'}"
 
     page.current_window.resize_to(1440, 1200)
     visit about_path
@@ -242,6 +245,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector ".aboutme-stat[href='#bug-bounties']", text: "Bug bounties"
     assert_selector ".aboutme-stat[href='#my-challenges']", text: "Created CTF Challenges"
     assert_selector ".aboutme-stat[href='#certificates']", text: "Certificates"
+    assert_selector ".aboutme-stat[href='#talks']", text: talk_count.to_s
     assert_selector ".aboutme-stat[href='#talks']", text: "Talks"
     assert_selector ".aboutme-stat[href='#achievements']", text: "Achievements"
     assert_no_selector ".aboutme-stat .aboutme-stat-icon", visible: :all
@@ -286,7 +290,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#bug-bounties .aboutme-section-count", text: bug_bounty_count_label
     assert_selector "#my-challenges .aboutme-section-count", text: /challenge/
     assert_selector "#certificates .aboutme-section-count", text: /certificate/
-    assert_selector "#talks .aboutme-section-count", text: "2 talks"
+    assert_selector "#talks .aboutme-section-count", text: talk_count_label
     assert_selector "#achievements .aboutme-section-count", text: /events/
     section_count_surface = page.evaluate_script(<<~JS)
       (() => {
