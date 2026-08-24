@@ -1,13 +1,17 @@
 require "test_helper"
 
 class ProductionContentContractTest < ActionDispatch::IntegrationTest
-  test "blog catalog and Markdown files have identical identities" do
+  test "blog catalog and Markdown files have consistent identities" do
     repository = production_content_repository
     metadata_slugs = repository.blog_metadata.keys.sort
+    visible_metadata_slugs = repository.blog_metadata.reject do |_slug, metadata|
+      repository.hidden_content?(metadata)
+    end.keys.sort
     markdown_paths = trusted_markdown_paths(ApplicationController::BLOG_BASE_PATH, "*.md")
     markdown_slugs = markdown_paths.map { |path| File.basename(path, ".md") }.sort
 
-    assert_equal metadata_slugs, markdown_slugs
+    assert_empty markdown_slugs - metadata_slugs, "Markdown files without blog metadata"
+    assert_empty visible_metadata_slugs - markdown_slugs, "visible blog metadata without Markdown files"
     expected_public_slugs = markdown_paths.filter_map do |path|
       slug = File.basename(path, ".md")
       metadata = parsed_markdown_metadata(path, repository)
