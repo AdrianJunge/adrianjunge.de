@@ -1,0 +1,24 @@
+{
+  "alpha-post": {
+    "terminal_path": "alpha-post",
+    "logo": "blog/java.png",
+    "title": "Alpha Research",
+    "category": "Security Research",
+    "description": "A synthetic research post used only by tests.",
+    "timeline_group": "shared-certificate"
+  },
+  "beta-post": {
+    "terminal_path": "beta-post",
+    "logo": "blog/leetcode.png",
+    "title": "Beta Algorithms",
+    "category": "Algorithms",
+    "description": "A synthetic algorithms post used only by tests."
+  },
+  "gamma-post": {
+    "terminal_path": "gamma-post",
+    "logo": "blog/java.png",
+    "title": "Gamma Notes",
+    "category": "Engineering",
+    "description": "A synthetic middle-dated post used for adjacency tests."
+  }
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "fixture-bounty",
+    "title": "Fixture Bounty",
+    "subtitle": "Synthetic race condition",
+    "icon": "other/bug-bounty.svg",
+    "tags": ["Medium", "CWE-362"],
+    "timeline": [
+      {
+        "date": "2025-05-01",
+        "title": "Fixture bounty paid."
+      }
+    ]
+  }
+]

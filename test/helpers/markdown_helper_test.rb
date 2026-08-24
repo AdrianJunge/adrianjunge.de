@@ -31,18 +31,18 @@ class MarkdownHelperTest < ActionView::TestCase
   end
 
   test "markdown links to local article sections stay in the same tab" do
-    html = render_markdown("[section 2.1](/blog/joomla-sqli#how-joomla-interacts-with-the-database)")
+    html = render_markdown("[section](/blog/example-post#example-section)")
     fragment = Nokogiri::HTML.fragment(html)
-    link = fragment.at_css(".markdown-content a[href='/blog/joomla-sqli#how-joomla-interacts-with-the-database']")
+    link = fragment.at_css(".markdown-content a[href='/blog/example-post#example-section']")
 
     assert_nil link["target"]
     assert_equal "noopener", link["rel"]
   end
 
   test "markdown links to same-page anchors stay in the same tab" do
-    html = render_markdown("[section 2.1](#how-joomla-interacts-with-the-database)")
+    html = render_markdown("[section](#example-section)")
     fragment = Nokogiri::HTML.fragment(html)
-    link = fragment.at_css(".markdown-content a[href='#how-joomla-interacts-with-the-database']")
+    link = fragment.at_css(".markdown-content a[href='#example-section']")
 
     assert_nil link["target"]
     assert_equal "noopener", link["rel"]
@@ -90,13 +90,13 @@ class MarkdownHelperTest < ActionView::TestCase
   end
 
   test "markdown images render as figures with visible captions" do
-    html = render_markdown('![Diagram alt text](blog/posts/java-strings/java-string-pool.png "Diagram caption")')
+    html = render_markdown('![Diagram alt text](ctf/categories/default.svg "Diagram caption")')
     fragment = Nokogiri::HTML.fragment(html)
     figure = fragment.at_css(".markdown-content > figure.markdown-figure")
 
     assert figure
     assert_equal "Diagram alt text", figure.at_css("img")["alt"]
-    assert_includes figure.at_css("img")["src"], "#{asset_path_prefix}/blog/posts/java-strings/java-string-pool"
+    assert_includes figure.at_css("img")["src"], "#{asset_path_prefix}/ctf/categories/default"
     assert_equal "Diagram alt text", figure.at_css("figcaption").text
   end
 end

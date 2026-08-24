@@ -1,0 +1,28 @@
+[
+  {
+    "id": "fixture-achievement",
+    "title": "Fixture Team",
+    "icon": "other/achievement.svg",
+    "tags": ["CTF Team"],
+    "timeline": [
+      {
+        "id": "fixture-result-new",
+        "date": "2025-08-01",
+        "title": "Newest fixture result",
+        "summary": "A visible synthetic result."
+      },
+      {
+        "id": "fixture-result-old",
+        "date": "2024-08-01",
+        "title": "Older fixture result",
+        "summary": "Another visible synthetic result."
+      },
+      {
+        "id": "fixture-result-hidden",
+        "date": "2026-08-01",
+        "title": "Hidden fixture result",
+        "hidden": true
+      }
+    ]
+  }
+]

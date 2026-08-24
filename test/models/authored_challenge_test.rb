@@ -5,8 +5,8 @@ class AuthoredChallengeTest < ActiveSupport::TestCase
     metadata = {
       "optional" => {
         "authored_challenge" => {
-          "event" => "GPNCTF 2026",
-          "event_url" => "https://ctftime.org/event/3041",
+          "event" => "FixtureCTF 2099",
+          "event_url" => "https://fixture.invalid/event",
           "summary" => "Hybrid web and pwn challenge."
         }
       }
@@ -15,8 +15,8 @@ class AuthoredChallengeTest < ActiveSupport::TestCase
     assert_equal(
       {
         label: "Authored challenge",
-        event: "GPNCTF 2026",
-        event_url: "https://ctftime.org/event/3041",
+        event: "FixtureCTF 2099",
+        event_url: "https://fixture.invalid/event",
         summary: "Hybrid web and pwn challenge.",
         date: nil,
         id: nil

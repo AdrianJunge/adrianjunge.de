@@ -1,0 +1,25 @@
+[
+  {
+    "id": "fixture-certificate",
+    "title": "Fixture Certificate",
+    "icon": "other/certificate.svg",
+    "summary": "A synthetic certificate linked to a blog post.",
+    "timeline_group": "shared-certificate",
+    "tags": [
+      {
+        "label": "Certificate",
+        "url": "https://fixture.invalid/certificate"
+      },
+      {
+        "label": "Post",
+        "url": "/blog/alpha-post"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2025-02-03",
+        "title": "Fixture certificate earned."
+      }
+    ]
+  }
+]

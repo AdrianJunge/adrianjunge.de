@@ -502,8 +502,26 @@ function initContentFilters() {
   document.querySelectorAll('.content-filter-panel[data-filter-scope]').forEach(initFilterPanel);
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initContentFilters);
-} else {
-  initContentFilters();
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initContentFilters);
+  } else {
+    initContentFilters();
+  }
 }
+
+export {
+  matchesCardRecord,
+  matchesSearchQuery,
+  matchesSearchTerms,
+  normalizeSearchValue,
+  normalizeSearchWords,
+  normalizeToken,
+  orderedCharacterMatch,
+  searchTermsFrom,
+  splitParamTags,
+  tagValuesFromParams,
+  tokensFrom,
+  uncombinableTagsFor,
+  validSelectValue
+};

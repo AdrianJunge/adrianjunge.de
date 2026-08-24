@@ -1,0 +1,29 @@
+[
+  {
+    "id": "fixture-talk",
+    "title": "Fixture Talk",
+    "icon": "other/talk-slides.png",
+    "tags": [
+      {
+        "label": "Slides",
+        "url": "/talks/fixture.pdf"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2025-01-01",
+        "title": "First fixture talk."
+      },
+      {
+        "date": "2025-07-01",
+        "title": "Latest fixture talk."
+      },
+      {
+        "id": "fixture-talk-hidden",
+        "date": "2026-07-01",
+        "title": "Hidden fixture talk.",
+        "hidden": true
+      }
+    ]
+  }
+]

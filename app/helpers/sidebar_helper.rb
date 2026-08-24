@@ -38,7 +38,7 @@ module SidebarHelper
     content_tag(:details, class: "taskbar-item taskbar-feed-menu") do
       concat(content_tag(:summary, class: "taskbar-button-container taskbar-feed-toggle", aria: { label: "Feeds" }) do
         concat(content_tag(:span, class: icon_class) do
-          image_tag("task-bar/rss.svg", alt: "Feeds Icon", class: "taskbar-icon-image")
+          image_tag("task-bar/feed.svg", alt: "Feeds Icon", class: "taskbar-icon-image")
         end)
         concat(content_tag(:span, "Feeds", class: label_class))
       end)
@@ -112,8 +112,8 @@ module SidebarHelper
 
   def feed_dropdown_items
     [
-      { href: feed_xml_path, icon: "task-bar/rss.svg", alt: "RSS Feed Icon", label: "RSS" },
-      { href: feed_path(format: :atom), icon: "task-bar/atom.svg", alt: "Atom Feed Icon", label: "Atom" },
+      { href: feed_xml_path, icon: "task-bar/feed-rss.svg", alt: "RSS Feed Icon", label: "RSS" },
+      { href: feed_path(format: :atom), icon: "task-bar/feed-atom.svg", alt: "Atom Feed Icon", label: "Atom" },
       { href: feed_json_path, icon: "task-bar/feed-json.svg", alt: "JSON Feed Icon", label: "JSON" }
     ].map do |item|
       link_to(

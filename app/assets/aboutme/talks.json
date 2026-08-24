@@ -29,7 +29,7 @@
     "tags": [
       {
         "label": "Slides",
-        "url": "/talks/teaching-ai-to-hack-joomla.pdf"
+        "url": "/talks/teaching-ai-to-hack-joomla-owasp.pdf"
       }
     ],
     "timeline": [
@@ -44,6 +44,10 @@
       {
         "date": "2026-08-11",
         "title": "Talk at the OWASP Stammtisch Karlsruhe."
+      },
+      {
+        "date": "2026-11-09",
+        "title": "Upcoming: Talk at the BSides Munich."
       }
     ]
   }

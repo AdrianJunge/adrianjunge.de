@@ -11,16 +11,16 @@ class ContentTagTaxonomyTest < ActiveSupport::TestCase
 
   test "groups content types competitions repositories and categories separately" do
     groups = ContentTagTaxonomy.filter_groups(
-      [ "CTF Competition", "CTF Team", "Security Research", "Algorithms", "Slides", "DHM", "GPNCTF 2025", "Joomla CMS", "ChurchCRM", "Web Exploitation" ],
-      ctf_labels: [ "DHM", "GPNCTF" ],
-      repository_labels: [ "Joomla CMS", "ChurchCRM" ]
+      [ "CTF Competition", "CTF Team", "Security Research", "Algorithms", "Slides", "Alpha League", "BetaCTF 2099", "Repository One", "Repository Two", "Web Exploitation" ],
+      ctf_labels: [ "Alpha League", "BetaCTF" ],
+      repository_labels: [ "Repository One", "Repository Two" ]
     )
 
     grouped_tags = groups.index_by { |group| group[:label] }.transform_values { |group| group[:tags] }
 
     assert_equal [ "Algorithms", "CTF Competition", "CTF Team", "Security Research", "Slides" ], grouped_tags.fetch("Content type")
-    assert_equal [ "DHM", "GPNCTF 2025" ], grouped_tags.fetch("CTF competitions")
-    assert_equal [ "ChurchCRM", "Joomla CMS" ], grouped_tags.fetch("Repositories")
+    assert_equal [ "Alpha League", "BetaCTF 2099" ], grouped_tags.fetch("CTF competitions")
+    assert_equal [ "Repository One", "Repository Two" ], grouped_tags.fetch("Repositories")
     assert_equal [ "Web" ], grouped_tags.fetch("Categories")
   end
 end

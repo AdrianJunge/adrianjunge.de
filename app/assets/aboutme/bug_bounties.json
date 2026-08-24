@@ -3,8 +3,8 @@
     "id": "frankendancer-netshred-overrun",
     "title": "Firedancer",
     "subtitle": "Race condition in the netshred module",
-    "icon": "other/solana-firedancer.png",
-    "summary": "Before Frankendancer Mainnet v0.910.40000 a race condition in the netshred module could lead to a remotely triggerable Denial of Service.",
+    "icon": "blog/solana.svg",
+    "summary": "Before Frankendancer Mainnet v0.910.40000 a race condition in the netshred module could lead to a remotely unauthenticated triggerable Denial of Service.",
     "tags": [
       "Medium",
       {

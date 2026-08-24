@@ -2,6 +2,8 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 
+Dir[Rails.root.join("test", "support", "**", "*.rb")].sort.each { |file| require file }
+
 module ActiveSupport
   class TestCase
     # Run tests in parallel with specified workers
@@ -18,5 +20,7 @@ module ActiveSupport
     def asset_path_prefix
       Rails.application.config.assets.prefix
     end
+
+    include ContentTestHelpers
   end
 end

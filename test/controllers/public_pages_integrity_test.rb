@@ -31,7 +31,17 @@ class PublicPagesIntegrityTest < ActionDispatch::IntegrationTest
       end
     end
 
-    assert_operator checked_paths.length, :>, 20
+    missing_public_pages = public_page_paths.to_set - checked_paths
+    assert_empty missing_public_pages, "public pages without an internal link: #{missing_public_pages.to_a.sort.join(', ')}"
+  end
+
+  test "internal link normalization rejects external and malformed URLs" do
+    assert_equal "/blog/example?q=term", normalized_internal_link_path("/blog/example?q=term#result")
+    assert_equal "/about", normalized_internal_link_path("https://www.example.com/about")
+    assert_nil normalized_internal_link_path("https://external.example/about")
+    assert_nil normalized_internal_link_path("//external.example/about")
+    assert_nil normalized_internal_link_path("mailto:test@example.com")
+    assert_nil normalized_internal_link_path("http://[")
   end
 
   private
@@ -52,7 +62,7 @@ class PublicPagesIntegrityTest < ActionDispatch::IntegrationTest
 
   def normalized_internal_link_path(href)
     uri = URI.parse(href)
-    return nil if uri.scheme.present? && uri.host != "www.example.com"
+    return nil if uri.host.present? && uri.host != "www.example.com"
     return nil if uri.scheme.present? && !%w[http https].include?(uri.scheme)
 
     path = uri.path.presence || root_path

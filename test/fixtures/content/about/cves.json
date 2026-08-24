@@ -1,0 +1,25 @@
+[
+  {
+    "id": "fixture-cve",
+    "title": "Fixture Project",
+    "subtitle": "Synthetic memory corruption",
+    "icon": "other/cve.svg",
+    "tags": [
+      "High",
+      {
+        "label": "CVE-2099-0001",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2099-0001"
+      },
+      {
+        "label": "CWE-787",
+        "url": "https://cwe.mitre.org/data/definitions/787.html"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2025-06-01",
+        "title": "Fixture disclosure published."
+      }
+    ]
+  }
+]

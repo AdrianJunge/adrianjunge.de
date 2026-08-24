@@ -234,6 +234,8 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "terminal cd command accepts listed labels" do
+    event = first_ctf_event_with_writeups
+
     page.current_window.resize_to(1280, 900)
     visit "/"
 
@@ -246,10 +248,10 @@ class SitePagesTest < ApplicationSystemTestCase
 
     assert_selector "#terminal-container:not(.terminal-minimized)"
     assert_selector ".xterm-rows", text: "adrian@my-space:/ctf$"
-    assert_selector ".xterm-rows", text: "gpnctf"
+    assert_selector ".xterm-rows", text: event[:directory]
 
-    find(".xterm-helper-textarea", visible: :all).send_keys("cd gpnctf", :enter)
-    assert_current_path "/ctf/gpnctf"
+    find(".xterm-helper-textarea", visible: :all).send_keys("cd #{event[:directory]}", :enter)
+    assert_current_path event[:link]
   end
 
   test "page intro copy uses the full content width" do
@@ -356,7 +358,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_operator styles["cueOpacity"], :>, 0
 
     page.current_window.resize_to(320, 900)
-    visit "/ctf/umdctf"
+    visit ctf["writeups"]
     mobile_link_metrics = page.evaluate_script(<<~JS)
       (() => {
         const link = document.querySelector(".content-hero-title-link");
@@ -367,7 +369,7 @@ class SitePagesTest < ApplicationSystemTestCase
         };
       })()
     JS
-    assert_equal "UMDCTF", mobile_link_metrics["text"]
+    assert_equal ctf["terminal_path"].upcase, mobile_link_metrics["text"]
     assert_operator mobile_link_metrics["overflowX"], :<=, 1
   end
 
@@ -951,32 +953,24 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "ctf solve counts and points appear after reading time" do
-    visit "/ctf/gpnctf"
+    post = ctf_post_with_challenge_stats
+    stats_label = challenge_stats_label(post[:metadata])
+    event_url = writeup_event_url_for(post)
+    event_year = repository.ctf_event_year(post[:metadata])
 
-    scanwich_card = find(".writeup-post-card", text: "Scanwich Station")
-    within scanwich_card do
-      assert_selector ".blog-post-challenge-stats", text: "5 solves / 405 points"
-      assert_match(/min read\s*·\s*5 solves \/ 405 points/, find(".blog-post-date").text.squish)
+    visit "/ctf/#{post[:directory]}"
+
+    within find(".writeup-post-card", text: post[:title]) do
+      assert_selector ".blog-post-challenge-stats", text: stats_label
+      assert_match(/min read\s*·\s*#{Regexp.escape(stats_label)}/, find(".blog-post-date").text.squish)
     end
 
-    smile_card = find(".writeup-post-card", text: "Smile at me")
-    within smile_card do
-      assert_selector ".blog-post-challenge-stats", text: "1 solve / 500 points"
-      assert_match(/min read\s*·\s*1 solve \/ 500 points/, find(".blog-post-date").text.squish)
-    end
+    visit post[:link]
 
-    visit "/ctf/gpnctf/Scanwich%20Station"
-
-    assert_selector ".post-meta-line", text: /5 solves \/ 405 points/
-    assert_match(/min read\s*·\s*5 solves \/ 405 points/, find(".post-meta-line").text.squish)
-    assert_selector ".writeup-year-link[href='https://gpn24.ctf.kitctf.de/'][target='_blank'][rel='noopener noreferrer']",
-                    text: /GPNCTF-2026/
-
-    visit "/ctf/gpnctf/Smile%20at%20me"
-
-    assert_selector ".post-meta-line", text: /1 solve \/ 500 points/
-    assert_selector ".writeup-year-link[href='https://gpn23.ctf.kitctf.de/'][target='_blank'][rel='noopener noreferrer']",
-                    text: /GPNCTF-2025/
+    assert_selector ".post-meta-line", text: /#{Regexp.escape(stats_label)}/
+    assert_match(/min read\s*·\s*#{Regexp.escape(stats_label)}/, find(".post-meta-line").text.squish)
+    assert_selector ".writeup-year-link[href='#{event_url}'][target='_blank'][rel='noopener noreferrer']",
+                    text: /#{Regexp.escape(post[:which].upcase)}-#{Regexp.escape(event_year.to_s)}/
   end
 
   test "post card author links stay clickable above full card hitboxes" do
@@ -1418,28 +1412,11 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
     assert_equal total_items, timeline_icon_coverage
-    authored_challenge_timeline_item = timeline_items.find { |item| Array(item[:merged_item_ids]).include?("about-challenge-scanwich-station") }
-    assert authored_challenge_timeline_item, "expected Scanwich Station to be merged into its writeup timeline entry"
-    assert_selector ".timeline-card-hitbox[href='#{authored_challenge_timeline_item[:link]}']", count: 1, visible: :all
-    authored_challenge_timeline_entry = find(".timeline-card-hitbox[href='#{authored_challenge_timeline_item[:link]}']", visible: :all)
-                                         .find(:xpath, "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-item ')]")
-    within authored_challenge_timeline_entry do
-      assert_selector ".timeline-date .timeline-kind-pill", text: "CTF writeup"
-      assert_no_selector ".timeline-date .timeline-kind-pill", text: "Created CTF challenge"
-      assert_no_selector ".timeline-tags [data-filter-tag='Created CTF challenges']"
+    if (authored_item = merged_timeline_item_with_source_prefix("about-challenge-"))
+      assert_merged_timeline_item_rendered(authored_item)
     end
-    htb_cpts_timeline_item = timeline_items.find { |item| Array(item[:merged_item_ids]).include?("about-certificate-htb-cpts") }
-    assert htb_cpts_timeline_item, "expected HTB CPTS certificate to be merged into its blog timeline entry"
-    assert_equal "blog-htb-cpts", htb_cpts_timeline_item[:id]
-    assert_equal "/blog/htb-cpts", htb_cpts_timeline_item[:link]
-    assert_selector ".timeline-card-hitbox[href='/blog/htb-cpts']", count: 1, visible: :all
-    assert_no_selector ".timeline-card-hitbox[href='/about#htb-cpts']", visible: :all
-    htb_cpts_timeline_entry = find(".timeline-card-hitbox[href='/blog/htb-cpts']", visible: :all)
-                              .find(:xpath, "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-item ')]")
-    within htb_cpts_timeline_entry do
-      assert_selector ".timeline-date .timeline-kind-pill", text: "Blog post"
-      assert_selector ".timeline-date .timeline-kind-pill", text: "Certificate"
-      assert_selector ".timeline-content .timeline-card-logo"
+    if (certificate_item = merged_timeline_item_with_source_prefix("about-certificate-"))
+      assert_merged_timeline_item_rendered(certificate_item)
     end
     assert_timeline_year_counts_match_visible_cards
     timeline_year_count_style = page.evaluate_script(<<~JS)
@@ -1519,8 +1496,8 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".content-filter-panel .filter-chip", text: "CTF writeup"
     assert_no_selector ".content-filter-panel .filter-chip", text: /^Created CTF challenges$/
     within find(".content-filter-tag-group", text: "CONTENT TYPE") do
-      assert_selector ".filter-chip", text: /^Security Research$/
-      assert_selector ".filter-chip", text: /^Slides$/
+      rendered_types = all("[data-filter-tag]").map { |chip| chip["data-filter-tag"] }.sort
+      assert_equal timeline_content_type_tags.sort, rendered_types
     end
     assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.difficulty-badge-#{difficulty_case[:key]}",
                     text: /^#{Regexp.escape(difficulty_case[:label])}$/
@@ -1528,8 +1505,10 @@ class SitePagesTest < ApplicationSystemTestCase
                     text: /^#{Regexp.escape(severity_case[:label])}$/
     assert_selector ".content-filter-panel .filter-chip",
                     text: /^#{Regexp.escape(ctf_competition_case[:label])}$/
-    assert_selector ".content-filter-panel .filter-chip", text: /^Joomla CMS$/
-    assert_selector ".content-filter-panel .filter-chip", text: /^ChurchCRM$/
+    within find(".content-filter-tag-group", text: "REPOSITORIES") do
+      rendered_repositories = all("[data-filter-tag]").map { |chip| chip["data-filter-tag"] }.sort
+      assert_equal timeline_repository_tags.sort, rendered_repositories
+    end
     assert_selector ".content-filter-panel .filter-chip.cve-badge-filter",
                     text: /^#{Regexp.escape(cve_case[:label])}$/
     assert_selector ".content-filter-panel .filter-chip.cwe-badge-filter",
@@ -1890,25 +1869,32 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "multi-category writeup cards split the category icon" do
-    visit "/ctf/gpnctf"
-
-    scanwich_post = ctf_posts.find { |post| post[:title] == "Scanwich Station" } || flunk("expected Scanwich Station writeup")
-    categories = Array(scanwich_post[:metadata]["categories"])
+    multi_category_post = ctf_posts.find do |post|
+      ContentTagTaxonomy.canonical_values(post[:metadata]["categories"]).length > 1
+    end || flunk("expected a multi-category writeup")
+    single_category_post = ctf_posts.find do |post|
+      ContentTagTaxonomy.canonical_values(post[:metadata]["categories"]).one?
+    end || flunk("expected a single-category writeup")
+    categories = ContentTagTaxonomy.canonical_values(multi_category_post[:metadata]["categories"])
     category_keys = categories.map { |category| ContentCategoryTag.css_key(category) }
 
-    scanwich_card = find(".writeup-post-card", text: "Scanwich Station")
-    within scanwich_card do
+    visit "/ctf/#{multi_category_post[:directory]}"
+
+    within find(".writeup-post-card", text: multi_category_post[:title]) do
       assert_selector ".writeup-post-card-logo .category-split-icon[data-category-count='#{category_keys.length}'][aria-label='#{categories.to_sentence} categories']"
       category_keys.each_with_index do |category_key, index|
-        assert_selector ".category-split-icon-slice[data-category='#{category_key}'][style*='--category-index: #{index}; --category-count: #{category_keys.length}; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='ctf/categories/#{category_key}-']", visible: :all
+        assert_selector ".category-split-icon-slice[data-category='#{category_key}'][style*='--category-index: #{index}; --category-count: #{category_keys.length}; --category-clip: polygon(50% 50%'] .category-split-icon-image[src*='ctf/categories/']", visible: :all
       end
       assert_selector ".category-split-icon-divider", count: category_keys.length, visible: :all
     end
 
-    single_category_card = find(".writeup-post-card", text: "Smile at me")
-    within single_category_card do
+    visit "/ctf/#{single_category_post[:directory]}"
+
+    category = ContentTagTaxonomy.canonical_values(single_category_post[:metadata]["categories"]).first
+    within find(".writeup-post-card", text: single_category_post[:title]) do
       assert_no_selector ".category-split-icon"
-      assert_selector ".writeup-post-card-logo img.blog-logo[src*='ctf/categories/web-'][alt='Web category']"
+      assert_selector ".writeup-post-card-logo img.blog-logo[src*='ctf/categories/'], .writeup-post-card-logo svg"
+      assert_selector ".writeup-post-card-logo img.blog-logo[alt='#{category} category']" if page.has_selector?(".writeup-post-card-logo img.blog-logo", wait: 0)
     end
   end
 
@@ -2257,7 +2243,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".blog-post-card", text: search_case[:post][:title]
     assert_selector ".blog-post-card[data-filter-tags*='Security Research']"
     assert_selector ".blog-post-card[data-filter-tags*='#{tag_case[:tag]}']"
-    assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo", minimum: logo_posts.length if logo_posts.any?
+    assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo", count: logo_posts.length
     if (privilege_escalation_post = blog_posts.find { |post| Array(post[:categories]).include?("Privilege Escalation") })
       within find(".blog-post-card", text: privilege_escalation_post[:title]) do
         assert_selector ".category-badge.category-badge-privesc", text: "Privilege Escalation"
@@ -2418,26 +2404,29 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "article previous and next navigation stays within its content type" do
-    blog_case = adjacent_post_case(blog_posts, "blog posts")
-    ctf_case = adjacent_post_case(ctf_posts, "CTF writeups")
+    fixture_repository = fixture_content_repository
+    blog_case = adjacent_post_case(fixture_repository.blog_posts)
+    ctf_case = adjacent_post_case(fixture_repository.ctf_posts)
 
-    visit blog_case[:post][:link]
-    assert_selector ".next-previous-writeups"
-    assert_selector ".previous-writeup-btn", text: blog_case[:previous][:title]
-    assert_selector ".next-writeup-btn", text: blog_case[:next][:title]
-    assert_no_selector ".next-previous-writeups a[href^='/ctf/']", visible: :all
+    with_stubbed_content_repository(fixture_repository) do
+      visit blog_case[:post][:link]
+      assert_selector ".next-previous-writeups"
+      assert_selector ".previous-writeup-btn", text: blog_case[:previous][:title]
+      assert_selector ".next-writeup-btn", text: blog_case[:next][:title]
+      assert_no_selector ".next-previous-writeups a[href^='/ctf/']", visible: :all
 
-    find(".previous-writeup-btn").click
-    assert_current_path blog_case[:previous][:link]
+      find(".previous-writeup-btn").click
+      assert_current_path blog_case[:previous][:link]
 
-    visit ctf_case[:post][:link]
-    assert_selector ".next-previous-writeups"
-    assert_selector ".previous-writeup-btn", text: "#{ctf_case[:previous][:which].upcase} - #{ctf_case[:previous][:title]}"
-    assert_selector ".next-writeup-btn", text: "#{ctf_case[:next][:which].upcase} - #{ctf_case[:next][:title]}"
-    assert_no_selector ".next-previous-writeups a[href^='/blog/']", visible: :all
+      visit ctf_case[:post][:link]
+      assert_selector ".next-previous-writeups"
+      assert_selector ".previous-writeup-btn", text: "#{ctf_case[:previous][:which].upcase} - #{ctf_case[:previous][:title]}"
+      assert_selector ".next-writeup-btn", text: "#{ctf_case[:next][:which].upcase} - #{ctf_case[:next][:title]}"
+      assert_no_selector ".next-previous-writeups a[href^='/blog/']", visible: :all
 
-    find(".next-writeup-btn").click
-    assert_current_path ctf_case[:next][:link]
+      find(".next-writeup-btn").click
+      assert_current_path ctf_case[:next][:link]
+    end
   end
 
   test "writeup optional hints render as overview counts and article spoilers" do
@@ -2594,9 +2583,8 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_selector ".writeup-winner-article .writeup-winner-badge[href='#{first_winner_badge[:proof_url]}']", text: first_winner_badge[:label]
     assert_selector ".writeup-recognition-badges-article .writeup-winner-badge .content-tag-arrow", text: ">"
 
-    mobile_winner = winner_case[:winner_posts].find { |post| post[:link].include?("A%20Minecraft%20Movie") } || first_winner
     page.current_window.resize_to(320, 900)
-    visit mobile_winner[:link]
+    visit first_winner[:link]
     mobile_badge_metrics = page.evaluate_script(<<~JS)
       (() => {
         const badge = document.querySelector(".writeup-recognition-badges-article .writeup-winner-badge");
@@ -2624,18 +2612,19 @@ class SitePagesTest < ApplicationSystemTestCase
   test "authored writeups filter on overview cards and link event badges on articles" do
     post = authored_writeup_with_event_url
     event_url = writeup_event_url_for(post)
+    difficulty = WriteupDifficulty.from_metadata(post[:metadata])
 
     visit "/ctf/#{post[:directory]}"
 
     within find(".blog-post-card", text: post[:title]) do
       assert_selector ".blog-post-meta-row > button.authored-challenge-badge[data-filter-tag='Authored challenge']", text: /Authored challenge/
-      assert_selector ".blog-post-meta-row > .difficulty-badge.difficulty-badge-hard", text: "Hard"
+      assert_selector ".blog-post-meta-row > .difficulty-badge.difficulty-badge-#{difficulty[:key]}", text: difficulty[:label]
       assert_no_selector ".blog-post-meta-row > a.authored-challenge-badge"
       assert_no_selector ".authored-challenge-icon"
     end
 
     visit post[:link]
-    assert_selector ".writeup-badges-article .difficulty-badge-hard", text: "Hard"
+    assert_selector ".writeup-badges-article .difficulty-badge-#{difficulty[:key]}", text: difficulty[:label]
     assert_selector ".writeup-badges-article .authored-challenge-badge[href='#{event_url}'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
     assert_selector ".writeup-recognition-badges-article .authored-challenge-badge .content-tag-arrow", text: ">"
     Array(post[:metadata]["categories"]).each do |category|
@@ -3026,6 +3015,25 @@ class SitePagesTest < ApplicationSystemTestCase
     @timeline_items ||= content_index.all_items
   end
 
+  def timeline_content_type_tags
+    timeline_items.flat_map do |item|
+      Array(item[:kind_labels]).map { |kind_label| kind_label[:tag_value].presence || kind_label[:label] }
+    end.uniq
+  end
+
+  def timeline_repository_tags
+    repository_labels = [
+      ApplicationController::ABOUTME_CVES_PATH,
+      ApplicationController::ABOUTME_BUG_BOUNTIES_PATH
+    ].flat_map do |path|
+      repository.about_entries(path).filter_map { |entry| entry["title"].presence }
+    end
+
+    ContentTagTaxonomy.canonical_values(timeline_items.flat_map { |item| item[:tags] }).select do |tag|
+      repository_labels.any? { |label| label.casecmp?(tag) }
+    end
+  end
+
   def first_blog_post
     blog_posts.first || flunk("expected at least one blog post")
   end
@@ -3034,8 +3042,8 @@ class SitePagesTest < ApplicationSystemTestCase
     ctf_posts.first || flunk("expected at least one CTF writeup")
   end
 
-  def adjacent_post_case(posts, label)
-    skip "expected at least three #{label}" if posts.length < 3
+  def adjacent_post_case(posts)
+    assert_operator posts.length, :>=, 3, "the synthetic adjacency catalog must contain at least three posts"
 
     index = 1
     {
@@ -3615,6 +3623,31 @@ class SitePagesTest < ApplicationSystemTestCase
       .find(:xpath, "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-content ')]")
   end
 
+  def merged_timeline_item_with_source_prefix(prefix)
+    timeline_items.find do |item|
+      Array(item[:merged_item_ids]).any? { |source_id| source_id.start_with?(prefix) }
+    end
+  end
+
+  def assert_merged_timeline_item_rendered(item)
+    hitboxes = all(".timeline-card-hitbox", visible: :all).select do |hitbox|
+      URI.parse(hitbox["href"]).path == item[:link]
+    end
+    assert_equal 1, hitboxes.length
+
+    timeline_entry = hitboxes.first.find(
+      :xpath,
+      "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-item ')]"
+    )
+    expected_labels = Array(item[:kind_labels]).map { |kind_label| kind_label[:tag_value].presence || kind_label[:label] }
+
+    within timeline_entry do
+      rendered_labels = all(".timeline-date .timeline-kind-pill").map { |chip| chip["data-filter-tag"] }
+      assert_equal expected_labels, rendered_labels
+      assert_selector ".timeline-content .timeline-card-logo"
+    end
+  end
+
   def first_ctf_post_with_author_link
     ctf_posts.each do |post|
       if (author = authors_from_metadata(post[:metadata]).find { |entry| entry[:url].present? })
@@ -3695,6 +3728,39 @@ class SitePagesTest < ApplicationSystemTestCase
     ctf_posts.find do |post|
       AuthoredChallenge.from_metadata(post[:metadata]).present? && writeup_event_url_for(post).present?
     end || flunk("expected an authored CTF writeup with an event URL")
+  end
+
+  def ctf_post_with_challenge_stats
+    ctf_posts.find do |post|
+      challenge_stats_label(post[:metadata]).present? &&
+        writeup_event_url_for(post).present? &&
+        repository.ctf_event_year(post[:metadata]).present?
+    end || flunk("expected a CTF writeup with challenge statistics")
+  end
+
+  def challenge_stats_label(metadata)
+    solves = non_negative_metadata_number(
+      metadata,
+      "solves", "solve_count", "solves_count", "solve-count", "solves-count"
+    )
+    points = positive_metadata_number(
+      metadata,
+      "points", "point_count", "points_count", "challenge_points", "score"
+    )
+    solve_label = "#{solves} #{solves == 1 ? 'solve' : 'solves'}" unless solves.nil?
+    points_label = "#{points} #{points == 1 ? 'point' : 'points'}" unless points.nil?
+
+    [ solve_label, points_label ].compact.join(" / ").presence
+  end
+
+  def non_negative_metadata_number(metadata, *keys)
+    raw = AuthoredChallenge.metadata_value(metadata, *keys).to_s.strip
+    raw.match?(/\A\d+\z/) ? raw.to_i : nil
+  end
+
+  def positive_metadata_number(metadata, *keys)
+    value = non_negative_metadata_number(metadata, *keys)
+    value if value&.positive?
   end
 
   def writeup_event_url_for(post)

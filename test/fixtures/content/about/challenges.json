@@ -1,0 +1,26 @@
+[
+  {
+    "id": "space-writeup",
+    "title": "Space Writeup",
+    "icon": "ctf/kitctf.png",
+    "summary": "A synthetic authored challenge.",
+    "tags": [
+      {
+        "label": "DEMOCTF 2025",
+        "url": "https://fixture.invalid/democtf"
+      },
+      "Hard",
+      "Pwn",
+      {
+        "label": "Writeup",
+        "url": "/ctf/democtf/Space%20Writeup"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2025-03-03",
+        "title": "Fixture challenge published."
+      }
+    ]
+  }
+]

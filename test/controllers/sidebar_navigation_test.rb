@@ -58,6 +58,7 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
   end
 
   test "terminal exposes only route scoped child navigation" do
+    repository = production_content_repository
     expected_labels = {
       "/" => %w[~ . .. about ctf blog timeline],
       "/about" => %w[~ . ..],
@@ -76,46 +77,46 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal "/ctf", terminal_entry_for(".").fetch("url")
     assert_equal "/", terminal_entry_for("..").fetch("url")
-    ctf_labels = terminal_labels_for_response
-    assert_includes ctf_labels, "cscg"
-    assert_includes ctf_labels, "gpnctf"
-    assert_equal "/ctf/cscg", terminal_entry_for("cscg").fetch("url")
-    assert_equal "/ctf/gpnctf", terminal_entry_for("gpnctf").fetch("url")
-    assert_not_includes ctf_labels, "about"
-    assert_not_includes ctf_labels, "blog"
+    expected_ctf_entries = repository.ctf_events.map do |event|
+      { "label" => event.fetch(:slug), "url" => event.fetch(:metadata).fetch("writeups") }
+    end
+    assert_equal base_terminal_entries("/ctf", "/") + expected_ctf_entries, terminal_entries_for_response
 
     get "/blog"
     assert_response :success
     assert_equal "/blog", terminal_entry_for(".").fetch("url")
     assert_equal "/", terminal_entry_for("..").fetch("url")
-    blog_labels = terminal_labels_for_response
-    assert_includes blog_labels, "htb-cpts"
-    assert_includes blog_labels, "java-strings"
-    assert_equal "/blog/htb-cpts", terminal_entry_for("htb-cpts").fetch("url")
-    assert_equal "/blog/java-strings", terminal_entry_for("java-strings").fetch("url")
-    assert_not_includes blog_labels, "about"
-    assert_not_includes blog_labels, "ctf"
+    expected_blog_entries = repository.blog_posts.map do |post|
+      { "label" => post[:slug], "url" => post[:link] }
+    end
+    assert_equal base_terminal_entries("/blog", "/") + expected_blog_entries, terminal_entries_for_response
 
-    get "/ctf/cscg"
+    event = repository.ctf_events.find { |candidate| repository.ctf_posts_for_event(candidate[:slug]).any? } ||
+      flunk("expected at least one public CTF event with writeups")
+    event_path = "/ctf/#{event[:slug]}"
+    event_posts = repository.ctf_posts_for_event(event[:slug])
+
+    get event_path
     assert_response :success
-    assert_equal "/ctf/cscg", terminal_entry_for(".").fetch("url")
+    assert_equal event_path, terminal_entry_for(".").fetch("url")
     assert_equal "/ctf", terminal_entry_for("..").fetch("url")
-    writeup_labels = terminal_labels_for_response
-    assert_includes writeup_labels, "KDF dream"
-    assert_equal "/ctf/cscg/KDF%20dream", terminal_entry_for("KDF dream").fetch("url")
-    assert_not_includes writeup_labels, "blog"
-    assert_not_includes writeup_labels, "about"
+    expected_writeup_entries = event_posts.map do |post|
+      { "label" => post[:slug], "url" => post[:link] }
+    end
+    assert_equal base_terminal_entries(event_path, "/ctf") + expected_writeup_entries, terminal_entries_for_response
 
-    get "/ctf/cscg/KDF%20dream"
+    writeup = event_posts.first
+    get writeup[:link]
     assert_response :success
     assert_equal %w[~ . ..], terminal_labels_for_response
-    assert_equal "/ctf/cscg/KDF%20dream", terminal_entry_for(".").fetch("url")
-    assert_equal "/ctf/cscg", terminal_entry_for("..").fetch("url")
+    assert_equal writeup[:link], terminal_entry_for(".").fetch("url")
+    assert_equal event_path, terminal_entry_for("..").fetch("url")
 
-    get "/blog/htb-cpts"
+    blog_post = repository.blog_posts.first || flunk("expected at least one public blog post")
+    get blog_post[:link]
     assert_response :success
     assert_equal %w[~ . ..], terminal_labels_for_response
-    assert_equal "/blog/htb-cpts", terminal_entry_for(".").fetch("url")
+    assert_equal blog_post[:link], terminal_entry_for(".").fetch("url")
     assert_equal "/blog", terminal_entry_for("..").fetch("url")
   end
 
@@ -135,5 +136,13 @@ class SidebarNavigationTest < ActionDispatch::IntegrationTest
     assert terminal, "expected response to include terminal data"
 
     JSON.parse(terminal["data-terminal-text"])
+  end
+
+  def base_terminal_entries(current, parent)
+    [
+      { "label" => "~", "url" => "/", "description" => "home" },
+      { "label" => ".", "url" => current, "description" => "current" },
+      { "label" => "..", "url" => parent, "description" => "parent" }
+    ]
   end
 end

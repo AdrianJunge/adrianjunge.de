@@ -16,6 +16,14 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
     end
   end
 
+  test "synthetic fixture json matches the production schemas" do
+    fixture_schema_cases.each do |schema_path, fixture_path|
+      errors = ContentJsonSchemas.errors_for(schema_path, parse_content_json(fixture_path))
+
+      assert_empty errors, schema_error_message(fixture_path, errors)
+    end
+  end
+
   test "about collections keep unique ids" do
     [
       ApplicationController::ABOUTME_CVES_PATH,
@@ -80,7 +88,8 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
   end
 
   test "invalid content json reports useful schema errors" do
-    data = parse_content_json(ApplicationController::ABOUTME_CVES_PATH)
+    fixture_path = FixtureContentRepository::ABOUT_PATHS.fetch(ApplicationController::ABOUTME_CVES_PATH.to_s)
+    data = parse_content_json(fixture_path)
     data.first.delete("title")
 
     error = assert_raises(ContentJsonSchemas::ValidationError) do
@@ -92,6 +101,17 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
   end
 
   private
+
+  def fixture_schema_cases
+    about_cases = FixtureContentRepository::ABOUT_PATHS.map do |schema_path, fixture_path|
+      [ schema_path, fixture_path ]
+    end
+
+    about_cases + [
+      [ ApplicationController::BLOG_INFO_PATH, FixtureContentRepository::ROOT.join("blog", "blogs.json") ],
+      [ ApplicationController::CTF_INFO_PATH, FixtureContentRepository::ROOT.join("ctf", "ctfs.json") ]
+    ]
+  end
 
   def schema_error_message(path, errors)
     formatted = errors.map do |error|

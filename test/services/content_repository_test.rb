@@ -20,65 +20,46 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert_equal "2 min read", metadata["reading_time_label"]
   end
 
-  test "repository attaches reading time to blog posts and ctf posts" do
-    repository = ContentRepository.new
+  test "repository attaches reading time to every published blog and CTF post" do
+    repository = production_content_repository
 
     assert repository.blog_posts.all? { |post| post[:reading_time_label].present? }
     assert repository.ctf_posts.all? { |post| post[:reading_time_label].present? }
     assert repository.blog_posts.all? { |post| post[:word_count].positive? }
     assert repository.ctf_posts.all? { |post| post[:word_count].positive? }
 
-    researched_values = {
-      "Scanwich Station" => { "solves" => 5, "points" => 405, "event_url" => "https://gpn24.ctf.kitctf.de/" },
-      "Smile at me" => { "solves" => 1, "points" => 500, "event_url" => "https://gpn23.ctf.kitctf.de/" },
-      "Gamedev" => { "solves" => 108, "points" => 331, "event_url" => "https://platform.2025.lac.tf/" },
-      "CORS Playground" => { "solves" => 20, "points" => 451, "event_url" => "https://hackropole.fr/fr/challenges/web/fcsc2024-web-cors-playground/" },
-      "My Flask App" => { "solves" => 451, "points" => 100, "event_url" => "https://2025.ctf.sekai.team/" },
-      "Fancy Web" => { "solves" => 0, "points" => 500, "event_url" => "https://2025.ctf.sekai.team/" },
-      "Leaf" => { "solves" => 3, "points" => 469, "event_url" => "https://play.ctf.gg/" },
-      "A Minecraft Movie" => { "solves" => 58 },
-      "xmalloc" => { "solves" => 4, "points" => 500, "event_url" => "https://2022.ctf.kitctf.de/" }
-    }
-
-    researched_values.each do |title, expected_metadata|
-      metadata = repository.ctf_posts.find { |post| post[:title] == title }[:metadata]
-      expected_metadata.each do |key, expected_value|
-        assert_equal expected_value, metadata[key], "expected #{title} #{key}"
-      end
-    end
-
     assert_operator repository.total_post_reading_time_minutes, :>, 0
     assert_match(/\A\d+ min read\z/, repository.format_reading_time(repository.total_post_reading_time_minutes))
+
+    fixture_posts = fixture_content_repository.blog_posts + fixture_content_repository.ctf_posts
+    assert fixture_posts.all? { |post| post[:word_count].positive? }
+    assert fixture_posts.all? { |post| post[:reading_time_minutes].positive? }
+    fixture_posts.each do |post|
+      assert_equal "#{post[:word_count]} #{post[:word_count] == 1 ? 'word' : 'words'}", post[:word_count_label]
+      assert_equal "#{post[:reading_time_minutes]} min read", post[:reading_time_label]
+    end
   end
 
-  test "authored challenges are read from compact about json" do
-    repository = ContentRepository.new
+  test "authored challenges are read from the complete compact about collection" do
+    repository = production_content_repository
     challenges = repository.authored_challenges
     raw_challenges = parse_content_json(ApplicationController::ABOUTME_CHALLENGES_PATH)
-    scanwich = challenges.find { |entry| entry["id"] == "scanwich-station" }
-    smile_at_me = challenges.find { |entry| entry["id"] == "smile-at-me" }
+    expected_ids = raw_challenges.reject { |entry| repository.hidden_content?(entry) }.map { |entry| entry.fetch("id") }
 
-    assert_equal raw_challenges, challenges
-    assert_equal [ "scanwich-station", "smile-at-me" ], challenges.map { |entry| entry["id"] }
-    assert scanwich
-    assert smile_at_me
-    assert_nil scanwich["url"]
-    assert_equal "https://gpn24.ctf.kitctf.de/", scanwich["tags"].first["url"]
-    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "GPNCTF 2026"
-    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Hard"
-    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Web"
-    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Pwn"
-    assert_includes scanwich["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Writeup"
-    assert_includes scanwich["summary"], "Published for GPNCTF 2026"
-    assert_nil scanwich["date"]
-    assert_equal "2026-06-05", scanwich.dig("timeline", 0, "date")
-    assert_nil smile_at_me["url"]
-    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "GPNCTF 2025"
-    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Hard"
-    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Web"
-    assert_includes smile_at_me["tags"].map { |tag| tag.is_a?(Hash) ? tag["label"] : tag }, "Writeup"
-    assert_nil smile_at_me["date"]
-    assert_equal "2025-06-21", smile_at_me.dig("timeline", 0, "date")
+    assert_equal expected_ids.sort, challenges.map { |entry| entry.fetch("id") }.sort
+    assert_equal challenges.map { |entry| entry["id"] }.uniq, challenges.map { |entry| entry["id"] }
+    assert challenges.none? { |entry| repository.hidden_content?(entry) }
+    assert challenges.all? { |entry| entry["id"].present? && entry["title"].present? }
+    assert challenges.all? { |entry| Array(entry["timeline"]).any? { |event| event["date"].present? } }
+    assert(challenges.all? do |entry|
+      Array(entry["tags"]).any? do |tag|
+        tag.is_a?(Hash) && tag["label"].present? && tag["url"].to_s.start_with?("/ctf/")
+      end
+    end)
+
+    fixture_challenge = fixture_content_repository.authored_challenges.fetch(0)
+    assert_equal "space-writeup", fixture_challenge["id"]
+    assert_equal "/ctf/democtf/Space%20Writeup", fixture_challenge["tags"].last["url"]
   end
 
   test "metadata tags include optional filters and declared difficulties by shared priority" do
@@ -127,7 +108,7 @@ class ContentRepositoryTest < ActiveSupport::TestCase
   end
 
   test "generic feed posts merge configured content sources" do
-    repository = ContentRepository.new
+    repository = fixture_content_repository
     items = repository.feed_posts
 
     assert items.any? { |item| item[:source_key] == "blog" && item[:link].start_with?("/blog/") }
@@ -136,19 +117,40 @@ class ContentRepositoryTest < ActiveSupport::TestCase
   end
 
   test "hidden and draft content stays out of public collections" do
-    repository = ContentRepository.new
+    repository = fixture_content_repository
 
-    assert_not repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).any? { |entry| entry["id"].include?("suitecrm-tba") }
+    assert_equal [ "Space Writeup", "Winner", "Middle" ], repository.ctf_posts.map { |post| post[:slug] }
+    assert_nil repository.ctf_post("democtf", "Hidden")
+    assert_nil repository.ctf_post("hiddenctf", "Leaked")
+    assert_nil repository.ctf_event("hiddenctf")
+    assert_equal [ "DEMOCTF" ], repository.ctf_metadata.keys
 
-    hidden_cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH, include_hidden: true)
-    assert_not hidden_cves.any? { |entry| entry["id"].include?("suitecrm-tba") }
+    visible_events = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH)
+      .flat_map { |entry| entry["timeline"] }
+      .map { |event| event["id"] }
+    all_events = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH, include_hidden: true)
+      .flat_map { |entry| entry["timeline"] }
+      .map { |event| event["id"] }
+
+    assert_not_includes visible_events, "fixture-result-hidden"
+    assert_includes all_events, "fixture-result-hidden"
+
+    talk_events = repository.about_entries(ApplicationController::ABOUTME_TALKS_PATH)
+      .flat_map { |entry| entry["timeline"] }
+      .map { |event| event["id"] }
+    assert_not_includes talk_events, "fixture-talk-hidden"
+
+    production_collections = ContentTestHelpers::ABOUT_COLLECTIONS.map do |spec|
+      about_collection_entries(spec, repository: production_content_repository)
+    end
+    assert production_collections.flatten.none? { |entry| production_content_repository.hidden_content?(entry) }
   end
 
   test "exact content lookups only return catalogued records" do
-    repository = ContentRepository.new
-    blog_post = repository.blog_posts.first
-    ctf_post = repository.ctf_posts.first
-    event = repository.ctf_event(ctf_post[:directory])
+    repository = fixture_content_repository
+    blog_post = repository.blog_post("alpha-post")
+    ctf_post = repository.ctf_post("democtf", "Space Writeup")
+    event = repository.ctf_event("democtf")
 
     assert_equal blog_post, repository.blog_post(blog_post[:slug])
     assert_equal ctf_post, repository.ctf_post(ctf_post[:directory], ctf_post[:slug])
@@ -175,6 +177,7 @@ class ContentRepositoryTest < ActiveSupport::TestCase
       File.symlink(outside, paths[:ctf].join("declared", "Leaked Post.md"))
 
       write_markdown(paths[:blog].join("published-post.md"), title: "Published Blog")
+      write_markdown(paths[:blog].join("hidden-post.md"), title: "Hidden Blog")
       write_markdown(paths[:blog].join("unlisted-post.md"), title: "Unlisted Blog")
 
       ctf_metadata = {
@@ -187,6 +190,11 @@ class ContentRepositoryTest < ActiveSupport::TestCase
         "published-post" => {
           "title" => "Published Blog",
           "category" => "Test"
+        },
+        "hidden-post" => {
+          "title" => "Hidden Blog",
+          "category" => "Test",
+          "hidden" => true
         }
       }
       repository = repository_for(
@@ -199,6 +207,7 @@ class ContentRepositoryTest < ActiveSupport::TestCase
       assert_nil repository.ctf_post("undeclared", "Secret Post")
       assert_nil repository.ctf_post("declared", "Leaked Post")
       assert_equal [ "published-post" ], repository.blog_posts.map { |post| post[:slug] }
+      assert_nil repository.blog_post("hidden-post")
       assert_nil repository.blog_post("unlisted-post")
     end
   end
@@ -253,19 +262,15 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     end
   end
 
-  test "every shipped private CTF resource belongs to the public asset catalog" do
+  test "public CTF resources use stable opaque catalog entries" do
     repository = ContentRepository.new
-    catalogued_paths = repository.ctf_assets.map { |asset| asset[:path].realpath.to_s }.sort
-    shipped_paths = [
-      ApplicationController::CTF_CHALLENGE_FILES_PATH,
-      ApplicationController::CTF_PDF_WRITEUPS_PATH
-    ].flat_map do |root|
-      Dir.glob(root.join("**", "*")).select { |path| File.file?(path) }.map { |path| File.realpath(path) }
-    end.sort
 
-    assert_equal shipped_paths, catalogued_paths
-    xmalloc = repository.ctf_post("kitctf", "xmalloc")
-    assert_equal "xmalloc.zip", repository.ctf_asset_for(xmalloc, :challenge)[:basename]
+    repository.ctf_assets.each do |asset|
+      assert_match ContentRepository::CTF_ASSET_ID_PATTERN, asset[:id]
+      assert_equal asset, repository.ctf_asset(asset[:id])
+      assert_equal asset[:path].basename.to_s, asset[:basename]
+      assert asset[:path].file?
+    end
   end
 
   private

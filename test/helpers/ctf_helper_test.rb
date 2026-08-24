@@ -25,11 +25,11 @@ class CtfHelperTest < ActionView::TestCase
 
   test "content filter chips auto render CVE and CWE classes" do
     render inline: <<~ERB
-      <%= content_filter_chip('CVE-2026-48898', scope: 'timeline') %>
+      <%= content_filter_chip('CVE-2099-1234', scope: 'timeline') %>
       <%= content_filter_chip('CWE-284', scope: 'timeline') %>
     ERB
 
-    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2026-48898'] .content-tag-label", text: "CVE-2026-48898"
+    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2099-1234'] .content-tag-label", text: "CVE-2099-1234"
     assert_select "button.filter-chip.cwe-badge.cwe-badge-filter[data-filter-tag='CWE-284'] .content-tag-label", text: "CWE-284"
   end
 
@@ -37,13 +37,13 @@ class CtfHelperTest < ActionView::TestCase
     render inline: <<~ERB
       <%= content_card_tag('Privilege Escalation', default_scope: 'blogs', default_interactive: true) %>
       <%= content_card_tag('High', default_scope: 'timeline', default_interactive: true) %>
-      <%= content_card_tag('CVE-2026-48898', default_scope: 'timeline', default_interactive: true) %>
+      <%= content_card_tag('CVE-2099-1234', default_scope: 'timeline', default_interactive: true) %>
       <%= content_card_tag('CWE-284', default_scope: 'timeline', default_interactive: true) %>
     ERB
 
     assert_select "button.filter-chip.category-badge.category-badge-privesc.category-badge-filter[data-filter-tag='Privilege Escalation'] .content-tag-label", text: "Privilege Escalation"
     assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High'] .content-tag-label", text: "High"
-    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2026-48898'] .content-tag-label", text: "CVE-2026-48898"
+    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2099-1234'] .content-tag-label", text: "CVE-2099-1234"
     assert_select "button.filter-chip.cwe-badge.cwe-badge-filter[data-filter-tag='CWE-284'] .content-tag-label", text: "CWE-284"
   end
 
@@ -374,7 +374,7 @@ class CtfHelperTest < ActionView::TestCase
   end
 
   test "writeup cards can render ctf organizer logos" do
-    render inline: "<%= render_writeup_card('Logo', '/ctf/demo/Logo', info, logo: 'ctf/cscg.png') %>", locals: {
+    render inline: "<%= render_writeup_card('Logo', '/ctf/demo/Logo', info, logo: 'task-bar/flag.svg') %>", locals: {
       info: {
         "title" => "Logo",
         "description" => "A writeup with a CTF logo.",
@@ -388,16 +388,15 @@ class CtfHelperTest < ActionView::TestCase
   end
 
   test "category icons are selected by basename and alphabetic filename" do
-    png_path = CtfHelper::CATEGORY_ICON_DIRECTORY.join("temporary-category-icon.png")
-    svg_path = CtfHelper::CATEGORY_ICON_DIRECTORY.join("temporary-category-icon.svg")
-    File.binwrite(png_path, "placeholder")
-    File.write(svg_path, "<svg></svg>")
+    Dir.mktmpdir do |directory|
+      icon_directory = Pathname(directory)
+      png_path = icon_directory.join("temporary-category-icon.png")
+      svg_path = icon_directory.join("temporary-category-icon.svg")
+      png_path.binwrite("placeholder")
+      svg_path.write("<svg></svg>")
+      define_singleton_method(:category_icon_directory) { icon_directory }
 
-    html = get_category_svg("Temporary-Category-Icon")
-
-    assert_includes html, "ctf/categories/temporary-category-icon.png"
-    assert_no_match(/<svg/, html)
-  ensure
-    FileUtils.rm_f([ png_path, svg_path ])
+      assert_equal png_path, category_icon_path("Temporary-Category-Icon")
+    end
   end
 end

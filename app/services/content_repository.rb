@@ -77,7 +77,10 @@ class ContentRepository
   end
 
   def ctf_metadata
-    @ctf_metadata ||= read_json_object(ApplicationController::CTF_INFO_PATH)
+    @visible_ctf_metadata ||= begin
+      metadata = @ctf_metadata ||= read_json_object(ApplicationController::CTF_INFO_PATH)
+      metadata.reject { |_name, entry| hidden_content?(entry) }
+    end
   end
 
   def ctf_events
@@ -537,14 +540,14 @@ class ContentRepository
     Array(entries).filter_map do |entry|
       next if hidden_content?(entry)
 
+      visible_timeline = Array(entry["timeline"]).reject { |event| hidden_content?(event) }
       if path.to_s == ApplicationController::ABOUTME_ACHIEVEMENTS_PATH.to_s
-        visible_timeline = Array(entry["timeline"]).reject { |event| hidden_content?(event) }
         next if visible_timeline.empty?
 
-        entry.merge("timeline" => sorted_about_entries(visible_timeline, fallback_path: path))
-      else
-        entry
+        visible_timeline = sorted_about_entries(visible_timeline, fallback_path: path)
       end
+
+      entry.key?("timeline") ? entry.merge("timeline" => visible_timeline) : entry
     end
   end
 

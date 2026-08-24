@@ -1,5 +1,8 @@
 {
   "name": "adrianjunge.de",
+  "scripts": {
+    "test": "node --test test/javascript/*.mjs"
+  },
   "engines": {
     "node": ">=20"
   },

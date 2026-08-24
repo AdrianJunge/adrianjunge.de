@@ -1,0 +1,17 @@
+{
+  "DEMOCTF": {
+    "terminal_path": "democtf",
+    "logo": "ctf/kitctf.png",
+    "writeups": "/ctf/democtf",
+    "website": "https://fixture.invalid/democtf",
+    "description": "A synthetic CTF event used only by tests."
+  },
+  "HIDDENCTF": {
+    "terminal_path": "hiddenctf",
+    "logo": "ctf/kitctf.png",
+    "writeups": "/ctf/hiddenctf",
+    "website": "https://fixture.invalid/hiddenctf",
+    "description": "A hidden synthetic CTF event that must never be public.",
+    "hidden": true
+  }
+}

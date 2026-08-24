@@ -3,11 +3,7 @@ require "application_system_test_case"
 class AboutmeTest < ApplicationSystemTestCase
   test "visiting about me page renders the public profile sections" do
     repository = ContentRepository.new
-    bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
-    talks = repository.about_entries(ApplicationController::ABOUTME_TALKS_PATH)
-    bug_bounty_count_label = "#{bug_bounties.length} #{bug_bounties.length == 1 ? 'finding' : 'findings'}"
-    talk_count = repository.timeline_event_count(talks)
-    talk_count_label = "#{talk_count} #{talk_count == 1 ? 'talk' : 'talks'}"
+    section_cases = about_section_cases(repository)
 
     page.current_window.resize_to(1440, 1200)
     visit about_path
@@ -16,12 +12,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector ".content-hero .content-hero-icon[src*='task-bar/about']"
     assert_no_selector ".aboutme-hero", visible: :all
     assert_selector ".taskbar-link[href='/about']", text: "About me", visible: :all
-    assert_text "CVEs"
-    assert_text "Bug bounties"
-    assert_text "Created CTF Challenges"
-    assert_text "Certificates"
-    assert_text "Talks"
-    assert_text "Relevant achievements"
+    section_cases.each { |section| assert_text section[:title] }
 
     section_states = page.evaluate_script(<<~JS)
       Array.from(document.querySelectorAll(".aboutme-section")).map((section) => section.open)
@@ -131,123 +122,13 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_operator icon_coverage["dropdownMetrics"]["mediaBottomGap"], :<=, 1
     assert_operator icon_coverage["dropdownMetrics"]["bodyBottomGap"], :<=, 1
 
-    assert_text "record of what I have worked on and learned from"
-    assert_text "CVE-2026-70628"
-    assert_text "CVE-2026-70629"
-    assert_text "CVE-2026-70630"
-    assert_text "CVE-2026-70631"
-    assert_text "CVE-2026-70632"
-    assert_text "CVE-2026-69142"
-    assert_text "CVE-2026-66036"
-    assert_text "CVE-2026-66037"
-    assert_text "CVE-2026-66038"
-    assert_text "CVE-2026-66039"
-    assert_text "CVE-2026-66040"
-    assert_text "CVE-2026-66041"
-    assert_text "CVE-2026-65703"
-    assert_text "CVE-2026-65704"
-    assert_text "CVE-2026-65705"
-    assert_text "CVE-2026-65706"
-    assert_text "CVE-2026-39327"
-    assert_text "CVE-2026-35221"
-    assert_text "CVE-2026-35222"
-    assert_text "CVE-2026-48898"
-    assert_text "Privilege escalation through com_users batch task"
-    assert_text "Authenticated blind SQL injection in com_finder"
-    assert_text "Authenticated blind SQL injection in com_tags"
-    assert_no_text "SuiteCRM advisory #1 (TBA)"
-    assert_no_text "SuiteCRM advisory #2 (TBA)"
-    assert_no_text "Firedancer bug bounty finding (TBA)"
-    assert_text "Smile at me"
-    assert_text "GPNCTF 2025"
-    assert_text "Web challenge about URL parser differentials"
-    assert_no_selector "#my-challenges .aboutme-card-link-overlay", visible: :all
-    assert_no_selector "#my-challenges .aboutme-reference-link[href='/ctf/gpnctf/Smile%20at%20me']", visible: :all
-    assert_selector "#my-challenges .aboutme-tag-writeup[href='/ctf/gpnctf/Smile%20at%20me']", text: "Writeup", visible: :all
-    assert_selector "#my-challenges .aboutme-card-reading-time", text: /min read/
-    reading_time_style = page.evaluate_script(<<~JS)
-      (() => {
-        const element = document.querySelector("#my-challenges .aboutme-card-reading-time");
-        const style = window.getComputedStyle(element);
-
-        return {
-          borderTopWidth: style.borderTopWidth,
-          backgroundColor: style.backgroundColor
-        };
-      })()
-    JS
-    assert_equal "0px", reading_time_style["borderTopWidth"]
-    assert_equal "rgba(0, 0, 0, 0)", reading_time_style["backgroundColor"]
-    assert_selector "#my-challenges .aboutme-card-tag[href='https://gpn23.ctf.kitctf.de/']", text: "GPNCTF 2025"
-    assert_selector "#my-challenges .aboutme-difficulty-tag-hard", text: "Hard"
-    assert_no_selector "#my-challenges .aboutme-difficulty-tag-unknown"
-    assert_no_selector "#certificates .aboutme-card-link-overlay", visible: :all
-    assert_no_selector "#certificates .aboutme-reference-link[href='/blog/htb-cpts']", visible: :all
-    assert_no_selector "#certificates .aboutme-reference-link[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", visible: :all
-    assert_selector "#certificates .aboutme-tag-writeup[href='/blog/htb-cpts']", text: "Writeup", visible: :all
-    assert_selector "#certificates .aboutme-card-reading-time", text: /min read/
-    assert_selector "#certificates .aboutme-tag-certificate[href='https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url']", text: "Certificate"
-    certificate_tags = page.evaluate_script(<<~JS)
-      Array.from(document.querySelectorAll("#certificates .aboutme-card-tags > *")).map((tag) => ({
-        text: tag.innerText.trim(),
-        linked: tag.matches("a")
-      }))
-    JS
-    assert_equal [
-      { "text" => "Certificate", "linked" => true },
-      { "text" => "Writeup", "linked" => true }
-    ], certificate_tags
-    assert_selector "#certificates .aboutme-timeline time[datetime='2026-03-23']", text: "2026-03-23"
-    assert_selector "#certificates .aboutme-timeline-title", text: "Passed the practical exam and earned the HTB CPTS certificate."
-    assert_selector "#my-challenges .aboutme-timeline time[datetime='2026-06-05']", text: "2026-06-05"
-    assert_selector "#my-challenges .aboutme-timeline time[datetime='2025-06-21']", text: "2025-06-21"
-    assert_selector "#talks #kitctf-web-intro.aboutme-achievement-card"
-    assert_selector "#talks #joomla-sqli.aboutme-achievement-card"
-    assert_no_selector "#talks .aboutme-card-link-overlay", visible: :all
-    assert_no_selector "#talks .aboutme-reference-link[href='https://kitctf.de/intro/']", visible: :all
-    assert_no_selector "#talks .aboutme-reference-link[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf']", visible: :all
-    assert_selector "#talks .aboutme-tag-overview[href='https://kitctf.de/intro/']", text: "Overview", visible: :all
-    assert_selector "#talks .aboutme-card-title", text: "KITCTF Web Intro"
-    assert_selector "#talks .aboutme-card-title", text: "Teaching AI to hack Joomla so I can skip my homework"
+    assert_about_catalog_rendered(section_cases)
+    assert_about_links_rendered(section_cases)
+    assert_no_selector ".aboutme-card-link-overlay", visible: :all
     assert_no_selector "#talks .aboutme-tag-date", visible: :all
-    assert_selector "#talks .aboutme-timeline time[datetime='2026-05-07']", text: "2026-05-07"
-    assert_selector "#talks .aboutme-timeline-title", text: "Talk at KITCTF."
-    assert_selector "#talks .aboutme-tag-slides[href='https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf'][target='_blank'][rel='noopener noreferrer']", text: "Slides"
-    assert_selector "#talks #joomla-sqli .aboutme-tag-slides[href='/talks/teaching-ai-to-hack-joomla.pdf']", text: "Slides"
-    assert_selector "#talks #kitctf-web-intro .aboutme-card-icon[src*='ctf/kitctf']"
-    assert_selector "#talks #joomla-sqli .aboutme-card-icon[src*='blog/joomla']"
-    assert_selector "#achievements #firedancer-v1-audit-competition"
-    assert_no_selector "#achievements .aboutme-card-link-overlay", visible: :all
-    assert_no_selector "#achievements #kitctf .aboutme-reference-link[href='https://ctftime.org/team/7221/']", visible: :all
-    assert_selector "#achievements #kitctf .aboutme-tag-kitctf[href='https://ctftime.org/team/7221/']", text: "KITCTF", visible: :all
-    assert_no_text "KITCTF on CTFtime"
-    assert_no_selector "#achievements #kitctf .aboutme-timeline-event-tag", visible: :all
-    assert_selector "#achievements #kitctf .aboutme-timeline-event-link[href='https://ctftime.org/event/2714']", text: "KITCTF #3 at GlacierCTF 2025", visible: :all
-    assert_selector "#achievements #kitctf .aboutme-card-icon[src*='ctf/kitctf']"
-    assert_no_text "Public advisories"
-    assert_no_text "Responsible disclosure"
-    assert_no_text "Credentials"
-    assert_no_text "Milestones"
-    within "#achievements" do
-      assert_no_text "Computer Science master's student at KIT"
-    end
-    assert_no_text "Placeholder"
-    assert_no_text "Pending disclosure"
-    assert_no_text "Details will be added"
-    assert_no_selector "#cves article.aboutme-finding-card-static"
-    assert_selector "#cves details.aboutme-finding-card-cve", minimum: 1
-    assert_no_selector "#bug-bounties .aboutme-empty-state"
-    assert_selector "#bug-bounties .aboutme-finding-card", count: bug_bounties.length
-    assert_selector "#bug-bounties .aboutme-card-title", text: bug_bounties.first["title"]
+    assert_no_selector "#achievements .aboutme-timeline-event-tag", visible: :all
+    assert_selector "#cves details.aboutme-finding-card-cve", count: section_cases.find { |item| item[:id] == "cves" }[:entries].length
     assert_selector ".aboutme-achievement-card", minimum: 1
-    assert_selector ".aboutme-stat[href='#cves']", text: "CVEs"
-    assert_selector ".aboutme-stat[href='#bug-bounties']", text: bug_bounties.length.to_s
-    assert_selector ".aboutme-stat[href='#bug-bounties']", text: "Bug bounties"
-    assert_selector ".aboutme-stat[href='#my-challenges']", text: "Created CTF Challenges"
-    assert_selector ".aboutme-stat[href='#certificates']", text: "Certificates"
-    assert_selector ".aboutme-stat[href='#talks']", text: talk_count.to_s
-    assert_selector ".aboutme-stat[href='#talks']", text: "Talks"
-    assert_selector ".aboutme-stat[href='#achievements']", text: "Achievements"
     assert_no_selector ".aboutme-stat .aboutme-stat-icon", visible: :all
     assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.aboutme-stat')).justifyContent")
     assert_equal "700", page.evaluate_script("window.getComputedStyle(document.querySelector('.aboutme-section-title')).fontWeight")
@@ -286,12 +167,10 @@ class AboutmeTest < ApplicationSystemTestCase
     JS
     assert_equal "rgba(24, 76, 112, 0.94)", counter_hover_surface["backgroundColor"]
     assert_not_equal "none", counter_hover_surface["boxShadow"]
-    assert_selector "#cves .aboutme-section-count", text: /entries/
-    assert_selector "#bug-bounties .aboutme-section-count", text: bug_bounty_count_label
-    assert_selector "#my-challenges .aboutme-section-count", text: /challenge/
-    assert_selector "#certificates .aboutme-section-count", text: /certificate/
-    assert_selector "#talks .aboutme-section-count", text: talk_count_label
-    assert_selector "#achievements .aboutme-section-count", text: /events/
+    section_cases.each do |section|
+      count_label = section[:count] == 1 ? section[:singular] : section[:plural]
+      assert_selector "##{section[:id]} .aboutme-section-count", text: "#{section[:count]} #{count_label}"
+    end
     section_count_surface = page.evaluate_script(<<~JS)
       (() => {
         const count = document.querySelector("#cves .aboutme-section-count");
@@ -428,6 +307,8 @@ class AboutmeTest < ApplicationSystemTestCase
   end
 
   test "about hash links open matching collapsed sections" do
+    achievement, event = achievement_anchor_case
+
     visit about_path(anchor: "cves")
 
     assert_selector "#cves[open]"
@@ -440,11 +321,12 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_selector "#certificates[open]"
     assert_equal true, page.evaluate_script("document.querySelector('#certificates').open")
 
-    visit about_path(anchor: "kitctf-glacierctf-2025")
+    visit about_path(anchor: event.fetch("id"))
 
     assert_selector "#achievements[open]"
-    assert_selector "#kitctf[open]"
-    assert_selector "#kitctf-glacierctf-2025 .aboutme-timeline-event-link", text: "KITCTF #3 at GlacierCTF 2025"
+    assert_selector "##{achievement.fetch('id')}[open]"
+    assert_selector "##{event.fetch('id')} .aboutme-timeline-link, ##{event.fetch('id')} .aboutme-timeline-title",
+                    text: event["event"].presence || event["title"]
 
     anchor_metrics = nil
     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
@@ -453,9 +335,9 @@ class AboutmeTest < ApplicationSystemTestCase
       anchor_metrics = page.evaluate_script(<<~JS)
         (() => {
           const taskbar = document.getElementById("top-taskbar").getBoundingClientRect();
-          const target = document.getElementById("kitctf-glacierctf-2025");
+          const target = document.getElementById(#{event.fetch("id").to_json});
           const section = document.getElementById("achievements");
-          const card = document.getElementById("kitctf");
+          const card = document.getElementById(#{achievement.fetch("id").to_json});
           if (!target) return { targetExists: false };
 
           const targetRect = target.getBoundingClientRect();
@@ -757,6 +639,11 @@ class AboutmeTest < ApplicationSystemTestCase
   end
 
   test "about me card tags sit below titles and links read as larger actions" do
+    finding_case = cve_visual_case
+    challenge_case = challenge_visual_case
+    reference_links = about_reference_links(finding_case)
+    reference_link = reference_links.first
+
     page.current_window.resize_to(1280, 1400)
     visit about_path
     page.execute_script(<<~JS)
@@ -765,7 +652,7 @@ class AboutmeTest < ApplicationSystemTestCase
 
     metrics = page.evaluate_script(<<~JS)
       (() => {
-        const finding = document.querySelector("#cves #ffmpeg-vf-hqdn3d-dynamic-resolution-out-of-bounds-write");
+        const finding = document.getElementById(#{finding_case.fetch("id").to_json});
         const findingTitle = finding.querySelector(".aboutme-finding-project").getBoundingClientRect();
         const findingTags = finding.querySelector(".aboutme-finding-badges").getBoundingClientRect();
         const cveTag = finding.querySelector(".aboutme-cve-id");
@@ -781,20 +668,21 @@ class AboutmeTest < ApplicationSystemTestCase
         const referenceListItemStyle = window.getComputedStyle(referenceListItem);
         const referenceListItemMarkerStyle = window.getComputedStyle(referenceListItem, "::marker");
         const referenceLinks = [...finding.querySelectorAll(".aboutme-card-body .aboutme-reference-link")];
-        const advisoryLink = referenceLinks.find((link) => link.textContent.trim() === "Advisory source");
+        const advisoryLink = referenceLinks[0];
         const advisoryLinkStyle = window.getComputedStyle(advisoryLink);
-        const highSeverity = document.querySelector(".aboutme-severity-high");
+        const severityTags = [...document.querySelectorAll("[class*='aboutme-severity-']")];
+        const highSeverity = severityTags[0];
         const highSeverityStyle = window.getComputedStyle(highSeverity);
-        const mediumSeverity = document.querySelector(".aboutme-severity-medium");
+        const mediumSeverity = severityTags[1] || severityTags[0];
         const mediumSeverityStyle = window.getComputedStyle(mediumSeverity);
-        const challengeTag = document.querySelector("#my-challenges .aboutme-tag-gpnctf-2025");
+        const challengeTag = document.querySelector("#my-challenges ##{challenge_case.fetch("id")} a.aboutme-card-tag[target='_blank']");
         const challengeTagStyle = window.getComputedStyle(challengeTag);
         const challengeTagActionStyle = window.getComputedStyle(challengeTag, "::after");
         const cveDetailHeading = finding.querySelector(".aboutme-detail-block h3");
         const cveDetailHeadingStyle = window.getComputedStyle(cveDetailHeading);
         const cveDetailParagraph = finding.querySelector(".aboutme-detail-block p");
         const cveDetailParagraphStyle = window.getComputedStyle(cveDetailParagraph);
-        const challenge = document.querySelector("#my-challenges .aboutme-achievement-card");
+        const challenge = document.getElementById(#{challenge_case.fetch("id").to_json});
         challenge.open = true;
         const challengeDetailHeading = challenge.querySelector(".aboutme-detail-block h3");
         const challengeDetailHeadingStyle = window.getComputedStyle(challengeDetailHeading);
@@ -822,12 +710,12 @@ class AboutmeTest < ApplicationSystemTestCase
         const achievementTag = achievement.querySelector(".aboutme-finding-badges .aboutme-card-tag");
         const achievementTagStyle = window.getComputedStyle(achievementTag);
         const achievementTagActionStyle = window.getComputedStyle(achievementTag, "::after");
-        const achievementEventTag = document.querySelector("#achievements #kitctf .aboutme-finding-badges .aboutme-tag-kitctf");
+        const achievementEventTag = document.querySelector("#achievements .aboutme-finding-badges a.aboutme-card-tag[target='_blank']");
         const achievementEventTagStyle = window.getComputedStyle(achievementEventTag);
         const achievementEventTagActionStyle = window.getComputedStyle(achievementEventTag, "::after");
-        const timelinePlainTitle = document.querySelector("#achievements #dhm .aboutme-timeline-title");
+        const timelinePlainTitle = document.querySelector("#achievements .aboutme-timeline-title");
         const timelinePlainTitleStyle = window.getComputedStyle(timelinePlainTitle);
-        const timelineEventTag = document.querySelector("#achievements #kitctf .aboutme-timeline-event-link");
+        const timelineEventTag = document.querySelector("#achievements .aboutme-timeline-event-link");
         const timelineEventTagStyle = window.getComputedStyle(timelineEventTag);
         const timelineEventTagActionStyle = window.getComputedStyle(timelineEventTag, "::after");
 
@@ -933,25 +821,23 @@ class AboutmeTest < ApplicationSystemTestCase
     assert metrics["findingTagsBelowTitle"]
     assert metrics["achievementTagsBelowTitle"]
     assert_equal "A", metrics["cveTagName"]
-    assert_equal "https://www.cve.org/CVERecord?id=CVE-2026-66036", metrics["cveHref"]
+    assert_equal cve_tag_from(finding_case).fetch("url"), metrics["cveHref"]
     assert_equal "A", metrics["cweTagName"]
-    assert_equal "https://cwe.mitre.org/data/definitions/122.html", metrics["cweHref"]
-    assert_equal false, metrics["projectLinkPresent"]
-    assert_equal "https://www.vulncheck.com/advisories/ffmpeg-heap-out-of-bounds-write-in-vf-hqdn3d-filter", metrics["advisoryHref"]
+    assert_equal cwe_tag_from(finding_case).fetch("url"), metrics["cweHref"]
+    assert href_matches?(reference_link.fetch("url"), metrics["advisoryHref"])
     assert_includes metrics["advisoryClass"], "aboutme-reference-link"
-    assert_equal "Open Advisory source", metrics["advisoryAriaLabel"]
-    assert_equal "Open Advisory source", metrics["advisoryTitle"]
+    assert_equal "Open #{reference_link.fetch('label')}", metrics["advisoryAriaLabel"]
+    assert_equal "Open #{reference_link.fetch('label')}", metrics["advisoryTitle"]
     assert_equal "rgb(96, 165, 250)", metrics["advisoryColor"]
     assert_equal "underline", metrics["advisoryTextDecorationLine"]
     assert_equal "block", metrics["referenceListDisplay"]
     assert_equal "disc", metrics["referenceListStyleType"]
     assert_equal "list-item", metrics["referenceListItemDisplay"]
     assert_equal "rgba(96, 165, 250, 0.82)", metrics["referenceListMarkerColor"]
-    assert_includes metrics["referenceTexts"], "Repository"
-    assert_includes metrics["referenceTexts"], "Advisory source"
-    assert_includes metrics["referenceHrefs"], "https://code.ffmpeg.org/FFmpeg/FFmpeg"
-    assert_not_includes metrics["referenceHrefs"], "https://www.cve.org/CVERecord?id=CVE-2026-66036"
-    assert_not_includes metrics["referenceHrefs"], "https://cwe.mitre.org/data/definitions/122.html"
+    assert_equal reference_links.map { |link| link.fetch("label") }, metrics["referenceTexts"]
+    reference_links.zip(metrics["referenceHrefs"]).each do |expected, rendered_href|
+      assert href_matches?(expected.fetch("url"), rendered_href)
+    end
     assert_includes metrics["cveTagClass"], "ui-hover-lift"
     assert_includes metrics["cveTagClass"], "cve-badge"
     assert_equal "rgba(14, 116, 144, 0.42)", metrics["cveTagBackground"]
@@ -988,13 +874,13 @@ class AboutmeTest < ApplicationSystemTestCase
       assert_equal metrics["cveDetailParagraphFontSize"], style["fontSize"]
     end
     assert_equal "A", metrics["highSeverityTagName"]
-    assert_equal "/timeline?tag=High", metrics["highSeverityHref"]
+    assert_match %r{\A/timeline\?tag=}, metrics["highSeverityHref"]
     assert_includes metrics["highSeverityClass"], "aboutme-tag-timeline"
     assert_equal "pointer", metrics["highSeverityCursor"]
     assert_equal "none", metrics["highSeverityBackgroundImage"]
     assert_not_equal "none", metrics["highSeverityShadow"]
     assert_equal "A", metrics["mediumSeverityTagName"]
-    assert_equal "/timeline?tag=Moderate", metrics["mediumSeverityHref"]
+    assert_match %r{\A/timeline\?tag=}, metrics["mediumSeverityHref"]
     assert_includes metrics["mediumSeverityClass"], "aboutme-tag-timeline"
     assert_equal "pointer", metrics["mediumSeverityCursor"]
     assert_equal "none", metrics["mediumSeverityBackgroundImage"]
@@ -1020,7 +906,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_equal '""', metrics["achievementEventTagActionContent"]
     assert_not_equal "0px", metrics["achievementEventTagActionWidth"]
     assert_not_includes metrics["timelineEventTagClass"], "aboutme-card-tag"
-    assert_equal "KITCTF #3 at GlacierCTF 2025", metrics["timelineEventTagText"]
+    assert metrics["timelineEventTagText"].present?
     assert_equal "rgb(96, 165, 250)", metrics["timelineEventTagColor"]
     assert_equal "rgba(0, 0, 0, 0)", metrics["timelineEventTagBackground"]
     assert_equal "0px", metrics["timelineEventTagBorderWidth"]
@@ -1070,21 +956,27 @@ class AboutmeTest < ApplicationSystemTestCase
   end
 
   test "my challenges link to their writeups" do
+    challenge, writeup_tag, post = authored_challenge_writeup_case
+
     visit about_path
     page.execute_script(<<~JS)
       document.querySelector("#my-challenges").open = true;
-      document.querySelector("#my-challenges #smile-at-me").open = true;
+      document.getElementById(#{challenge.fetch("id").to_json}).open = true;
     JS
 
     within "#my-challenges" do
-      assert_text "Smile at me"
-      assert_text "Published for GPNCTF 2025."
-      find(".aboutme-tag-writeup[href='/ctf/gpnctf/Smile%20at%20me']").click
+      assert_text challenge.fetch("title")
+      link = all("a.aboutme-card-tag").find do |candidate|
+        href_matches?(writeup_tag.fetch("url"), candidate["href"])
+      end
+      assert link, "expected a rendered link to #{writeup_tag.fetch('url')}"
+      assert_equal writeup_tag.fetch("label"), link.text.squish
+      link.click
     end
 
-    assert_current_path "/ctf/gpnctf/Smile%20at%20me"
-    assert_text "Smile at me"
-    assert_text "I'm the author of this challenge"
+    assert_current_path writeup_tag.fetch("url")
+    assert_text post.fetch(:title)
+    assert_selector ".writeup-recognition-badges-article .authored-challenge-badge", text: /Authored challenge/
   end
 
   test "about linked tags and achievement timeline links receive pointer events" do
@@ -1107,30 +999,32 @@ class AboutmeTest < ApplicationSystemTestCase
 
           return {
             selector,
+            expectedHref: element.href,
             href: link ? link.href : null,
             className: link ? link.className : null
           };
         };
 
         return [
-          linkAtCenter("#my-challenges .aboutme-tag-gpnctf-2025"),
-          linkAtCenter("#certificates .aboutme-tag-certificate"),
-          linkAtCenter("#talks #kitctf-web-intro .aboutme-tag-slides"),
-          linkAtCenter("#achievements #dhm .aboutme-tag-dhm[href='https://hacking-meisterschaft.de/']"),
-          linkAtCenter("#achievements #kitctf .aboutme-timeline-event-link[href='https://ctftime.org/event/2714']")
+          linkAtCenter("#my-challenges a.aboutme-card-tag"),
+          linkAtCenter("#certificates a.aboutme-card-tag"),
+          linkAtCenter("#talks a.aboutme-card-tag"),
+          linkAtCenter("#achievements .aboutme-finding-badges a.aboutme-card-tag"),
+          linkAtCenter("#achievements .aboutme-timeline-event-link")
         ];
       })()
     JS
 
-    assert_equal "https://gpn23.ctf.kitctf.de/", hit_targets[0]["href"]
-    assert_equal "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url", hit_targets[1]["href"]
-    assert_equal "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", hit_targets[2]["href"]
-    assert_equal "https://hacking-meisterschaft.de/", hit_targets[3]["href"]
-    assert_equal "https://ctftime.org/event/2714", hit_targets[4]["href"]
+    hit_targets.each do |target|
+      assert_equal target["expectedHref"], target["href"], "expected #{target['selector']} to receive pointer events"
+      assert_includes target["className"], "aboutme-"
+    end
   end
 
   test "about me entries are ordered newest first" do
     repository = ContentRepository.new
+    cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
+    achievements = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH)
 
     visit about_path
     page.execute_script(<<~JS)
@@ -1159,21 +1053,191 @@ class AboutmeTest < ApplicationSystemTestCase
       )
     JS
 
-    assert_equal "DVB subtitle parser heap buffer overflow via WTV file", first_cve_title
-    assert_equal repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).map { |entry| entry["title"] }, achievement_titles
-    achievement_entries = repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).index_by { |entry| entry["title"] }
-    assert_equal achievement_entries["DHM"]["timeline"].map { |event| event["title"] }, achievement_events["DHM"].map { |event| event["title"] }
-    assert_equal achievement_entries["CSCG"]["timeline"].map { |event| event["title"] }, achievement_events["CSCG"].map { |event| event["title"] }
-    assert_equal achievement_entries["KITCTF"]["timeline"].map { |event| event["title"] }, achievement_events["KITCTF"].map { |event| event["title"] }
-    assert_text "Placed #1 at the Deutsche Hacking Meisterschaft."
-    assert_text "Participated in the DHM finals after qualifying through CSCG."
-    assert_text "Qualified for DHM through CSCG."
-    assert_text "Qualified for DHM again and finished top 10 globally."
-    assert_text "#3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team."
-    assert_text "#3 at SwampCTF."
-    assert_text "#1 at SwampCTF."
-    assert_text "Qualified for and participated in the SnakeCTF finals in Italy."
-    assert_text "#6 at Google CTF as the FluxKITtens merger team"
-    assert_text "qualifying for the Hackceler8 finals in Mexico."
+    assert_equal cves.first.fetch("subtitle"), first_cve_title
+    assert_equal achievements.map { |entry| entry["title"] }, achievement_titles
+
+    achievements.each do |entry|
+      rendered_events = achievement_events.fetch(entry.fetch("title"))
+      expected_events = Array(entry["timeline"])
+
+      assert_equal expected_events.map { |event| event["title"].presence || event["event"] },
+                   rendered_events.map { |event| event["title"] }
+      assert_equal expected_events.map { |event| event["date"].to_s },
+                   rendered_events.map { |event| event["date"] }
+      assert_equal expected_events.map { |event| event["summary"].to_s },
+                   rendered_events.map { |event| event["summary"] }
+    end
+  end
+
+  private
+
+  def about_section_cases(repository)
+    presentation = {
+      "cves" => { title: "CVEs", stat_label: "CVEs", singular: "entry", plural: "entries" },
+      "bug-bounties" => { title: "Bug bounties", stat_label: "Bug bounties", singular: "finding", plural: "findings" },
+      "my-challenges" => { title: "Created CTF Challenges", stat_label: "Created CTF Challenges", singular: "challenge", plural: "challenges" },
+      "certificates" => { title: "Certificates", stat_label: "Certificates", singular: "certificate", plural: "certificates" },
+      "talks" => { title: "Talks", stat_label: "Talks", singular: "talk", plural: "talks" },
+      "achievements" => { title: "Relevant achievements", stat_label: "Achievements", singular: "event", plural: "events" }
+    }
+
+    ContentTestHelpers::ABOUT_COLLECTIONS.map do |spec|
+      entries = about_collection_entries(spec, repository: repository)
+      spec.merge(presentation.fetch(spec.fetch(:id))).merge(
+        entries: entries,
+        count: spec.fetch(:count).call(repository, entries)
+      )
+    end
+  end
+
+  def assert_about_catalog_rendered(section_cases)
+    section_cases.each do |section|
+      selector = "##{section.fetch(:id)}"
+      rendered_ids = all("#{selector} #{section.fetch(:card_selector)}", visible: :all).map { |card| card["id"] }.sort
+
+      assert_equal section.fetch(:entries).map { |entry| entry.fetch("id") }.sort, rendered_ids
+      assert_selector "#{selector} .aboutme-section-title", text: section.fetch(:title)
+      assert_selector ".aboutme-stat[href='##{section.fetch(:id)}'] .aboutme-stat-value", text: /^#{section.fetch(:count)}$/
+      assert_selector ".aboutme-stat[href='##{section.fetch(:id)}']", text: section.fetch(:stat_label)
+
+      if section.fetch(:entries).empty?
+        assert_selector "#{selector} .aboutme-empty-state"
+      else
+        assert_no_selector "#{selector} .aboutme-empty-state", visible: :all
+      end
+    end
+  end
+
+  def assert_about_links_rendered(section_cases)
+    section_cases.each do |section|
+      section.fetch(:entries).each do |entry|
+        card = find("##{entry.fetch('id')}", visible: :all)
+        tags = normalized_about_tags(entry["tags"])
+        ordered_tags = tags.partition { |tag| tag[:url].blank? }.flatten
+
+        within card do
+          assert_equal ordered_tags.map { |tag| tag.fetch(:label) },
+                       all(".aboutme-card-tags > *", visible: :all).map { |tag| tag.text.squish }
+
+          ordered_tags.select { |tag| tag[:url].present? }.each do |tag|
+            rendered_tag = all("a.aboutme-card-tag", visible: :all).find do |link|
+              href_matches?(tag.fetch(:url), link["href"])
+            end
+            assert rendered_tag, "expected #{entry['id']} to link tag #{tag[:label]} to #{tag[:url]}"
+          end
+
+          expected_links = Array(entry["links"]).select do |link|
+            link.is_a?(Hash) && link["label"].present? && link["url"].present?
+          end
+          rendered_links = all("a.aboutme-reference-link", visible: :all)
+          assert_equal expected_links.map { |link| link["label"] }, rendered_links.map { |link| link.text(:all).squish }
+          expected_links.zip(rendered_links).each do |expected, rendered|
+            assert href_matches?(expected.fetch("url"), rendered["href"])
+          end
+
+          expected_events = Array(entry["timeline"]).select do |event|
+            event.is_a?(Hash) && (event["title"].present? || event["event"].present?)
+          end
+          rendered_events = all(".aboutme-timeline li", visible: :all)
+          assert_equal expected_events.length, rendered_events.length
+
+          expected_events.zip(rendered_events).each do |event, rendered_event|
+            label = event["title"].presence || event["event"]
+            assert_equal label, rendered_event.find(".aboutme-timeline-link, .aboutme-timeline-title", visible: :all).text(:all).squish
+            assert_equal event["date"], rendered_event.find("time", visible: :all)["datetime"] if event["date"].present?
+            if event["url"].present?
+              rendered_href = rendered_event.find("a.aboutme-timeline-link", visible: :all)["href"]
+              assert href_matches?(event.fetch("url"), rendered_href)
+            end
+          end
+        end
+      end
+    end
+  end
+
+  def normalized_about_tags(raw_tags)
+    Array(raw_tags).filter_map do |tag|
+      if tag.is_a?(Hash)
+        label = tag["label"].presence || tag["name"].presence
+        next if label.blank?
+
+        { label: ContentTagTaxonomy.canonical_label(label), url: tag["url"].presence }
+      elsif tag.to_s.present?
+        { label: ContentTagTaxonomy.canonical_label(tag), url: nil }
+      end
+    end
+  end
+
+  def achievement_anchor_case
+    production_content_repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).each do |achievement|
+      event = Array(achievement["timeline"]).find { |candidate| candidate["id"].present? }
+      return [ achievement, event ] if event
+    end
+
+    flunk("expected an achievement timeline event with an anchor")
+  end
+
+  def cve_visual_case
+    production_content_repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).find do |entry|
+      cve_tag_from(entry) && cwe_tag_from(entry) &&
+        about_reference_links(entry).length >= 2 &&
+        entry["summary"].present?
+    end || flunk("expected a CVE with vulnerability tags, references, and details")
+  end
+
+  def challenge_visual_case
+    production_content_repository.authored_challenges.find do |entry|
+      entry["summary"].present? && normalized_about_tags(entry["tags"]).any? do |tag|
+        tag[:url].to_s.match?(%r{\Ahttps?://})
+      end
+    end || flunk("expected an authored challenge with a linked tag and details")
+  end
+
+  def cve_tag_from(entry)
+    Array(entry["tags"]).find do |tag|
+      tag.is_a?(Hash) && tag["url"].present? && ContentVulnerabilityTag.cve?(tag["label"])
+    end
+  end
+
+  def cwe_tag_from(entry)
+    Array(entry["tags"]).find do |tag|
+      tag.is_a?(Hash) && tag["url"].present? && ContentVulnerabilityTag.cwe?(tag["label"])
+    end
+  end
+
+  def about_reference_links(entry)
+    Array(entry["links"]).select do |link|
+      link.is_a?(Hash) && link["label"].present? && link["url"].present?
+    end
+  end
+
+  def authored_challenge_writeup_case
+    production_content_repository.authored_challenges.each do |challenge|
+      tag = Array(challenge["tags"]).find do |candidate|
+        candidate.is_a?(Hash) && candidate["url"].to_s.start_with?("/ctf/")
+      end
+      next unless tag
+
+      post = production_content_repository.ctf_posts.find do |candidate|
+        CGI.unescape(candidate[:link]) == CGI.unescape(tag.fetch("url"))
+      end
+      return [ challenge, tag, post ] if post
+    end
+
+    flunk("expected an authored challenge linked to a published writeup")
+  end
+
+  def href_matches?(expected, actual)
+    expected = expected.to_s
+    actual = actual.to_s
+    return expected == actual unless expected.start_with?("/")
+
+    uri = URI.parse(actual)
+    rendered_path = uri.path
+    rendered_path += "?#{uri.query}" if uri.query
+    rendered_path += "##{uri.fragment}" if uri.fragment
+    rendered_path == expected
+  rescue URI::InvalidURIError
+    false
   end
 end

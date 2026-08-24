@@ -71,45 +71,47 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
     render partial: "aboutme/card", locals: {
       kind: "talk",
       entry: {
-        "title" => "KITCTF Web Intro",
-        "url" => "https://kitctf.de/intro/",
-        "date" => "2026-05-07",
-        "summary" => "Introductory web security talk for KITCTF.",
+        "title" => "Fixture Web Intro",
+        "url" => "https://fixture.invalid/intro/",
+        "date" => "2099-05-07",
+        "summary" => "Synthetic introductory web security talk.",
         "tags" => [
-          { "label" => "Slides", "url" => "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf" },
-          { "label" => "Overview", "url" => "https://kitctf.de/intro/" }
+          { "label" => "Slides", "url" => "https://fixture.invalid/slides.pdf" },
+          { "label" => "Overview", "url" => "https://fixture.invalid/intro/" }
         ]
       }
     }
 
     assert_select ".aboutme-finding-badges a.aboutme-tag-slides[href=?][target=?][rel=?]",
-                  "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf",
+                  "https://fixture.invalid/slides.pdf",
                   "_blank",
                   "noopener noreferrer",
                   text: "Slides"
     assert_select ".aboutme-finding-badges a.aboutme-tag-overview[href=?][target=?][rel=?]",
-                  "https://kitctf.de/intro/",
+                  "https://fixture.invalid/intro/",
                   "_blank",
                   "noopener noreferrer",
                   text: "Overview"
-    assert_select ".aboutme-card-details .aboutme-reference-link[href=?]", "https://kitctf.de/intro/", 0
-    assert_select ".aboutme-card-details .aboutme-reference-link[href=?]", "https://kitctf.de/talks/2026-05-07-web/web-26-ss.pdf", 0
+    assert_select ".aboutme-card-details .aboutme-reference-link[href=?]", "https://fixture.invalid/intro/", 0
+    assert_select ".aboutme-card-details .aboutme-reference-link[href=?]", "https://fixture.invalid/slides.pdf", 0
     assert_select ".aboutme-link-row", 0
   end
 
   test "milestone card shows reading time for linked local posts" do
+    @aboutme_post_reading_times = { "/blog/example-post" => "3 min read" }
+
     render partial: "aboutme/card", locals: {
       kind: "certificate",
       entry: {
-        "title" => "HTB CPTS",
-        "url" => "/blog/htb-cpts",
+        "title" => "Example certificate",
+        "url" => "/blog/example-post",
         "summary" => "Certification writeup.",
         "tags" => [
-          { "label" => "Writeup", "url" => "/blog/htb-cpts" }
+          { "label" => "Post", "url" => "/blog/example-post" }
         ]
       }
     }
 
-    assert_select ".aboutme-card-reading-time", text: /min read/
+    assert_select ".aboutme-card-reading-time", text: "3 min read"
   end
 end

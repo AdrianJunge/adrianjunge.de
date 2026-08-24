@@ -30,21 +30,27 @@ class ErrorsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "renders custom not found page for invalid blog and ctf subpaths" do
-    [
+    repository = fixture_content_repository
+    event = repository.ctf_event("democtf")
+    paths = [
       "/blog/definitely-not-a-post",
       "/ctf/definitely-not-a-ctf",
-      "/ctf/cscg/definitely-not-a-writeup"
-    ].each do |path|
-      get path
+      "/ctf/#{ERB::Util.url_encode(event[:slug])}/definitely-not-a-writeup"
+    ]
 
-      assert_response :not_found
-      assert_select "main.error-page"
-      assert_select "h1", text: /404 Page not found/
-      assert_select "p", text: /urban legend/
-      assert_select "#terminal-container"
-      assert_no_match "Blog post not found", response.body
-      assert_no_match "Invalid path", response.body
-      assert_no_match "Invalid post", response.body
+    with_stubbed_content_repository(repository) do
+      paths.each do |path|
+        get path
+
+        assert_response :not_found
+        assert_select "main.error-page"
+        assert_select "h1", text: /404 Page not found/
+        assert_select "p", text: /urban legend/
+        assert_select "#terminal-container"
+        assert_no_match "Blog post not found", response.body
+        assert_no_match "Invalid path", response.body
+        assert_no_match "Invalid post", response.body
+      end
     end
   end
 

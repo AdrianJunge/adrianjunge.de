@@ -238,14 +238,14 @@ module CtfHelper
     category_name = ContentCategoryTag.normalized(category)
     icon_names = [ category_name, ContentCategoryTag.css_key(category) ].reject(&:blank?).uniq
 
-    CATEGORY_ICON_DIRECTORY.children
+    category_icon_directory.children
                            .select { |path| path.file? && icon_names.include?(category_icon_file_key(path)) }
                            .sort_by do |path|
                              file_key = category_icon_file_key(path)
                              [ icon_names.index(file_key) || icon_names.length, path.basename.to_s ]
                            end
                            .first ||
-      CATEGORY_ICON_DIRECTORY.join(DEFAULT_CATEGORY_ICON)
+      category_icon_directory.join(DEFAULT_CATEGORY_ICON)
   end
 
   def category_icon_file_key(path)
@@ -323,7 +323,15 @@ module CtfHelper
   end
 
   def category_icon_asset_name(icon_path)
-    icon_path.relative_path_from(CATEGORY_ICON_ASSET_ROOT).to_s
+    icon_path.relative_path_from(category_icon_asset_root).to_s
+  end
+
+  def category_icon_directory
+    CATEGORY_ICON_DIRECTORY
+  end
+
+  def category_icon_asset_root
+    CATEGORY_ICON_ASSET_ROOT
   end
 
   def writeup_winner(info)
