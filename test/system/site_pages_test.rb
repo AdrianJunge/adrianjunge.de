@@ -780,6 +780,64 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_equal blog_styles, landing_styles
   end
 
+  test "mixed post cards identify and link their blog or CTF section" do
+    page.current_window.resize_to(1280, 1000)
+    latest_blog_posts = landing_latest_posts.select { |post| post[:type] == "blog" }
+    latest_ctf_posts = landing_latest_posts.select { |post| post[:type] == "ctf" }
+
+    visit "/"
+
+    assert_selector_count ".landing-writeup-cards .content-card-section-link-blog[href='/blog'] img[src*='task-bar/blog']", latest_blog_posts.length
+    assert_selector_count ".landing-writeup-cards .content-card-section-link-ctf[href='/ctf'] img[src*='task-bar/flag']", latest_ctf_posts.length
+    marker_layout = page.evaluate_script(<<~JS)
+      (() => {
+        const marker = document.querySelector(".landing-writeup-cards .content-card-section-link");
+        const card = marker.closest(".content-card");
+        const markerRect = marker.getBoundingClientRect();
+        const cardRect = card.getBoundingClientRect();
+
+        return {
+          topGap: Math.round(markerRect.top - cardRect.top),
+          rightGap: Math.round(cardRect.right - markerRect.right),
+          width: Math.round(markerRect.width),
+          height: Math.round(markerRect.height)
+        };
+      })()
+    JS
+    assert_in_delta 12, marker_layout["topGap"], 1
+    assert_in_delta 12, marker_layout["rightGap"], 1
+    assert_operator marker_layout["width"], :>=, 40
+    assert_equal marker_layout["width"], marker_layout["height"]
+
+    if latest_blog_posts.any?
+      within find(".landing-writeup-cards .blog-post-card", text: latest_blog_posts.first[:title]) do
+        find(".content-card-section-link-blog").click
+      end
+      assert_current_path "/blog"
+    end
+
+    visit "/"
+    if latest_ctf_posts.any?
+      within find(".landing-writeup-cards .blog-post-card", text: latest_ctf_posts.first[:title]) do
+        find(".content-card-section-link-ctf").click
+      end
+      assert_current_path "/ctf"
+    end
+
+    visit "/timeline"
+    timeline_blog_count = timeline_items.count { |item| item[:kind] == "blog" }
+    timeline_ctf_count = timeline_items.count { |item| item[:kind] == "writeup" }
+
+    assert_selector_count ".timeline-content .content-card-section-link-blog[href='/blog'] img[src*='task-bar/blog']", timeline_blog_count
+    assert_selector_count ".timeline-content .content-card-section-link-ctf[href='/ctf'] img[src*='task-bar/flag']", timeline_ctf_count
+    assert_selector_count ".timeline-content .content-card-section-link", timeline_blog_count + timeline_ctf_count
+
+    timeline_section_link = find(".timeline-content .content-card-section-link", match: :first)
+    expected_section_path = timeline_section_link["data-content-section"] == "blog" ? "/blog" : "/ctf"
+    timeline_section_link.click
+    assert_current_path expected_section_path
+  end
+
   test "tag links only open a new tab for external destinations" do
     tag_pages = [
       "/",
@@ -1009,7 +1067,8 @@ class SitePagesTest < ApplicationSystemTestCase
     visit "/timeline"
     assert_selector ".timeline-content.ui-card-surface", minimum: 1
     assert_selector ".timeline-content.content-card", minimum: 1
-    assert_equal latest_styles, card_surface_styles(".timeline-content")
+    assert_selector ".timeline-item:not(.timeline-item-upcoming) .timeline-content", minimum: 1
+    assert_equal latest_styles, card_surface_styles(".timeline-item:not(.timeline-item-upcoming) .timeline-content")
 
     visit "/ctf"
     assert_selector ".ctf-card.ui-card-surface", minimum: 1
@@ -1326,6 +1385,135 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_current_path "/timeline?#{Rack::Utils.build_query(tag: tag_name)}"
     assert_selector ".timeline-tags .timeline-tag-pill.is-active", text: tag_name
     assert_selector ".content-filter-panel .filter-chip.is-active", text: tag_name
+  end
+
+  test "timeline renders every talk event as its own card" do
+    talk_entries = repository.about_entries(ApplicationController::ABOUTME_TALKS_PATH)
+    talk_events = talk_entries.flat_map { |entry| Array(entry["timeline"]) }
+    talk_items = timeline_items.select { |item| item[:kind] == "talk" }
+    expected_links = talk_events.map { |event| "/about##{event.fetch("id")}" }
+
+    assert_equal repository.timeline_event_count(talk_entries), talk_items.length
+    assert_equal expected_links.sort, talk_items.map { |item| item[:link] }.sort
+
+    visit "/timeline"
+
+    talk_items.each do |item|
+      timeline_entry = timeline_content_card(item).find(
+        :xpath,
+        "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-item ')]"
+      )
+
+      within timeline_entry do
+        assert_selector ".timeline-title", exact_text: item[:title]
+        assert_selector ".timeline-date time", exact_text: item[:display_date]
+        assert_selector ".timeline-kind-pill[data-filter-tag='Talk']", count: 1
+      end
+    end
+  end
+
+  test "timeline rail metadata is centered and future events are highlighted dynamically" do
+    travel_to Time.zone.local(2026, 9, 1, 12) do
+      page.current_window.resize_to(1280, 1000)
+      future_items = timeline_items.select { |item| item[:published].to_date > Date.new(2026, 9, 1) }
+
+      visit "/timeline"
+
+      assert_selector ".timeline-item.timeline-item-upcoming[data-upcoming='true']", count: future_items.length
+      assert_selector ".timeline-item-upcoming .timeline-side-tags > .content-upcoming-badge:first-child",
+                      count: future_items.length,
+                      text: "Upcoming"
+      assert_no_selector ".timeline-item[data-upcoming='false'] .content-upcoming-badge"
+      assert_no_selector ".timeline-item-upcoming .timeline-title", text: /^Upcoming:/
+
+      rail_metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const center = (rect) => rect.top + (rect.height / 2);
+          const items = [...document.querySelectorAll(".timeline-item")];
+          const centerDeltas = items.map((item) => {
+            const card = item.querySelector(".timeline-content").getBoundingClientRect();
+            const date = item.querySelector(".timeline-date").getBoundingClientRect();
+            const dot = item.querySelector(".timeline-connector .dot").getBoundingClientRect();
+
+            return {
+              date: Math.abs(center(date) - center(card)),
+              dot: Math.abs(center(dot) - center(card))
+            };
+          });
+          const upcomingCard = document.querySelector(".timeline-item-upcoming .timeline-content");
+          const regularCard = document.querySelector(".timeline-item:not(.timeline-item-upcoming) .timeline-content");
+          const dot = document.querySelector(".timeline-connector .dot");
+          const upcomingStyle = window.getComputedStyle(upcomingCard);
+          const regularStyle = window.getComputedStyle(regularCard);
+          const upcomingHeadingStyle = window.getComputedStyle(
+            document.querySelector(".timeline-item-upcoming .timeline-date-heading")
+          );
+
+          return {
+            maxDateCenterDelta: Math.max(...centerDeltas.map((delta) => delta.date)),
+            maxDotCenterDelta: Math.max(...centerDeltas.map((delta) => delta.dot)),
+            dotColor: window.getComputedStyle(dot).backgroundColor,
+            upcomingBorderColor: upcomingStyle.borderTopColor,
+            regularBorderColor: regularStyle.borderTopColor,
+            upcomingBoxShadow: upcomingStyle.boxShadow,
+            upcomingHeadingBorderWidth: upcomingHeadingStyle.borderTopWidth,
+            upcomingHeadingBackground: upcomingHeadingStyle.backgroundColor
+          };
+        })()
+      JS
+
+      assert_operator rail_metrics["maxDateCenterDelta"], :<=, 1
+      assert_operator rail_metrics["maxDotCenterDelta"], :<=, 1
+      assert_equal "rgb(85, 170, 255)", rail_metrics["dotColor"]
+      assert_not_equal rail_metrics["regularBorderColor"], rail_metrics["upcomingBorderColor"]
+      assert_not_equal "none", rail_metrics["upcomingBoxShadow"]
+      assert_equal "0px", rail_metrics["upcomingHeadingBorderWidth"]
+      assert_equal "rgba(0, 0, 0, 0)", rail_metrics["upcomingHeadingBackground"]
+
+      page.current_window.resize_to(390, 1000)
+      visit "/timeline"
+
+      mobile_metrics = page.evaluate_script(<<~JS)
+        (() => {
+          const center = (rect) => rect.left + (rect.width / 2);
+          const items = [...document.querySelectorAll(".timeline-item")];
+          const positions = items.map((item) => {
+            const card = item.querySelector(".timeline-content").getBoundingClientRect();
+            const date = item.querySelector(".timeline-date").getBoundingClientRect();
+            const heading = item.querySelector(".timeline-date-heading").getBoundingClientRect();
+            const tags = [...item.querySelector(".timeline-side-tags").children]
+              .map((tag) => tag.getBoundingClientRect());
+            const tagsLeft = Math.min(...tags.map((tag) => tag.left));
+            const tagsRight = Math.max(...tags.map((tag) => tag.right));
+
+            return {
+              date: Math.abs(center(date) - center(card)),
+              heading: Math.abs(center(heading) - center(card)),
+              tags: Math.abs(((tagsLeft + tagsRight) / 2) - center(card)),
+              metadataAboveCard: date.bottom <= card.top + 1
+            };
+          });
+          const dateStyle = window.getComputedStyle(document.querySelector(".timeline-date"));
+          const tagsStyle = window.getComputedStyle(document.querySelector(".timeline-side-tags"));
+
+          return {
+            maxDateCenterDelta: Math.max(...positions.map((position) => position.date)),
+            maxHeadingCenterDelta: Math.max(...positions.map((position) => position.heading)),
+            maxTagsCenterDelta: Math.max(...positions.map((position) => position.tags)),
+            allMetadataAboveCards: positions.every((position) => position.metadataAboveCard),
+            dateTextAlign: dateStyle.textAlign,
+            tagsJustifyContent: tagsStyle.justifyContent
+          };
+        })()
+      JS
+
+      assert_operator mobile_metrics["maxDateCenterDelta"], :<=, 1
+      assert_operator mobile_metrics["maxHeadingCenterDelta"], :<=, 1
+      assert_operator mobile_metrics["maxTagsCenterDelta"], :<=, 1
+      assert mobile_metrics["allMetadataAboveCards"]
+      assert_equal "center", mobile_metrics["dateTextAlign"]
+      assert_equal "center", mobile_metrics["tagsJustifyContent"]
+    end
   end
 
   test "timeline about links open target cards below the top taskbar" do

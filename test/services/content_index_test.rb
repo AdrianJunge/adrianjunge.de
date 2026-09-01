@@ -76,17 +76,28 @@ class ContentIndexTest < ActiveSupport::TestCase
     end
   end
 
-  test "talk index uses the newest visible event and declared tags" do
-    item = @items.find { |candidate| candidate[:id] == "about-talk-fixture-talk" }
+  test "talk index creates one item for every visible event" do
+    talk_items = @items.select { |candidate| candidate[:kind] == "talk" }.index_by { |item| item[:id] }
 
-    assert item
-    assert_equal "talk", item[:kind]
-    assert_equal "Talk", item[:label]
-    assert_equal "Fixture Talk", item[:title]
-    assert_equal "/about#fixture-talk", item[:link]
-    assert_equal "2025-07-01", item[:display_date]
-    assert_includes item[:tags], "Talk"
-    assert_includes item[:tags], "Slides"
+    assert_equal %w[about-talk-fixture-talk-first about-talk-fixture-talk-latest], talk_items.keys.sort
+    assert_not talk_items.key?("about-talk-fixture-talk-hidden")
+
+    first_item = talk_items.fetch("about-talk-fixture-talk-first")
+    latest_item = talk_items.fetch("about-talk-fixture-talk-latest")
+
+    assert_equal "Talk", first_item[:label]
+    assert_equal "First fixture talk.", first_item[:title]
+    assert_equal "/about#fixture-talk-first", first_item[:link]
+    assert_equal "2025-01-01", first_item[:display_date]
+    assert_equal "Latest fixture talk.", latest_item[:title]
+    assert_equal "/about#fixture-talk-latest", latest_item[:link]
+    assert_equal "2025-07-01", latest_item[:display_date]
+
+    talk_items.each_value do |item|
+      assert_includes item[:tags], "Talk"
+      assert_includes item[:tags], "Slides"
+      assert_includes item[:tags], "Fixture Talk"
+    end
   end
 
   test "blog source categories are indexed as content type tags" do
@@ -114,8 +125,8 @@ class ContentIndexTest < ActiveSupport::TestCase
     ids.concat(about_entry_ids(repository, "bug-bounty", ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
     ids.concat(repository.authored_challenges.map { |entry| about_id("challenge", entry) })
     ids.concat(about_entry_ids(repository, "certificate", ApplicationController::ABOUTME_CERTIFICATES_PATH))
-    ids.concat(about_entry_ids(repository, "talk", ApplicationController::ABOUTME_TALKS_PATH))
-    ids.concat(achievement_event_ids(repository))
+    ids.concat(about_timeline_event_ids(repository, "talk", ApplicationController::ABOUTME_TALKS_PATH))
+    ids.concat(about_timeline_event_ids(repository, "achievement", ApplicationController::ABOUTME_ACHIEVEMENTS_PATH))
     ids
   end
 
@@ -127,8 +138,8 @@ class ContentIndexTest < ActiveSupport::TestCase
       "bug-bounty" => repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH).length,
       "challenge" => repository.authored_challenges.length,
       "certificate" => repository.about_entries(ApplicationController::ABOUTME_CERTIFICATES_PATH).length,
-      "talk" => repository.about_entries(ApplicationController::ABOUTME_TALKS_PATH).length,
-      "achievement" => achievement_event_ids(repository).length
+      "talk" => about_timeline_event_ids(repository, "talk", ApplicationController::ABOUTME_TALKS_PATH).length,
+      "achievement" => about_timeline_event_ids(repository, "achievement", ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).length
     }
   end
 
@@ -141,17 +152,17 @@ class ContentIndexTest < ActiveSupport::TestCase
     "about-#{kind}-#{id.parameterize}"
   end
 
-  def achievement_event_ids(repository)
-    repository.about_entries(ApplicationController::ABOUTME_ACHIEVEMENTS_PATH).flat_map do |entry|
+  def about_timeline_event_ids(repository, kind, path)
+    repository.about_entries(path).flat_map do |entry|
       parent_id = entry["id"].presence || entry["title"].to_s.parameterize
       events = Array(entry["timeline"]).select { |event| event.is_a?(Hash) && event["title"].present? }
 
       if events.empty?
-        [ "about-achievement-#{parent_id.parameterize}" ]
+        [ "about-#{kind}-#{parent_id.parameterize}" ]
       else
         events.map do |event|
           event_id = event["id"].presence || "#{parent_id}-#{event["date"]}-#{event["title"]}".parameterize
-          "about-achievement-#{event_id.parameterize}"
+          "about-#{kind}-#{event_id.parameterize}"
         end
       end
     end

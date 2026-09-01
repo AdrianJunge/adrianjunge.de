@@ -5,7 +5,13 @@
 <% linked_root = root_tag == :a && card_url.present? %>
 <% overlay_link = card_url.present? && !linked_root %>
 <% hoverable = card.fetch(:hoverable, card_url.present?) %>
-<% root_classes = [ "content-card", "ui-card-surface", ("ui-hover-lift" if hoverable), card[:class_name] ].compact.join(" ") %>
+<% raw_section_link = card[:section_link] || {} %>
+<% section_link = raw_section_link.respond_to?(:symbolize_keys) ? raw_section_link.symbolize_keys : raw_section_link %>
+<% section_link_url = section_link[:url].presence %>
+<% section_link_icon = section_link[:icon].presence %>
+<% section_link_kind = section_link[:kind].to_s.parameterize.presence %>
+<% has_section_link = section_link_url.present? && section_link_icon.present? %>
+<% root_classes = [ "content-card", "ui-card-surface", ("ui-hover-lift" if hoverable), ("content-card-with-section-link" if has_section_link), card[:class_name] ].compact.join(" ") %>
 <% content_classes = [ card.fetch(:content_class, "content-card-content") ].compact.join(" ") %>
 <% body_classes = [ card.fetch(:body_class, "content-card-body") ].compact.join(" ") %>
 <% text_classes = [ card[:text_class] ].compact.join(" ") %>
@@ -130,6 +136,23 @@
 <% inner_content = capture do %>
   <% if overlay_link %>
     <%= content_tag(:a, "", content_card_link_attributes(card_url, card[:aria_label].presence || card[:title].presence || "Open item", class_name: hitbox_classes).merge(href: card_url)) %>
+  <% end %>
+
+  <% if has_section_link %>
+    <% section_link_label = section_link[:label].presence || "Browse related posts" %>
+    <% section_link_classes = [ "content-card-section-link", ("content-card-section-link-#{section_link_kind}" if section_link_kind.present?), section_link[:class_name] ].compact.join(" ") %>
+    <% section_link_image = image_tag(section_link_icon, alt: "", class: "content-card-section-icon", aria: { hidden: true }) %>
+    <%= content_tag(
+          :a,
+          section_link_image,
+          content_link_options(section_link_url).merge(
+            href: section_link_url,
+            class: section_link_classes,
+            aria: { label: section_link_label },
+            title: section_link[:title].presence || section_link_label,
+            data: section_link_kind.present? ? { content_section: section_link_kind } : nil
+          )
+        ) %>
   <% end %>
 
   <%= render "shared/card_shell",

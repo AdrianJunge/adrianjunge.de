@@ -1,5 +1,5 @@
 module BlogHelper
-  def render_blog_post_card(post_slug, post_info, interactive_tags: true)
+  def render_blog_post_card(post_slug, post_info, interactive_tags: true, show_section_icon: false)
     title = post_info["title"].presence || post_slug.humanize
     description = post_info["description"] || "No description available"
     published = post_info["published"] || "Unknown date"
@@ -60,6 +60,12 @@ module BlogHelper
         filter_tags: filter_tags.join("|"),
         filter_years: published_year
       },
+      section_link: show_section_icon ? {
+        url: blog_path,
+        icon: "task-bar/blog.svg",
+        kind: "blog",
+        label: "Browse blog posts"
+      } : nil,
       aria_label: "Open #{title} blog post"
     )
   end

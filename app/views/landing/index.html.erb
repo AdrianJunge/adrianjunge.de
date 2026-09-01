@@ -136,11 +136,11 @@
                 }) %>
 
                 <div class="blog-post-entry">
-                    <%= render_blog_post_card(post[:slug], blog_data_with_meta, interactive_tags: false) %>
+                    <%= render_blog_post_card(post[:slug], blog_data_with_meta, interactive_tags: false, show_section_icon: true) %>
                 </div>
             <% elsif post[:type] == "ctf" %>
                 <div class="blog-post-entry writeup-post-entry">
-                    <%= render_writeup_card(post[:slug], post[:link], post[:metadata] || {}, logo: post[:logo], interactive_tags: false, show_hints: false, external_recognition_links: false) %>
+                    <%= render_writeup_card(post[:slug], post[:link], post[:metadata] || {}, logo: post[:logo], interactive_tags: false, show_hints: false, external_recognition_links: false, show_section_icon: true) %>
                 </div>
             <% end %>
         <% end %>

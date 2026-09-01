@@ -1,4 +1,21 @@
 module ApplicationHelper
+  def upcoming_date?(value, today: Date.current)
+    return false if value.blank?
+
+    date = value.respond_to?(:to_date) ? value.to_date : Time.zone.parse(value.to_s)&.to_date
+    date.present? && date > today
+  rescue ArgumentError, TypeError
+    false
+  end
+
+  def content_upcoming_badge(class_name: nil)
+    content_tag(
+      :span,
+      "Upcoming",
+      class: [ "content-upcoming-badge", class_name ].compact.join(" ")
+    )
+  end
+
   def timeline_filter_path(tag: nil, tags: nil, q: nil, year: nil)
     tag_values = Array(tags.presence || tag).compact.map(&:to_s).map(&:strip).reject(&:blank?)
     params = {}

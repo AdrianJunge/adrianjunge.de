@@ -11,10 +11,12 @@
     ],
     "timeline": [
       {
+        "id": "fixture-talk-first",
         "date": "2025-01-01",
         "title": "First fixture talk."
       },
       {
+        "id": "fixture-talk-latest",
         "date": "2025-07-01",
         "title": "Latest fixture talk."
       },

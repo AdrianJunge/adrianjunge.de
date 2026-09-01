@@ -2606,7 +2606,7 @@
     display: grid;
     position: relative;
     grid-template-columns: var(--date-width) 2rem minmax(0, 1fr);
-    align-items: start;
+    align-items: center;
     gap: 1rem;
     min-width: 0;
     padding: 0.75rem 0;
@@ -2614,6 +2614,7 @@
 
 .timeline-page .timeline-date {
     display: grid;
+    align-self: center;
     justify-items: end;
     gap: 0.35rem;
     min-width: 0;
@@ -2624,26 +2625,48 @@
     text-align: right;
 }
 
+.timeline-page .timeline-date-heading {
+    display: grid;
+    justify-items: end;
+    gap: 0.3rem;
+    width: fit-content;
+}
+
+.timeline-page .timeline-side-tags {
+    display: grid;
+    justify-items: end;
+    gap: 0.35rem;
+    width: 100%;
+}
+
 .timeline-page .timeline-date time {
     overflow-wrap: anywhere;
 }
 
 .timeline-page .timeline-connector {
     position: relative;
-    min-height: 1rem;
+    align-self: stretch;
+    min-height: 100%;
 }
 
 .timeline-page .timeline-connector .dot {
     position: absolute;
-    top: 0.35rem;
+    top: 50%;
     left: 50%;
     width: 12px;
     height: 12px;
     border: 3px solid #0b1220;
     border-radius: var(--radius-ui-pill);
-    background: #06b6d4;
+    background: var(--color-tertiary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-tertiary) 18%, transparent);
     box-sizing: content-box;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
+}
+
+.content-page.timeline-page .timeline-item-upcoming .timeline-content {
+    border-color: color-mix(in srgb, var(--color-accent) 68%, transparent);
+    background-color: color-mix(in srgb, var(--color-tertiary) 12%, rgba(18, 34, 56, 0.94));
+    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-accent) 72%, transparent), 0 1rem 2rem rgba(2, 12, 24, 0.28);
 }
 
 .timeline-page .timeline-content {
@@ -2836,6 +2859,53 @@
 .landing-page .landing-writeup-cards .blog-post-card-content,
 .landing-page .landing-writeup-cards .blog-post-card-details {
     min-width: 0;
+}
+
+.content-card > .content-card-section-link {
+    display: grid;
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 50;
+    place-items: center;
+    width: 2.7rem;
+    height: 2.7rem;
+    border: 1px solid rgba(125, 211, 252, 0.48);
+    border-radius: var(--radius-ui-control);
+    color: #f8fafc;
+    background: rgba(13, 45, 73, 0.94);
+    box-shadow: 0 0.55rem 1.25rem rgba(2, 12, 24, 0.3);
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.content-card-section-icon {
+    width: 1.45rem;
+    height: 1.45rem;
+    object-fit: contain;
+    filter: invert(1);
+}
+
+.content-card.content-card-with-section-link .content-card-body {
+    padding-right: 4.5rem;
+}
+
+.content-card > .content-card-section-link:focus-visible {
+    border-color: rgba(186, 230, 253, 0.95);
+    background: rgba(24, 76, 112, 0.98);
+    box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.28), 0 0.65rem 1.4rem rgba(2, 12, 24, 0.34);
+    outline: 2px solid transparent;
+    transform: translateY(-1px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .content-card > .content-card-section-link:hover {
+        border-color: rgba(186, 230, 253, 0.9);
+        background: rgba(24, 76, 112, 0.98);
+        box-shadow: 0 0.65rem 1.4rem rgba(2, 12, 24, 0.34);
+        transform: translateY(-1px);
+    }
 }
 
 .landing-page .landing-hero-shell {
@@ -3235,6 +3305,15 @@
         border-bottom: 1px solid rgba(93, 116, 158, 0.45);
     }
 
+    .content-page .content-card.content-card-with-section-link .blog-post-card-details,
+    .landing-page .landing-writeup-cards .content-card.content-card-with-section-link .blog-post-card-details {
+        padding-right: 1.25rem;
+    }
+
+    .timeline-page .content-card.content-card-with-section-link .timeline-card-details {
+        padding-right: 1rem;
+    }
+
     .timeline-page .timeline {
         --date-width: 0;
         --timeline-padding: 1rem;
@@ -3250,9 +3329,24 @@
     }
 
     .timeline-page .timeline-date {
-        justify-items: start;
+        align-self: auto;
+        justify-items: center;
+        width: 100%;
         padding-right: 0;
-        text-align: left;
+        text-align: center;
+    }
+
+    .timeline-page .timeline-date-heading {
+        align-items: center;
+        justify-content: center;
+        justify-items: center;
+    }
+
+    .timeline-page .timeline-side-tags {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.35rem;
     }
 
     .timeline-page .timeline-connector {

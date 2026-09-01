@@ -67,6 +67,32 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
     assert_select ".aboutme-link-row", 0
   end
 
+  test "milestone card derives upcoming event labels and highlighting from dates" do
+    travel_to Time.zone.local(2026, 9, 1, 12) do
+      render partial: "aboutme/card", locals: {
+        kind: "talk",
+        entry: {
+          "title" => "Example talks",
+          "timeline" => [
+            { "date" => "2026-08-31", "title" => "Past talk." },
+            { "date" => "2026-11-09", "title" => "Talk at the future event." }
+          ]
+        }
+      }
+    end
+
+    assert_select ".aboutme-timeline li[data-upcoming='false']", 1 do
+      assert_select ".content-upcoming-badge", 0
+      assert_select "time[datetime='2026-08-31']", text: "2026-08-31"
+    end
+    assert_select ".aboutme-timeline li.aboutme-timeline-item-upcoming[data-upcoming='true']", 1 do
+      assert_select ".aboutme-timeline-date-row > .content-upcoming-badge.aboutme-upcoming-badge", text: "Upcoming"
+      assert_select "time[datetime='2026-11-09']", text: "2026-11-09"
+      assert_select ".aboutme-timeline-title", text: "Talk at the future event."
+    end
+    assert_no_match(/Upcoming:/, rendered)
+  end
+
   test "milestone card can link compact tags to external references" do
     render partial: "aboutme/card", locals: {
       kind: "talk",

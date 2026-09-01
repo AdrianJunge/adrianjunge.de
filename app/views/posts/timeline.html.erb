@@ -53,26 +53,35 @@
 
           <ul class="timeline-year-items">
             <% items.each do |item| %>
+              <% item_upcoming = upcoming_date?(item[:published]) %>
               <% timeline_content_type_tags = Array(item[:kind_labels]).map { |kind_label| kind_label[:tag_value].presence || kind_label[:label] } %>
               <% visible_tags = item[:tags].reject { |tag_name| [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(tag_name) || timeline_content_type_tags.include?(tag_name) } %>
               <li
-                class="timeline-item"
+                class="<%= class_names("timeline-item", "timeline-item-upcoming": item_upcoming) %>"
                 data-filter-card="timeline"
-                data-filter-text="<%= [ item[:title], item[:description], item[:source], item[:label], item[:display_date] ].compact.join(" ") %>"
+                data-filter-text="<%= [ ("Upcoming" if item_upcoming), item[:title], item[:description], item[:source], item[:label], item[:display_date] ].compact.join(" ") %>"
                 data-filter-years="<%= item[:published].year %>"
                 data-filter-tags="<%= item[:tags].join("|") %>"
+                data-upcoming="<%= item_upcoming %>"
               >
                 <div class="timeline-date">
-                  <time datetime="<%= item[:published].iso8601 %>">
-                    <%= item[:display_date] %>
-                  </time>
-                  <% Array(item[:kind_labels]).presence&.each do |kind_label| %>
-                    <%= content_filter_chip(
-                          kind_label[:label],
-                          scope: "timeline",
-                          tag_value: kind_label[:tag_value].presence || kind_label[:label],
-                          class_name: "timeline-kind-pill"
-                        ) %>
+                  <span class="timeline-date-heading">
+                    <time datetime="<%= item[:published].iso8601 %>">
+                      <%= item[:display_date] %>
+                    </time>
+                  </span>
+                  <% if item_upcoming || Array(item[:kind_labels]).any? %>
+                    <span class="timeline-side-tags">
+                      <%= content_upcoming_badge(class_name: "timeline-upcoming-badge") if item_upcoming %>
+                      <% Array(item[:kind_labels]).each do |kind_label| %>
+                        <%= content_filter_chip(
+                              kind_label[:label],
+                              scope: "timeline",
+                              tag_value: kind_label[:tag_value].presence || kind_label[:label],
+                              class_name: "timeline-kind-pill"
+                            ) %>
+                      <% end %>
+                    </span>
                   <% end %>
                 </div>
 
@@ -151,6 +160,12 @@
                      } %>
                 <% end %>
                 <% timeline_has_media = timeline_media.present? || timeline_media_html.present? %>
+                <% timeline_section_link = case item[:kind]
+                   when "blog"
+                     { url: blog_path, icon: "task-bar/blog.svg", kind: "blog", label: "Browse blog posts" }
+                   when "writeup"
+                     { url: ctf_path, icon: "task-bar/flag.svg", kind: "ctf", label: "Browse CTF writeups" }
+                   end %>
 
                 <%= render_content_card(
                       url: item[:link],
@@ -172,6 +187,7 @@
                       description_class: "timeline-meta",
                       reading_time: item[:reading_time_label],
                       reading_time_class: "timeline-reading-time",
+                      section_link: timeline_section_link,
                       aria_label: "Open #{item[:title]}"
                     ) %>
               </li>

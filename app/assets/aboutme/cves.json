@@ -7,6 +7,7 @@
     "summary": "FFmpeg 0.5 through versions before 9.0 contained a signed integer overflow in the DVB subtitle parser. A crafted WTV file could wrap the capacity check and make memcpy() write attacker-controlled data beyond a heap buffer, potentially causing memory corruption or code execution.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-70628",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-70628"
@@ -76,6 +77,7 @@
     "summary": "FFmpeg 3.0 through versions before 9.0 failed to validate that an RSCC tile decompressed to its declared size. The decoder could copy the unwritten suffix of a persistent heap buffer into the output frame, disclosing data from prior allocations or previously decoded frames.",
     "tags": [
       "Moderate",
+      "FFmpeg",
       {
         "label": "CVE-2026-70629",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-70629"
@@ -141,6 +143,7 @@
     "summary": "FFmpeg 3.0 through versions before 9.0 did not verify that an SPV1 packet's Zlib stream produced a complete frame. Copying the full dimensions from the partially written persistent buffer could expose stale heap contents from earlier allocations or frames.",
     "tags": [
       "Moderate",
+      "FFmpeg",
       {
         "label": "CVE-2026-70630",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-70630"
@@ -206,6 +209,7 @@
     "summary": "FFmpeg 0.5 through versions before 9.0 copied every declared TIFF strip row even when Deflate produced fewer bytes than required. The decoded image could consequently contain unwritten bytes holding sensitive data from prior heap allocations.",
     "tags": [
       "Moderate",
+      "FFmpeg",
       {
         "label": "CVE-2026-70631",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-70631"
@@ -271,6 +275,7 @@
     "summary": "FFmpeg 4.4 through versions before 9.0 failed to enforce the CFHD transform-type-2 output-width invariant. A crafted AVI file could make reconstruction write oversized sample rows beyond the output frame, enabling heap corruption and potentially arbitrary code execution.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-70632",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-70632"
@@ -336,6 +341,7 @@
     "summary": "SuiteCRM through 7.15.1 and 8.10.1 inserted the authenticated map marker endpoint's distance parameter into a SQL expression without numeric validation or parameterization. Attackers could use blind SQL injection to extract or manipulate database data and, with sufficiently privileged MySQL deployments, potentially execute code through SELECT INTO OUTFILE.",
     "tags": [
       "High",
+      "SuiteCRM",
       {
         "label": "CVE-2026-69142",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-69142"
@@ -383,6 +389,7 @@
     "summary": "FFmpeg through 8.1.2 allocated vf_hqdn3d line-history buffers using the initial frame dimensions. If a crafted video increased its resolution while filtergraph reinitialization was disabled, denoise_spatial() could write beyond those undersized buffers and corrupt heap memory.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-66036",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-66036"
@@ -444,6 +451,7 @@
     "summary": "FFmpeg through 8.1.2 trusted an attacker-controlled count_label value before checking the available IAMF OBU data. A 17-byte input could consequently trigger a multi-gigabyte allocation during format probing, exhausting process memory or causing an OOM kill.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-66037",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-66037"
@@ -505,6 +513,7 @@
     "summary": "FFmpeg through 8.1.2 treated a short Zlib decompression as non-fatal in the LCL video decoder. The RGB24 conversion path could then copy uninitialized heap contents into the output frame, potentially exposing allocator data and weakening ASLR in long-lived media services.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-66038",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-66038"
@@ -566,6 +575,7 @@
     "summary": "FFmpeg through 8.1.2 could overflow the MACE6 output sample-count calculation when decoding a crafted CAF file. This produced an undersized allocation followed by a heap out-of-bounds write, potentially causing memory corruption, a crash, or code execution.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-66039",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-66039"
@@ -631,6 +641,7 @@
     "summary": "FFmpeg through 8.1.2 could underestimate the space required to serialize a crafted PNG eXIf chunk whose IFD entries reused a large value payload. Canonical serialization could then expand beyond the allocation and cause deterministic heap corruption, a crash, or potential code execution.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-66040",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-66040"
@@ -692,6 +703,7 @@
     "summary": "FFmpeg 7.0 through 8.1.2 did not resize the vf_quirc grayscale buffer when input dimensions changed. A crafted PGS/SUP subtitle whose second presentation was larger than its first could therefore overflow the initial allocation and cause heap corruption, a crash, or potential code execution.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-66041",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-66041"
@@ -753,6 +765,7 @@
     "summary": "FFmpeg 2.7 through 8.1.2 reused an undersized reference frame when a crafted AVI file changed dimensions between TDSF frames. The TDSC decoder could consequently write attacker-controlled pixel data beyond the frame buffer, causing heap corruption, a crash, or potential code execution.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-65703",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-65703"
@@ -814,6 +827,7 @@
     "summary": "FFmpeg through 8.1.2 could underflow a packet size while processing a crafted ffconcat file with the -safe 0 flag. The negative size reached memcpy() in the Shorten decoder as a near-SIZE_MAX value, causing out-of-bounds reads and writes, heap corruption, and a potential crash or code execution.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-65704",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-65704"
@@ -879,6 +893,7 @@
     "summary": "FFmpeg 3.4 through 8.1.2 sized the vf_floodfill traversal stack from the initial frame dimensions. If a later frame was larger while filtergraph reinitialization was disabled, the filter could push points beyond that allocation, corrupting heap memory and potentially causing a crash or code execution.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-65705",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-65705"
@@ -944,6 +959,7 @@
     "summary": "FFmpeg 3.0 through 8.1.2 reused a temporary row buffer sized for a one-byte pixel step across every image plane. Processing an odd-width NV12 frame could therefore copy past the heap allocation for its interleaved chroma plane, causing memory corruption, a crash, or potential code execution.",
     "tags": [
       "High",
+      "FFmpeg",
       {
         "label": "CVE-2026-65706",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-65706"
@@ -1009,6 +1025,7 @@
     "summary": "Joomla CMS 4.0.0 through 5.4.5 and 6.0.0 through 6.1.0 were affected by an improper access check in the com_users batch task. Authenticated attackers could abuse the batch flow to escalate privileges.",
     "tags": [
       "High",
+      "Joomla CMS",
       {
         "label": "CVE-2026-48898",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-48898"
@@ -1051,6 +1068,7 @@
     "summary": "Joomla CMS 4.0.0 through 5.4.5 and 6.0.0 through 6.1.0 were affected by improper validation of order clauses in com_tags. Authenticated attackers could manipulate generated SQL and infer database contents through blind SQL injection.",
     "tags": [
       "Moderate",
+      "Joomla CMS",
       {
         "label": "CVE-2026-35222",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-35222"
@@ -1060,7 +1078,7 @@
         "url": "https://cwe.mitre.org/data/definitions/89.html"
       },
       {
-        "label": "Post",
+        "label": "Blog post",
         "url": "/blog/joomla-sqli"
       }
     ],
@@ -1101,6 +1119,7 @@
     "summary": "Joomla CMS 5.4.0 through 5.4.5 and 6.0.0 through 6.1.0 were affected by improperly constructed filter clauses in the com_finder search query. Authenticated attackers could influence the SQL query and infer database contents through blind SQL injection.",
     "tags": [
       "Moderate",
+      "Joomla CMS",
       {
         "label": "CVE-2026-35221",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-35221"
@@ -1110,7 +1129,7 @@
         "url": "https://cwe.mitre.org/data/definitions/89.html"
       },
       {
-        "label": "Post",
+        "label": "Blog post",
         "url": "/blog/joomla-sqli"
       }
     ],
@@ -1151,6 +1170,7 @@
     "summary": "In ChurchCRM 7.0.5, settings input handled by SettingsIndividual.php could be used by an authenticated user to influence a SQL query. The issue enabled blind SQL injection behavior that could expose sensitive database contents.",
     "tags": [
       "High",
+      "ChurchCRM",
       {
         "label": "CVE-2026-39334",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39334"
@@ -1189,6 +1209,7 @@
     "summary": "In ChurchCRM 7.0.5, property assignment handling in PropertyAssign.php exposed a blind SQL injection path for authenticated users. Attackers could infer database contents and potentially alter application data through injected SQL.",
     "tags": [
       "High",
+      "ChurchCRM",
       {
         "label": "CVE-2026-39330",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39330"
@@ -1227,6 +1248,7 @@
     "summary": "In ChurchCRM 7.0.5, event-name management in EventNames.php exposed SQL injection behavior to authenticated users with access to the affected configuration path. Successful exploitation could expose or modify ChurchCRM database records.",
     "tags": [
       "High",
+      "ChurchCRM",
       {
         "label": "CVE-2026-39329",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39329"
@@ -1265,6 +1287,7 @@
     "summary": "In ChurchCRM 7.0.5, authenticated users with group and role management privileges could inject SQL through the MemberRoleChange.php role update flow. Depending on deployment configuration, this could provide database read/write access and potential privilege escalation.",
     "tags": [
       "High",
+      "ChurchCRM",
       {
         "label": "CVE-2026-39327",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39327"
@@ -1303,6 +1326,7 @@
     "summary": "In ChurchCRM 7.0.5, property type editing in PropertyTypeEditor.php accepted authenticated input that could influence SQL statements. The issue could lead to database compromise, including data extraction or modification.",
     "tags": [
       "High",
+      "ChurchCRM",
       {
         "label": "CVE-2026-39326",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39326"
@@ -1341,6 +1365,7 @@
     "summary": "In ChurchCRM 7.0.5, user settings handling in SettingsUser.php exposed an authenticated blind SQL injection path. Attackers could infer and extract database data through timing-based or boolean blind SQL techniques.",
     "tags": [
       "High",
+      "ChurchCRM",
       {
         "label": "CVE-2026-39325",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39325"
@@ -1379,6 +1404,7 @@
     "summary": "ChurchCRM 7.1.2 and earlier allowed stored input from FundRaiserEditor.php to become executable SQL later in the fundraiser workflow. This second-order SQL injection could lead to database compromise once the malicious stored value was processed.",
     "tags": [
       "High",
+      "ChurchCRM",
       {
         "label": "CVE-2026-39319",
         "url": "https://www.cve.org/CVERecord?id=CVE-2026-39319"

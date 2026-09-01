@@ -3,7 +3,7 @@ description: How a manual SQLi hunt turned into an AI-assisted Joomla audit, two
 categories:
     - PHP
     - SQLI
-    - Joomla
+    - Joomla CMS
     - AI-Assisted Auditing
 published: "2026-06-13"
 ---

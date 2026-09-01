@@ -1,6 +1,8 @@
 require "cgi"
 
 class ContentIndex
+  EVENT_BASED_ABOUT_KINDS = %w[talk achievement].freeze
+
   ABOUT_COLLECTIONS = [
     {
       path: ApplicationController::ABOUTME_CVES_PATH,
@@ -113,8 +115,8 @@ class ContentIndex
       entries = about_collection_entries(collection)
 
       entries.flat_map do |entry|
-        if collection[:kind] == "achievement"
-          achievement_timeline_items(entry, collection)
+        if EVENT_BASED_ABOUT_KINDS.include?(collection[:kind])
+          about_timeline_items(entry, collection)
         else
           about_entry_item(entry, collection)
         end
@@ -152,7 +154,7 @@ class ContentIndex
     ]
   end
 
-  def achievement_timeline_items(entry, collection)
+  def about_timeline_items(entry, collection)
     parent_id = entry["id"].presence || entry["title"].to_s.parameterize
     return [] if parent_id.blank?
 

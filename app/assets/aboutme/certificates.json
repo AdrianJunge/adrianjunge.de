@@ -6,12 +6,13 @@
     "timeline_group": "htb-cpts",
     "summary": "Completed the HTB CPTS path and passed the practical exam on the first attempt, including a full penetration-test report for the exam environment. The work focused on disciplined enumeration, Active Directory attack paths, web findings, and reproducible reporting.",
     "tags": [
+      "Penetration Testing",
       {
         "label": "Certificate",
         "url": "https://www.credly.com/badges/a9a49759-8f35-4c46-8783-a11a4a1bfdf0/public_url"
       },
       {
-        "label": "Post",
+        "label": "Blog post",
         "url": "/blog/htb-cpts"
       }
     ],

@@ -16,6 +16,22 @@ class CtfHelperTest < ActionView::TestCase
     assert_equal description, css_select(".blog-post-description").first.text
   end
 
+  test "writeup cards can link a section icon to the CTF index" do
+    render inline: "<%= render_writeup_card('Example', '/ctf/demo/Example', info, show_section_icon: true) %>", locals: {
+      info: {
+        "title" => "Example",
+        "description" => "A CTF writeup.",
+        "categories" => [ "Web" ],
+        "published" => "2026-01-01"
+      }
+    }
+
+    assert_select ".writeup-post-card.content-card-with-section-link"
+    assert_select "a.content-card-section-link.content-card-section-link-ctf[href='/ctf'][data-content-section='ctf'][aria-label='Browse CTF writeups'][title='Browse CTF writeups']" do
+      assert_select "img.content-card-section-icon[src*='task-bar/flag'][alt=''][aria-hidden='true']", 1
+    end
+  end
+
   test "content filter chips render shared severity classes" do
     render inline: "<%= content_filter_chip('High', scope: 'timeline', severity_key: 'High') %>"
 

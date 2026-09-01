@@ -29,7 +29,7 @@ module CtfHelper
     )
   end
 
-  def render_writeup_card(writeup, writeup_path, info, logo: nil, interactive_tags: true, show_hints: true, external_recognition_links: true)
+  def render_writeup_card(writeup, writeup_path, info, logo: nil, interactive_tags: true, show_hints: true, external_recognition_links: true, show_section_icon: false)
     categories = normalized_categories(info["categories"]).presence || [ "Unknown category" ]
     title = info["title"].presence || writeup.capitalize
     description = info["description"] || "No description available"
@@ -128,6 +128,12 @@ module CtfHelper
         filter_tags: filter_tags.join("|"),
         filter_years: published_year
       },
+      section_link: show_section_icon ? {
+        url: ctf_path,
+        icon: "task-bar/flag.svg",
+        kind: "ctf",
+        label: "Browse CTF writeups"
+      } : nil,
       aria_label: "Open #{title} writeup"
     )
   end

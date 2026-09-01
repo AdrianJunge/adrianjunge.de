@@ -34,6 +34,21 @@ class BlogHelperTest < ActionView::TestCase
     assert_select ".blog-post-card[data-filter-tags*='Security Research']"
   end
 
+  test "blog cards can link a section icon to the blog index" do
+    render inline: "<%= render_blog_post_card('example', info, show_section_icon: true) %>", locals: {
+      info: {
+        "title" => "Example",
+        "description" => "A blog post.",
+        "published" => "2026-01-01"
+      }
+    }
+
+    assert_select ".blog-post-card.content-card-with-section-link"
+    assert_select "a.content-card-section-link.content-card-section-link-blog[href='/blog'][data-content-section='blog'][aria-label='Browse blog posts'][title='Browse blog posts']" do
+      assert_select "img.content-card-section-icon[src*='task-bar/blog'][alt=''][aria-hidden='true']", 1
+    end
+  end
+
   test "blog cards can render declared difficulty metadata" do
     render inline: "<%= render_blog_post_card('example', info) %>", locals: {
       info: {

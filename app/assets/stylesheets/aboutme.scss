@@ -991,8 +991,8 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
     height: 0.7rem;
     border: 2px solid #0b1220;
     border-radius: var(--radius-ui-pill);
-    background: #7dd3fc;
-    box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.22);
+    background: var(--color-tertiary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-tertiary) 22%, transparent);
     box-sizing: content-box;
     content: "";
     z-index: 1;
@@ -1003,6 +1003,31 @@ details.aboutme-card.details-is-closing .aboutme-card-body {
     color: #7dd3fc;
     font-size: 0.83rem;
     font-weight: 800;
+}
+
+.aboutme-timeline-date-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.aboutme-timeline li.aboutme-timeline-item-upcoming {
+    margin: 0.1rem 0 0.8rem;
+    padding: 0.7rem 0.8rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--color-accent) 58%, transparent);
+    border-radius: var(--radius-ui-control);
+    background: color-mix(in srgb, var(--color-tertiary) 10%, rgba(9, 26, 45, 0.86));
+    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-accent) 68%, transparent), 0 0.65rem 1.25rem rgba(2, 12, 24, 0.2);
+}
+
+.aboutme-timeline li.aboutme-timeline-item-upcoming:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0.75rem;
+}
+
+.aboutme-timeline li.aboutme-timeline-item-upcoming::before {
+    top: 0.95rem;
 }
 
 .aboutme-empty-state {

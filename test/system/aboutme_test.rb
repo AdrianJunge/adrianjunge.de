@@ -1,6 +1,46 @@
 require "application_system_test_case"
 
 class AboutmeTest < ApplicationSystemTestCase
+  test "future About timeline events receive a dynamic Upcoming treatment" do
+    travel_to Time.zone.local(2026, 9, 1, 12) do
+      page.current_window.resize_to(1280, 1000)
+      visit about_path
+      page.execute_script(<<~JS)
+        document.getElementById("talks").open = true;
+        document.getElementById("joomla-sqli").open = true;
+      JS
+
+      assert_selector "#joomla-sqli .aboutme-timeline li[data-upcoming='false']", count: 3
+      within "#joomla-sqli .aboutme-timeline li.aboutme-timeline-item-upcoming[data-upcoming='true']" do
+        assert_selector ".aboutme-timeline-date-row > .content-upcoming-badge:first-child", text: "Upcoming"
+        assert_selector "time[datetime='2026-11-09']", text: "2026-11-09"
+        assert_selector ".aboutme-timeline-title", text: "Talk at BSides Munich."
+        assert_no_text "Upcoming:"
+      end
+
+      upcoming_styles = page.evaluate_script(<<~JS)
+        (() => {
+          const item = document.querySelector("#joomla-sqli .aboutme-timeline-item-upcoming");
+          const style = window.getComputedStyle(item);
+          const dotStyle = window.getComputedStyle(item, "::before");
+
+          return {
+            borderWidth: style.borderTopWidth,
+            borderColor: style.borderTopColor,
+            backgroundColor: style.backgroundColor,
+            boxShadow: style.boxShadow,
+            dotColor: dotStyle.backgroundColor
+          };
+        })()
+      JS
+      assert_equal "1px", upcoming_styles["borderWidth"]
+      assert_not_equal "rgba(0, 0, 0, 0)", upcoming_styles["borderColor"]
+      assert_not_equal "rgba(0, 0, 0, 0)", upcoming_styles["backgroundColor"]
+      assert_not_equal "none", upcoming_styles["boxShadow"]
+      assert_equal "rgb(85, 170, 255)", upcoming_styles["dotColor"]
+    end
+  end
+
   test "visiting about me page renders the public profile sections" do
     repository = ContentRepository.new
     section_cases = about_section_cases(repository)
@@ -634,8 +674,8 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_operator metrics["centerDelta"], :<=, 1
     assert_equal '""', metrics["dotContent"]
     assert_not_equal "0px", metrics["dotRadius"]
-    assert_match(/rgba?\(125,\s*211,\s*252/, metrics["dotBackground"])
-    assert_match(/rgba?\(125,\s*211,\s*252/, metrics["dotShadow"])
+    assert_equal "rgb(85, 170, 255)", metrics["dotBackground"]
+    assert_match(/(?:85,\s*170,\s*255|0\.333333\s+0\.666667\s+1)/, metrics["dotShadow"])
   end
 
   test "about me card tags sit below titles and links read as larger actions" do
@@ -970,7 +1010,7 @@ class AboutmeTest < ApplicationSystemTestCase
         href_matches?(writeup_tag.fetch("url"), candidate["href"])
       end
       assert link, "expected a rendered link to #{writeup_tag.fetch('url')}"
-      assert_equal writeup_tag.fetch("label"), link.text.squish
+      assert_equal ContentTagTaxonomy.canonical_label(writeup_tag.fetch("label")), link.text.squish
       link.click
     end
 

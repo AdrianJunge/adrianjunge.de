@@ -87,11 +87,20 @@
       <h3><%= card[:timeline_title].presence || "Disclosure timeline" %></h3>
       <ol class="aboutme-timeline">
         <% timeline_items.each do |item| %>
+          <% item_upcoming = upcoming_date?(item["date"]) %>
           <% event_label = item["event"].presence || item["title"].presence %>
           <% event_url = item["url"].presence %>
-          <%= content_tag(:li, id: item["id"].presence) do %>
+          <%= content_tag(
+                :li,
+                id: item["id"].presence,
+                class: ("aboutme-timeline-item-upcoming" if item_upcoming),
+                data: { upcoming: item_upcoming }
+              ) do %>
             <% if item["date"].present? %>
-              <time datetime="<%= item["date"] %>"><%= item["date"] %></time>
+              <span class="aboutme-timeline-date-row">
+                <%= content_upcoming_badge(class_name: "aboutme-upcoming-badge") if item_upcoming %>
+                <time datetime="<%= item["date"] %>"><%= item["date"] %></time>
+              </span>
             <% end %>
             <span class="aboutme-timeline-content">
               <% if event_url.present? && event_label.present? && item["link_style"] == "tag" %>
