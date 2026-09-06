@@ -13,7 +13,7 @@
         description: about_description,
         type: "profile",
         canonical_path: about_path,
-        image: "landing/profile.png",
+        image: SeoHelper::DEFAULT_IMAGE,
         json_ld: [
           seo_person_schema(description: about_description),
           seo_collection_schema(
@@ -30,84 +30,8 @@
       ) %>
 <% end %>
 
-<%= render_taskbar_items %>
-<%= render_terminal([], true) %>
-<% about_stats = [
-  { label: "CVEs", value: @cve_entry_count, anchor: "cves" },
-  { label: "Bug bounties", value: @bug_bounties.length, anchor: "bug-bounties" },
-  { label: "Created CTF Challenges", value: @challenges.length, anchor: "my-challenges" },
-  { label: "Certificates", value: @certificates.length, anchor: "certificates" },
-  { label: "Talks", value: @talk_event_count, anchor: "talks" },
-  { label: "Achievements", value: @achievement_event_count, anchor: "achievements" }
-] %>
-<% about_sections = [
-  {
-    id: "cves",
-    kind: "cve",
-    title: "CVEs",
-    entries: @cves,
-    count: @cve_entry_count,
-    singular: "entry",
-    plural: "entries",
-    grid_class: "aboutme-finding-grid",
-    empty_text: "No public CVEs are listed yet."
-  },
-  {
-    id: "bug-bounties",
-    kind: "bug-bounty",
-    title: "Bug bounties",
-    entries: @bug_bounties,
-    count: @bug_bounties.length,
-    singular: "finding",
-    plural: "findings",
-    grid_class: "aboutme-finding-grid",
-    empty_text: "No public bounties yet - the disclosure timers are still pretending to be load-bearing."
-  },
-  {
-    id: "my-challenges",
-    kind: "challenge",
-    title: "Created CTF Challenges",
-    entries: @challenges,
-    count: @challenges.length,
-    singular: "challenge",
-    plural: "challenges",
-    grid_class: "aboutme-achievement-grid",
-    empty_text: "No authored challenges are listed yet."
-  },
-  {
-    id: "certificates",
-    kind: "certificate",
-    title: "Certificates",
-    entries: @certificates,
-    count: @certificates.length,
-    singular: "certificate",
-    plural: "certificates",
-    grid_class: "aboutme-achievement-grid",
-    empty_text: "No certificates are listed yet."
-  },
-  {
-    id: "talks",
-    kind: "talk",
-    title: "Talks",
-    entries: @talks,
-    count: @talk_event_count,
-    singular: "talk",
-    plural: "talks",
-    grid_class: "aboutme-achievement-grid",
-    empty_text: "No talks are listed yet."
-  },
-  {
-    id: "achievements",
-    kind: "achievement",
-    title: "Relevant achievements",
-    entries: @achievements,
-    count: @achievement_event_count,
-    singular: "event",
-    plural: "events",
-    grid_class: "aboutme-achievement-grid",
-    empty_text: "No achievements are listed yet."
-  }
-] %>
+<% about_stats = about_profile_stats %>
+<% about_sections = about_profile_sections %>
 
 <% about_stats_content = capture do %>
   <div class="aboutme-stats" aria-label="Public security work summary">
@@ -120,7 +44,7 @@
   </div>
 <% end %>
 
-<main class="aboutme-page">
+<main id="main-content" tabindex="-1" class="aboutme-page">
   <%= render "shared/content_hero",
              icon_path: "task-bar/about.svg",
              icon_alt: "About me",
@@ -130,6 +54,6 @@
              after_content: about_stats_content %>
 
   <% about_sections.each do |section| %>
-    <%= render "section", section: section %>
+    <%= render "section", section: section, expanded: false %>
   <% end %>
 </main>

@@ -22,11 +22,10 @@
       ) %>
 <% end %>
 
-<%= render_taskbar_items %>
 <% terminal_paths = @writeups.map { |writeup| { label: writeup, url: "/ctf/#{@which}/#{ERB::Util.url_encode(writeup)}" } } %>
-<%= render_terminal(terminal_paths, true) %>
+<% @terminal_paths = terminal_paths %>
 
-<main class="content-page ctf-container">
+<main id="main-content" tabindex="-1" class="content-page ctf-container">
   <%= render "shared/content_hero",
              icon_path: @ctf["logo"],
              icon_alt: "#{@which.upcase} logo",

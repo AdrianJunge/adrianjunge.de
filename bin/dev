@@ -1,32 +1,12 @@
-#!/usr/bin/env sh
+#!/usr/bin/env ruby
+APP_ROOT = File.expand_path("..", __dir__)
 
-if command -v rbenv >/dev/null 2>&1; then
-  eval "$(rbenv init - sh)"
-fi
+Dir.chdir(APP_ROOT) do
+  required_ruby = File.read(".ruby-version").strip
+  abort "Activate Ruby #{required_ruby} before running bin/dev (active: #{RUBY_VERSION})." unless RUBY_VERSION == required_ruby
 
-required_ruby="$(cat .ruby-version 2>/dev/null || true)"
-current_ruby="$(ruby -e 'print RUBY_VERSION' 2>/dev/null || true)"
-
-if [ -n "$required_ruby" ] && [ "$current_ruby" != "$required_ruby" ]; then
-  echo "Ruby $required_ruby is required, but ruby is $current_ruby."
-  echo "Install Ruby $required_ruby and make sure your Ruby version manager is active."
-  exit 1
-fi
-
-if ! gem list foreman -i --silent; then
-  echo "Installing foreman..."
-  gem install foreman
-  if command -v rbenv >/dev/null 2>&1; then
-    rbenv rehash
-  fi
-fi
-
-# Default to port 3000 if not specified
-export PORT="${PORT:-3000}"
-
-# Let the debug gem allow remote connections,
-# but avoid loading until `debugger` is called
-export RUBY_DEBUG_OPEN="true"
-export RUBY_DEBUG_LAZY="true"
-
-exec foreman start -f Procfile.dev "$@"
+  # Puma's development-only Tailwind plugin owns the watcher and its lifecycle.
+  # Build once so the first request never races the initial watcher compilation.
+  system("bin/rails", "tailwindcss:build", exception: true)
+  exec "bin/rails", "server", *ARGV
+end

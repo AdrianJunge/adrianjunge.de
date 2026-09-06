@@ -1,10 +1,7 @@
 import "sidebar";
-import "stable_hover";
 import "landing";
-import "terminal";
+import "terminal_launcher";
 import "content_filters";
 import "aboutme";
-import "ctf";
 import "blog";
-import "page_background";
 import "mathjax_loader";

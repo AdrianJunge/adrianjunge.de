@@ -19,11 +19,10 @@
       ) %>
 <% end %>
 
-<%= render_taskbar_items %>
 <% terminal_paths = @ctfs.map { |name, ctf| { label: ctf["terminal_path"], url: ctf["writeups"] } } %>
-<%= render_terminal(terminal_paths, true) %>
+<% @terminal_paths = terminal_paths %>
 
-<main class="content-page ctf-overview">
+<main id="main-content" tabindex="-1" class="content-page ctf-overview">
   <%= render "shared/content_hero",
              icon_path: "task-bar/flag.svg",
              icon_alt: "CTF",

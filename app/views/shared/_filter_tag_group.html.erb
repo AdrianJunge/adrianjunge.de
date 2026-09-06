@@ -1,0 +1,19 @@
+<div class="content-filter-tag-group">
+  <% if group[:label].present? %>
+    <span class="content-filter-tag-group-label"><%= group[:label] %></span>
+  <% end %>
+  <div class="content-filter-tag-list">
+    <% group[:tags].each do |tag| %>
+      <%= content_filter_chip(
+            ContentTagTaxonomy.canonical_label(tag), scope: scope, tag_value: tag,
+            class_name: "content-filter-tag-chip",
+            winner: tag == WriteupWinner::FILTER_LABEL,
+            authored: tag == AuthoredChallenge::FILTER_LABEL,
+            difficulty_key: WriteupDifficulty.filter_label?(tag) ? tag : nil,
+            category_key: ContentCategoryTag.recognized?(tag) ? tag : nil,
+            severity_key: ContentSeverityTag.recognized?(tag) ? tag : nil,
+            cve: ContentVulnerabilityTag.cve?(tag), cwe: ContentVulnerabilityTag.cwe?(tag)
+          ) %>
+    <% end %>
+  </div>
+</div>

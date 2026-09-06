@@ -1,6 +1,4 @@
 <% years = Array(local_assigns.fetch(:years, [])).compact.map(&:to_s).reject(&:blank?).uniq.sort.reverse %>
-<% winner_filter_tag = WriteupWinner::FILTER_LABEL %>
-<% authored_filter_tag = AuthoredChallenge::FILTER_LABEL %>
 <% tags = Array(local_assigns.fetch(:tags, [])).compact.map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| ContentRepository.filter_tag_sort_key(tag) } %>
 <% tag_groups = Array(local_assigns.fetch(:tag_groups, [])).filter_map do |group|
      next unless group.is_a?(Hash)
@@ -24,11 +22,12 @@
 <% clear_id = local_assigns.fetch(:clear_id, "#{scope}-search-clear") %>
 <% search_value = local_assigns.fetch(:search_value, nil) %>
 
-<div class="content-filter-panel" data-filter-scope="<%= scope %>">
+<div class="content-filter-panel" data-filter-scope="<%= scope %>" inert>
   <div class="content-filter-row">
     <div class="content-filter-search search-wrapper">
+      <label for="<%= search_id %>" class="sr-only">Search</label>
       <input
-        type="text"
+        type="search"
         id="<%= search_id %>"
         placeholder="<%= local_assigns.fetch(:placeholder, "Search...") %>"
         value="<%= search_value %>"
@@ -44,100 +43,41 @@
     </div>
 
     <% if years.any? %>
-      <% year_label_id = "#{scope}-year-filter-label" %>
-      <% year_menu_id = "#{scope}-year-filter-menu" %>
-      <div class="content-filter-select-wrap" data-year-dropdown="<%= scope %>">
-        <span id="<%= year_label_id %>"><%= local_assigns.fetch(:year_label, "Year") %></span>
-        <span class="content-filter-select-control">
-          <select class="content-filter-select content-filter-native-select" data-filter-year="<%= scope %>" aria-hidden="true" tabindex="-1">
-            <option value="">All years</option>
-            <% years.each do |year| %>
-              <option value="<%= year %>"><%= year %></option>
-            <% end %>
-          </select>
-          <button
-            type="button"
-            class="content-filter-year-button"
-            data-year-dropdown-button="<%= scope %>"
-            aria-haspopup="listbox"
-            aria-expanded="false"
-            aria-controls="<%= year_menu_id %>"
-            aria-labelledby="<%= year_label_id %>"
-          >
-            <span data-year-dropdown-label="<%= scope %>">All years</span>
-          </button>
-        </span>
-        <div
-          id="<%= year_menu_id %>"
-          class="content-filter-year-menu"
-          data-year-dropdown-menu="<%= scope %>"
-          role="listbox"
-          aria-labelledby="<%= year_label_id %>"
-          hidden
-        >
-          <button
-            type="button"
-            class="content-filter-year-option is-active"
-            data-year-dropdown-option="<%= scope %>"
-            data-year-value=""
-            role="option"
-            aria-selected="true"
-          >All years</button>
+      <div class="content-filter-select-wrap">
+        <label for="<%= scope %>-year-filter"><%= local_assigns.fetch(:year_label, "Year") %></label>
+        <select id="<%= scope %>-year-filter" name="year" class="content-filter-select" data-filter-year="<%= scope %>">
+          <option value="">All years</option>
           <% years.each do |year| %>
-            <button
-              type="button"
-              class="content-filter-year-option"
-              data-year-dropdown-option="<%= scope %>"
-              data-year-value="<%= year %>"
-              role="option"
-              aria-selected="false"
-            ><%= year %></button>
+            <option value="<%= year %>"><%= year %></option>
           <% end %>
-        </div>
+        </select>
       </div>
     <% end %>
   </div>
 
   <% if tag_groups.any? %>
-    <div class="content-filter-tags" aria-label="<%= local_assigns.fetch(:tag_label, "Tags") %>">
-      <span class="content-filter-tags-label"><%= local_assigns.fetch(:tag_label, "Tags") %></span>
-      <div class="content-filter-tag-groups">
-        <% tag_groups.each do |group| %>
-          <div class="content-filter-tag-group">
-            <% if group[:label].present? %>
-              <span class="content-filter-tag-group-label"><%= group[:label] %></span>
-            <% end %>
-            <div class="content-filter-tag-list">
-              <% group[:tags].each do |filter_tag| %>
-                <% winner_filter = filter_tag == winner_filter_tag %>
-                <% authored_filter = filter_tag == authored_filter_tag %>
-                <% difficulty_filter = WriteupDifficulty.filter_label?(filter_tag) %>
-                <% severity_filter = !difficulty_filter && ContentSeverityTag.recognized?(filter_tag) %>
-                <% cve_filter = ContentVulnerabilityTag.cve?(filter_tag) %>
-                <% cwe_filter = ContentVulnerabilityTag.cwe?(filter_tag) %>
-                <% category_filter = group[:sort] == "category" || (!winner_filter && !authored_filter && !difficulty_filter && !severity_filter && !cve_filter && !cwe_filter && ContentCategoryTag.recognized?(filter_tag)) %>
-                <%= content_filter_chip(
-                      filter_tag,
-                      scope: scope,
-                      class_name: "content-filter-tag-chip",
-                      winner: winner_filter,
-                      authored: authored_filter,
-                      difficulty_key: difficulty_filter ? filter_tag : nil,
-                      category_key: category_filter ? filter_tag : nil,
-                      severity_key: severity_filter ? filter_tag : nil,
-                      cve: cve_filter,
-                      cwe: cwe_filter
-                    ) %>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
-      </div>
+    <% first_group = tag_groups.find { |group| group[:label].casecmp?("Content type") } || tag_groups.first %>
+    <% common_tags = ["Blog post", "CTF writeup", "CVE", "Bug bounty", "Certificate", "Talk"].select { |tag| first_group[:tags].include?(tag) } %>
+    <% common_tags = first_group[:tags].first(6) if common_tags.empty? %>
+    <div class="content-filter-common" aria-label="Common filters">
+      <%= render "shared/filter_tag_group", group: first_group.merge(label: "Common filters", tags: common_tags), scope: scope %>
     </div>
+    <% additional_groups = [first_group.merge(tags: first_group[:tags] - common_tags), *tag_groups.reject { |group| group.equal?(first_group) }].reject { |group| group[:tags].empty? } %>
+    <% if additional_groups.any? %>
+      <details class="content-filter-more">
+        <summary>More filters</summary>
+        <p class="content-filter-help">Selected tags combine: results must match every selected tag.</p>
+        <div class="content-filter-tag-groups">
+          <% additional_groups.each do |group| %>
+            <%= render "shared/filter_tag_group", group: group, scope: scope %>
+          <% end %>
+        </div>
+      </details>
+    <% end %>
   <% end %>
-
   <div class="content-filter-state">
-    <span data-filter-count="<%= scope %>"><%= total %> / <%= total %> <%= total == 1 ? "item" : "items" %></span>
+    <span role="status" aria-live="polite" aria-atomic="true" data-filter-count="<%= scope %>"><%= total %> / <%= total %> <%= total == 1 ? "item" : "items" %></span>
     <button type="button" class="content-filter-reset" data-filter-reset="<%= scope %>" aria-hidden="true" tabindex="-1">Clear filters</button>
   </div>
 </div>
+<noscript><style>.content-filter-panel { display: none; }</style><p class="content-filter-help">All entries are shown. Use your browser’s Find command to search this page.</p></noscript>

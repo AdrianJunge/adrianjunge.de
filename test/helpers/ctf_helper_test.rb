@@ -35,8 +35,8 @@ class CtfHelperTest < ActionView::TestCase
   test "content filter chips render shared severity classes" do
     render inline: "<%= content_filter_chip('High', scope: 'timeline', severity_key: 'High') %>"
 
-    assert_select "button.content-tag.content-tag-filter.content-tag-action.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High'] .content-tag-label", text: "High"
-    assert_select "button.filter-chip[data-filter-tag='High'] .content-tag-arrow", 0
+    assert_select "button.content-tag.content-tag-filter.content-tag-action.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='severity:high'] .content-tag-label", text: "High"
+    assert_select "button.filter-chip[data-filter-tag='severity:high'] .content-tag-arrow", 0
   end
 
   test "content filter chips auto render CVE and CWE classes" do
@@ -58,7 +58,7 @@ class CtfHelperTest < ActionView::TestCase
     ERB
 
     assert_select "button.filter-chip.category-badge.category-badge-privesc.category-badge-filter[data-filter-tag='Privilege Escalation'] .content-tag-label", text: "Privilege Escalation"
-    assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='High'] .content-tag-label", text: "High"
+    assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='severity:high'] .content-tag-label", text: "High"
     assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2099-1234'] .content-tag-label", text: "CVE-2099-1234"
     assert_select "button.filter-chip.cwe-badge.cwe-badge-filter[data-filter-tag='CWE-284'] .content-tag-label", text: "CWE-284"
   end
@@ -247,10 +247,10 @@ class CtfHelperTest < ActionView::TestCase
       }
     }
 
-    assert_select ".blog-post-meta-row > button.difficulty-badge.content-tag-filter.content-tag-action.difficulty-badge-hard.difficulty-badge-filter[data-filter-tag='Hard'] .content-tag-label", text: "Hard"
-    assert_select ".blog-post-meta-row > button.difficulty-badge[data-filter-tag='Hard'] .content-tag-arrow", 0
+    assert_select ".blog-post-meta-row > button.difficulty-badge.content-tag-filter.content-tag-action.difficulty-badge-hard.difficulty-badge-filter[data-filter-tag='difficulty:hard'] .content-tag-label", text: "Hard"
+    assert_select ".blog-post-meta-row > button.difficulty-badge[data-filter-tag='difficulty:hard'] .content-tag-arrow", 0
     assert_select ".blog-post-card[data-filter-text*='Hard']"
-    assert_select ".blog-post-card[data-filter-tags*='Hard']"
+    assert_select ".blog-post-card[data-filter-tags*='difficulty:hard']"
     assert_select ".blog-post-meta-row > button.category-badge.category-badge-web.category-badge-filter[data-filter-tag='Web'] .content-tag-label", text: "Web"
   end
 
@@ -373,7 +373,7 @@ class CtfHelperTest < ActionView::TestCase
     }
 
     assert_select "a.difficulty-badge.difficulty-badge-unknown.difficulty-badge-article.content-tag-timeline-link[href=?]",
-                  "/timeline?tag=unknown+difficulty",
+                  "/timeline?tag=difficulty%3Aunknown",
                   text: "unknown difficulty"
   end
 

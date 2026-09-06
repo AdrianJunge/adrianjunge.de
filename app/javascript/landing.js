@@ -1,19 +1,17 @@
-import Typed from "typed.js";
+async function initializeTagline() {
+  const element = document.getElementById('typing');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  document.querySelector('[data-scroll-to]')?.addEventListener('click', event => {
+    document.getElementById(event.currentTarget.dataset.scrollTo)?.scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+  });
+  if (!element || reducedMotion.matches) return;
 
-class RandomTyped extends Typed {
-    async typewrite(chars, curString, curStrPos) {
-        if (!this.el) return;
-        const randomSpeed = Math.floor(Math.random() * 50) + 25;
-        await new Promise(r => setTimeout(r, randomSpeed));
-        super.typewrite(chars, curString, curStrPos);
-    }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    const el = document.getElementById('typing');
-    if (!el) return;
-
-    const phrases = [
+  try {
+    const { default: Typed } = await import('typed.js');
+    if (reducedMotion.matches) return;
+    const text = element.textContent;
+    const typed = new Typed(element, {
+      strings: [
         'Some people collect stamps. I collect stack traces.',
         'My favorite input is the one nobody validated.',
         'Politely asking software uncomfortable questions.',
@@ -29,19 +27,37 @@ document.addEventListener("DOMContentLoaded", function () {
         'Making impossible states feel very possible.',
         'The best exploit starts with: wait, that is weird.',
         'If it runs, I poke it.',
-        'If it parses, I probably want to test it.',
-    ];
-
-    new RandomTyped(el, {
-        strings: phrases,
-        typeSpeed: 50,
-        backSpeed: 50,
-        backDelay: 2000,
-        startDelay: 600,
-        loop: true,
-        smartBackspace: true,
-        showCursor: true,
-        cursorChar: '|',
-        shuffle: true,
+        'If it parses, I probably want to test it.'
+      ],
+      typeSpeed: 50, backSpeed: 50, backDelay: 2000,
+      startDelay: 600, loop: true, smartBackspace: true,
+      showCursor: true, cursorChar: '|', shuffle: true
     });
-});
+    let onScreen = true;
+    let disposed = false;
+    const syncPlayback = () => {
+      if (disposed) return;
+      if (onScreen && !document.hidden) typed.start();
+      else typed.stop();
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting;
+      syncPlayback();
+    });
+    observer.observe(element);
+    document.addEventListener('visibilitychange', syncPlayback);
+    reducedMotion.addEventListener('change', () => {
+      if (!reducedMotion.matches) return;
+      disposed = true;
+      typed.destroy();
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', syncPlayback);
+      element.textContent = text;
+    }, { once: true });
+  } catch (_error) {
+    // The server-rendered tagline remains readable when the optional CDN fails.
+  }
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initializeTagline, { once: true });
+else initializeTagline();

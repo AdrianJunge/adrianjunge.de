@@ -18,11 +18,10 @@
       ) %>
 <% end %>
 
-<%= render_taskbar_items %>
 <% terminal_paths = @blog_posts.map { |post| { label: post[:slug], url: post[:link] } } %>
-<%= render_terminal(terminal_paths, true) %>
+<% @terminal_paths = terminal_paths %>
 
-<main class="content-page blog-overview">
+<main id="main-content" tabindex="-1" class="content-page blog-overview">
   <%= render "shared/content_hero",
              icon_path: "task-bar/blog.svg",
              icon_alt: "Blog",

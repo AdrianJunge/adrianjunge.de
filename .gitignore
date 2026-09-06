@@ -23,5 +23,8 @@
 !/app/assets/builds/.keep
 
 /node_modules/*
+/.venv-images/
+/.venv/
+__pycache__/
 
 /brakeman-report.json

@@ -6,9 +6,6 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "tailwind" %>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="stylesheet" href="<%= TerminalHelper::XTERM_CSS_CDN_URL %>" crossorigin="anonymous">
-    <%= stylesheet_link_tag 'application', media: 'all' %>
 
     <link rel="alternate" type="application/rss+xml" title="adrianjunge.de (RSS)" href="<%= feed_xml_url %>">
     <link rel="alternate" type="application/atom+xml" title="adrianjunge.de (Atom)" href="<%= feed_url(format: :atom) %>">
@@ -24,9 +21,13 @@
     <% end %>
   </head>
   <body class="site-background min-h-screen flex flex-col">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <%= render_taskbar_items %>
+    <%= render_terminal(@terminal_paths || [], true) %>
+    <p id="terminal-status" class="terminal-status" role="status" aria-live="polite"></p>
 
     <% if current_page?(root_path) == false %>
-      <a href="<%= parent_path %>" class="back-button-floating back-button ui-icon-button" aria-label="Back">
+      <a href="<%= parent_path %>" class="<%= class_names("back-button-floating back-button ui-icon-button", "article-back-desktop" => content_for?(:article_navigation)) %>" aria-label="Back">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 12H5M12 19l-7-7 7-7"/>
         </svg>

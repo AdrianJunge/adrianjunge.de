@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   asset_id = /[0-9a-f]{64}/
 
   root "landing#index"
+  get "/up", to: "rails/health#show", as: :rails_health_check
 
   get "/about", to: "aboutme#index", as: :about
   get "/aboutme", to: redirect("/about")

@@ -1,0 +1,8 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "072f4dea874bad9c814b661737fbc0ada8b750672e6e2df783b7ed0a2998b5aa",
+      "note": "Reviewed 2026-09-05: request ID only selects a server-built public catalog record; it is never a filesystem path. Paths are canonical, root-contained and publication-filtered. Regression coverage: test/controllers/content_path_security_test.rb and test/services/trusted_content_path_test.rb. Re-review if this boundary changes."
+    }
+  ]
+}

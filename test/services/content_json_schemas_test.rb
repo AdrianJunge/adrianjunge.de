@@ -100,6 +100,16 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
     assert_includes error.message, "required"
   end
 
+  test "semantic metadata validation rejects impossible dates and unsupported links" do
+    errors = ContentJsonSchemas.metadata_errors({
+      "date" => "2025-02-29", "url" => "ftp://example.com/file", "has_math" => "yes"
+    })
+    assert_equal %w[/date /url /has_math], errors.map { |error| error["data_pointer"] }
+    assert_empty ContentJsonSchemas.metadata_errors({
+      "date" => "2026-09-05T12:30:00+02:00", "url" => "/about#talk", "has_math" => false
+    })
+  end
+
   private
 
   def fixture_schema_cases

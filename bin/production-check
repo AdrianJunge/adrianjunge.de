@@ -1,0 +1,201 @@
+#!/usr/bin/env ruby
+# Build a fresh snapshot of the current working tree; never clobber local assets.
+require "bundler/setup"
+require "cgi"
+require "digest"
+require "fileutils"
+require "json"
+require "net/http"
+require "nokogiri"
+require "open3"
+require "rbconfig"
+require "socket"
+require "tmpdir"
+require "zlib"
+
+class ProductionCheck
+  ROUTES = %w[/ /about /blog /ctf /timeline /blog/java-strings /blog/climbing-stairs /ctf/cscg /ctf/cscg/Photoeditor /feed.xml /feed.atom /feed.json /sitemap.xml].freeze
+  EXCLUDED = %r{\A(?:\.git(?:/|\z)|\.bundle(?:/|\z)|\.env|\.venv|node_modules/|public/assets/|app/assets/builds/(?!\.keep\z)|tmp/|log/|storage/|config/master\.key\z|config/credentials/.*\.key\z)}
+
+  def initialize(performance: false)
+    @root = File.expand_path("..", __dir__)
+    @snapshot = Dir.mktmpdir("adrian-production-check-")
+    @reports = File.join(@root, "tmp/production-check")
+    @performance = performance
+    @environment = {
+      "RAILS_ENV" => "production", "SECRET_KEY_BASE_DUMMY" => "1",
+      "BUNDLE_GEMFILE" => File.join(@snapshot, "Gemfile"),
+      "BUNDLE_WITHOUT" => "development:test", "BUNDLE_FROZEN" => "true",
+      "PIDFILE" => File.join(@snapshot, "tmp/pids/smoke.pid")
+    }
+    # Respect a local bundle path without copying developer-specific .bundle
+    # configuration into the release snapshot. A relative path belongs to root.
+    if Bundler.settings[:path]
+      @environment["BUNDLE_PATH"] = File.expand_path(Bundler.settings[:path], @root)
+    end
+    FileUtils.mkdir_p(@reports)
+  end
+
+  def run
+    success = false
+    snapshot!
+    log = File.join(@reports, "build.log")
+    File.open(log, "w") do |output|
+      system(@environment, RbConfig.ruby, "bin/rails", "assets:precompile", chdir: @snapshot, out: output, err: output, exception: true)
+      system(@environment, RbConfig.ruby, "bin/rails", "zeitwerk:check", chdir: @snapshot, out: output, err: output, exception: true)
+    end
+    manifest = JSON.parse(File.read(File.join(@snapshot, "public/assets/.manifest.json")))
+    check_manifest!(manifest)
+    asset_digest = built_asset_digest
+    with_server do |port|
+      check_routes!(port, manifest)
+      if @performance
+        system({ "PERFORMANCE_BASE_URL" => "http://127.0.0.1:#{port}" }, "node", File.join(@root, "scripts/performance.mjs"), chdir: @root, exception: true)
+      end
+    end
+    with_server { |port| expect_status(request(port, "/up"), 200, "/up after restart") }
+    raise "Restart changed the built assets" unless asset_digest == built_asset_digest
+
+    puts "Production build, eager loading, routes, assets, caching, and restart passed. Reports: #{@reports}"
+    success = true
+  ensure
+    if success
+      FileUtils.remove_entry_secure(@snapshot)
+    else
+      warn "Production check failed. Logs: #{@reports}; retained snapshot: #{@snapshot}"
+    end
+  end
+
+  private
+
+  def snapshot!
+    files, status = Open3.capture2("git", "ls-files", "--cached", "--others", "--exclude-standard", "-z", chdir: @root)
+    raise "Run this check from a Git checkout" unless status.success?
+
+    files.split("\0").uniq.each do |relative|
+      next if EXCLUDED.match?(relative)
+      source = File.join(@root, relative)
+      next unless File.file?(source)
+      destination = File.join(@snapshot, relative)
+      FileUtils.mkdir_p(File.dirname(destination))
+      FileUtils.cp(source, destination, preserve: true)
+    end
+    %w[app/assets/builds log storage tmp/pids].each { |path| FileUtils.mkdir_p(File.join(@snapshot, path)) }
+  end
+
+  def check_manifest!(manifest)
+    %w[tailwind.css terminal.css application.js favicon.svg].each do |logical|
+      raise "Missing compiled #{logical}" unless manifest.key?(logical)
+    end
+    forbidden = manifest.keys.select { |path| /\.(?:scss|erb|md|py|sh)\z/i.match?(path) || /(?:\A|\/)(?:blogs|ctfs|schema)\.json\z/.match?(path) }
+    raise "Authoring sources were published: #{forbidden.join(', ')}" if forbidden.any?
+
+    sizes = manifest.to_h do |logical, entry|
+      digested = entry.is_a?(Hash) ? entry.fetch("digested_path") : entry
+      path = File.join(@snapshot, "public/assets", digested)
+      raise "Missing manifest output #{logical}" unless File.file?(path)
+      bytes = File.binread(path)
+      [ logical, { bytes: bytes.bytesize, gzip_estimate_bytes: Zlib.gzip(bytes).bytesize, built_gzip_bytes: File.size?("#{path}.gz") } ]
+    end
+    File.write(File.join(@reports, "assets.json"), JSON.pretty_generate(sizes))
+  end
+
+  def built_asset_digest
+    files = Dir.glob(File.join(@snapshot, "public/assets/**/*"), File::FNM_DOTMATCH).select { |path| File.file?(path) }
+    Digest::SHA256.hexdigest(files.sort.map { |path| "#{path}\0#{Digest::SHA256.file(path).hexdigest}" }.join("\n"))
+  end
+
+  def with_server
+    socket = TCPServer.new("127.0.0.1", 0)
+    port = socket.addr[1]
+    socket.close
+    log = File.open(File.join(@reports, "server.log"), "a")
+    pid = Process.spawn(@environment, RbConfig.ruby, "bin/rails", "server", "-b", "127.0.0.1", "-p", port.to_s, chdir: @snapshot, out: log, err: log)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 45
+    loop do
+      begin
+        break if request(port, "/up").code == "200"
+      rescue Errno::ECONNREFUSED, EOFError, Net::ReadTimeout
+        # Only this process's loopback port is polled while Puma starts.
+      end
+      raise "Production server did not become healthy; see server.log" if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+      raise "Production server exited; see server.log" if Process.waitpid(pid, Process::WNOHANG)
+      sleep 0.2
+    end
+    yield port
+  ensure
+    if pid
+      begin
+        Process.kill("TERM", pid)
+        Process.wait(pid)
+      rescue Errno::ESRCH, Errno::ECHILD
+      end
+    end
+    log&.close
+  end
+
+  def request(port, path, head: false, gzip: false)
+    Net::HTTP.start("127.0.0.1", port, nil, open_timeout: 3, read_timeout: 15) do |http|
+      encoded_path = URI::DEFAULT_PARSER.escape(path.split("#", 2).first, /[^A-Za-z0-9\-._~!$&'()*+,;=:@\/?%]/)
+      message = head ? Net::HTTP::Head.new(encoded_path) : Net::HTTP::Get.new(encoded_path)
+      message["Accept-Encoding"] = "gzip" if gzip
+      http.request(message)
+    end
+  end
+
+  def expect_status(response, expected, path)
+    raise "#{path}: expected #{expected}, received #{response.code}" unless response.code.to_i == expected
+  end
+
+  def check_routes!(port, manifest)
+    # Lazy terminal styling is deliberately absent from the initial page's
+    # href/src attributes, but must still be delivered by the release pipeline.
+    terminal_css = manifest.fetch("terminal.css")
+    terminal_css = terminal_css.fetch("digested_path") if terminal_css.is_a?(Hash)
+    assets = [ "/assets/#{terminal_css}" ]
+    downloads = []
+    metrics = {}
+    ROUTES.each do |path|
+      response = request(port, path)
+      expect_status(response, 200, path)
+      metrics[path] = { html_bytes: response.body.bytesize, gzip_estimate_bytes: Zlib.gzip(response.body).bytesize }
+      next unless response["content-type"].include?("text/html")
+
+      page = Nokogiri::HTML5(response.body)
+      metrics[path][:dom_elements] = page.css("*").length
+      page.css("[href], [src]").each do |element|
+        url = element["src"] || element["href"]
+        assets << url if url.start_with?("/assets/")
+        downloads << url if url.start_with?("/ctf/resources/")
+      end
+      page.css('script[type="importmap"]').each do |script|
+        assets.concat(JSON.parse(script.content).fetch("imports").values.select { |value| value.start_with?("/assets/") })
+      end
+    end
+    assets.uniq.each do |path|
+      response = request(port, path, head: true)
+      expect_status(response, 200, path)
+      raise "#{path} lacks immutable caching" unless response["cache-control"].include?("immutable")
+      if /\.(?:css|js|svg)\z/.match?(path)
+        compressed = request(port, path, head: true, gzip: true)
+        expect_status(compressed, 200, path)
+        raise "#{path} lacks precompressed delivery" unless compressed["content-encoding"] == "gzip"
+        raise "#{path} lacks encoding cache variation" unless compressed["vary"].to_s.downcase.include?("accept-encoding")
+      end
+    end
+    raise "Representative writeup did not expose a download" if downloads.empty?
+    downloads.uniq.each do |path|
+      response = request(port, path, head: true)
+      expect_status(response, 200, path)
+      raise "#{path} lost its download disposition" unless response["content-disposition"]
+    end
+    response = request(port, "/robots.txt")
+    expect_status(response, 200, "/robots.txt")
+    raise "Stable public file lacks revalidation" unless response["cache-control"].include?("must-revalidate")
+    expect_status(request(port, "/this-page-does-not-exist"), 404, "error page")
+    File.write(File.join(@reports, "pages.json"), JSON.pretty_generate(metrics))
+  end
+end
+
+abort "Usage: bin/production-check [--performance]" if (ARGV - [ "--performance" ]).any?
+ProductionCheck.new(performance: ARGV.include?("--performance")).run

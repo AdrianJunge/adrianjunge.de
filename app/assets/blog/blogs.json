@@ -1,12 +1,4 @@
 {
-  "frankendancer-net-shred-overrun": {
-    "terminal_path": "frankendancer-net-shred-overrun",
-    "hidden": true,
-    "logo": "blog/solana.svg",
-    "title": "Racing Frankendancer's net_shred",
-    "category": "Security Research",
-    "description": "How a race in Frankendancer's net-to-shred packet path mixed metadata from two UDP packets, crashed the validator, and became much harder to trigger once traffic crossed a physical NIC."
-  },
   "climbing-stairs": {
     "terminal_path": "climbing-stairs",
     "logo": "blog/leetcode.png",

@@ -2,7 +2,7 @@
 <% count = section[:count].to_i %>
 <% count_label = count == 1 ? section[:singular] : section[:plural] %>
 
-<details class="aboutme-section" id="<%= section[:id] %>" data-animated-details="true">
+<details class="aboutme-section" id="<%= section[:id] %>" <%= "open" if local_assigns[:expanded] %>>
   <summary class="aboutme-section-header">
     <div>
       <h2 class="aboutme-section-title"><%= section[:title] %></h2>

@@ -44,6 +44,29 @@ class PublicPagesIntegrityTest < ActionDispatch::IntegrationTest
     assert_nil normalized_internal_link_path("http://[")
   end
 
+  test "same-page and cross-page fragment links have rendered destinations" do
+    pages = public_page_paths.to_h do |path|
+      get path
+      assert_response :success
+      [ path, Nokogiri::HTML(response.body) ]
+    end
+    pages.each do |path, document|
+      document.css("a[href]").each do |link|
+        uri = URI.join("http://www.example.com#{path}", link["href"])
+        next unless uri.host == "www.example.com" && uri.fragment.present?
+        next if ignored_internal_path?(uri.path)
+
+        target = pages[uri.path]
+        next unless target
+
+        id = URI::DEFAULT_PARSER.unescape(uri.fragment)
+        assert target.css("[id]").any? { |element| element["id"] == id }, "missing ##{id} on #{uri.path}, linked from #{path}"
+      rescue URI::InvalidURIError
+        # Malformed links are covered by the route/link validation checks.
+      end
+    end
+  end
+
   private
 
   def public_page_paths

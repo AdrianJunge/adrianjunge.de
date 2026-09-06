@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby "3.3.7"
+ruby file: ".ruby-version"
 
 gem "rails", "~> 8.1.3", ">= 8.1.3.1"
 gem "propshaft"
@@ -31,8 +31,6 @@ end
 gem "redcarpet"
 gem "front_matter_parser"
 gem "rouge"
-gem "sass-rails"
-
 gem "tailwindcss-rails", "~> 4.0"
 
 gem "json_schemer", "~> 2.5"

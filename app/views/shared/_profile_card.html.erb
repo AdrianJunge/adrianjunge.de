@@ -26,7 +26,7 @@
   <% if tags.any? %>
     <span class="<%= tag_container_classes %>">
       <% tags.each do |tag| %>
-        <%= profile_card_tag(label: tag[:label], url: tag[:url], class_name: tag[:class_name], datetime: tag[:datetime]) %>
+        <%= profile_card_tag(label: tag[:label], filter_tag: tag[:filter_tag], url: tag[:url], class_name: tag[:class_name], datetime: tag[:datetime]) %>
       <% end %>
     </span>
   <% end %>
@@ -144,16 +144,17 @@
 <% end %>
 
 <% if collapsible %>
-  <details class="<%= card_classes %>" id="<%= card[:id].presence %>" data-animated-details="true">
-    <summary class="aboutme-card-header">
+  <article class="<%= card_classes %>" id="<%= card[:id].presence %>" data-card-disclosure>
+    <div class="aboutme-card-header">
       <%= header_content %>
-      <span class="aboutme-card-toggle" aria-hidden="true"></span>
-    </summary>
-
-    <div class="aboutme-card-body">
-      <%= body_content %>
     </div>
-  </details>
+    <details class="profile-card-details">
+      <summary aria-label="Details for <%= card[:title] %>">Details</summary>
+      <div class="aboutme-card-body">
+        <%= body_content %>
+      </div>
+    </details>
+  </article>
 <% else %>
   <article class="<%= card_classes %>" id="<%= card[:id].presence %>">
     <% if card_url.present? %>

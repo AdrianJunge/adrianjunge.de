@@ -1,5 +1,5 @@
-import "xterm";
-import "xterm-addon-fit";
+import { Terminal } from "xterm";
+import { FitAddon } from "xterm-addon-fit";
 
 const fastFetchInfo = `  _____                          _
  |  __ \\                        | |                               ____
@@ -32,7 +32,7 @@ const term = new Terminal({
     fontSize: getTerminalFontSize(),
     lineHeight: 1.25,
 });
-const fitAddon = new FitAddon.FitAddon();
+const fitAddon = new FitAddon();
 term.loadAddon(fitAddon);
 
 const terminalElement = document.getElementById('terminal-container');
@@ -41,7 +41,6 @@ let linkTooltip = document.getElementById('terminal-link-tooltip');
 
 let inputBuffer = '';
 let terminalOpened = false;
-const terminalOpenKey = 'terminal-open';
 let pendingFit = null;
 
 const COLORS = {
@@ -209,22 +208,6 @@ const customLinkHandler = {
 };
 
 
-function typeText(text, color, callback) {
-    let i = 0;
-    function typeChar() {
-        if (i >= text.length) {
-            if (callback) callback();
-            return;
-        }
-        printLine(text.charAt(i), color);
-        i++;
-        const delay = 25 + Math.random() * 100;
-        setTimeout(typeChar, delay);
-    }
-    typeChar();
-}
-
-
 function getTargetUrl(pathEntry) {
     const entry = normalizePathEntry(pathEntry);
     const path = entry.label;
@@ -298,10 +281,9 @@ function initializeTerminal() {
     }
 
     printLine(promptText(''), COLORS.brightRed);
-    typeText(`ls -lah ${currentListTarget()}`, COLORS.white, () => {
-        generateLsOutput(pathsArray);
-        printLine(promptText(), COLORS.brightRed);
-    });
+    printLine(`ls -lah ${currentListTarget()}`, COLORS.white);
+    generateLsOutput(pathsArray);
+    printLine(promptText(), COLORS.brightRed);
 
     term.onData(function(data) {
         if (data === '\r' || data === '\n') {
@@ -371,105 +353,12 @@ function generateLsOutput(pathsArray) {
     });
 }
 
-function openTerminal(terminal) {
-    terminal.classList.toggle("terminal-minimized");
-    const nowMinimized = terminal.classList.contains("terminal-minimized");
-
-    try {
-        localStorage.setItem(terminalOpenKey, (!nowMinimized).toString());
-    } catch(e) {
-        console.error("Error accessing localStorage:", e);
-    }
-
-    if (nowMinimized) {
-        if (terminalOpened) term.blur();
-    } else {
-        if (!terminalOpened) initializeTerminal();
-        fitTerminal();
-        term.focus();
-    }
-}
-
-function minimizeTerminal() {
-    const minimizeButton = document.getElementById("minimize-terminal");
-    const maximizeButton = document.getElementById("maximize-terminal");
-	const closeButton = document.getElementById("close-terminal");
-	const terminal = document.getElementById("terminal-container");
-	const terminalTaskbarIcon = document.getElementById("terminal-taskbar-button");
-
-    minimizeButton.addEventListener("click", function () {
-        terminal.classList.add("terminal-minimized");
-        try {
-            localStorage.setItem(terminalOpenKey, 'false');
-        } catch(e) {
-            console.error("Error accessing localStorage:", e);
-        }
-        if (terminalOpened) term.blur();
-    });
-    maximizeButton.addEventListener("click", function () {
-        terminal.classList.toggle("terminal-maximized");
-        if (terminalOpened) fitTerminal();
-    });
-    closeButton.addEventListener("click", function () {
-        terminal.classList.add("terminal-minimized");
-        try {
-            localStorage.setItem(terminalOpenKey, 'false');
-        } catch(e) {
-            console.error("Error accessing localStorage:", e);
-        }
-        if (terminalOpened) term.blur();
-    });
-    terminalTaskbarIcon.addEventListener("click", function () {
-        openTerminal(terminal);
-    });
-    terminal.addEventListener("wheel", function (event) {
-        if (!terminal.classList.contains("terminal-minimized")) event.stopPropagation();
-    }, { passive: true });
-    terminal.addEventListener("touchmove", function (event) {
-        if (!terminal.classList.contains("terminal-minimized")) event.stopPropagation();
-    }, { passive: true });
-
-    let isProcessingShortcut = false;
-    const handleCtrlEnter = () => {
-        if (isProcessingShortcut) return;
-        isProcessingShortcut = true;
-
-        openTerminal(terminal);
-
-        setTimeout(() => {
-            isProcessingShortcut = false;
-        }, 200);
-    };
-
-    term.attachCustomKeyEventHandler((event) => {
-        if (event.ctrlKey && event.key === 'Enter') {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            handleCtrlEnter();
-            return false;
-        }
-        return true;
-    });
-
-    document.addEventListener("keydown", (event) => {
-        if (event.ctrlKey && event.key === "Enter") {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            handleCtrlEnter();
-        }
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    minimizeTerminal();
+export function createTerminal() {
+    if (!terminalOpened) initializeTerminal();
     window.addEventListener('resize', fitTerminal);
-    try {
-        const shouldBeOpen = localStorage.getItem('terminal-open') === 'true';
-        const terminal = document.getElementById('terminal-container');
-        if (shouldBeOpen && terminal) {
-            openTerminal(terminal);
-            term.focus();
-        }
-    } catch (e) {
-    }
-});
+    term.attachCustomKeyEventHandler(event => !(event.key === 'Escape' || (event.ctrlKey && event.key === 'Enter')));
+    return {
+        show(focus = true) { fitTerminal(); if (focus) term.focus(); },
+        blur() { term.blur(); }
+    };
+}

@@ -9,6 +9,8 @@
 
 # Ignore all environment files.
 /.env*
+/.venv*
+**/__pycache__
 
 # Ignore all default key files.
 /config/master.key
@@ -49,3 +51,20 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Keep the runtime focused on the site and its published content.
+/test
+/scripts
+/notes.md
+/README.md
+/.overcommit.yml
+/.rubocop.yml
+/package*.json
+/lighthouserc.cjs
+/content/images
+/bin/setup
+/bin/dev
+/bin/rubocop
+/bin/brakeman
+/bin/production-check
+/Procfile.dev

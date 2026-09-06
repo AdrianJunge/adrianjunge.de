@@ -11,7 +11,7 @@ module BlogHelper
     logo_url = post_info["logo"]
     published_year = blog_post_year(post_info)
     difficulty = WriteupDifficulty.filter_label_for(post_info) ? WriteupDifficulty.from_metadata(post_info) : nil
-    filter_tags = ([ content_type, difficulty&.fetch(:label, nil) ] + categories).compact.uniq { |tag| tag.downcase }
+    filter_tags = ContentTagTaxonomy.canonical_values([ content_type, difficulty&.fetch(:label, nil) ] + categories)
     filter_text = ([ title, description, published, published_year, post_info["topic"], content_type, difficulty&.fetch(:label, nil) ] + raw_categories + categories).compact.join(" ")
     tags = []
     tags << { label: content_type } if content_type.present?
@@ -73,10 +73,6 @@ module BlogHelper
   private
 
   def blog_post_year(post_info)
-    return Time.parse(post_info["published"].to_s).year if post_info["published"].present?
-
-    post_info["year"].presence
-  rescue StandardError
-    post_info["year"].presence
+    ContentDate.parse(post_info["published"].presence || post_info["year"])&.year
   end
 end

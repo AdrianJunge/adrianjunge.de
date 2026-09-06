@@ -3,8 +3,9 @@ class AboutmeController < ApplicationController
 
   def index
     @about_content = content_repository.about_markdown
-    @about_html = render_markdown(@about_content)
-    @about_info = parse_markdown_content(@about_content)&.front_matter || {}
+    parsed_about = parse_markdown_content(@about_content)
+    @about_html = render_markdown(parsed_about.content, parsed: true)
+    @about_info = parsed_about.front_matter
     @cves = content_repository.about_entries(ABOUTME_CVES_PATH)
     @bug_bounties = content_repository.about_entries(ABOUTME_BUG_BOUNTIES_PATH)
     @challenges = content_repository.authored_challenges

@@ -10,15 +10,15 @@ module SidebarHelper
 
   def taskbar_icon_item(image_path:, alt_text:, label:, link: nil, icon_class:, label_class:, id: nil, target: nil, active: false)
     icon = content_tag(:span, class: icon_class) do
-      image_tag(image_path, alt: alt_text, class: "taskbar-icon-image")
+      image_tag(image_path, alt: "", width: 32, height: 32, class: "taskbar-icon-image", aria: { hidden: true })
     end
     item_classes = [ "taskbar-item", ("taskbar-item-terminal" if id == "terminal-taskbar-button"), ("is-active" if active) ].compact.join(" ")
     control_classes = [ (link ? "taskbar-link" : "taskbar-button-container"), ("is-active" if active) ].compact.join(" ")
 
     content_tag :div, class: item_classes do
       if link
-        link_options = { class: control_classes, id: id, target: target }
-        link_options[:aria] = { current: "page" } if active
+        link_options = { class: control_classes, id: id, target: target, aria: { label: label } }
+        link_options[:aria][:current] = "page" if active
 
         concat(
           link_to(link, link_options) do
@@ -26,7 +26,9 @@ module SidebarHelper
           end
         )
       else
-        content_tag(:button, type: "button", class: control_classes, id: id, aria: { label: label }) do
+        aria = { label: label }
+        aria.merge!(controls: "terminal-container", expanded: false) if id == "terminal-taskbar-button"
+        content_tag(:button, type: "button", class: control_classes, id: id, aria: aria) do
           concat(icon)
           concat(content_tag(:span, label, class: label_class))
         end
@@ -38,7 +40,7 @@ module SidebarHelper
     content_tag(:details, class: "taskbar-item taskbar-feed-menu") do
       concat(content_tag(:summary, class: "taskbar-button-container taskbar-feed-toggle", aria: { label: "Feeds" }) do
         concat(content_tag(:span, class: icon_class) do
-          image_tag("task-bar/feed.svg", alt: "Feeds Icon", class: "taskbar-icon-image")
+          image_tag("task-bar/feed.svg", alt: "", width: 32, height: 32, class: "taskbar-icon-image", aria: { hidden: true })
         end)
         concat(content_tag(:span, "Feeds", class: label_class))
       end)
@@ -122,7 +124,7 @@ module SidebarHelper
         title: "#{item[:label]} feed",
         aria: { label: "#{item[:label]} feed" }
       ) do
-        image_tag(item[:icon], alt: item[:alt], class: "taskbar-feed-option-icon") +
+        image_tag(item[:icon], alt: "", width: 24, height: 24, class: "taskbar-feed-option-icon", aria: { hidden: true }) +
           content_tag(:span, item[:label], class: "taskbar-feed-option-label")
       end
     end

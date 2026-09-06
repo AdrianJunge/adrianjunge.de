@@ -15,6 +15,8 @@ function openDetailsForTarget(target) {
     if (!target) return false;
 
     const details = [];
+    const cardDetails = target.closest('.profile-card')?.querySelector(':scope > .profile-card-details');
+    if (cardDetails) details.push(cardDetails);
     let element = target;
     while (element) {
         if (element.matches && element.matches("details")) details.push(element);
@@ -125,8 +127,74 @@ function initializeAboutStatsNavigation() {
     revealAboutHashTargetAfterLoad();
 }
 
-document.addEventListener("DOMContentLoaded", initializeAboutStatsNavigation);
-document.addEventListener("turbo:load", initializeAboutStatsNavigation);
+function initializeAboutCardDisclosures() {
+    document.querySelectorAll('.aboutme-page .profile-card[data-card-disclosure]').forEach((card) => {
+        if (card.dataset.disclosureBound === 'true') return;
+
+        const details = card.querySelector(':scope > .profile-card-details');
+        const summary = details?.querySelector(':scope > summary');
+        if (!details || !summary) return;
+
+        card.dataset.disclosureBound = 'true';
+        let pointerStart = null;
+        card.addEventListener('pointerdown', (event) => {
+            if (event.target.closest('.profile-card') !== card) return;
+            pointerStart = { x: event.clientX, y: event.clientY };
+        });
+        card.addEventListener('pointercancel', () => { pointerStart = null; });
+        card.addEventListener('click', (event) => {
+            const start = pointerStart;
+            pointerStart = null;
+            if (event.defaultPrevented || event.button !== 0 ||
+                event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+            if (event.target.closest('.profile-card') !== card) return;
+            if (event.target.closest('a, button, input, select, textarea, label, summary, audio, video, [role="button"], [role="link"], [contenteditable]:not([contenteditable="false"])')) return;
+
+            // Native summaries and nested disclosures keep their own behavior.
+            const enclosingDetails = event.target.closest('details');
+            if (enclosingDetails && enclosingDetails !== details && card.contains(enclosingDetails)) return;
+
+            // A drag/selection is a reading action, not a disclosure activation.
+            const selection = window.getSelection();
+            if (selection && !selection.isCollapsed) return;
+            if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8) return;
+
+            const restoreFocus = details.open && details.contains(document.activeElement);
+            details.open = !details.open;
+            if (restoreFocus) summary.focus({ preventScroll: true });
+        });
+    });
+}
+
+const initializedAboutPages = new WeakSet();
+
+function resetAboutCategoryDefaults() {
+    document.querySelectorAll('.aboutme-page > details.aboutme-section').forEach((section) => {
+        section.open = false;
+    });
+}
+
+function initializeAboutPage() {
+    const page = document.querySelector('.aboutme-page');
+    if (!page) return;
+    if (!initializedAboutPages.has(page)) {
+        resetAboutCategoryDefaults();
+        initializedAboutPages.add(page);
+    }
+    initializeAboutStatsNavigation();
+    initializeAboutCardDisclosures();
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initializeAboutPage);
+else initializeAboutPage();
+document.addEventListener('turbo:load', initializeAboutPage);
+window.addEventListener('pageshow', (event) => {
+    // History restores reuse the live DOM, including toggled native details,
+    // without DOMContentLoaded. Reset categories only when entering the page.
+    if (!event.persisted) return;
+    resetAboutCategoryDefaults();
+    revealAboutHashTarget({ scroll: true, behavior: 'auto' });
+});
 window.addEventListener("hashchange", () => {
     revealAboutHashTarget({ scroll: true, behavior: "auto" });
 });

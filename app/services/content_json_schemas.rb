@@ -17,7 +17,7 @@ class ContentJsonSchemas
     end
   end
 
-  DATE_PATTERN = "^(?:\\d{4}|\\d{4}-\\d{2}-\\d{2})$"
+  DATE_PATTERN = "^(?:\\d{4}|\\d{4}\\s*[-–—]\\s*\\d{4}|\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:?\\d{2}))?)$"
 
   STRING = { "type" => "string" }.freeze
   DATE = { "type" => "string", "pattern" => DATE_PATTERN }.freeze
@@ -111,17 +111,17 @@ class ContentJsonSchemas
   }.freeze
 
   ARRAY_SCHEMAS = {
-    ApplicationController::ABOUTME_CVES_PATH.to_s => ABOUT_CARD,
-    ApplicationController::ABOUTME_BUG_BOUNTIES_PATH.to_s => ABOUT_CARD,
-    ApplicationController::ABOUTME_CERTIFICATES_PATH.to_s => ABOUT_CARD,
-    ApplicationController::ABOUTME_CHALLENGES_PATH.to_s => ABOUT_CARD,
-    ApplicationController::ABOUTME_TALKS_PATH.to_s => ABOUT_CARD,
-    ApplicationController::ABOUTME_ACHIEVEMENTS_PATH.to_s => ABOUT_CARD
+    ContentConfiguration::ABOUTME_CVES_PATH.to_s => ABOUT_CARD,
+    ContentConfiguration::ABOUTME_BUG_BOUNTIES_PATH.to_s => ABOUT_CARD,
+    ContentConfiguration::ABOUTME_CERTIFICATES_PATH.to_s => ABOUT_CARD,
+    ContentConfiguration::ABOUTME_CHALLENGES_PATH.to_s => ABOUT_CARD,
+    ContentConfiguration::ABOUTME_TALKS_PATH.to_s => ABOUT_CARD,
+    ContentConfiguration::ABOUTME_ACHIEVEMENTS_PATH.to_s => ABOUT_CARD
   }.freeze
 
   OBJECT_SCHEMAS = {
-    ApplicationController::BLOG_INFO_PATH.to_s => BLOG_ENTRY,
-    ApplicationController::CTF_INFO_PATH.to_s => CTF_ENTRY
+    ContentConfiguration::BLOG_INFO_PATH.to_s => BLOG_ENTRY,
+    ContentConfiguration::CTF_INFO_PATH.to_s => CTF_ENTRY
   }.freeze
 
   def self.validate!(path, data)
@@ -135,7 +135,29 @@ class ContentJsonSchemas
     schema = schema_for(path)
     return [] unless schema
 
-    JSONSchemer.schema(schema).validate(data).to_a
+    JSONSchemer.schema(schema).validate(data).to_a + metadata_errors(data)
+  end
+
+  def self.metadata_errors(data, pointer = "")
+    case data
+    when Array
+      data.each_with_index.flat_map { |item, index| metadata_errors(item, "#{pointer}/#{index}") }
+    when Hash
+      data.flat_map do |key, value|
+        item_pointer = "#{pointer}/#{key}"
+        error = if %w[date published updated modified].include?(key) && value.present? && ContentDate.parse(value).nil?
+          "unsupported date"
+        elsif %w[url website authorlink author_link event_url proof_url].include?(key) && value.present? && !ContentUrl.valid?(value)
+          "unsupported URL (use a local path, fragment, or HTTP(S) URL)"
+        elsif %w[hidden draft wip has_math].include?(key) && ![ true, false ].include?(value)
+          "must be a boolean"
+        end
+
+        (error ? [ { "data_pointer" => item_pointer, "type" => error } ] : []) + metadata_errors(value, item_pointer)
+      end
+    else
+      []
+    end
   end
 
   def self.schema_for(path)

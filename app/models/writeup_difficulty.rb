@@ -85,7 +85,7 @@ module WriteupDifficulty
   end
 
   def normalized_key(raw)
-    raw.to_s.strip.downcase.gsub(/[[:space:]_]+/, "-")
+    raw.to_s.strip.downcase.delete_prefix("difficulty:").gsub(/[[:space:]_]+/, "-")
   end
 
   def canonical_key(raw)

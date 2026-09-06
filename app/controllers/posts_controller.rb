@@ -1,6 +1,6 @@
 class PostsController < ApplicationController
   def timeline
-    @timeline_items = ContentIndex.new.all_items
+    @timeline_items = ContentIndex.new(repository: content_repository).all_items
     @timeline = @timeline_items.group_by { |item| item[:published].year }.sort.reverse
     @filter_years = @timeline_items.map { |item| item[:published].year }.uniq.sort.reverse
     @filter_ctf_labels = filter_ctf_labels

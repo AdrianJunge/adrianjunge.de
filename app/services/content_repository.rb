@@ -39,21 +39,24 @@ class ContentRepository
   ].freeze
 
   class InvalidContentPath < StandardError; end
+  class InvalidContent < StandardError; end
 
   def initialize(
-    ctf_base_path: ApplicationController::BASE_PATH,
-    blog_base_path: ApplicationController::BLOG_BASE_PATH,
-    ctf_challenge_files_path: ApplicationController::CTF_CHALLENGE_FILES_PATH,
-    ctf_pdf_writeups_path: ApplicationController::CTF_PDF_WRITEUPS_PATH,
+    configuration: ContentConfiguration.new,
+    ctf_base_path: configuration.path(:BASE_PATH),
+    blog_base_path: configuration.path(:BLOG_BASE_PATH),
+    ctf_challenge_files_path: configuration.path(:CTF_CHALLENGE_FILES_PATH),
+    ctf_pdf_writeups_path: configuration.path(:CTF_PDF_WRITEUPS_PATH),
     ctf_metadata_data: nil,
     blog_metadata_data: nil
   )
+    @configuration = configuration
     @ctf_base_path = Pathname(ctf_base_path)
     @blog_base_path = Pathname(blog_base_path)
     @ctf_challenge_files_path = Pathname(ctf_challenge_files_path)
     @ctf_pdf_writeups_path = Pathname(ctf_pdf_writeups_path)
-    @ctf_metadata = ctf_metadata_data unless ctf_metadata_data.nil?
-    @blog_metadata = blog_metadata_data unless blog_metadata_data.nil?
+    @ctf_metadata = ctf_metadata_data.deep_stringify_keys unless ctf_metadata_data.nil?
+    @blog_metadata = blog_metadata_data.deep_stringify_keys unless blog_metadata_data.nil?
   end
 
   def self.filter_tag_sort_key(value)
@@ -61,24 +64,24 @@ class ContentRepository
   end
 
   def about_markdown
-    @about_markdown ||= read_file(ApplicationController::ABOUTME_TEXT_PATH)
+    @about_markdown ||= read_file(configuration.path(:ABOUTME_TEXT_PATH))
   end
 
   def about_entries(path, include_hidden: false)
     cache_key = [ path.to_s, include_hidden ]
     about_entries_cache[cache_key] ||= begin
-      entries = read_json_array(path)
+      entries = normalize_about_entries(read_json_array(path), path: path)
       include_hidden ? entries : sorted_about_entries(visible_about_entries(entries, path), fallback_path: path)
     end
   end
 
   def blog_metadata
-    @blog_metadata ||= read_json_object(ApplicationController::BLOG_INFO_PATH)
+    @blog_metadata ||= read_json_object(configuration.path(:BLOG_INFO_PATH))
   end
 
   def ctf_metadata
     @visible_ctf_metadata ||= begin
-      metadata = @ctf_metadata ||= read_json_object(ApplicationController::CTF_INFO_PATH)
+      metadata = @ctf_metadata ||= read_json_object(configuration.path(:CTF_INFO_PATH))
       metadata.reject { |_name, entry| hidden_content?(entry) }
     end
   end
@@ -143,11 +146,8 @@ class ContentRepository
         slug = File.basename(discovered_file[:candidate], ".md")
         validate_identifier!(slug, CTF_WRITEUP_SLUG_PATTERN, "CTF writeup slug")
 
-        content = read_file(discovered_file[:canonical])
-        parsed = parse_markdown(content)
-        next unless parsed
-
-        meta = post_metadata_from(parsed)
+        document = markdown_document(discovered_file[:canonical])
+        meta = document[:metadata].deep_dup
         next if hidden_content?(meta)
 
         title = meta["title"].presence || slug.humanize
@@ -161,11 +161,13 @@ class ContentRepository
           slug: slug,
           title: title,
           published: published,
+          modified: modified_time(meta, published),
           link: encoded_local_path("#{link_prefix}/#{event[:slug]}/#{slug}"),
           description: meta["description"].to_s,
           categories: normalized_metadata_categories(meta),
           logo: event[:metadata]["logo"],
-          content: content,
+          content: document[:content],
+          body: document[:body],
           source_path: discovered_file[:canonical],
           word_count: meta["word_count"],
           word_count_label: meta["word_count_label"],
@@ -192,16 +194,14 @@ class ContentRepository
         next unless metadata.key?(slug)
 
         validate_identifier!(slug, BLOG_SLUG_PATTERN, "blog post slug")
-        content = read_file(discovered_file[:canonical])
-        parsed = parse_markdown(content)
-        next unless parsed
-
-        meta = post_metadata_from(parsed)
+        document = markdown_document(discovered_file[:canonical])
+        meta = document[:metadata].deep_dup
         blog_info = metadata.fetch(slug)
         next if hidden_content?(meta) || hidden_content?(blog_info)
 
         category = blog_info["category"] || "POST"
         title = blog_info["title"].presence || meta["title"].presence || slug.humanize
+        meta = meta.merge("title" => title, "logo" => blog_info["logo"], "category" => category)
         published = parsed_time(meta["published"], fallback: file_time(discovered_file[:canonical], legacy_year(meta)))
 
         {
@@ -211,11 +211,14 @@ class ContentRepository
           slug: slug,
           title: title,
           published: published,
+          modified: modified_time(meta, published),
           link: "/blog/#{slug}",
           description: meta["description"].to_s,
           topic: meta["topic"].to_s,
           categories: normalized_metadata_categories(meta),
-          content: content,
+          content: document[:content],
+          body: document[:body],
+          logo: blog_info["logo"],
           source_path: discovered_file[:canonical],
           word_count: meta["word_count"],
           word_count_label: meta["word_count_label"],
@@ -235,7 +238,7 @@ class ContentRepository
 
   def authored_challenges(link_prefix: "/ctf")
     authored_challenges_cache[link_prefix] ||= begin
-      configured_challenges = about_entries(ApplicationController::ABOUTME_CHALLENGES_PATH)
+      configured_challenges = about_entries(ContentConfiguration::ABOUTME_CHALLENGES_PATH)
       configured_challenges.presence || authored_challenges_from_ctf_metadata(link_prefix: link_prefix)
     end
   end
@@ -326,7 +329,8 @@ class ContentRepository
     metadata ||= {}
     difficulty_label = WriteupDifficulty.filter_label_for(metadata) if include_difficulty
 
-    sort_metadata_tags(Array(metadata["categories"]) + [ WriteupWinner.filter_label_for(metadata), AuthoredChallenge.filter_label_for(metadata), difficulty_label ])
+    difficulty_tag = ContentTagTaxonomy.canonical_value(difficulty_label, type: :difficulty) if difficulty_label
+    sort_metadata_tags(Array(metadata["categories"]) + [ WriteupWinner.filter_label_for(metadata), AuthoredChallenge.filter_label_for(metadata), difficulty_tag ])
       .map(&:to_s)
       .reject(&:blank?)
   end
@@ -342,13 +346,14 @@ class ContentRepository
   end
 
   def sorted_about_entries(entries, fallback_path: nil)
-    Array(entries).sort_by.with_index do |entry, index|
-      [ -about_entry_time(entry, fallback_path: fallback_path).to_i, index ]
+    Array(entries).sort_by do |entry|
+      [ -about_entry_time(entry, fallback_path: fallback_path).to_i, entry["id"].to_s, entry["title"].to_s ]
     end
   end
 
   def about_entry_time(entry, fallback_path: nil)
-    latest_nested_entry_time(entry, "timeline") ||
+    parsed_time(entry["date"], fallback: nil) ||
+      latest_nested_entry_time(entry, "timeline") ||
       (file_time(fallback_path) if fallback_path.present?)
   end
 
@@ -366,20 +371,37 @@ class ContentRepository
       .sort_by { |value| self.class.filter_tag_sort_key(value) }
   end
 
-  def parse_markdown(content)
-    FrontMatterParser::Parser.new(:md).call(content)
-  rescue StandardError
-    nil
+  def parse_markdown(content, path: "Markdown input")
+    parsed = FrontMatterParser::Parser.new(:md).call(content)
+    unless parsed.front_matter.is_a?(Hash)
+      raise InvalidContent, "#{path}: front matter must be a mapping"
+    end
+
+    parsed
+  rescue Psych::Exception => error
+    raise InvalidContent, "#{path}: invalid front matter: #{error.message}"
+  end
+
+  def markdown_document(path)
+    ContentSnapshot.fetch(path, kind: :markdown) do |content|
+      parsed = parse_markdown(content, path: path)
+      errors = ContentJsonSchemas.metadata_errors(parsed.front_matter)
+      if errors.any?
+        raise InvalidContent, "#{path}: #{errors.map { |error| "#{error["data_pointer"]}: #{error["type"]}" }.join(', ')}"
+      end
+      { content: content, body: parsed.content, metadata: post_metadata_from(parsed) }
+    end
   end
 
   def post_metadata_from(parsed)
-    metadata = (parsed&.front_matter || {}).dup
+    metadata = (parsed&.front_matter || {}).deep_stringify_keys
     metadata["categories"] = normalized_metadata_categories(metadata) if metadata.key?("categories")
     body = parsed&.content.to_s
     word_count = markdown_word_count(body)
     reading_time_minutes = reading_time_minutes_for_word_count(word_count)
 
     metadata.merge(
+      "has_math" => metadata.fetch("has_math", false),
       "word_count" => word_count,
       "word_count_label" => format_word_count(word_count),
       "reading_time_minutes" => reading_time_minutes,
@@ -396,41 +418,47 @@ class ContentRepository
   end
 
   def parsed_time(value, fallback:)
-    raw = value.to_s.strip
-    return fallback if raw.blank?
+    ContentDate.parse(value, fallback: fallback)
+  end
 
-    if raw.match?(/\A\d{4}\z/)
-      Time.zone.local(raw.to_i, 12, 31)
-    elsif (years = raw.scan(/\d{4}/)).any? && !raw.match?(/\A\d{4}-\d{2}-\d{2}\z/)
-      Time.zone.local(years.map(&:to_i).max, 12, 31)
-    else
-      Time.zone.parse(raw)
-    end
-  rescue StandardError
-    fallback
+  def modified_time(metadata, published)
+    parsed_time(metadata["updated"].presence || metadata["modified"], fallback: published)
   end
 
   def file_time(path, year = nil)
     year_value = year.to_s[/\d{4}/]
     return Time.zone.local(year_value.to_i, 12, 31) if year_value
 
-    File.exist?(path) ? File.mtime(path) : Time.zone.now
+    path = configuration.resolve(path)
+    File.exist?(path) ? File.mtime(path) : ContentDate::EPOCH
   end
 
   def read_json_array(path)
     data = parse_json_content(path)
-    ContentJsonSchemas.validate!(path, data)
     data.is_a?(Array) ? data : []
-  rescue JSON::ParserError
-    []
   end
 
   def read_json_object(path)
     data = parse_json_content(path)
-    ContentJsonSchemas.validate!(path, data)
     data.is_a?(Hash) ? data : {}
-  rescue JSON::ParserError
-    {}
+  end
+
+  def normalize_about_entries(entries, path:)
+    ids = {}
+    Array(entries).map do |raw_entry|
+      entry = raw_entry.deep_stringify_keys
+      entry["id"] = entry["id"].presence || entry["title"].to_s.parameterize
+      register_fragment!(ids, entry["id"], path)
+      if entry.key?("timeline")
+        entry["timeline"] = Array(entry["timeline"]).map do |raw_event|
+          event = raw_event.dup
+          event["id"] = event["id"].presence || "#{entry["id"]}-#{event["date"]}-#{event["title"]}".parameterize
+          register_fragment!(ids, event["id"], path)
+          event
+        end
+      end
+      entry
+    end
   end
 
   private
@@ -438,7 +466,8 @@ class ContentRepository
   attr_reader :ctf_base_path,
               :blog_base_path,
               :ctf_challenge_files_path,
-              :ctf_pdf_writeups_path
+              :ctf_pdf_writeups_path,
+              :configuration
 
   def ctf_events_by_slug
     @ctf_events_by_slug ||= unique_index(ctf_events, :slug, "CTF event slug")
@@ -541,9 +570,10 @@ class ContentRepository
       next if hidden_content?(entry)
 
       visible_timeline = Array(entry["timeline"]).reject { |event| hidden_content?(event) }
-      if path.to_s == ApplicationController::ABOUTME_ACHIEVEMENTS_PATH.to_s
+      if path.to_s == ContentConfiguration::ABOUTME_ACHIEVEMENTS_PATH.to_s
         next if visible_timeline.empty?
-
+      end
+      if [ ContentConfiguration::ABOUTME_ACHIEVEMENTS_PATH.to_s, ContentConfiguration::ABOUTME_TALKS_PATH.to_s ].include?(path.to_s)
         visible_timeline = sorted_about_entries(visible_timeline, fallback_path: path)
       end
 
@@ -556,11 +586,25 @@ class ContentRepository
   end
 
   def read_file(path)
-    File.exist?(path) ? File.read(path) : ""
+    ContentSnapshot.fetch(path) { |content| content }
   end
 
   def parse_json_content(path)
-    JSON.parse(read_file(path), allow_comments: true)
+    path = configuration.resolve(path)
+    ContentSnapshot.fetch(path, kind: :json) do |content|
+      data = JSON.parse(content, allow_comments: true)
+      ContentJsonSchemas.validate!(configuration.schema_path(path), data)
+      data
+    end.deep_dup
+  rescue JSON::ParserError => error
+    raise InvalidContent, "#{path}: invalid JSON: #{error.message}"
+  end
+
+  def register_fragment!(ids, id, path)
+    raise InvalidContent, "#{path}: missing fragment ID" if id.blank?
+    raise InvalidContent, "#{path}: duplicate fragment ID #{id.inspect}" if ids.key?(id)
+
+    ids[id] = true
   end
 
   def legacy_year(metadata)
@@ -612,8 +656,7 @@ class ContentRepository
   end
 
   def feed_post_from(post, source)
-    parsed = parse_markdown(post[:content])
-    description = post[:description].presence || parsed&.content.to_s[0, 800]
+    description = post[:description].presence || post[:body].to_s[0, 800]
 
     {
       source_key: source[:key].to_s,
@@ -623,6 +666,7 @@ class ContentRepository
       description: description.to_s,
       link: post[:link],
       published: post[:published],
+      modified: post[:modified],
       guid: post[:link],
       reading_time_label: post[:reading_time_label],
       word_count: post[:word_count] || post.dig(:metadata, "word_count")

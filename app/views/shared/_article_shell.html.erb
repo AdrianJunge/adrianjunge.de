@@ -1,0 +1,12 @@
+<% content_for :article_navigation, "inline-compact" %>
+<main id="main-content" tabindex="-1" class="content-page article-page" data-has-math="<%= has_math == true %>">
+  <div class="writeup-wrapper">
+    <%= render "shared/article_toc", headings: headings, word_total: word_total %>
+    <article class="writeup-container bg-primary">
+      <button type="button" class="collapse-toc-button toc-toggle-button writeup-toc-restore-button"
+              title="Show table of contents" aria-label="Show table of contents"
+              data-toc-toggle="toc" aria-expanded="true" aria-controls="toc">☰</button>
+      <%= yield %>
+    </article>
+  </div>
+</main>

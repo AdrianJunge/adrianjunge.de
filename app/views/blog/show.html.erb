@@ -9,19 +9,19 @@
         description: blog_description,
         type: "article",
         canonical_path: blog_post_path(@post_slug),
-        image: blog_image,
-        published_time: @blog_info["published"],
-        modified_time: blog_modified,
+        image: SeoHelper::DEFAULT_IMAGE,
+        published_time: @published_time,
+        modified_time: @modified_time,
         tags: blog_tags,
         section: @blog_category,
         json_ld: seo_article_schema(
           title: @blog_title,
           description: blog_description,
           canonical_path: blog_post_path(@post_slug),
-          published: @blog_info["published"],
-          modified: blog_modified,
+          published: @published_time,
+          modified: @modified_time,
           tags: blog_tags,
-          image: blog_image,
+          image: SeoHelper::DEFAULT_IMAGE,
           section: @blog_category
         ),
         breadcrumbs: [
@@ -32,36 +32,9 @@
       ) %>
 <% end %>
 
-<%= render_taskbar_items %>
-<%= render_terminal([], true) %>
 
-<main class="content-page article-page">
-<div class="writeup-wrapper relative flex items-start gap-4 mx-4">
-  <%= render "shared/article_toc", headings: @headings, word_total: @blog_info["word_count"] %>
-
-  <div class="writeup-container bg-primary">
-    <button
-      type="button"
-      class="collapse-toc-button toc-toggle-button writeup-toc-restore-button"
-      title="Show table of contents"
-      aria-label="Show table of contents"
-      data-toc-toggle="toc"
-      aria-expanded="true"
-      aria-controls="toc"
-    >
-      <svg
-        class="w-5 h-5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round">
-        <path d="M9 6l6 6-6 6"/>
-      </svg>
-    </button>
-
-    <h4 class="writeup-year text-white text-center"><%= @blog_category %></h4>
+<%= render layout: "shared/article_shell", locals: { headings: @headings, word_total: @blog_info["word_count"], has_math: @has_math } do %>
+    <p class="writeup-year text-white text-center"><%= @blog_category %></p>
     <h1 class="writeup-title text-white text-center"><%= @blog_title %></h1>
     <%= render "shared/post_meta", items: [ @blog_info["published"] ], reading_time: @blog_info["reading_time_label"] %>
 
@@ -77,7 +50,4 @@
                previous_item: @previous_post,
                next_item: @next_post,
                include_context: false %>
-  </div>
-
-</div>
-</main>
+<% end %>

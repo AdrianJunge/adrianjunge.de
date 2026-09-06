@@ -2,6 +2,44 @@ require "test_helper"
 require "tmpdir"
 
 class ContentRepositoryTest < ActiveSupport::TestCase
+  test "About event IDs and ordering are normalized once" do
+    repository = ContentRepository.new
+    entries = repository.normalize_about_entries([
+      { "id" => "talk", "title" => "Talk", "timeline" => [
+        { "date" => "2025-01-01", "title" => "Repeated title" },
+        { "id" => "published-anchor", "date" => "2026-02-01", "title" => "Repeated title" },
+        { "id" => "a-tie", "date" => "2026-02-01", "title" => "Another title" }
+      ] }
+    ], path: "talks.json")
+    events = entries.first["timeline"]
+    assert_equal "talk-2025-01-01-repeated-title", events.first["id"]
+    assert_equal "published-anchor", events.second["id"]
+    assert_equal %w[a-tie published-anchor talk-2025-01-01-repeated-title], repository.sorted_about_entries(events).map { |event| event["id"] }
+    assert_raises(ContentRepository::InvalidContent) do
+      repository.normalize_about_entries([ { "id" => "same", "timeline" => [ { "id" => "same" } ] } ], path: "duplicate.json")
+    end
+  end
+
+  test "authoring parse failures include the source path" do
+    repository = ContentRepository.new
+    error = assert_raises(ContentRepository::InvalidContent) do
+      repository.parse_markdown("---\ntitle: [broken\n---\nBody", path: "broken.md")
+    end
+    assert_includes error.message, "broken.md"
+    assert_includes error.message, "front matter"
+  end
+
+  test "parsed bodies and publication timestamps survive edits independently" do
+    repository = ContentRepository.new
+    published = repository.parsed_time("2026-05-27T14:23:45+02:00", fallback: nil)
+    assert_equal "2026-05-27T12:23:45Z", published.utc.iso8601
+    assert_equal published, repository.modified_time({}, published)
+    assert_equal "2026-06-01", repository.modified_time({ "updated" => "2026-06-01" }, published).to_date.iso8601
+    post = production_content_repository.blog_posts.first
+    assert_not post[:body].start_with?("---\n")
+    assert_equal post[:word_count], post[:metadata]["word_count"]
+  end
+
   test "post metadata includes reading time from markdown body" do
     repository = ContentRepository.new
     markdown = <<~MARKDOWN
@@ -72,7 +110,7 @@ class ContentRepositoryTest < ActiveSupport::TestCase
       }
     }
 
-    assert_equal [ AuthoredChallenge::FILTER_LABEL, "Hard", "Web" ], repository.metadata_tags(metadata)
+    assert_equal [ AuthoredChallenge::FILTER_LABEL, "difficulty:hard", "Web" ], repository.metadata_tags(metadata)
     assert_equal [ AuthoredChallenge::FILTER_LABEL, "Web" ], repository.metadata_tags(metadata, include_difficulty: false)
     assert_equal [ "Web" ], repository.metadata_tags("categories" => [ "web" ])
   end
@@ -270,6 +308,32 @@ class ContentRepositoryTest < ActiveSupport::TestCase
       assert_equal asset, repository.ctf_asset(asset[:id])
       assert_equal asset[:path].basename.to_s, asset[:basename]
       assert asset[:path].file?
+    end
+  end
+
+  test "warm document snapshots respect publishing edits additions and deletion" do
+    with_content_roots do |paths|
+      metadata = { "sample" => { "title" => "Sample", "category" => "Post" } }
+      create_repository = -> { repository_for(paths, ctf_metadata: {}, blog_metadata: metadata) }
+      file = paths[:blog].join("sample.md")
+      assert_empty create_repository.call.blog_posts
+
+      write_markdown(file, title: "Sample")
+      assert_equal [ "sample" ], create_repository.call.blog_posts.map { |post| post[:slug] }
+      published_body = create_repository.call.blog_post("sample")[:body]
+      write_markdown(file, title: "Sample", extra: "hidden: true")
+      assert_empty create_repository.call.blog_posts
+      assert_empty create_repository.call.feed_posts
+
+      write_markdown(file, title: "Sample")
+      restored = create_repository.call.blog_post("sample")
+      assert_equal published_body, restored[:body]
+      restored[:metadata]["title"] = "Consumer mutation"
+      assert_equal "Sample", create_repository.call.blog_post("sample")[:metadata]["title"]
+
+      file.delete
+      assert_empty create_repository.call.blog_posts
+      assert_empty create_repository.call.feed_posts
     end
   end
 

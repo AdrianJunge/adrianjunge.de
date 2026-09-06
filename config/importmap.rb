@@ -3,17 +3,15 @@
 pin "application", preload: true
 
 pin "sidebar", to: "sidebar.js"
-pin "stable_hover", to: "stable_hover.js"
 pin "landing", to: "landing.js"
-pin "terminal", to: "terminal.js"
-pin "ctf", to: "ctf.js"
+pin "terminal_launcher", to: "terminal_launcher.js"
+pin "terminal", to: "terminal.js", preload: false
 pin "blog", to: "blog.js"
 pin "content_filters", to: "content_filters.js"
 pin "aboutme", to: "aboutme.js"
-pin "page_background", to: "page_background.js"
 pin "mathjax_loader", to: "mathjax_loader.js"
 
-pin "xterm", to: "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"
-pin "xterm-addon-fit", to: "https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"
+pin "xterm", to: "https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/lib/xterm.mjs", preload: false
+pin "xterm-addon-fit", to: "https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.11.0/lib/addon-fit.mjs", preload: false
 
-pin "typed.js", to: "https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.module.js"
+pin "typed.js", to: "https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.module.js", preload: false

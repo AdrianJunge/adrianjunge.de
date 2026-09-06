@@ -8,6 +8,8 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "main.aboutme-page"
+    assert_select ".aboutme-section:not([open])", 6
+    assert_select ".aboutme-section[open]", 0
     assert_select ".taskbar-link[href=?]", about_path, text: /About me/
 
     ContentTestHelpers::ABOUT_COLLECTIONS.each do |spec|

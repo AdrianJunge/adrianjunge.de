@@ -33,6 +33,7 @@ class FeedsControllerTest < ActionDispatch::IntegrationTest
     document = Nokogiri::XML(response.body)
     assert_empty document.errors
     namespace = { "atom" => "http://www.w3.org/2005/Atom" }
+    assert_equal "Adrian Junge", document.at_xpath("/atom:feed/atom:author/atom:name", namespace).text
     assert_equal "adrianjunge.de", document.at_xpath("/atom:feed/atom:title", namespace).text
     assert_equal expected_feed_urls,
                  document.xpath("/atom:feed/atom:entry/atom:link[@rel='alternate']", namespace).map { |node| node["href"] }
@@ -73,6 +74,56 @@ class FeedsControllerTest < ActionDispatch::IntegrationTest
 
     get "/blog/feed.json"
     assert_redirected_to feed_json_path
+
+    get "/blog/feed.xml"
+    assert_redirected_to feed_xml_path
+
+    get "/ctf/feed.xml"
+    assert_redirected_to feed_xml_path
+  end
+
+  test "feeds are stable across requests and honor conditional validators" do
+    [ feed_path, feed_xml_path, feed_path(format: :atom), feed_json_path ].each do |path|
+      get path
+      assert_response :success
+      body = response.body
+      etag = response.headers.fetch("ETag")
+      get path
+      assert_equal body, response.body
+      assert_equal etag, response.headers["ETag"]
+      get path, headers: { "If-None-Match" => etag }
+      assert_response :not_modified
+      assert_empty response.body
+    end
+  end
+
+  test "editing relevant feed fields changes the validator without changing publication" do
+    repository = fixture_content_repository
+    with_stubbed_content_repository(repository) do
+      get feed_json_path
+      etag = response.headers.fetch("ETag")
+      post = repository.blog_posts.first
+      published = post[:published]
+      post[:title] = "Revised fixture title"
+      post[:modified] = published + 1.day
+      get feed_json_path, headers: { "If-None-Match" => etag }
+      assert_response :success
+      assert_not_equal etag, response.headers["ETag"]
+      item = JSON.parse(response.body).fetch("items").find { |entry| entry["title"] == post[:title] }
+      assert_equal published.iso8601, item["date_published"]
+      assert_equal post[:modified].iso8601, item["date_modified"]
+    end
+  end
+
+  test "empty feeds use a deterministic epoch" do
+    repository = Object.new
+    repository.define_singleton_method(:feed_posts) { [] }
+    with_stubbed_content_repository(repository) do
+      get feed_path
+      assert_response :success
+      document = Nokogiri::XML(response.body)
+      assert_equal ContentDate::EPOCH.rfc2822, document.at_xpath("/rss/channel/lastBuildDate").text
+    end
   end
 
   private

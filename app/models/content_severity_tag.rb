@@ -32,6 +32,6 @@ module ContentSeverityTag
   end
 
   def normalized(value)
-    value.to_s.strip.downcase.gsub(/\s+/, " ")
+    value.to_s.strip.downcase.delete_prefix("severity:").gsub(/\s+/, " ")
   end
 end

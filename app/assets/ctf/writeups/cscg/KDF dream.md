@@ -11,6 +11,7 @@ difficulty: Medium
 ctf_year: 2025
 challengefiles: kdf-dream
 published: "2025-05-02"
+has_math: true
 optional:
     writeup_winner:
         label: Best challenge writeup

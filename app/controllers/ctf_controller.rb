@@ -1,5 +1,4 @@
 class CtfController < ApplicationController
-  include ActionView::Helpers::SanitizeHelper
   include MarkdownHelper
 
   def index
@@ -55,37 +54,18 @@ class CtfController < ApplicationController
     @ctfs = content_repository.ctf_metadata
     @ctf_name = event[:name]
     @ctf = event[:metadata]
-    @markdown_content = post[:content]
+    @markdown_content = post[:body]
     @ctf_info = post[:metadata]
+    @published_time = post[:published]
+    @modified_time = post[:modified]
+    @has_math = @ctf_info["has_math"]
 
     @headings = []
-    @html_content = render_markdown(@markdown_content, headings: @headings)
+    @html_content = render_markdown(@markdown_content, headings: @headings, parsed: true)
     @challenge_file = content_repository.ctf_asset_for(post, :challenge)
     @pdf_writeup = content_repository.ctf_asset_for(post, :writeup)
 
     @previous_writeup, @next_writeup = get_previous_and_next_writeup(@which, @writeup)
-  end
-
-  def feed
-    @items = content_repository.ctf_posts.map do |item|
-      parsed = content_repository.parse_markdown(item[:content])
-      description = (item[:description].presence || parsed&.content.to_s[0, 800]).to_s
-      link = url_for(controller: "ctf", action: "writeup", which: item[:directory], writeup: item[:slug], only_path: false)
-
-      {
-        ctf: item[:directory],
-        title: sanitize(item[:title]),
-        description: sanitize(description, tags: %w[p br strong em a code pre img], attributes: %w[href src alt title]),
-        link: link,
-        pub_date: item[:published],
-        guid: link
-      }
-    end
-
-    respond_to do |format|
-      format.rss { render layout: false }
-      format.atom { render layout: false }
-    end
   end
 
   private

@@ -25,12 +25,13 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
       }
     }
 
-    assert_select "details.aboutme-finding-card.aboutme-about-card-achievement.aboutme-achievement-card[data-animated-details='true']"
+    assert_select "article.aboutme-finding-card.aboutme-about-card-achievement.aboutme-achievement-card > details.profile-card-details"
     assert_select ".aboutme-card-link-overlay", 0
-    assert_select "summary h3", text: "Example milestone"
+    assert_select ".aboutme-card-header h3", text: "Example milestone"
     assert_select "summary h3 a", 0
-    assert_select "summary .aboutme-finding-main"
-    assert_select "summary .aboutme-finding-project + .aboutme-finding-badges a[href=?]",
+    assert_select ".aboutme-card-header .aboutme-finding-main"
+    assert_select "summary a, summary button", 0
+    assert_select ".aboutme-card-header .aboutme-finding-project + .aboutme-finding-badges a[href=?]",
                   "https://example.com/competition",
                   text: "Competition"
     assert_select ".aboutme-finding-badges time", 0

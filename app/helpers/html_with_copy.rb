@@ -13,23 +13,27 @@ class HtmlWithCopy < Redcarpet::Render::HTML
   UNNUMBERED_HEADING_PATTERN = /\A(?:tl;?dr|tldr)\z/i
 
   class CodeBlockLineFormatter < Rouge::Formatter
-    def initialize(formatter, line_count)
+    def initialize(formatter, line_count, trailing_newline: false)
       @formatter = Rouge::Formatters::HTML.assert_html_formatter!(formatter)
       @line_count = [ line_count.to_i, 1 ].max
+      @trailing_newline = trailing_newline
     end
 
     def stream(tokens)
       line_number = 0
 
       token_lines(tokens) do |line_tokens|
+        yield "\n" unless line_number.zero?
         line_number += 1
         stream_line(line_number, line_tokens) { |piece| yield piece }
       end
 
       while line_number < @line_count
+        yield "\n" unless line_number.zero?
         line_number += 1
         stream_line(line_number, []) { |piece| yield piece }
       end
+      yield "\n" if @trailing_newline
     end
 
     private
@@ -37,7 +41,9 @@ class HtmlWithCopy < Redcarpet::Render::HTML
     def stream_line(line_number, line_tokens)
       yield %(<span class="code-line" data-line="#{line_number}"><span class="code-line-content">)
       line_tokens.each do |token, value|
-        yield @formatter.span(token, value)
+        # Rouge's default HTML escaping intentionally drops carriage returns.
+        # Preserve them as entities so DOM text also retains CRLF source files.
+        yield @formatter.safe_span(token, CGI.escapeHTML(value).gsub("\r", "&#13;"))
       end
       yield %(</span></span>)
     end
@@ -51,19 +57,16 @@ class HtmlWithCopy < Redcarpet::Render::HTML
   end
 
   def block_code(code, language)
-    display_code = code_for_display(code)
-    lexer        = Rouge::Lexer.find_fancy(language || "text", display_code)
+    source       = code.to_s
+    lexer        = code_lexer(language, source)
     formatter    = Rouge::Formatters::HTML.new
-    highlighted  = CodeBlockLineFormatter.new(formatter, line_count(display_code)).format(lexer.lex(display_code))
-
-    escaped = CGI.escapeHTML(code.to_s)
+    highlighted  = CodeBlockLineFormatter.new(formatter, line_count(source), trailing_newline: source.end_with?("\n")).format(lexer.lex(source))
 
     <<~HTML
       <div class="code-block">
-        <button class="copy-btn" data-code="#{escaped}" title="Copy to clipboard">
-          📋
-        </button>
-        <pre class="highlight"><code>#{highlighted}</code></pre>
+        <button class="copy-btn" type="button" aria-label="Copy code" title="Copy to clipboard">📋</button>
+        <span class="copy-status visually-hidden" role="status"></span>
+        <pre class="highlight" tabindex="0" aria-label="Code sample"><code>#{highlighted}</code></pre>
       </div>
     HTML
   end
@@ -74,6 +77,7 @@ class HtmlWithCopy < Redcarpet::Render::HTML
     toc_text = [ number, heading[:plain_text] ].compact.join(" ")
     anchor = unique_anchor(slugify(heading[:plain_text]))
     alias_anchors = heading[:explicit_ids].filter_map { |id| reserve_anchor_alias(id, anchor) }
+    display_level = [ heading[:depth] + 2, 6 ].min
 
     @headings << {
       text: toc_text,
@@ -82,9 +86,9 @@ class HtmlWithCopy < Redcarpet::Render::HTML
     }
 
     <<~HTML
-      <h#{level}>
+      <h#{display_level}>
         #{heading_number_span(number)}<span class="markdown-heading-text">#{heading[:html]}</span><a id="#{escape_attribute(anchor)}"></a>#{alias_anchors.join}
-      </h#{level}>
+      </h#{display_level}>
     HTML
   end
 
@@ -104,12 +108,12 @@ class HtmlWithCopy < Redcarpet::Render::HTML
   end
 
   def image(link, title, alt)
-    image_attributes = {
-      src: link.to_s,
+    image_attributes = ContentImageHelper.image_attributes(link.to_s, sizes: "(max-width: 480px) calc(100vw - 4rem), 384px").merge(
       alt: alt.to_s,
       title: title.to_s.presence,
-      loading: "lazy"
-    }
+      loading: "lazy",
+      decoding: "async"
+    )
     caption = alt.to_s.presence
 
     image_html = %(<img#{html_attributes(image_attributes)}>)
@@ -222,11 +226,13 @@ class HtmlWithCopy < Redcarpet::Render::HTML
     CGI.escapeHTML(value.to_s)
   end
 
-  def code_for_display(code)
-    code.to_s.sub(/\r?\n\z/, "")
+  def code_lexer(language, source)
+    Rouge::Lexer.find_fancy(language.presence || "text", source) || Rouge::Lexers::PlainText.new
+  rescue Rouge::Guesser::Ambiguous
+    Rouge::Lexers::PlainText.new
   end
 
   def line_count(code)
-    [ code.split("\n", -1).length, 1 ].max
+    [ code.split("\n", -1).length - (code.end_with?("\n") ? 1 : 0), 1 ].max
   end
 end

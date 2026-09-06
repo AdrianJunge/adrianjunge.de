@@ -1,0 +1,1009 @@
+{
+  "blog/ffmpeg.png": {
+    "height": 384,
+    "src": "variants/blog/ffmpeg-384.webp",
+    "variants": [
+      {
+        "path": "variants/blog/ffmpeg-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/blog/ffmpeg-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/blog/ffmpeg-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "blog/htb-cpts.png": {
+    "height": 384,
+    "src": "variants/blog/htb-cpts-372.webp",
+    "variants": [
+      {
+        "path": "variants/blog/htb-cpts-93.webp",
+        "width": 93
+      },
+      {
+        "path": "variants/blog/htb-cpts-186.webp",
+        "width": 186
+      },
+      {
+        "path": "variants/blog/htb-cpts-372.webp",
+        "width": 372
+      }
+    ],
+    "width": 372
+  },
+  "blog/java.png": {
+    "height": 384,
+    "src": "variants/blog/java-384.webp",
+    "variants": [
+      {
+        "path": "variants/blog/java-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/blog/java-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/blog/java-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "blog/joomla.png": {
+    "height": 256,
+    "src": "variants/blog/joomla-256.webp",
+    "variants": [
+      {
+        "path": "variants/blog/joomla-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/blog/joomla-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/blog/joomla-256.webp",
+        "width": 256
+      }
+    ],
+    "width": 256
+  },
+  "blog/leetcode.png": {
+    "height": 384,
+    "src": "variants/blog/leetcode-384.webp",
+    "variants": [
+      {
+        "path": "variants/blog/leetcode-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/blog/leetcode-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/blog/leetcode-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "blog/posts/climbing-stairs/pascal-diagonal-recurrence.svg": {
+    "height": 443,
+    "src": "blog/posts/climbing-stairs/pascal-diagonal-recurrence.svg",
+    "width": 820
+  },
+  "blog/posts/climbing-stairs/pascal-diagonal.svg": {
+    "height": 439,
+    "src": "blog/posts/climbing-stairs/pascal-diagonal.svg",
+    "width": 760
+  },
+  "blog/posts/climbing-stairs/tilings-n5.svg": {
+    "height": 680,
+    "src": "blog/posts/climbing-stairs/tilings-n5.svg",
+    "width": 600
+  },
+  "blog/posts/htb-cpts/cpts-certificate.png": {
+    "height": 932,
+    "src": "variants/blog/posts/htb-cpts/cpts-certificate.webp",
+    "width": 1304
+  },
+  "blog/posts/java-strings/java-string-pool.png": {
+    "height": 249,
+    "src": "variants/blog/posts/java-strings/java-string-pool.webp",
+    "width": 450
+  },
+  "blog/posts/joomla-sqli/finder-search-false-browser.png": {
+    "height": 351,
+    "src": "variants/blog/posts/joomla-sqli/finder-search-false-browser.webp",
+    "width": 555
+  },
+  "blog/posts/joomla-sqli/finder-search-true-browser.png": {
+    "height": 423,
+    "src": "variants/blog/posts/joomla-sqli/finder-search-true-browser.webp",
+    "width": 638
+  },
+  "blog/posts/joomla-sqli/publisher-created-by-alias-browser.png": {
+    "height": 1214,
+    "src": "variants/blog/posts/joomla-sqli/publisher-created-by-alias-browser.webp",
+    "width": 1387
+  },
+  "blog/solana.svg": {
+    "height": 312,
+    "src": "blog/solana.svg",
+    "width": 398
+  },
+  "ctf/categories/crypto.png": {
+    "height": 384,
+    "src": "variants/ctf/categories/crypto-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/categories/crypto-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/categories/crypto-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/categories/crypto-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/categories/default.svg": {
+    "height": 2048,
+    "src": "ctf/categories/default.svg",
+    "width": 2048
+  },
+  "ctf/categories/dotnet.png": {
+    "height": 384,
+    "src": "variants/ctf/categories/dotnet-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/categories/dotnet-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/categories/dotnet-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/categories/dotnet-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/categories/privilege escalation.png": {
+    "height": 384,
+    "src": "variants/ctf/categories/privilege-escalation-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/categories/privilege-escalation-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/categories/privilege-escalation-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/categories/privilege-escalation-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/categories/pwn.png": {
+    "height": 384,
+    "src": "variants/ctf/categories/pwn-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/categories/pwn-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/categories/pwn-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/categories/pwn-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/categories/web.png": {
+    "height": 384,
+    "src": "variants/ctf/categories/web-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/categories/web-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/categories/web-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/categories/web-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/cscg.png": {
+    "height": 384,
+    "src": "variants/ctf/cscg-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/cscg-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/cscg-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/cscg-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/dhm.png": {
+    "height": 384,
+    "src": "variants/ctf/dhm-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/dhm-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/dhm-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/dhm-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/dvctf.png": {
+    "height": 384,
+    "src": "variants/ctf/dvctf-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/dvctf-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/dvctf-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/dvctf-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/ehax.png": {
+    "height": 150,
+    "src": "variants/ctf/ehax-150.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/ehax-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/ehax-150.webp",
+        "width": 150
+      }
+    ],
+    "width": 150
+  },
+  "ctf/fcsc.png": {
+    "height": 216,
+    "src": "variants/ctf/fcsc-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/fcsc-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/fcsc-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/fcsc-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/gpnctf.png": {
+    "height": 384,
+    "src": "variants/ctf/gpnctf-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/gpnctf-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/gpnctf-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/gpnctf-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/kitctf.png": {
+    "height": 384,
+    "src": "variants/ctf/kitctf-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/kitctf-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/kitctf-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/kitctf-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/lactf.png": {
+    "height": 384,
+    "src": "variants/ctf/lactf-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/lactf-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/lactf-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/lactf-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/sekaictf.png": {
+    "height": 384,
+    "src": "variants/ctf/sekaictf-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/sekaictf-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/sekaictf-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/sekaictf-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/smileyctf.png": {
+    "height": 384,
+    "src": "variants/ctf/smileyctf-384.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/smileyctf-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/ctf/smileyctf-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/ctf/smileyctf-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "ctf/umdctf.png": {
+    "height": 384,
+    "src": "variants/ctf/umdctf-250.webp",
+    "variants": [
+      {
+        "path": "variants/ctf/umdctf-62.webp",
+        "width": 62
+      },
+      {
+        "path": "variants/ctf/umdctf-125.webp",
+        "width": 125
+      },
+      {
+        "path": "variants/ctf/umdctf-250.webp",
+        "width": 250
+      }
+    ],
+    "width": 250
+  },
+  "ctf/writeups/cscg/airsmeller/landing_page.png": {
+    "height": 541,
+    "src": "variants/ctf/writeups/cscg/airsmeller/landing_page.webp",
+    "width": 701
+  },
+  "ctf/writeups/cscg/everyonelovescanteenfood/landing_page.png": {
+    "height": 923,
+    "src": "variants/ctf/writeups/cscg/everyonelovescanteenfood/landing_page.webp",
+    "width": 1182
+  },
+  "ctf/writeups/cscg/everyonelovescanteenfood/sqli.png": {
+    "height": 252,
+    "src": "variants/ctf/writeups/cscg/everyonelovescanteenfood/sqli.webp",
+    "width": 1016
+  },
+  "ctf/writeups/cscg/hoster/flag_requestbin.png": {
+    "height": 253,
+    "src": "variants/ctf/writeups/cscg/hoster/flag_requestbin.webp",
+    "width": 681
+  },
+  "ctf/writeups/cscg/hoster/psauxw.png": {
+    "height": 204,
+    "src": "variants/ctf/writeups/cscg/hoster/psauxw.webp",
+    "width": 1143
+  },
+  "ctf/writeups/cscg/hoster/pspy.png": {
+    "height": 438,
+    "src": "variants/ctf/writeups/cscg/hoster/pspy.webp",
+    "width": 749
+  },
+  "ctf/writeups/cscg/kdfdream/casual_dh.png": {
+    "height": 347,
+    "src": "variants/ctf/writeups/cscg/kdfdream/casual_dh.webp",
+    "width": 1296
+  },
+  "ctf/writeups/cscg/kdfdream/mitm_dh.png": {
+    "height": 598,
+    "src": "variants/ctf/writeups/cscg/kdfdream/mitm_dh.webp",
+    "width": 1462
+  },
+  "ctf/writeups/cscg/photoeditor/flag_pastebin.png": {
+    "height": 326,
+    "src": "variants/ctf/writeups/cscg/photoeditor/flag_pastebin.webp",
+    "width": 750
+  },
+  "ctf/writeups/cscg/photoeditor/rick.png": {
+    "height": 672,
+    "src": "variants/ctf/writeups/cscg/photoeditor/rick.webp",
+    "width": 1028
+  },
+  "ctf/writeups/cscg/vidplow/add_category.png": {
+    "height": 197,
+    "src": "variants/ctf/writeups/cscg/vidplow/add_category.webp",
+    "width": 882
+  },
+  "ctf/writeups/cscg/vidplow/error.png": {
+    "height": 79,
+    "src": "variants/ctf/writeups/cscg/vidplow/error.webp",
+    "width": 878
+  },
+  "ctf/writeups/cscg/vidplow/movie.png": {
+    "height": 371,
+    "src": "variants/ctf/writeups/cscg/vidplow/movie.webp",
+    "width": 1826
+  },
+  "ctf/writeups/dvctf/tarboom/flag.png": {
+    "height": 557,
+    "src": "variants/ctf/writeups/dvctf/tarboom/flag.webp",
+    "width": 885
+  },
+  "ctf/writeups/dvctf/tarboom/landing.png": {
+    "height": 518,
+    "src": "variants/ctf/writeups/dvctf/tarboom/landing.webp",
+    "width": 878
+  },
+  "ctf/writeups/dvctf/tarboom/normal_upload.png": {
+    "height": 690,
+    "src": "variants/ctf/writeups/dvctf/tarboom/normal_upload.webp",
+    "width": 881
+  },
+  "ctf/writeups/dvctf/tarboom/rce.png": {
+    "height": 701,
+    "src": "variants/ctf/writeups/dvctf/tarboom/rce.webp",
+    "width": 883
+  },
+  "ctf/writeups/ehax/cashmemo/binja_edit.png": {
+    "height": 568,
+    "src": "variants/ctf/writeups/ehax/cashmemo/binja_edit.webp",
+    "width": 1338
+  },
+  "ctf/writeups/ehax/cashmemo/gdb_heapleak_tcache.png": {
+    "height": 266,
+    "src": "variants/ctf/writeups/ehax/cashmemo/gdb_heapleak_tcache.webp",
+    "width": 1405
+  },
+  "ctf/writeups/ehax/cashmemo/gdb_heapleak_unsortedbin.png": {
+    "height": 243,
+    "src": "variants/ctf/writeups/ehax/cashmemo/gdb_heapleak_unsortedbin.webp",
+    "width": 1358
+  },
+  "ctf/writeups/ehax/cashmemo/gdb_tcache_poisoning.png": {
+    "height": 696,
+    "src": "variants/ctf/writeups/ehax/cashmemo/gdb_tcache_poisoning.webp",
+    "width": 1190
+  },
+  "ctf/writeups/ehax/fantasticdoom/binja.png": {
+    "height": 608,
+    "src": "variants/ctf/writeups/ehax/fantasticdoom/binja.webp",
+    "width": 735
+  },
+  "ctf/writeups/ehax/fantasticdoom/checksec.png": {
+    "height": 80,
+    "src": "variants/ctf/writeups/ehax/fantasticdoom/checksec.webp",
+    "width": 1889
+  },
+  "ctf/writeups/ehax/fantasticdoom/cli.png": {
+    "height": 363,
+    "src": "variants/ctf/writeups/ehax/fantasticdoom/cli.webp",
+    "width": 3810
+  },
+  "ctf/writeups/fcsc/corsplayground/corsplayground.png": {
+    "height": 787,
+    "src": "variants/ctf/writeups/fcsc/corsplayground/corsplayground.webp",
+    "width": 446
+  },
+  "ctf/writeups/gpnctf/scanwich-station/01-home-page.png": {
+    "height": 669,
+    "src": "variants/ctf/writeups/gpnctf/scanwich-station/01-home-page.webp",
+    "width": 808
+  },
+  "ctf/writeups/gpnctf/scanwich-station/02-image-before-libc.png": {
+    "height": 405,
+    "src": "variants/ctf/writeups/gpnctf/scanwich-station/02-image-before-libc.webp",
+    "width": 1079
+  },
+  "ctf/writeups/gpnctf/scanwich-station/03-pattern-before-libc.png": {
+    "height": 409,
+    "src": "variants/ctf/writeups/gpnctf/scanwich-station/03-pattern-before-libc.webp",
+    "width": 969
+  },
+  "ctf/writeups/gpnctf/scanwich-station/04-oversized-munmap.png": {
+    "height": 531,
+    "src": "variants/ctf/writeups/gpnctf/scanwich-station/04-oversized-munmap.webp",
+    "width": 972
+  },
+  "ctf/writeups/gpnctf/smileatme/create_note.png": {
+    "height": 682,
+    "src": "variants/ctf/writeups/gpnctf/smileatme/create_note.webp",
+    "width": 686
+  },
+  "ctf/writeups/kitctf/xmalloc/fake-chunk-in-got-into-one-gadget.png": {
+    "height": 544,
+    "src": "variants/ctf/writeups/kitctf/xmalloc/fake-chunk-in-got-into-one-gadget.webp",
+    "width": 1032
+  },
+  "ctf/writeups/kitctf/xmalloc/fake-chunk-in-got.png": {
+    "height": 674,
+    "src": "variants/ctf/writeups/kitctf/xmalloc/fake-chunk-in-got.webp",
+    "width": 996
+  },
+  "ctf/writeups/kitctf/xmalloc/first-overflow-state-get-cookie.png": {
+    "height": 503,
+    "src": "variants/ctf/writeups/kitctf/xmalloc/first-overflow-state-get-cookie.webp",
+    "width": 777
+  },
+  "ctf/writeups/kitctf/xmalloc/initial-state.png": {
+    "height": 522,
+    "src": "variants/ctf/writeups/kitctf/xmalloc/initial-state.webp",
+    "width": 776
+  },
+  "ctf/writeups/kitctf/xmalloc/new-chain-freed-small-chunks-reach-in-got.png": {
+    "height": 761,
+    "src": "variants/ctf/writeups/kitctf/xmalloc/new-chain-freed-small-chunks-reach-in-got.webp",
+    "width": 970
+  },
+  "ctf/writeups/kitctf/xmalloc/new-chain-freed-small-chunks.png": {
+    "height": 1190,
+    "src": "variants/ctf/writeups/kitctf/xmalloc/new-chain-freed-small-chunks.webp",
+    "width": 1439
+  },
+  "ctf/writeups/lactf/gamedev/gdb_libc_leak_pointer.png": {
+    "height": 241,
+    "src": "variants/ctf/writeups/lactf/gamedev/gdb_libc_leak_pointer.webp",
+    "width": 1149
+  },
+  "ctf/writeups/sekaictf/fancyweb/landing.png": {
+    "height": 631,
+    "src": "variants/ctf/writeups/sekaictf/fancyweb/landing.webp",
+    "width": 1398
+  },
+  "ctf/writeups/sekaictf/fancyweb/landing_2.png": {
+    "height": 651,
+    "src": "variants/ctf/writeups/sekaictf/fancyweb/landing_2.webp",
+    "width": 1396
+  },
+  "ctf/writeups/sekaictf/fancyweb/landing_test_payload.png": {
+    "height": 316,
+    "src": "variants/ctf/writeups/sekaictf/fancyweb/landing_test_payload.webp",
+    "width": 1597
+  },
+  "ctf/writeups/sekaictf/myflaskapp/miku_chat.png": {
+    "height": 365,
+    "src": "variants/ctf/writeups/sekaictf/myflaskapp/miku_chat.webp",
+    "width": 897
+  },
+  "ctf/writeups/smileyctf/leaf/landing_page.png": {
+    "height": 737,
+    "src": "variants/ctf/writeups/smileyctf/leaf/landing_page.webp",
+    "width": 1181
+  },
+  "ctf/writeups/umdctf/aminecraftmovie/accountoverview.png": {
+    "height": 352,
+    "src": "variants/ctf/writeups/umdctf/aminecraftmovie/accountoverview.webp",
+    "width": 1153
+  },
+  "ctf/writeups/umdctf/aminecraftmovie/adminliked.png": {
+    "height": 260,
+    "src": "variants/ctf/writeups/umdctf/aminecraftmovie/adminliked.webp",
+    "width": 585
+  },
+  "ctf/writeups/umdctf/aminecraftmovie/domclobberedsessionnumber.png": {
+    "height": 347,
+    "src": "variants/ctf/writeups/umdctf/aminecraftmovie/domclobberedsessionnumber.webp",
+    "width": 962
+  },
+  "ctf/writeups/umdctf/aminecraftmovie/flag.png": {
+    "height": 207,
+    "src": "variants/ctf/writeups/umdctf/aminecraftmovie/flag.webp",
+    "width": 514
+  },
+  "ctf/writeups/umdctf/aminecraftmovie/landingoverview.png": {
+    "height": 684,
+    "src": "variants/ctf/writeups/umdctf/aminecraftmovie/landingoverview.webp",
+    "width": 1167
+  },
+  "ctf/writeups/umdctf/aminecraftmovie/posttesting.png": {
+    "height": 229,
+    "src": "variants/ctf/writeups/umdctf/aminecraftmovie/posttesting.webp",
+    "width": 611
+  },
+  "ctf/writeups/umdctf/aminecraftmovie/sessionnumberinlikingpost.png": {
+    "height": 346,
+    "src": "variants/ctf/writeups/umdctf/aminecraftmovie/sessionnumberinlikingpost.webp",
+    "width": 917
+  },
+  "ctf/writeups/umdctf/aminecraftmovie/xsstest.png": {
+    "height": 293,
+    "src": "variants/ctf/writeups/umdctf/aminecraftmovie/xsstest.webp",
+    "width": 582
+  },
+  "favicon.svg": {
+    "height": 225,
+    "src": "favicon.svg",
+    "width": 225
+  },
+  "landing/kit.png": {
+    "height": 384,
+    "src": "variants/landing/kit-384.webp",
+    "variants": [
+      {
+        "path": "variants/landing/kit-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/landing/kit-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/landing/kit-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "landing/kitctf.png": {
+    "height": 384,
+    "src": "variants/landing/kitctf-384.webp",
+    "variants": [
+      {
+        "path": "variants/landing/kitctf-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/landing/kitctf-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/landing/kitctf-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "landing/profile.webp": {
+    "height": 128,
+    "src": "landing/profile.webp",
+    "width": 128
+  },
+  "landing/social-card.png": {
+    "height": 630,
+    "src": "landing/social-card.png",
+    "width": 1200
+  },
+  "other/achievement.svg": {
+    "height": 96,
+    "src": "other/achievement.svg",
+    "width": 96
+  },
+  "other/bug-bounty.svg": {
+    "height": 96,
+    "src": "other/bug-bounty.svg",
+    "width": 96
+  },
+  "other/certificate.svg": {
+    "height": 96,
+    "src": "other/certificate.svg",
+    "width": 96
+  },
+  "other/churchcrm.png": {
+    "height": 384,
+    "src": "variants/other/churchcrm-384.webp",
+    "variants": [
+      {
+        "path": "variants/other/churchcrm-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/other/churchcrm-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/other/churchcrm-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "other/cve.svg": {
+    "height": 96,
+    "src": "other/cve.svg",
+    "width": 96
+  },
+  "other/ffmpeg.png": {
+    "height": 384,
+    "src": "variants/other/ffmpeg-384.webp",
+    "variants": [
+      {
+        "path": "variants/other/ffmpeg-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/other/ffmpeg-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/other/ffmpeg-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "other/immunefi.png": {
+    "height": 384,
+    "src": "variants/other/immunefi-384.webp",
+    "variants": [
+      {
+        "path": "variants/other/immunefi-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/other/immunefi-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/other/immunefi-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "other/solana-firedancer.png": {
+    "height": 320,
+    "src": "variants/other/solana-firedancer-309.webp",
+    "variants": [
+      {
+        "path": "variants/other/solana-firedancer-93.webp",
+        "width": 93
+      },
+      {
+        "path": "variants/other/solana-firedancer-185.webp",
+        "width": 185
+      },
+      {
+        "path": "variants/other/solana-firedancer-309.webp",
+        "width": 309
+      }
+    ],
+    "width": 309
+  },
+  "other/suitecrm.png": {
+    "height": 384,
+    "src": "variants/other/suitecrm-384.webp",
+    "variants": [
+      {
+        "path": "variants/other/suitecrm-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/other/suitecrm-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/other/suitecrm-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "other/talk-slides.png": {
+    "height": 375,
+    "src": "variants/other/talk-slides-384.webp",
+    "variants": [
+      {
+        "path": "variants/other/talk-slides-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/other/talk-slides-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/other/talk-slides-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
+  },
+  "task-bar/about.svg": {
+    "height": 512,
+    "src": "task-bar/about.svg",
+    "width": 512
+  },
+  "task-bar/arrow-left.svg": {
+    "height": 20,
+    "src": "task-bar/arrow-left.svg",
+    "width": 21
+  },
+  "task-bar/arrow-right.svg": {
+    "height": 20,
+    "src": "task-bar/arrow-right.svg",
+    "width": 21
+  },
+  "task-bar/blog.svg": {
+    "height": 800,
+    "src": "task-bar/blog.svg",
+    "width": 800
+  },
+  "task-bar/discord.svg": {
+    "height": 800,
+    "src": "task-bar/discord.svg",
+    "width": 800
+  },
+  "task-bar/error.svg": {
+    "height": 800,
+    "src": "task-bar/error.svg",
+    "width": 800
+  },
+  "task-bar/feed-atom.svg": {
+    "height": 683,
+    "src": "task-bar/feed-atom.svg",
+    "width": 683
+  },
+  "task-bar/feed-json.svg": {
+    "height": 24,
+    "src": "task-bar/feed-json.svg",
+    "width": 24
+  },
+  "task-bar/feed-rss.svg": {
+    "height": 683,
+    "src": "task-bar/feed-rss.svg",
+    "width": 683
+  },
+  "task-bar/feed.svg": {
+    "height": 683,
+    "src": "task-bar/feed.svg",
+    "width": 683
+  },
+  "task-bar/flag.svg": {
+    "height": 512,
+    "src": "task-bar/flag.svg",
+    "width": 512
+  },
+  "task-bar/github.svg": {
+    "height": 96,
+    "src": "task-bar/github.svg",
+    "width": 98
+  },
+  "task-bar/home.svg": {
+    "height": 512,
+    "src": "task-bar/home.svg",
+    "width": 512
+  },
+  "task-bar/instagram.svg": {
+    "height": 800,
+    "src": "task-bar/instagram.svg",
+    "width": 800
+  },
+  "task-bar/linkedin.svg": {
+    "height": 512,
+    "src": "task-bar/linkedin.svg",
+    "width": 512
+  },
+  "task-bar/mail.svg": {
+    "height": 800,
+    "src": "task-bar/mail.svg",
+    "width": 800
+  },
+  "task-bar/pgp.svg": {
+    "height": 128,
+    "src": "task-bar/pgp.svg",
+    "width": 128
+  },
+  "task-bar/post.svg": {
+    "height": 800,
+    "src": "task-bar/post.svg",
+    "width": 800
+  },
+  "task-bar/telegram.svg": {
+    "height": 800,
+    "src": "task-bar/telegram.svg",
+    "width": 800
+  },
+  "task-bar/terminal-prompt.svg": {
+    "height": 24,
+    "src": "task-bar/terminal-prompt.svg",
+    "width": 24
+  },
+  "task-bar/terminal.svg": {
+    "height": 2051,
+    "src": "task-bar/terminal.svg",
+    "width": 2500
+  },
+  "task-bar/timeline.svg": {
+    "height": 800,
+    "src": "task-bar/timeline.svg",
+    "width": 800
+  },
+  "terminal/close-icon.svg": {
+    "height": 800,
+    "src": "terminal/close-icon.svg",
+    "width": 800
+  },
+  "terminal/maximize-icon.svg": {
+    "height": 800,
+    "src": "terminal/maximize-icon.svg",
+    "width": 800
+  },
+  "terminal/minimize-icon.svg": {
+    "height": 800,
+    "src": "terminal/minimize-icon.svg",
+    "width": 800
+  }
+}

@@ -5,7 +5,7 @@ module ContentUiHelper
 
   def content_tag_badge(label, classes:, title: nil, url: nil, filter_scope: nil, filter_tag: label, aria_label: nil, static_class: nil, label_class: nil, arrow: nil, link_target: nil, timeline_redirect: true)
     label = ContentTagTaxonomy.canonical_label(label)
-    filter_tag = ContentTagTaxonomy.canonical_label(filter_tag.presence || label)
+    filter_tag = ContentTagTaxonomy.canonical_value(filter_tag.presence || label)
     timeline_link = url.blank? && filter_scope.blank? && timeline_redirect && filter_tag.present?
     url = timeline_filter_path(tag: filter_tag) if timeline_link
     action = url.present? || filter_scope.present?
@@ -62,7 +62,8 @@ module ContentUiHelper
       cwe: cwe
     )
     label = style[:label]
-    tag_value = ContentTagTaxonomy.canonical_label(tag_value.presence || raw_label)
+    tag_type = severity_key.present? ? :severity : (:difficulty if difficulty_key.present?)
+    tag_value = ContentTagTaxonomy.canonical_value(tag_value.presence || raw_label, type: tag_type)
     classes = [ "filter-chip", class_name, *style[:classes] ]
 
     interactive = false if scope.blank?
@@ -112,6 +113,7 @@ module ContentUiHelper
     content_tag_badge(
       label,
       classes: classes,
+      filter_tag: ContentTagTaxonomy.canonical_value(label, type: :difficulty),
       title: title.presence || "Challenge difficulty: #{label}"
     )
   end
@@ -223,6 +225,8 @@ module ContentUiHelper
   end
 
   def content_tag_style(label, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, cve: false, cwe: false)
+    difficulty_key ||= label if label.to_s.start_with?("difficulty:")
+    severity_key ||= label if label.to_s.start_with?("severity:")
     label = ContentTagTaxonomy.canonical_label(label)
     classes = []
     label_class = nil

@@ -3,7 +3,7 @@ module SeoHelper
   SITE_AUTHOR = "Adrian Junge".freeze
   DEFAULT_DESCRIPTION =
     "Security research, CVEs, bug bounty work, source review, CTF writeups, and technical notes by Adrian Junge.".freeze
-  DEFAULT_IMAGE = "landing/profile.png".freeze
+  DEFAULT_IMAGE = "landing/social-card.png".freeze
 
   def seo_meta_tags(title: nil, description: DEFAULT_DESCRIPTION, type: "website", canonical_path: nil,
                     image: DEFAULT_IMAGE, noindex: false, published_time: nil, modified_time: nil, tags: [],
@@ -190,16 +190,10 @@ module SeoHelper
     return selected_image if selected_image.to_s.match?(%r{\Ahttps?://}i)
 
     asset_url(selected_image)
-  rescue StandardError
-    nil
   end
 
   def seo_time(value)
-    return value.iso8601 if value.respond_to?(:iso8601)
-
-    Time.zone.parse(value.to_s).iso8601
-  rescue StandardError
-    nil
+    ContentDate.parse(value)&.iso8601
   end
 
   def seo_person_reference

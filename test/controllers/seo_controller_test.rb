@@ -14,8 +14,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_json_ld_type "WebSite"
     assert_json_ld_type "SearchAction", nested: true
     assert_select "script[type='application/ld+json']", text: %r{/timeline\?q=\{search_term_string\}}
-    assert_select "link[rel='stylesheet'][href=?]", TerminalHelper::XTERM_CSS_CDN_URL
-    assert_select "link[rel='stylesheet'][href^='#{asset_path_prefix}'][href*='xterm.css']", 0
+    assert_select "link[rel='stylesheet'][href*='xterm']", 0
     assert_select "link[rel='alternate'][title='adrianjunge.de (RSS)'][href=?]", feed_xml_url
     assert_select "link[rel='alternate'][title='adrianjunge.de (Atom)'][href=?]", feed_url(format: :atom)
     assert_select "link[rel='alternate'][title='adrianjunge.de (JSON Feed)'][href=?]", feed_json_url
@@ -45,6 +44,9 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_equal "#{post[:title]} - #{section} writeup", article.fetch("headline")
     assert_equal section, article.fetch("articleSection")
     assert_equal absolute_url_for(post[:link]), article.fetch("url")
+    assert_equal SeoHelper::SITE_AUTHOR, article.fetch("author").fetch("name")
+    assert_equal post[:published].iso8601, article.fetch("datePublished")
+    assert_equal post[:modified].iso8601, article.fetch("dateModified")
     assert_json_ld_type "BreadcrumbList"
   end
 
@@ -142,6 +144,14 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "User-agent: *"
     assert_includes response.body, "Allow: /"
     assert_includes response.body, "Sitemap: https://adrianjunge.de/sitemap.xml"
+  end
+
+  test "sitemap honors conditional requests" do
+    get "/sitemap.xml"
+    assert_response :success
+    etag = response.headers.fetch("ETag")
+    get "/sitemap.xml", headers: { "If-None-Match" => etag }
+    assert_response :not_modified
   end
 
   private

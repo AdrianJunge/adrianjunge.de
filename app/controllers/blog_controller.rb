@@ -1,5 +1,4 @@
 class BlogController < ApplicationController
-  include ActionView::Helpers::SanitizeHelper
   include MarkdownHelper
 
   def index
@@ -17,34 +16,19 @@ class BlogController < ApplicationController
 
     @post_slug = post[:slug]
     @blogs = content_repository.blog_metadata
-    @markdown_content = post[:content]
+    @markdown_content = post[:body]
     @blog_info = post[:metadata]
+    @published_time = post[:published]
+    @modified_time = post[:modified]
+    @has_math = @blog_info["has_math"]
     blog_config = @blogs.fetch(@post_slug)
 
     @headings = []
-    @html_content = render_markdown(@markdown_content, headings: @headings)
+    @html_content = render_markdown(@markdown_content, headings: @headings, parsed: true)
 
     @blog_category = blog_config["category"] || "Post"
-    @blog_title = blog_config["title"].presence || @blog_info["title"].presence || @post_slug.humanize
+    @blog_title = post[:title]
     @previous_post, @next_post = get_previous_and_next_post(@post_slug)
-  end
-
-  def feed
-    @items = content_repository.blog_posts.map do |item|
-      {
-        blog: item[:item],
-        title: item[:title],
-        description: sanitize(item[:description], tags: %w[p br strong em a code pre img], attributes: %w[href src alt title]),
-        link: item[:link],
-        pub_date: item[:published],
-        guid: item[:link]
-      }
-    end
-
-    respond_to do |format|
-      format.rss { render layout: false }
-      format.atom { render layout: false }
-    end
   end
 
   private

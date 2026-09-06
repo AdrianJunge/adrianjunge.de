@@ -1,6 +1,14 @@
-@import 'tailwindcss';
+@layer theme, base, components, utilities;
+@import 'tailwindcss' source(none);
+@import '../../../tmp/stylesheets/rouge.css' layer(components);
+@import '../stylesheets/aboutme.css' layer(components);
+@import '../stylesheets/content_pages.css' layer(components);
+@import '../stylesheets/footer.css' layer(components);
+@import '../stylesheets/application.css' layer(components);
 
-/* @config "./../../../tailwind.config.js"; */
+@source '../../views';
+@source '../../helpers';
+@source '../../javascript';
 
 @theme static {
   --color-default: #091a2d;
@@ -27,7 +35,6 @@
     --radius-ui-pill: 0.72rem;
     --motion-fast: 0.18s ease;
     --motion-standard: 0.2s ease-in-out;
-    --page-background-height: 100dvh;
   }
 
   @media (min-width: 480px) {
@@ -81,11 +88,4 @@
     box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, var(--color-tertiary) 24%, transparent);
   }
 
-  .ui-pill {
-    @apply inline-flex items-center rounded-3xl border border-cyan-300/30 px-3 py-1 text-sm font-medium;
-  }
-
-  .ui-tag-pill {
-    @apply inline-flex items-center rounded-3xl border border-cyan-300/30 px-2 py-1 text-xs font-medium;
-  }
 }

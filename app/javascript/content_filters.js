@@ -177,6 +177,7 @@ function setChipState(scope, activeTags, uncombinableTags = new Set(), panelChip
 }
 
 function shouldReleaseChipFocus(pointerType) {
+  if (pointerType === 'keyboard') return false;
   if (pointerType === 'touch' || pointerType === 'pen') return true;
   if (!window.matchMedia) return false;
 
@@ -203,125 +204,11 @@ function validSelectValue(select, value) {
   return Array.from(select.options).some(option => option.value === value) ? value : '';
 }
 
-function initYearDropdown(panel, scope, select, onChange) {
-  const wrap = panel.querySelector(`[data-year-dropdown="${scope}"]`);
-  const button = panel.querySelector(`[data-year-dropdown-button="${scope}"]`);
-  const label = panel.querySelector(`[data-year-dropdown-label="${scope}"]`);
-  const menu = panel.querySelector(`[data-year-dropdown-menu="${scope}"]`);
-  const options = Array.from(panel.querySelectorAll(`[data-year-dropdown-option="${scope}"]`));
-  const animationDuration = 0;
-  if (!wrap || !button || !label || !menu || !select || options.length === 0) return null;
-
-  function prefersReducedMotion() {
-    return true;
-  }
-
-  function sync() {
-    const selectedOption = select.selectedOptions[0];
-    label.textContent = selectedOption ? selectedOption.textContent : 'All years';
-    options.forEach(option => {
-      const active = option.dataset.yearValue === select.value;
-      option.classList.toggle('is-active', active);
-      option.setAttribute('aria-selected', active.toString());
-    });
-  }
-
-  function close() {
-    window.clearTimeout(menu.yearDropdownTimer);
-    wrap.classList.remove('is-open');
-    button.setAttribute('aria-expanded', 'false');
-    menu.classList.remove('is-opening');
-
-    if (menu.hidden) return;
-
-    if (prefersReducedMotion()) {
-      menu.hidden = true;
-      menu.classList.remove('is-closing');
-      return;
-    }
-
-    menu.classList.add('is-closing');
-    menu.yearDropdownTimer = window.setTimeout(() => {
-      menu.hidden = true;
-      menu.classList.remove('is-closing');
-    }, animationDuration);
-  }
-
-  function open() {
-    window.clearTimeout(menu.yearDropdownTimer);
-    menu.hidden = false;
-    menu.classList.remove('is-closing');
-    wrap.classList.add('is-open');
-    button.setAttribute('aria-expanded', 'true');
-
-    if (!prefersReducedMotion()) {
-      menu.classList.add('is-opening');
-      window.requestAnimationFrame(() => {
-        menu.classList.remove('is-opening');
-      });
-    }
-
-    (options.find(option => option.dataset.yearValue === select.value) || options[0]).focus();
-  }
-
-  function choose(option) {
-    select.value = option.dataset.yearValue || '';
-    sync();
-    close();
-    button.focus();
-    onChange();
-  }
-
-  button.addEventListener('click', event => {
-    event.stopPropagation();
-    if (button.getAttribute('aria-expanded') !== 'true') {
-      open();
-    } else {
-      close();
-    }
-  });
-
-  button.addEventListener('keydown', event => {
-    if (event.key !== 'ArrowDown' && event.key !== 'Enter' && event.key !== ' ') return;
-    event.preventDefault();
-    open();
-  });
-
-  options.forEach((option, index) => {
-    option.addEventListener('click', event => {
-      event.preventDefault();
-      event.stopPropagation();
-      choose(option);
-    });
-
-    option.addEventListener('keydown', event => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        close();
-        button.focus();
-      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        event.preventDefault();
-        const direction = event.key === 'ArrowDown' ? 1 : -1;
-        const nextIndex = (index + direction + options.length) % options.length;
-        options[nextIndex].focus();
-      } else if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        choose(option);
-      }
-    });
-  });
-
-  document.addEventListener('click', event => {
-    if (!wrap.contains(event.target)) close();
-  });
-
-  sync();
-  return { sync, close };
-}
-
 function initFilterPanel(panel) {
   const scope = panel.dataset.filterScope;
-  if (!scope) return;
+  if (!scope || panel.dataset.initialized) return;
+  panel.dataset.initialized = 'true';
+  panel.inert = false;
 
   const search = panel.querySelector(`[data-filter-search="${scope}"]`);
   const searchWrapper = search && search.closest('.search-wrapper');
@@ -335,20 +222,28 @@ function initFilterPanel(panel) {
   const cardRecords = cards.map(buildCardRecord);
   const chips = Array.from(document.querySelectorAll(`[data-filter-tag][data-filter-scope="${scope}"]`));
   const panelChips = Array.from(panel.querySelectorAll(`[data-filter-tag][data-filter-scope="${scope}"]`));
+  const moreFilters = panel.querySelector('.content-filter-more');
+  const moreFilterChips = moreFilters ? panelChips.filter(chip => moreFilters.contains(chip)) : [];
   const tagLabels = new Map(chips.map(chip => [normalizeToken(chip.dataset.filterTag), chip.dataset.filterTag]));
   const activeTags = new Set();
-  let yearDropdown = null;
-
+  const groups = Array.from(document.querySelectorAll(`[data-filter-group="${scope}"]`)).map(group => ({
+    group, cards: Array.from(group.querySelectorAll(`[data-filter-card="${scope}"]`)),
+    count: group.querySelector(`[data-filter-group-count="${scope}"]`)
+  }));
+  function legacyTag(tag) {
+    const typed = `difficulty:${tag === 'introductory' ? 'intro' : tag}`;
+    return tagLabels.has(typed) ? typed : tag;
+  }
   function readStateFromUrl() {
     const params = new URLSearchParams(window.location.search);
     if (search) search.value = params.get('q') || '';
     if (year) year.value = validSelectValue(year, params.get('year') || '');
 
     activeTags.clear();
-    tagValuesFromParams(params).forEach(tag => activeTags.add(tag));
+    tagValuesFromParams(params).forEach(tag => activeTags.add(legacyTag(tag)));
   }
 
-  function writeStateToUrl(query, selectedYear) {
+  function writeStateToUrl(query, selectedYear, replace = false) {
     if (!window.history || !window.history.replaceState) return;
 
     const url = new URL(window.location.href);
@@ -367,7 +262,7 @@ function initFilterPanel(panel) {
 
     const nextUrl = `${url.pathname}${url.search}${url.hash}`;
     const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    if (nextUrl !== currentUrl) window.history.replaceState({}, '', nextUrl);
+    if (nextUrl !== currentUrl) window.history[replace ? 'replaceState' : 'pushState']({}, '', nextUrl);
   }
 
   function applyFilters(options = {}) {
@@ -394,23 +289,27 @@ function initFilterPanel(panel) {
       }
     });
 
-    document.querySelectorAll(`[data-filter-group="${scope}"]`).forEach(group => {
-      const groupCards = Array.from(group.querySelectorAll(`[data-filter-card="${scope}"]`));
+    groups.forEach(({ group, cards: groupCards, count: groupCount }) => {
       const groupVisible = groupCards.filter(card => card.getAttribute('aria-hidden') !== 'true').length;
-      const groupCount = group.querySelector(`[data-filter-group-count="${scope}"]`);
       group.hidden = groupCards.length > 0 && groupVisible === 0;
-      group.setAttribute('aria-hidden', group.hidden.toString());
-
       if (groupCount) {
-        groupCount.textContent = `${groupVisible} ${groupVisible === 1 ? 'item' : 'items'}`;
+        const value = `${groupVisible} ${groupVisible === 1 ? 'item' : 'items'}`;
+        if (groupCount.textContent !== value) groupCount.textContent = value;
       }
     });
 
     setChipState(scope, activeTags, uncombinableTagsFor(visibleRecords, activeTags, panelChips), panelChips);
+    // Keep the original toggle visible when a URL, result tag, or history entry
+    // selects a filter outside the compact common group. Never close a group
+    // the reader has opened themselves when a filter is removed.
+    if (moreFilters && moreFilterChips.some(chip => activeTags.has(normalizeToken(chip.dataset.filterTag)))) {
+      moreFilters.open = true;
+    }
 
     if (count) {
       const label = cards.length === 1 ? 'item' : 'items';
-      count.textContent = `${visible} / ${cards.length} ${label}`;
+      const value = `${visible} / ${cards.length} ${label}`;
+      if (count.textContent !== value) count.textContent = value;
     }
 
     if (searchWrapper) searchWrapper.classList.toggle('is-filled', query !== '');
@@ -426,17 +325,15 @@ function initFilterPanel(panel) {
       reset.setAttribute('aria-hidden', (!resetVisible).toString());
       reset.tabIndex = resetVisible ? 0 : -1;
     }
-    if (yearDropdown) yearDropdown.sync();
-    if (updateUrl) writeStateToUrl(query, selectedYear);
+    if (updateUrl) writeStateToUrl(query, selectedYear, options.replace === true);
     document.dispatchEvent(new CustomEvent('content:filters-applied', {
       detail: { scope, visible, total: cards.length }
     }));
   }
 
   readStateFromUrl();
-  if (search) search.addEventListener('input', applyFilters);
+  if (search) search.addEventListener('input', () => applyFilters({ replace: true }));
   if (year) year.addEventListener('change', applyFilters);
-  yearDropdown = initYearDropdown(panel, scope, year, applyFilters);
   if (clear && search) {
     clear.addEventListener('click', () => {
       search.value = '';
@@ -449,7 +346,6 @@ function initFilterPanel(panel) {
       if (search) search.value = '';
       if (year) year.value = '';
       activeTags.clear();
-      if (yearDropdown) yearDropdown.close();
       applyFilters();
     });
   }
@@ -486,6 +382,7 @@ function initFilterPanel(panel) {
     chip.addEventListener('keydown', event => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
+      pointerType = 'keyboard';
       chip.click();
     });
   });
@@ -494,8 +391,13 @@ function initFilterPanel(panel) {
     readStateFromUrl();
     applyFilters({ updateUrl: false });
   });
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    readStateFromUrl();
+    applyFilters({ updateUrl: false });
+  });
 
-  applyFilters();
+  applyFilters({ replace: true });
 }
 
 function initContentFilters() {

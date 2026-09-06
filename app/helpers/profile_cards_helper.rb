@@ -25,19 +25,21 @@ module ProfileCardsHelper
     }.merge(profile_card_link_options(url))
   end
 
-  def profile_card_tag(label:, url: nil, class_name: nil, datetime: nil)
+  def profile_card_tag(label:, url: nil, class_name: nil, datetime: nil, filter_tag: nil)
     return nil if label.blank?
 
+    tag_value = ContentTagTaxonomy.canonical_value(filter_tag.presence || label)
+    raw_label = filter_tag.presence || label
     label = ContentTagTaxonomy.canonical_label(label)
     timeline_link = url.blank? && datetime.blank?
-    url = timeline_filter_path(tag: label) if timeline_link
+    url = timeline_filter_path(tag: tag_value) if timeline_link
     linked = url.present?
     tag_classes = [
       "aboutme-card-tag",
       ("aboutme-tag-#{label.parameterize}" if label.present?),
       (linked ? "aboutme-tag-action" : "aboutme-tag-static"),
       ("aboutme-tag-timeline" if timeline_link),
-      *aboutme_tag_style_classes(label, class_name),
+      *aboutme_tag_style_classes(raw_label, class_name),
       ("ui-hover-lift" if linked)
     ].compact.uniq.join(" ")
 
@@ -76,7 +78,7 @@ module ProfileCardsHelper
       icon: entry["icon"].presence || profile_about_default_icon(kind),
       title: entry["title"],
       description: entry["subtitle"].presence,
-      tags: profile_about_tags(entry),
+      tags: profile_about_tags(entry, kind: kind),
       body_blocks: body_blocks,
       timeline: timeline_items,
       timeline_title: profile_about_timeline_title(kind),
@@ -122,8 +124,14 @@ module ProfileCardsHelper
     end
   end
 
-  def profile_about_tags(entry)
-    aboutme_extra_tags(entry["tags"])
+  def profile_about_tags(entry, kind:)
+    aboutme_extra_tags(entry["tags"]).map do |tag|
+      if %w[cve bug-bounty].include?(kind.to_s) && ContentSeverityTag.recognized?(tag[:label])
+        tag.merge(filter_tag: ContentTagTaxonomy.canonical_value(tag[:label], type: :severity))
+      else
+        tag
+      end
+    end
   end
 
   def profile_about_reference_links(entry)

@@ -1,0 +1,64 @@
+/* Site footer. */
+.site-footer {
+    position: relative;
+    overflow: hidden;
+    padding: 1.25rem 1rem 1.4rem;
+    border-top: 1px solid rgba(125, 211, 252, 0.24);
+    background: rgba(7, 31, 52, 0.96);
+    box-shadow: inset 0 1px 0 rgba(226, 232, 240, 0.08);
+}
+
+.site-footer::before {
+    display: none;
+}
+
+.footer-container {
+    position: relative;
+    z-index: 1;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-bottom: 0.75rem;
+}
+
+.footer-link {
+    display: inline-grid;
+    place-items: center;
+    width: clamp(2.35rem, calc(var(--taskbar-icon-size) * 0.72), 3.2rem);
+    height: clamp(2.35rem, calc(var(--taskbar-icon-size) * 0.72), 3.2rem);
+    border-radius: var(--radius-ui-control);
+    transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+}
+
+.footer-icon {
+    width: 58%;
+    height: 58%;
+    object-fit: contain;
+    filter: brightness(0) saturate(100%) invert(88%) sepia(40%) saturate(455%) hue-rotate(170deg) brightness(102%) contrast(96%) drop-shadow(0 0 0.35rem rgba(125, 211, 252, 0.36));
+    pointer-events: none;
+}
+
+.footer-info {
+    color: rgba(226, 232, 240, 0.78);
+    font-size: clamp(0.75rem, 1.25vmin, 0.9rem);
+    line-height: 1.35;
+}
+
+.footer-info a {
+    color: #7dd3fc;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.footer-info a:hover,
+.footer-info a:focus-visible {
+    color: #f8fafc;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+    outline: none;
+}

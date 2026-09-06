@@ -1,7 +1,14 @@
 module CtfHelper
+  include ContentImageHelper
+
   CATEGORY_ICON_ASSET_ROOT = Rails.root.join("app", "assets", "images")
   CATEGORY_ICON_DIRECTORY = CATEGORY_ICON_ASSET_ROOT.join("ctf", "categories")
   DEFAULT_CATEGORY_ICON = "default.svg"
+
+  def article_authors(metadata)
+    entries = Array(metadata["article_authors"]).filter_map { |entry| author_from_entry(entry, {}) }
+    entries.presence || [ { name: SeoHelper::SITE_AUTHOR, url: about_path } ]
+  end
 
   def get_category_svg(category)
     icon_path = category_icon_path(category)
@@ -9,7 +16,7 @@ module CtfHelper
 
     return inline_svg if inline_svg.present?
 
-    image_tag(category_icon_asset_name(icon_path), alt: "#{category} category", class: "blog-logo")
+    content_image_tag(category_icon_asset_name(icon_path), alt: "#{category} category", class: "blog-logo", sizes: "96px")
   end
 
   def get_category_icon(categories)
@@ -47,7 +54,7 @@ module CtfHelper
     solve_count_label = writeup_solve_count_label(info)
     points_label = writeup_points_label(info)
     challenge_stats_label = writeup_challenge_stats_label(info)
-    filter_tags = ([ winner_filter_label, authored_filter_label, difficulty_label ] + categories).compact
+    filter_tags = ContentTagTaxonomy.canonical_values([ winner_filter_label, authored_filter_label, difficulty_label ] + categories)
     filter_text = ([ title, description, published, published_year, solve_count_label, points_label, challenge_stats_label, difficulty_label, winner_label, winner_filter_label, authored_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
 
     tags = []
@@ -244,14 +251,14 @@ module CtfHelper
     category_name = ContentCategoryTag.normalized(category)
     icon_names = [ category_name, ContentCategoryTag.css_key(category) ].reject(&:blank?).uniq
 
-    category_icon_directory.children
-                           .select { |path| path.file? && icon_names.include?(category_icon_file_key(path)) }
-                           .sort_by do |path|
-                             file_key = category_icon_file_key(path)
-                             [ icon_names.index(file_key) || icon_names.length, path.basename.to_s ]
-                           end
-                           .first ||
+    icon_names.filter_map { |name| category_icon_manifest[name] }.first ||
       category_icon_directory.join(DEFAULT_CATEGORY_ICON)
+  end
+
+  def category_icon_manifest
+    @category_icon_manifest ||= category_icon_directory.children.select(&:file?).sort.each_with_object({}) do |path, icons|
+      icons[category_icon_file_key(path)] ||= path
+    end
   end
 
   def category_icon_file_key(path)
@@ -264,8 +271,9 @@ module CtfHelper
   end
 
   def category_icon_slice(category, index, count)
-    image = image_tag(
+    image = content_image_tag(
       category_icon_asset_name(category_icon_path(category)),
+      sizes: "96px",
       alt: "",
       class: "category-split-icon-image"
     )
@@ -322,7 +330,7 @@ module CtfHelper
   def inline_category_svg(icon_path)
     return nil unless icon_path.extname.downcase == ".svg"
 
-    svg = File.read(icon_path, mode: "r:UTF-8")
+    svg = ContentSnapshot.fetch(icon_path) { |content| content }.dup
     return nil unless svg.valid_encoding? && svg.include?("<svg")
 
     svg.sub("<svg", '<svg style="width: 6vh; height: 6vh;" ')
@@ -404,11 +412,7 @@ module CtfHelper
   end
 
   def writeup_year(info)
-    return Time.parse(info["published"].to_s).year if info["published"].present?
-
-    info["year"].presence
-  rescue StandardError
-    info["year"].presence
+    ContentDate.parse(info["published"].presence || info["year"])&.year
   end
 
   def writeup_ctf_year(info)

@@ -23,10 +23,12 @@ class AboutmeFindingCardTest < ActionView::TestCase
       }
     }
 
-    assert_select "details.aboutme-finding-card-cve"
-    assert_select "summary", text: /Example Project/
-    assert_select "summary .aboutme-finding-main > .aboutme-finding-project:first-child"
-    assert_select "summary .aboutme-finding-project + .aboutme-finding-badges"
+    assert_select "article.aboutme-finding-card-cve[data-card-disclosure] > details.profile-card-details"
+    assert_select "article[role='button'], article[tabindex]", 0
+    assert_select "summary[aria-label='Details for Example Project']", text: "Details"
+    assert_select ".aboutme-card-header .aboutme-finding-main > .aboutme-finding-project:first-child"
+    assert_select ".aboutme-card-header .aboutme-finding-project + .aboutme-finding-badges"
+    assert_select "summary a, summary button", 0
     assert_select "summary .aboutme-finding-project-link", 0
     assert_select "summary a[href=?]", "https://github.com/example/project", 0
     assert_select "summary a[href=?]", "https://github.com/example/project/security/advisories/GHSA-example", 0
@@ -68,6 +70,7 @@ class AboutmeFindingCardTest < ActionView::TestCase
 
     assert_select "details.aboutme-finding-card-bug-bounty", 0
     assert_select "article.aboutme-finding-card-static.aboutme-finding-card-bug-bounty"
+    assert_select "[data-card-disclosure]", 0
     assert_select ".aboutme-cve-id", 0
     assert_select ".aboutme-cwe-id", 0
     assert_no_match(/CVE ID/, rendered)

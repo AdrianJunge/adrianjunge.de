@@ -6,8 +6,8 @@
 <% body_classes = Array(local_assigns.fetch(:body_class, "content-card-body")).compact.join(" ") %>
 <% wrap_content = local_assigns.fetch(:wrap_content, media.present? || media_html.present?) %>
 <% wrap_body = local_assigns.fetch(:wrap_body, body_classes.present?) %>
-<% content_tag_name = (local_assigns[:content_tag_name].presence || :span).to_sym %>
-<% body_tag_name = (local_assigns[:body_tag_name].presence || :span).to_sym %>
+<% content_tag_name = (local_assigns[:content_tag_name].presence || :div).to_sym %>
+<% body_tag_name = (local_assigns[:body_tag_name].presence || :div).to_sym %>
 
 <% media_content = capture do %>
   <% if media.present? || media_html.present? %>
@@ -16,7 +16,7 @@
       <% if media_html.present? %>
         <%= media_html %>
       <% elsif media[:image].present? %>
-        <%= image_tag(media[:image], alt: media[:alt].presence || "", class: [ "content-card-image", media[:image_class] ].compact.join(" ")) %>
+        <%= content_image_tag(media[:image], alt: media[:alt].presence || "", class: [ "content-card-image", media[:image_class] ].compact.join(" ")) %>
       <% elsif media[:placeholder].present? %>
         <span class="<%= [ "content-card-placeholder", media[:placeholder_class] ].compact.join(" ") %>"><%= media[:placeholder] %></span>
       <% end %>

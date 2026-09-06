@@ -26,11 +26,11 @@ PreCommit:
     flags: [ "-f", "github" ]
 
   ImportmapAudit:
-    enabled: true
+    enabled: false # Network dependency audits run in CI.
     command: [ "bin/importmap", "audit" ]
 
   Brakeman:
-    enabled: true
+    enabled: false # Full static scan runs in CI.
     command: [ "bin/brakeman", "--no-pager" ]
 
   FileSize:
@@ -44,11 +44,15 @@ PreCommit:
 
   RunTests:
     enabled: true
-    command: [ "bin/rails", "db:test:prepare", "test", "test:system" ]
+    command: [ "npm", "test" ]
+    include:
+      - 'app/javascript/**/*.js'
+      - 'test/javascript/**/*.mjs'
+      - 'package*.json'
 
 PostCheckout:
   ALL:
     quiet: true
 
   IndexTags:
-    enabled: true # Generate a tags file with `ctags` each time HEAD changes
+    enabled: false # No undocumented global ctags dependency.

@@ -5,37 +5,37 @@ class ContentIndex
 
   ABOUT_COLLECTIONS = [
     {
-      path: ApplicationController::ABOUTME_CVES_PATH,
+      path: ContentConfiguration::ABOUTME_CVES_PATH,
       kind: "cve",
       label: "CVE",
       section: "cves"
     },
     {
-      path: ApplicationController::ABOUTME_BUG_BOUNTIES_PATH,
+      path: ContentConfiguration::ABOUTME_BUG_BOUNTIES_PATH,
       kind: "bug-bounty",
       label: "Bug bounty",
       section: "bug-bounties"
     },
     {
-      path: ApplicationController::ABOUTME_CHALLENGES_PATH,
+      path: ContentConfiguration::ABOUTME_CHALLENGES_PATH,
       kind: "challenge",
       label: AuthoredChallenge::FILTER_LABEL,
       section: "my-challenges"
     },
     {
-      path: ApplicationController::ABOUTME_CERTIFICATES_PATH,
+      path: ContentConfiguration::ABOUTME_CERTIFICATES_PATH,
       kind: "certificate",
       label: "Certificate",
       section: "certificates"
     },
     {
-      path: ApplicationController::ABOUTME_TALKS_PATH,
+      path: ContentConfiguration::ABOUTME_TALKS_PATH,
       kind: "talk",
       label: "Talk",
       section: "talks"
     },
     {
-      path: ApplicationController::ABOUTME_ACHIEVEMENTS_PATH,
+      path: ContentConfiguration::ABOUTME_ACHIEVEMENTS_PATH,
       kind: "achievement",
       label: "Achievement",
       section: "achievements"
@@ -73,7 +73,6 @@ class ContentIndex
         display_date: post[:published].strftime("%Y-%m-%d"),
         link: post[:link],
         tags: [ post[:which] ] + repository.metadata_tags(metadata),
-        search_parts: [ post[:which], post[:title], metadata, post[:content] ],
         timeline_group: metadata["timeline_group"].presence,
         logo: post[:logo],
         reading_time_minutes: post[:reading_time_minutes],
@@ -101,7 +100,6 @@ class ContentIndex
         display_date: post[:published].strftime("%Y-%m-%d"),
         link: post[:link],
         tags: [ post[:which] ] + repository.metadata_tags(metadata),
-        search_parts: [ post[:which], post[:title], metadata, post[:content] ],
         timeline_group: metadata["timeline_group"].presence || blog_metadata.dig(post[:slug], "timeline_group").presence,
         logo: blog_metadata.dig(post[:slug], "logo"),
         reading_time_minutes: post[:reading_time_minutes],
@@ -146,7 +144,6 @@ class ContentIndex
         display_date: display_date,
         link: link,
         tags: tags,
-        search_parts: [ collection[:label], entry ],
         timeline_group: entry["timeline_group"].presence,
         logo: about_entry_icon(entry, collection),
         source: entry["title"].presence || "About"
@@ -181,7 +178,6 @@ class ContentIndex
         display_date: about_timeline_event_display_date(event, published),
         link: "/about##{event_id}",
         tags: tags,
-        search_parts: [ collection[:label], entry, event ],
         timeline_group: event["timeline_group"].presence,
         logo: event["icon"].presence || about_entry_icon(entry, collection)
       )
@@ -195,7 +191,7 @@ class ContentIndex
     attrs.merge(
       kind_labels: kind_labels,
       tags: tags,
-      search_text: search_text_for(attrs.values + kind_labels + tags)
+      search_text: search_text_for([ attrs[:title], attrs[:description], attrs[:source], attrs[:display_date], tags.map { |tag| ContentTagTaxonomy.canonical_label(tag) } ])
     )
   end
 
@@ -273,7 +269,15 @@ class ContentIndex
     extra_tags = [ collection[:label] ]
     extra_tags << entry["title"] if %w[cve bug-bounty].include?(collection[:kind])
 
-    (extra_tags + about_tag_labels(entry["tags"]))
+    tags = about_tag_labels(entry["tags"]).map do |tag|
+      if %w[cve bug-bounty].include?(collection[:kind]) && ContentSeverityTag.recognized?(tag)
+        ContentTagTaxonomy.canonical_value(tag, type: :severity)
+      else
+        ContentTagTaxonomy.canonical_value(tag)
+      end
+    end
+
+    (extra_tags + tags)
       .map(&:to_s)
       .reject(&:blank?)
       .uniq { |tag| tag.downcase }

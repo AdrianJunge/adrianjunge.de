@@ -14,6 +14,7 @@ module ContentTagTaxonomy
     "CTF Team",
     "Audit Competition"
   ].freeze
+  CONTENT_TYPE_LOOKUP = CONTENT_TYPE_LABELS.to_h { |label| [ label.downcase, label ] }.freeze
 
   TECHNICAL_LABELS = {
     "web" => "Web",
@@ -53,6 +54,8 @@ module ContentTagTaxonomy
   def canonical_label(value)
     raw = value.to_s.squish
     return "" if raw.blank?
+    return WriteupDifficulty.normalize(raw)[:label] if raw.start_with?("difficulty:")
+    return severity_label(raw.delete_prefix("severity:")) if raw.start_with?("severity:")
 
     return WriteupDifficulty.normalize(raw)[:label] if WriteupDifficulty.filter_label?(raw)
     return ContentVulnerabilityTag.normalized(raw) if ContentVulnerabilityTag.cve?(raw) || ContentVulnerabilityTag.cwe?(raw)
@@ -62,14 +65,32 @@ module ContentTagTaxonomy
     LABEL_ALIASES.fetch(normalized_key(raw), raw)
   end
 
+  # Legacy untyped difficulty URLs (including Medium) retain their old meaning.
+  # Severity is explicitly typed by the About collection that supplies it.
+  def canonical_value(value, type: nil)
+    raw = value.to_s.squish
+    return "" if raw.blank?
+
+    type ||= :difficulty if raw.start_with?("difficulty:")
+    type ||= :severity if raw.start_with?("severity:")
+    label = canonical_label(raw)
+    return "difficulty:#{WriteupDifficulty.css_key(label)}" if type == :difficulty || (type.nil? && WriteupDifficulty.filter_label?(label))
+    return "severity:#{ContentSeverityTag.css_key(label)}" if type == :severity || ContentSeverityTag.recognized?(label)
+
+    label
+  end
+
   def canonical_values(values)
     Array(values)
-      .map { |value| canonical_label(value) }
+      .map { |value| canonical_value(value) }
       .reject(&:blank?)
       .uniq { |value| value.downcase }
   end
 
   def group_for(value, content_labels: CONTENT_TYPE_LABELS, ctf_labels: [], repository_labels: [])
+    return :difficulty if value.to_s.start_with?("difficulty:")
+    return :severity if value.to_s.start_with?("severity:")
+
     label = canonical_label(value)
     return :recognition if recognition?(label)
     return :difficulty if WriteupDifficulty.filter_label?(label)
@@ -86,7 +107,7 @@ module ContentTagTaxonomy
 
   def sort_key(value, content_labels: CONTENT_TYPE_LABELS, ctf_labels: [], repository_labels: [])
     label = canonical_label(value)
-    group = group_for(label, content_labels: content_labels, ctf_labels: ctf_labels, repository_labels: repository_labels)
+    group = group_for(value, content_labels: content_labels, ctf_labels: ctf_labels, repository_labels: repository_labels)
     group_index = GROUP_ORDER.index(group) || GROUP_ORDER.length
     specific_key =
       case group
@@ -126,7 +147,8 @@ module ContentTagTaxonomy
   end
 
   def recognition?(value)
-    [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(canonical_label(value))
+    label = canonical_label(value)
+    label == WriteupWinner::FILTER_LABEL || label == AuthoredChallenge::FILTER_LABEL
   end
 
   def normalized_key(value)
@@ -149,12 +171,13 @@ module ContentTagTaxonomy
 
   def content_type?(value, content_labels = CONTENT_TYPE_LABELS)
     label = canonical_label(value)
-    canonical_values(content_labels).any? { |content_label| content_label.casecmp?(label) }
+    return CONTENT_TYPE_LOOKUP.key?(label.downcase) if content_labels.equal?(CONTENT_TYPE_LABELS)
+
+    Array(content_labels).any? { |content_label| canonical_label(content_label).casecmp?(label) }
   end
 
   def canonical_content_type(value)
-    raw_key = normalized_key(value)
-    CONTENT_TYPE_LABELS.find { |label| normalized_key(label) == raw_key }
+    CONTENT_TYPE_LOOKUP[normalized_key(value)]
   end
 
   def severity_label(value)

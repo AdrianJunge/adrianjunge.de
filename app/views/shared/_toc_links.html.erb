@@ -1,0 +1,8 @@
+<ul class="toc-body text-slate-100">
+  <% headings.each do |heading| %>
+    <% depth = [[heading[:depth].to_i, 0].max, 4].min %>
+    <li class="toc-item toc-depth-<%= depth %>" style="--toc-depth: <%= depth %>">
+      <a href="#<%= heading[:anchor] %>" class="toc-anchor"><%= heading[:text] %></a>
+    </li>
+  <% end %>
+</ul>

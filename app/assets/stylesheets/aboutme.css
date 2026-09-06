@@ -1,0 +1,1450 @@
+/* About and shared profile components. */
+.aboutme-page,
+.landing-page {
+    --aboutme-tag-fill: rgba(14, 132, 170, 0.46);
+    --aboutme-tag-fill-active: rgba(14, 165, 233, 0.68);
+    --aboutme-reference-link: #60a5fa;
+    --aboutme-reference-link-hover: #93c5fd;
+    --aboutme-reference-focus: rgba(96, 165, 250, 0.42);
+}
+
+.aboutme-page {
+    min-height: 100dvh;
+    color: #f8fafc;
+    background: linear-gradient(180deg, rgba(110, 197, 250, 0.07) 0%, rgba(4, 22, 38, 0) 25rem);
+}
+
+.aboutme-page * {
+    box-sizing: border-box;
+}
+
+.aboutme-section {
+    width: calc(100% - 2rem);
+    max-width: 72rem;
+    margin: 0 auto;
+}
+
+.aboutme-kicker,
+.aboutme-section-kicker {
+    margin: 0 0 0.4rem;
+    color: #7dd3fc;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.aboutme-copy {
+    max-width: 100%;
+}
+
+.aboutme-copy .markdown-content,
+.aboutme-copy .markdown-content span {
+    color: rgba(248, 250, 252, 0.9) !important;
+}
+
+.aboutme-copy p {
+    margin: 0 0 1rem;
+    font-size: 1.03rem;
+    line-height: 1.72;
+}
+
+.aboutme-stats {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    margin-top: 1.65rem;
+    overflow: hidden;
+    border: 1px solid var(--glass-control-border);
+    border-radius: var(--radius-ui);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    isolation: isolate;
+}
+
+.aboutme-stat {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-height: 4.35rem;
+    min-width: 0;
+    padding: 0.8rem 0.9rem;
+    color: inherit;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: inset 1px 0 0 rgba(125, 211, 252, 0.18);
+    text-decoration: none;
+    text-align: center;
+    overflow: hidden;
+    isolation: isolate;
+    transition: color var(--motion-fast), transform var(--motion-fast);
+}
+
+.aboutme-stat:first-child {
+    box-shadow: none;
+}
+
+.aboutme-stat:hover,
+.aboutme-stat:focus-visible {
+    outline: none;
+}
+
+.aboutme-stat:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: -4px;
+}
+
+.aboutme-stat-value {
+    max-width: 100%;
+    min-width: 0;
+    color: #f8fafc;
+    font-size: 1.55rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.aboutme-stat-label {
+    max-width: 100%;
+    min-width: 0;
+    color: rgba(226, 232, 240, 0.78);
+    font-size: 0.94rem;
+    font-weight: 800;
+    line-height: 1.2;
+    hyphens: auto;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-section {
+    --aboutme-section-accent: #7dd3fc;
+    --aboutme-section-accent-soft: rgba(125, 211, 252, 0.16);
+    padding: 2.35rem 0 0;
+    scroll-margin-top: calc(var(--top-taskbar-height) + 1rem);
+}
+
+.aboutme-card,
+.aboutme-timeline li[id] {
+    scroll-margin-top: calc(var(--top-taskbar-height) + 1rem);
+}
+
+.aboutme-section:last-child {
+    padding-bottom: 4rem;
+}
+
+.aboutme-section-header {
+    display: grid;
+    position: relative;
+    align-items: center;
+    justify-content: space-between;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    margin-bottom: 1.15rem;
+    padding-bottom: 0.85rem;
+}
+
+.aboutme-section-header > div {
+    min-width: 0;
+}
+
+.aboutme-section-header::after {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 3.25rem;
+    height: 2px;
+    border-radius: var(--radius-ui-pill);
+    background: linear-gradient(90deg, var(--aboutme-section-accent), rgba(248, 250, 252, 0.22));
+    content: "";
+}
+
+.aboutme-section-title {
+    margin: 0;
+    max-width: 100%;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-section-count {
+    display: inline;
+    justify-self: end;
+    margin-left: auto;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: #fef3c7;
+    background: transparent;
+    box-shadow: none;
+    cursor: default;
+    font-weight: 700;
+    pointer-events: auto;
+    transition: none;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.aboutme-finding-grid,
+.aboutme-achievement-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+.aboutme-finding-grid > .aboutme-card,
+.aboutme-achievement-grid > .aboutme-card {
+    width: 100%;
+}
+
+.aboutme-card,
+.aboutme-empty-state {
+    border: 1px solid rgba(88, 122, 166, 0.7);
+    border-radius: var(--radius-ui);
+    background: rgba(18, 34, 56, 0.9);
+    box-shadow: 0 1rem 2rem rgba(2, 12, 24, 0.26);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.aboutme-card {
+    overflow: hidden;
+}
+
+.aboutme-page .profile-card[data-disclosure-bound="true"] {
+    cursor: pointer;
+}
+
+.aboutme-page .profile-card:has(> .profile-card-details > summary:focus-visible) {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 3px;
+}
+
+.profile-card-details > summary {
+    padding: .65rem 1.15rem;
+    border-top: 1px solid rgba(125, 164, 209, .3);
+    color: #dff7ff;
+    font-size: .9rem;
+    font-weight: 700;
+    line-height: 1.5;
+    cursor: pointer;
+}
+.profile-card-details > summary:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: -3px;
+}
+
+.aboutme-finding-card::after,
+.aboutme-achievement-card::after,
+.aboutme-achievement-event::after {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 6;
+    width: 4px;
+    background: linear-gradient(180deg, var(--profile-card-accent, var(--aboutme-section-accent, #7dd3fc)), transparent 82%);
+    content: "";
+    pointer-events: none;
+}
+
+.aboutme-card-header {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-height: 0;
+    padding: 0;
+    font-size: 0;
+    line-height: 0;
+    list-style: none;
+    transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.aboutme-card-main,
+.aboutme-finding-main {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.52rem;
+}
+
+.aboutme-card-header-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    font-size: 1rem;
+    line-height: normal;
+}
+
+.aboutme-card .blog-post-card-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 6.75rem;
+    width: 6.75rem;
+    min-width: 6.75rem;
+    align-self: stretch;
+    padding: 0.95rem;
+    border-right: 1px solid rgba(125, 164, 209, 0.42);
+    background: rgba(14, 58, 93, 0.32);
+}
+
+.aboutme-card-icon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 5rem;
+    max-height: 5rem;
+    object-fit: contain;
+}
+
+.aboutme-card .blog-post-card-details {
+    min-width: 0;
+    align-self: stretch;
+    gap: 0.52rem;
+    padding: 1rem 1.15rem;
+}
+
+.aboutme-card-title,
+.aboutme-finding-project {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-card-kicker {
+    color: #7dd3fc;
+    font-size: 0.76rem;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.aboutme-card-summary,
+.aboutme-finding-summary {
+    color: rgba(226, 232, 240, 0.82);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-card-reading-time {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin-top: -0.2rem;
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 0.82rem;
+    font-weight: 900;
+    line-height: 1.35;
+}
+
+.aboutme-card-tags,
+.aboutme-finding-badges {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.aboutme-severity,
+.aboutme-card-tag,
+.aboutme-cve-id,
+.aboutme-cwe-id {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.8rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-ui-pill);
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-cve-id {
+    --aboutme-static-tag-border: rgba(129, 140, 248, 0.78);
+    --aboutme-static-tag-ring: rgba(224, 231, 255, 0.16);
+    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(99, 102, 241, 0.24);
+    color: #e0e7ff;
+    border: 1px solid rgba(129, 140, 248, 0.78);
+    background: var(--glass-tag-highlight), rgba(49, 46, 129, 0.52);
+    text-decoration: none;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.aboutme-cwe-id {
+    --aboutme-static-tag-border: rgba(125, 211, 252, 0.5);
+    --aboutme-static-tag-ring: rgba(226, 232, 240, 0.06);
+    --aboutme-static-tag-shadow: 0 0.38rem 0.9rem rgba(2, 12, 24, 0.2);
+    color: #cffafe;
+    border: 1px solid rgba(125, 211, 252, 0.5);
+    background: var(--glass-tag-highlight), var(--aboutme-tag-fill);
+    text-decoration: none;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.aboutme-card-tag {
+    --aboutme-static-tag-border: rgba(125, 211, 252, 0.32);
+    --aboutme-static-tag-ring: rgba(226, 232, 240, 0.06);
+    --aboutme-static-tag-shadow: 0 0.38rem 0.9rem rgba(2, 12, 24, 0.2);
+    color: #cffafe;
+    border: 1px solid rgba(125, 211, 252, 0.32);
+    background: var(--glass-tag-highlight), var(--aboutme-tag-fill);
+    text-decoration: none;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+a.aboutme-card-tag {
+    gap: 0.35rem;
+    color: #cffafe;
+    border-color: rgba(125, 211, 252, 0.32);
+    background: var(--glass-tag-highlight), var(--aboutme-tag-fill);
+    cursor: pointer;
+}
+
+a.aboutme-card-tag.aboutme-tag-action::after {
+    width: 0.36rem;
+    height: 0.36rem;
+    flex: 0 0 auto;
+    border-top: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    content: "";
+    opacity: 0.72;
+    transform: translate(-0.02rem, 0.02rem) rotate(45deg);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+a.aboutme-card-tag.aboutme-tag-action:focus-visible {
+    border-color: rgba(255, 255, 255, 0.72);
+    color: #fff;
+    background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+        0 0.45rem 1rem rgba(14, 165, 233, 0.18);
+    outline: 2px solid rgba(125, 211, 252, 0.7);
+    outline-offset: 2px;
+}
+
+a.aboutme-card-tag.aboutme-tag-action:focus-visible::after {
+    opacity: 1;
+}
+
+.aboutme-card-link-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: block;
+    color: transparent;
+    font-size: 0;
+    text-decoration: none;
+}
+
+.aboutme-card-link-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+.aboutme-card > .aboutme-card-link-overlay {
+    position: absolute;
+    z-index: 3;
+}
+
+.aboutme-card-header,
+.aboutme-card-body,
+.aboutme-card-tag,
+.aboutme-cve-id,
+.aboutme-cwe-id,
+.aboutme-finding-card summary {
+    position: relative;
+    z-index: 4;
+}
+
+.aboutme-card > .aboutme-card-header,
+.aboutme-card > .aboutme-card-body {
+    position: relative;
+    z-index: 4;
+}
+
+.aboutme-card-linked .aboutme-card-header,
+.aboutme-card-linked .aboutme-card-body {
+    pointer-events: none;
+}
+
+.aboutme-card-linked .aboutme-card-tag,
+.aboutme-card-linked .aboutme-card-nested,
+.aboutme-card-linked a:not(.aboutme-card-link-overlay) {
+    pointer-events: auto;
+}
+
+.aboutme-tag-action {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.aboutme-tag-static,
+.aboutme-card-linked .aboutme-tag-static {
+    cursor: default;
+    pointer-events: auto;
+    transform: none;
+}
+
+a.aboutme-card-tag.aboutme-cve-id,
+a.aboutme-card-tag.cve-badge {
+    color: #e0e7ff;
+    border-color: rgba(129, 140, 248, 0.78);
+    background: var(--glass-tag-highlight), rgba(49, 46, 129, 0.52);
+}
+
+:not(a).aboutme-card-tag.aboutme-cve-id,
+:not(a).aboutme-card-tag.cve-badge {
+    --aboutme-static-tag-border: rgba(129, 140, 248, 0.78);
+    --aboutme-static-tag-ring: rgba(224, 231, 255, 0.16);
+    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(99, 102, 241, 0.24);
+    color: #e0e7ff;
+    border-color: rgba(129, 140, 248, 0.78);
+    background: var(--glass-tag-highlight), rgba(49, 46, 129, 0.52);
+}
+
+a.aboutme-card-tag.aboutme-cwe-id,
+a.aboutme-card-tag.cwe-badge {
+    color: #cffafe;
+    border-color: rgba(125, 211, 252, 0.5);
+    background: var(--glass-tag-highlight), var(--aboutme-tag-fill);
+}
+
+:not(a).aboutme-card-tag.aboutme-cwe-id,
+:not(a).aboutme-card-tag.cwe-badge {
+    --aboutme-static-tag-border: rgba(125, 211, 252, 0.5);
+    --aboutme-static-tag-ring: rgba(226, 232, 240, 0.06);
+    --aboutme-static-tag-shadow: 0 0.38rem 0.9rem rgba(2, 12, 24, 0.2);
+    color: #cffafe;
+    border-color: rgba(125, 211, 252, 0.5);
+    background: var(--glass-tag-highlight), var(--aboutme-tag-fill);
+}
+
+a.aboutme-cve-id:focus-visible {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.72);
+    background: var(--glass-tag-highlight), rgba(67, 56, 202, 0.7);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+        0 0.45rem 1rem rgba(99, 102, 241, 0.24);
+}
+
+a.aboutme-cwe-id:focus-visible {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.72);
+    background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+        0 0.45rem 1rem rgba(14, 165, 233, 0.18);
+}
+
+.aboutme-card-tag.aboutme-difficulty-tag {
+    font-weight: 900;
+}
+
+.aboutme-difficulty-tag-intro {
+    --aboutme-static-tag-border: rgba(186, 230, 253, 0.7);
+    --aboutme-static-tag-ring: rgba(224, 242, 254, 0.14);
+    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(14, 165, 233, 0.16);
+    color: #e0f2fe;
+    border: 1px solid rgba(186, 230, 253, 0.7);
+    background: rgba(8, 145, 178, 0.32);
+}
+
+.aboutme-difficulty-tag-easy {
+    --aboutme-static-tag-border: rgba(125, 211, 252, 0.76);
+    --aboutme-static-tag-ring: rgba(224, 242, 254, 0.16);
+    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(14, 165, 233, 0.2);
+    color: #dff7ff;
+    border: 1px solid rgba(125, 211, 252, 0.76);
+    background: rgba(14, 116, 144, 0.42);
+}
+
+.aboutme-difficulty-tag-medium {
+    --aboutme-static-tag-border: rgba(96, 165, 250, 0.78);
+    --aboutme-static-tag-ring: rgba(219, 234, 254, 0.16);
+    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(37, 99, 235, 0.24);
+    color: #dbeafe;
+    border: 1px solid rgba(96, 165, 250, 0.78);
+    background: rgba(37, 99, 235, 0.46);
+}
+
+.aboutme-difficulty-tag-hard {
+    --aboutme-static-tag-border: rgba(129, 140, 248, 0.78);
+    --aboutme-static-tag-ring: rgba(224, 231, 255, 0.16);
+    --aboutme-static-tag-shadow: 0 0.45rem 1rem rgba(99, 102, 241, 0.24);
+    color: #e0e7ff;
+    border: 1px solid rgba(129, 140, 248, 0.78);
+    background: rgba(49, 46, 129, 0.52);
+}
+
+.aboutme-difficulty-tag-insane {
+    --aboutme-static-tag-border: rgba(196, 181, 253, 0.72);
+    --aboutme-static-tag-ring: rgba(237, 233, 254, 0.16);
+    --aboutme-static-tag-shadow: 0 0.5rem 1.15rem rgba(124, 58, 237, 0.28);
+    color: #ede9fe;
+    border: 1px solid rgba(196, 181, 253, 0.72);
+    background: rgba(76, 29, 149, 0.68);
+}
+
+.aboutme-difficulty-tag-unknown {
+    --aboutme-static-tag-border: rgba(148, 163, 184, 0.62);
+    --aboutme-static-tag-ring: rgba(226, 232, 240, 0.12);
+    --aboutme-static-tag-shadow: 0 0.4rem 1rem rgba(148, 163, 184, 0.16);
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.62);
+    background: rgba(51, 65, 85, 0.46);
+}
+
+a.aboutme-cve-id:focus-visible,
+a.aboutme-cwe-id:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .aboutme-card-tag.aboutme-tag-action:hover {
+        border-color: rgba(255, 255, 255, 0.72);
+        color: #fff;
+        background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
+        box-shadow:
+            inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+            0 0.45rem 1rem rgba(14, 165, 233, 0.18);
+    }
+
+    a.aboutme-card-tag.aboutme-tag-action:hover::after {
+        opacity: 1;
+    }
+
+    .aboutme-card-tag.aboutme-tag-action.aboutme-cve-id:hover {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.72);
+        background: var(--glass-tag-highlight), rgba(67, 56, 202, 0.7);
+        box-shadow:
+            inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+            0 0.45rem 1rem rgba(99, 102, 241, 0.24);
+    }
+
+    .aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id:hover {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.72);
+        background: var(--glass-tag-highlight), var(--aboutme-tag-fill-active);
+        box-shadow:
+            inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+            0 0.45rem 1rem rgba(14, 165, 233, 0.18);
+    }
+}
+
+.aboutme-severity-critical {
+    --severity-color: #fee2e2;
+    --severity-border: rgba(248, 113, 113, 0.88);
+    --severity-bg: linear-gradient(135deg, rgba(127, 29, 29, 0.9), rgba(220, 38, 38, 0.58));
+    --severity-bg-active: linear-gradient(135deg, rgba(127, 29, 29, 0.96), rgba(220, 38, 38, 0.72));
+    --severity-shadow: 0 0.45rem 1rem rgba(248, 113, 113, 0.18);
+    --aboutme-static-tag-border: rgba(248, 113, 113, 0.9);
+    --aboutme-static-tag-ring: rgba(254, 226, 226, 0.18);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
+    box-shadow: var(--severity-shadow);
+}
+
+.aboutme-severity-high {
+    --severity-color: #ffedd5;
+    --severity-border: rgba(251, 146, 60, 0.9);
+    --severity-bg: linear-gradient(135deg, rgba(154, 52, 18, 0.86), rgba(249, 115, 22, 0.52));
+    --severity-bg-active: linear-gradient(135deg, rgba(154, 52, 18, 0.96), rgba(249, 115, 22, 0.68));
+    --severity-shadow: 0 0.45rem 1rem rgba(251, 146, 60, 0.18);
+    --aboutme-static-tag-border: rgba(251, 146, 60, 0.88);
+    --aboutme-static-tag-ring: rgba(255, 237, 213, 0.16);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
+    box-shadow: var(--severity-shadow);
+}
+
+.aboutme-severity-medium {
+    --severity-color: #fef3c7;
+    --severity-border: rgba(250, 204, 21, 0.84);
+    --severity-bg: linear-gradient(135deg, rgba(113, 63, 18, 0.82), rgba(234, 179, 8, 0.48));
+    --severity-bg-active: linear-gradient(135deg, rgba(113, 63, 18, 0.94), rgba(234, 179, 8, 0.64));
+    --severity-shadow: 0 0.45rem 1rem rgba(250, 204, 21, 0.16);
+    --aboutme-static-tag-border: rgba(250, 204, 21, 0.82);
+    --aboutme-static-tag-ring: rgba(254, 243, 199, 0.16);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
+    box-shadow: var(--severity-shadow);
+}
+
+.aboutme-severity-low {
+    --severity-color: #bbf7d0;
+    --severity-border: rgba(74, 222, 128, 0.68);
+    --severity-bg: rgba(21, 128, 61, 0.44);
+    --severity-bg-active: rgba(21, 128, 61, 0.62);
+    --severity-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    --aboutme-static-tag-border: rgba(74, 222, 128, 0.68);
+    --aboutme-static-tag-ring: rgba(187, 247, 208, 0.14);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
+}
+
+.aboutme-severity-info {
+    --severity-color: #bae6fd;
+    --severity-border: rgba(56, 189, 248, 0.66);
+    --severity-bg: rgba(2, 132, 199, 0.42);
+    --severity-bg-active: rgba(2, 132, 199, 0.62);
+    --severity-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    --aboutme-static-tag-border: rgba(56, 189, 248, 0.64);
+    --aboutme-static-tag-ring: rgba(186, 230, 253, 0.14);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
+}
+
+.aboutme-severity-tba {
+    --severity-color: #ddd6fe;
+    --severity-border: rgba(167, 139, 250, 0.64);
+    --severity-bg: rgba(109, 40, 217, 0.4);
+    --severity-bg-active: rgba(109, 40, 217, 0.6);
+    --severity-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    --aboutme-static-tag-border: rgba(167, 139, 250, 0.62);
+    --aboutme-static-tag-ring: rgba(221, 214, 254, 0.14);
+    --aboutme-static-tag-shadow: var(--severity-shadow);
+    color: var(--severity-color);
+    border: 1px solid var(--severity-border);
+    background: var(--severity-bg);
+}
+
+:not(a).aboutme-card-tag {
+    border-color: var(--aboutme-static-tag-border);
+    box-shadow: inset 0 0 0 1px var(--aboutme-static-tag-ring), var(--aboutme-static-tag-shadow);
+    cursor: default;
+}
+
+.aboutme-card-body {
+    padding: 1rem 1.15rem 1.15rem;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.aboutme-card-header + .aboutme-card-body {
+    padding-top: 0;
+}
+
+.aboutme-detail-block {
+    margin-top: 1rem;
+}
+
+.aboutme-detail-block h3 {
+    margin: 0 0 0.55rem;
+    color: #fef3c7;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.aboutme-detail-block p {
+    margin: 0;
+    color: rgba(226, 232, 240, 0.82);
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+
+.aboutme-card-title a,
+.aboutme-card-summary a,
+.aboutme-finding-project a,
+.aboutme-finding-summary a,
+.aboutme-achievement-card .aboutme-card-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.aboutme-card-title a:hover,
+.aboutme-card-summary a:hover,
+.aboutme-finding-project a:hover,
+.aboutme-finding-summary a:hover,
+.aboutme-achievement-card .aboutme-card-title a:hover {
+    color: #7dd3fc;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+}
+
+.aboutme-finding-summary a.aboutme-finding-advisory-link {
+    display: inline;
+    margin-left: -0.22rem;
+    padding: 0.18rem 0.4rem 0.18rem 0.58rem;
+    border-left: 3px solid rgba(125, 211, 252, 0.72);
+    border-radius: 0.42rem;
+    color: #e0f2fe;
+    background: linear-gradient(90deg, rgba(10, 150, 200, 0.2), rgba(110, 197, 250, 0.05));
+    box-decoration-break: slice;
+    -webkit-box-decoration-break: slice;
+    font-weight: 800;
+    text-decoration: none;
+    transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.aboutme-finding-summary a.aboutme-finding-advisory-link::after {
+    display: inline-block;
+    width: 0.42rem;
+    height: 0.42rem;
+    margin-left: 0.42rem;
+    border-top: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    content: "";
+    opacity: 0.74;
+    transform: translateY(-0.06rem) rotate(45deg);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.aboutme-finding-summary a.aboutme-finding-advisory-link:hover,
+.aboutme-finding-summary a.aboutme-finding-advisory-link:focus-visible {
+    border-left-color: rgba(165, 243, 252, 0.86);
+    color: #7dd3fc;
+    background: linear-gradient(90deg, rgba(10, 150, 200, 0.3), rgba(110, 197, 250, 0.08));
+    text-decoration: none;
+}
+
+.aboutme-finding-summary a.aboutme-finding-advisory-link:hover::after,
+.aboutme-finding-summary a.aboutme-finding-advisory-link:focus-visible::after {
+    opacity: 1;
+}
+
+.aboutme-finding-project .aboutme-finding-project-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 100%;
+    color: #f8fafc;
+    text-decoration: none;
+}
+
+.aboutme-finding-project .aboutme-finding-project-link::after {
+    width: 0.42rem;
+    height: 0.42rem;
+    flex: 0 0 auto;
+    border-top: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    content: "";
+    opacity: 0.72;
+    transform: translateY(-0.05rem) rotate(45deg);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.aboutme-finding-project .aboutme-finding-project-link:hover::after,
+.aboutme-finding-project .aboutme-finding-project-link:focus-visible::after {
+    opacity: 1;
+}
+
+.aboutme-finding-project .aboutme-finding-project-link:hover,
+.aboutme-finding-project .aboutme-finding-project-link:focus-visible {
+    color: #7dd3fc;
+    text-decoration: none;
+}
+
+.aboutme-timeline {
+    position: relative;
+    margin: 0;
+    padding: 0.2rem 0 0 1.5rem;
+    color: rgba(226, 232, 240, 0.88);
+    list-style: none;
+}
+
+.aboutme-timeline::before {
+    position: absolute;
+    top: 0.82rem;
+    bottom: 0.82rem;
+    left: 0.62rem;
+    z-index: 0;
+    width: 2px;
+    border-radius: var(--radius-ui-pill);
+    background: linear-gradient(180deg, #7dd3fc, rgba(125, 211, 252, 0.08));
+    content: "";
+}
+
+.aboutme-timeline li {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 0.2rem;
+    padding: 0 0 0.8rem 0.25rem;
+}
+
+.aboutme-timeline li:last-child {
+    padding-bottom: 0;
+}
+
+.aboutme-timeline li::before {
+    position: absolute;
+    top: 0.33rem;
+    left: -1.28rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 2px solid #0b1220;
+    border-radius: var(--radius-ui-pill);
+    background: var(--color-tertiary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-tertiary) 22%, transparent);
+    box-sizing: content-box;
+    content: "";
+    z-index: 1;
+}
+
+.aboutme-timeline time {
+    display: block;
+    color: #7dd3fc;
+    font-size: 0.83rem;
+    font-weight: 800;
+}
+
+.aboutme-timeline-date-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.aboutme-timeline li.aboutme-timeline-item-upcoming {
+    margin: 0.1rem 0 0.8rem;
+    padding: 0.7rem 0.8rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--color-accent) 58%, transparent);
+    border-radius: var(--radius-ui-control);
+    background: color-mix(in srgb, var(--color-tertiary) 10%, rgba(9, 26, 45, 0.86));
+    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-accent) 68%, transparent), 0 0.65rem 1.25rem rgba(2, 12, 24, 0.2);
+}
+
+.aboutme-timeline li.aboutme-timeline-item-upcoming:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0.75rem;
+}
+
+.aboutme-timeline li.aboutme-timeline-item-upcoming::before {
+    top: 0.95rem;
+}
+
+.aboutme-empty-state {
+    position: relative;
+    overflow: hidden;
+    padding: 1.1rem 1.25rem;
+    color: rgba(226, 232, 240, 0.78);
+}
+
+.aboutme-empty-state::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--aboutme-section-accent);
+    opacity: 0.75;
+}
+
+.aboutme-empty-state p {
+    margin: 0;
+}
+
+.aboutme-achievement-card {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    padding: 0;
+}
+
+.aboutme-achievement-card .aboutme-card-title {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-achievement-card .aboutme-card-summary {
+    margin: 0 0 1rem;
+    color: rgba(226, 232, 240, 0.82);
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+
+.aboutme-card-details {
+    display: block;
+    margin: 0 0 1rem;
+    padding-left: 1.35rem;
+    color: rgba(226, 232, 240, 0.82);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    list-style: disc outside;
+}
+
+.aboutme-card-details li {
+    display: list-item;
+    padding-left: 0.1rem;
+}
+
+.aboutme-card-details li + li {
+    margin-top: 0.4rem;
+}
+
+.aboutme-card-details li::marker {
+    color: rgba(96, 165, 250, 0.82);
+}
+
+.aboutme-card-children {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+}
+
+.aboutme-achievement-event {
+    position: relative;
+    display: block;
+    gap: 0.45rem;
+    padding: 0;
+    border: 1px solid rgba(88, 122, 166, 0.58);
+    border-radius: var(--radius-ui-control);
+    background: rgba(13, 32, 54, 0.42);
+}
+
+.aboutme-achievement-event::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    border-radius: var(--radius-ui-control) 0 0 var(--radius-ui-control);
+    background: var(--aboutme-section-accent);
+    content: "";
+}
+
+.aboutme-achievement-event .aboutme-card-title,
+.aboutme-achievement-event h4 {
+    margin: 0;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.aboutme-achievement-event time {
+    color: #bae6fd;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.aboutme-achievement-event .aboutme-card-summary,
+.aboutme-achievement-event p {
+    margin: 0;
+    color: rgba(226, 232, 240, 0.82);
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+
+.aboutme-achievement-event-details {
+    margin: 0;
+    padding-left: 1rem;
+    color: rgba(226, 232, 240, 0.8);
+}
+
+@media (min-width: 920px) {
+    .aboutme-finding-grid,
+    .aboutme-achievement-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .aboutme-finding-grid > .aboutme-card,
+    .aboutme-achievement-grid > .aboutme-card {
+        display: block;
+    }
+}
+
+@media (max-width: 720px) {
+    .aboutme-section {
+        width: calc(100% - 2rem);
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .aboutme-kicker,
+    .aboutme-section-kicker {
+        font-size: 0.75rem;
+        line-height: 1.3;
+    }
+
+    .aboutme-copy p {
+        font-size: 1rem;
+        line-height: 1.68;
+    }
+
+    .aboutme-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 1.75rem;
+    }
+
+    .aboutme-stat {
+        border-top: 0;
+        padding: 0.95rem 1rem;
+    }
+
+    .aboutme-stat:nth-child(odd) {
+        box-shadow: none;
+    }
+
+    .aboutme-stat:nth-child(even) {
+        box-shadow: inset 1px 0 0 rgba(125, 211, 252, 0.18);
+    }
+
+    .aboutme-stat:nth-child(n + 3) {
+        border-top: 1px solid rgba(125, 211, 252, 0.22);
+    }
+
+    .aboutme-stat:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+
+    .aboutme-section {
+        padding-top: 2.4rem;
+    }
+
+    .aboutme-section-title {
+        font-size: 1.75rem;
+    }
+
+    .aboutme-card .blog-post-card-content {
+        flex-direction: column;
+    }
+
+    .aboutme-card .blog-post-card-logo {
+        flex: 0 0 auto;
+        align-self: stretch;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        min-height: 5.75rem;
+        border-right: 0;
+        border-bottom: 1px solid rgba(93, 116, 158, 0.45);
+    }
+
+    .aboutme-finding-badges {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .aboutme-finding-project,
+    .aboutme-achievement-card .aboutme-card-title {
+        font-size: 1.15rem;
+    }
+
+    .aboutme-card-body,
+    .aboutme-empty-state {
+        padding: 1rem;
+    }
+
+    .aboutme-achievement-card {
+        min-height: 0;
+    }
+
+    .aboutme-finding-grid,
+    .aboutme-achievement-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 380px) {
+    .aboutme-section {
+        width: calc(100% - 2rem);
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .aboutme-copy p {
+        font-size: 0.96rem;
+        line-height: 1.62;
+    }
+
+    .aboutme-section-title {
+        font-size: 1.55rem;
+    }
+
+    .aboutme-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .aboutme-stat {
+        box-shadow: none;
+    }
+
+    .aboutme-stat + .aboutme-stat {
+        border-top: 1px solid rgba(125, 211, 252, 0.22);
+    }
+
+    .aboutme-severity,
+    .aboutme-card-tag,
+    .aboutme-cve-id,
+    .aboutme-cwe-id {
+        min-height: 1.65rem;
+        padding: 0.22rem 0.55rem;
+        font-size: 0.72rem;
+    }
+}
+
+.aboutme-stats {
+    background: rgba(18, 34, 56, 0.9);
+    box-shadow: 0 0.8rem 1.6rem rgba(2, 12, 24, 0.2);
+}
+
+.aboutme-stat,
+.aboutme-stat:hover,
+.aboutme-stat:focus-visible {
+    color: inherit;
+    background: rgba(15, 52, 83, 0.7);
+    transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+}
+
+.aboutme-stat:hover,
+.aboutme-stat:focus-visible {
+    box-shadow: inset 1px 0 0 rgba(125, 211, 252, 0.18), 0 0.45rem 0.95rem rgba(2, 12, 24, 0.18);
+}
+
+.aboutme-card,
+.aboutme-empty-state,
+.aboutme-finding-card summary,
+.aboutme-card-header,
+.aboutme-card-body {
+    transition: none;
+}
+
+.aboutme-card-tag,
+.aboutme-cve-id,
+.aboutme-cwe-id,
+:not(a).aboutme-card-tag,
+:not(a).aboutme-cve-id,
+:not(a).aboutme-cwe-id,
+.aboutme-card-tag.aboutme-difficulty-tag,
+.aboutme-card-tag.aboutme-tag-static,
+.aboutme-tag-static,
+.aboutme-card-linked .aboutme-tag-static,
+:not(a).aboutme-card-tag.aboutme-cve-id,
+:not(a).aboutme-card-tag.cve-badge,
+:not(a).aboutme-card-tag.aboutme-cwe-id,
+:not(a).aboutme-card-tag.cwe-badge {
+    color: rgba(191, 219, 254, 0.86);
+    border-color: rgba(96, 165, 250, 0.26);
+    background: rgba(22, 52, 79, 0.56);
+    box-shadow: none;
+    cursor: default;
+    transition: none;
+}
+
+.aboutme-severity {
+    color: rgba(191, 219, 254, 0.88);
+    border-color: rgba(96, 165, 250, 0.3);
+    background: rgba(22, 52, 79, 0.6);
+    box-shadow: none;
+}
+
+.aboutme-card-tag.aboutme-tag-action,
+.aboutme-card-tag.aboutme-tag-action:hover,
+a.aboutme-card-tag.aboutme-tag-action:focus-visible {
+    color: #dff7ff;
+    border-color: rgba(125, 211, 252, 0.34);
+    background: rgba(14, 116, 144, 0.42);
+    background-image: none;
+    box-shadow: 0 0.35rem 0.8rem rgba(2, 12, 24, 0.18);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+}
+
+.aboutme-reference-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--aboutme-reference-link);
+    font-weight: 850;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.22em;
+}
+
+.aboutme-reference-link::after {
+    content: ">";
+    font-weight: 950;
+    line-height: 1;
+    transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.aboutme-reference-link:hover,
+.aboutme-reference-link:focus-visible {
+    color: var(--aboutme-reference-link-hover);
+    text-decoration: underline;
+}
+
+.aboutme-reference-link:focus-visible {
+    border-radius: 0.2rem;
+    outline: 2px solid var(--aboutme-reference-focus);
+    outline-offset: 0.18rem;
+}
+
+.aboutme-section {
+    display: block;
+}
+
+.aboutme-section-header {
+    cursor: pointer;
+    list-style: none;
+}
+
+.aboutme-section-header::-webkit-details-marker {
+    display: none;
+}
+
+.aboutme-section-title {
+    display: block;
+}
+
+.aboutme-section-title::before {
+    display: none;
+    content: none;
+}
+
+.aboutme-section-title::after {
+    display: inline-block;
+    width: 0.58rem;
+    height: 0.58rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    content: "";
+    margin-left: 0.55rem;
+    opacity: 0.78;
+    transform: rotate(45deg);
+    transition: transform 140ms ease, opacity 140ms ease;
+    vertical-align: 0.12em;
+}
+
+.aboutme-section[open] .aboutme-section-title::after {
+    opacity: 1;
+    transform: rotate(225deg);
+}
+
+.aboutme-section-header:focus-visible {
+    border-radius: var(--radius-ui-control);
+    outline: 2px solid rgba(125, 211, 252, 0.75);
+    outline-offset: 0.25rem;
+}
+
+.aboutme-section-body {
+    padding-top: 0.1rem;
+}
+
+details.aboutme-achievement-card {
+    display: block;
+}
+
+.aboutme-timeline-content {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.aboutme-timeline-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.aboutme-timeline-title,
+.aboutme-timeline-link {
+    color: #f8fafc;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.aboutme-timeline-link:hover,
+.aboutme-timeline-link:focus-visible {
+    color: #7dd3fc;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+    outline: none;
+}
+
+.aboutme-timeline-event-link {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    width: fit-content;
+    min-height: 0;
+    padding: 0;
+    color: var(--aboutme-reference-link);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    background-image: none;
+    box-shadow: none;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.22em;
+    cursor: pointer;
+    transition: color 140ms ease, opacity 140ms ease;
+}
+
+.aboutme-timeline-event-link::after {
+    display: none;
+    content: none;
+}
+
+.aboutme-timeline-event-link:hover,
+.aboutme-timeline-event-link:focus-visible {
+    color: var(--aboutme-reference-link-hover);
+    border: 0;
+    background: transparent;
+    background-image: none;
+    box-shadow: none;
+    text-decoration: underline;
+    transform: none;
+}
+
+.aboutme-timeline-event-link:focus-visible {
+    outline: 2px solid var(--aboutme-reference-focus);
+    outline-offset: 0.2rem;
+}
+
+.aboutme-timeline-summary {
+    color: rgba(226, 232, 240, 0.82);
+    line-height: 1.5;
+}
+
+.aboutme-stat:hover,
+.aboutme-stat:focus-visible,
+.landing-page .landing-metric:hover,
+.landing-page .landing-metric:focus-visible {
+    color: #f8feff;
+    background: rgba(24, 76, 112, 0.94);
+    box-shadow: inset 1px 0 0 rgba(165, 243, 252, 0.28), 0 0.55rem 1.08rem rgba(2, 12, 24, 0.26);
+}
+
+.aboutme-reference-link::after,
+.aboutme-reference-link:hover::after,
+.aboutme-reference-link:focus-visible::after {
+    display: none;
+    content: none;
+}

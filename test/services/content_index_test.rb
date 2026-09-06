@@ -6,6 +6,24 @@ class ContentIndexTest < ActiveSupport::TestCase
     @items = ContentIndex.new(repository: @repository).all_items
   end
 
+  test "bounty severity remains independent from challenge difficulty" do
+    bounty = @items.find { |item| item[:kind] == "bug-bounty" }
+    assert_includes bounty[:tags], "severity:medium"
+    assert_not_includes bounty[:tags], "difficulty:medium"
+    assert @items.any? { |item| item[:tags].include?("difficulty:medium") }
+  end
+
+  test "search indexes visible metadata without copying article bodies" do
+    @repository.blog_posts.each do |post|
+      item = @items.find { |entry| entry[:id] == "blog-#{post[:slug]}" }
+      next unless item
+
+      assert_includes item[:search_text], post[:title].downcase
+      assert_nil item[:search_parts]
+      assert_operator item[:search_text].bytesize, :<, 2_000
+    end
+  end
+
   test "production timeline contains every public content source" do
     repository = production_content_repository
     items = ContentIndex.new(repository: repository).all_items

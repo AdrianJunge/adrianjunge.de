@@ -10,8 +10,9 @@ class FeedsController < ApplicationController
     @feed_alternate_url = root_url
 
     @items = content_repository.feed_posts.map { |item| normalize_feed_item(item) }
-    @feed_updated = @items.first&.dig(:pub_date) || Time.zone.now
+    @feed_updated = @items.map { |item| item[:modified] }.max || ContentDate::EPOCH
     @feed_self_url = feed_self_url
+    return unless stale?(etag: [ "feeds-v2", @feed_title, @feed_description, @feed_alternate_url, @feed_self_url, @items, request.format.to_s ], public: true)
 
     respond_to do |format|
       format.rss do
@@ -63,6 +64,7 @@ class FeedsController < ApplicationController
       content_html: item[:description],
       summary: strip_tags(item[:description]).squish,
       date_published: item[:pub_date].iso8601,
+      date_modified: item[:modified].iso8601,
       tags: [ item[:source] ]
     }.compact
   end
@@ -76,7 +78,8 @@ class FeedsController < ApplicationController
       title: item[:title],
       description: sanitize(item[:description], tags: DESCRIPTION_TAGS, attributes: DESCRIPTION_ATTRIBUTES),
       link: link,
-      pub_date: item[:published] || Time.zone.now,
+      pub_date: item[:published] || ContentDate::EPOCH,
+      modified: item[:modified] || item[:published] || ContentDate::EPOCH,
       guid: link
     }
   end

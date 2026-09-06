@@ -6,6 +6,7 @@ categories:
     - Dynamic Programming
     - Combinatorics
 published: "2026-07-05"
+has_math: true
 ---
 
 # Climbing Stairs from Two Angles

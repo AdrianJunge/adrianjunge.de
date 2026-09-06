@@ -1,12 +1,13 @@
 module TerminalHelper
-  XTERM_CSS_CDN_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css".freeze
+  XTERM_CSS_ASSET = "terminal.css".freeze
 
   def render_terminal(paths, minimized)
     paths = normalized_terminal_paths(paths)
     terminal_class = "subpixel-antialiased font-mono bg-black"
     terminal_class += " terminal-minimized" if minimized
 
-    content_tag(:div, id: "terminal-container", data: { terminal_text: paths.to_json }, class: terminal_class) do
+    content_tag(:div, id: "terminal-container", data: { terminal_text: paths.to_json, terminal_css: asset_path(XTERM_CSS_ASSET) },
+      class: terminal_class, hidden: minimized, inert: minimized, role: "region", aria: { label: "Site terminal" }) do
       safe_join([
         content_tag(:div, class: "terminal-header") do
           safe_join([

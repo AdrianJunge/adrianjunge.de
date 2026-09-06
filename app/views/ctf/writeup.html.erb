@@ -11,22 +11,22 @@
         description: writeup_description,
         type: "article",
         canonical_path: request.path,
-        image: @ctf["logo"],
-        published_time: @ctf_info["published"],
-        modified_time: writeup_modified,
+        image: SeoHelper::DEFAULT_IMAGE,
+        published_time: @published_time,
+        modified_time: @modified_time,
         tags: writeup_tags,
         section: writeup_section,
-        authors: writeup_author_entries,
+        authors: article_authors(@ctf_info),
         json_ld: seo_article_schema(
           title: writeup_title,
           description: writeup_description,
           canonical_path: request.path,
-          published: @ctf_info["published"],
-          modified: writeup_modified,
+          published: @published_time,
+          modified: @modified_time,
           tags: writeup_tags,
-          image: @ctf["logo"],
+          image: SeoHelper::DEFAULT_IMAGE,
           section: writeup_section,
-          authors: writeup_author_entries
+          authors: article_authors(@ctf_info)
         ),
         breadcrumbs: [
           { title: "Home", link: root_path },
@@ -37,38 +37,11 @@
       ) %>
 <% end %>
 
-<%= render_taskbar_items %>
-<%= render_terminal([], true) %>
 
-<main class="content-page article-page">
-<div class="writeup-wrapper relative flex items-start gap-4 mx-4">
-  <%= render "shared/article_toc", headings: @headings, word_total: @ctf_info["word_count"] %>
-
-  <div class="writeup-container bg-primary">
-    <button
-      type="button"
-      class="collapse-toc-button toc-toggle-button writeup-toc-restore-button"
-      title="Show table of contents"
-      aria-label="Show table of contents"
-      data-toc-toggle="toc"
-      aria-expanded="true"
-      aria-controls="toc"
-    >
-      <svg
-        class="w-5 h-5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round">
-        <path d="M9 6l6 6-6 6"/>
-      </svg>
-    </button>
-
+<%= render layout: "shared/article_shell", locals: { headings: @headings, word_total: @ctf_info["word_count"], has_math: @has_math } do %>
     <% writeup_ctf_label = [ (@ctf_name.presence || @which).to_s.upcase, writeup_ctf_year(@ctf_info) ].compact.join("-") %>
     <% writeup_ctf_url = writeup_event_url(@ctf_info, fallback: @ctf["website"]) %>
-    <h4 class="writeup-year text-white text-center">
+    <p class="writeup-year text-white text-center">
       <% if writeup_ctf_url.present? %>
         <%= link_to writeup_ctf_label,
                     writeup_ctf_url,
@@ -78,7 +51,7 @@
       <% else %>
         <%= writeup_ctf_label %>
       <% end %>
-    </h4>
+    </p>
     <h1 class="writeup-title text-white text-center"><%= @ctf_info["title"] %></h1>
     <%= render "shared/post_meta",
                items: [ @ctf_info["published"] ],
@@ -169,7 +142,4 @@
     <%= render "shared/article_navigation",
                previous_item: @previous_writeup,
                next_item: @next_writeup %>
-  </div>
-
-</div>
-</main>
+<% end %>

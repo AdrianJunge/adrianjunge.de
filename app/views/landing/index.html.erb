@@ -5,7 +5,7 @@
         title: "Welcome to my bug collection 🐛",
         description: landing_description,
         canonical_path: root_path,
-        image: "landing/profile.png",
+        image: SeoHelper::DEFAULT_IMAGE,
         json_ld: [
           seo_website_schema(description: landing_description),
           seo_collection_schema(
@@ -21,13 +21,12 @@
       ) %>
 <% end %>
 
-<%= render_taskbar_items %>
-<%= render_terminal([
+<% @terminal_paths = [
   { label: "about", url: about_path },
   { label: "ctf", url: ctf_path },
   { label: "blog", url: blog_path },
   { label: "timeline", url: timeline_path }
-], true) %>
+] %>
 <% timeline_link = timeline_path %>
 <% about_link = about_path %>
 <% discord_link = "https://discord.com/users/305624492221267968/" %>
@@ -41,7 +40,7 @@
   { label: "& more...", link: about_link }
 ] %>
 
-<main class="landing-page">
+<main id="main-content" tabindex="-1" class="landing-page">
 <section id="landing-top">
     <div class="landing-hero-shell">
         <div class="landing-hero-copy">
@@ -52,16 +51,16 @@
             </p>
 
             <div class="landing-typed-line">
-                <span id="typing" class="font-medium inline-block min-h-[1.5rem]"></span>
+                <span id="typing" class="font-medium inline-block min-h-[1.5rem]">Politely asking software uncomfortable questions.</span>
             </div>
 
             <div class="landing-actions" aria-label="Primary links">
                 <a href="<%= timeline_link %>" class="landing-action landing-action-primary ui-hover-lift">
-                    <%= image_tag("task-bar/timeline.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
+                    <%= content_image_tag("task-bar/timeline.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
                     <span>Timeline</span>
                 </a>
                 <a href="<%= about_link %>" class="landing-action landing-action-secondary ui-hover-lift">
-                    <%= image_tag("task-bar/about.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
+                    <%= content_image_tag("task-bar/about.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
                     <span>About me</span>
                 </a>
             </div>
@@ -69,20 +68,20 @@
 
         <aside class="landing-profile-panel" aria-label="Profile summary">
             <a href="<%= discord_link %>" target="_blank" rel="noopener noreferrer" class="landing-profile-link" title="Open Discord profile" aria-label="Open Discord profile">
-                <%= image_tag("landing/profile.png", alt: "Adrian Junge profile image", class: "landing-profile-image") %>
+                <%= content_image_tag("landing/profile.webp", alt: "Adrian Junge profile image", class: "landing-profile-image", loading: "eager", fetchpriority: "high") %>
             </a>
 
             <div class="landing-affiliation-links">
                 <a href="<%= kitctf_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift" title="Open KITCTF">
-                    <%= image_tag("landing/kitctf.png", alt: "", aria: { hidden: true }) %>
+                    <%= content_image_tag("landing/kitctf.png", alt: "", aria: { hidden: true }, sizes: "48px", loading: "eager") %>
                     <span>KITCTF</span>
                 </a>
                 <a href="<%= kit_link %>" target="_blank" rel="noopener noreferrer" class="landing-affiliation-link ui-hover-lift" title="Open KIT">
-                    <%= image_tag("landing/kit.png", alt: "", aria: { hidden: true }) %>
+                    <%= content_image_tag("landing/kit.png", alt: "", aria: { hidden: true }, sizes: "48px", loading: "eager") %>
                     <span>KIT</span>
                 </a>
                 <a href="<%= pgp_link %>" class="landing-affiliation-link landing-affiliation-link-pgp ui-hover-lift">
-                    <%= image_tag("task-bar/pgp.svg", alt: "", aria: { hidden: true }) %>
+                    <%= content_image_tag("task-bar/pgp.svg", alt: "", aria: { hidden: true }) %>
                     <span>PGP key</span>
                 </a>
             </div>
@@ -103,12 +102,12 @@
         <% end %>
     </div>
 
-    <div id="scroll-down-button" class="absolute bottom-8">
+    <div id="scroll-down-button">
         <button
             type="button"
             class="back-button ui-icon-button"
             aria-label="Scroll down"
-            onclick="document.getElementById('landing-bottom').scrollIntoView({behavior:'smooth'})"
+            data-scroll-to="landing-bottom"
         >
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 5v14M19 12l-7 7-7-7"/>
@@ -123,18 +122,7 @@
     <div class="landing-writeup-cards">
         <% @most_recent_posts.each do |post| %>
             <% if post[:type] == "blog" %>
-                <% blog_config = @blogs[post[:slug]] || {} %>
-                <% blog_data_with_meta = blog_config.merge({
-                    "title" => post[:title],
-                    "description" => post[:description],
-                    "topic" => post[:topic],
-                    "categories" => post[:categories],
-                    "published" => post[:published].strftime("%Y-%m-%d"),
-                    "reading_time_label" => post[:reading_time_label],
-                    "reading_time_minutes" => post[:reading_time_minutes],
-                    "logo" => blog_config["logo"]
-                }) %>
-
+                <% blog_data_with_meta = landing_blog_metadata(post) %>
                 <div class="blog-post-entry">
                     <%= render_blog_post_card(post[:slug], blog_data_with_meta, interactive_tags: false, show_section_icon: true) %>
                 </div>

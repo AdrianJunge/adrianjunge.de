@@ -13,7 +13,7 @@
   <div class="content-hero-inner">
     <% title_cluster = capture do %>
       <span class="content-hero-icon-wrap">
-        <%= image_tag(icon_path, alt: icon_alt, class: icon_classes.join(" ")) %>
+        <%= content_image_tag(icon_path, alt: icon_alt, class: icon_classes.join(" "), loading: "eager") %>
       </span>
       <h1><%= title %></h1>
     <% end %>

@@ -7,7 +7,7 @@ xml.rss(version: "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom") do
     xml.description @feed_description
     xml.language    "en"
     xml.pubDate     @feed_updated.rfc2822
-    xml.lastBuildDate Time.zone.now.rfc2822
+    xml.lastBuildDate @feed_updated.rfc2822
 
     @items.each do |item|
       xml.item do

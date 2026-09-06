@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require "rack/static"
 
 Rails.application.configure do
   config.enable_reloading = false
@@ -8,7 +9,15 @@ Rails.application.configure do
 
   config.action_controller.perform_caching = true
 
-  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
+  # Stable public URLs (PGP key, robots, PDFs) must be revalidated. The separate
+  # fingerprinted-assets middleware configured below supplies immutable caching.
+  config.public_file_server.headers = { "cache-control" => "public, max-age=0, must-revalidate" }
+  config.middleware.insert_before ActionDispatch::Static, Rack::Static,
+    urls: [ "/assets" ], root: Rails.root.join("public").to_s, cascade: true, gzip: true,
+    header_rules: [
+      [ :all, { "cache-control" => "public, max-age=0, must-revalidate", "vary" => "Accept-Encoding" } ],
+      [ /-[0-9a-f]{8,64}\.[^\/]+\z/, { "cache-control" => "public, max-age=#{1.year.to_i}, immutable" } ]
+    ]
 
   config.assume_ssl = true
   config.force_ssl = true
@@ -26,9 +35,6 @@ Rails.application.configure do
 
   config.active_record.dump_schema_after_migration = false
   config.active_record.attributes_for_inspect = [ :id ]
-
-  config.assets.css_compressor = nil
-  config.assets.digest = true
 
   Rails.application.routes.default_url_options[:host] = "adrianjunge.de"
   Rails.application.routes.default_url_options[:protocol] = "https"

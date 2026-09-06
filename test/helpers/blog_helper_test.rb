@@ -61,10 +61,10 @@ class BlogHelperTest < ActionView::TestCase
       }
     }
 
-    assert_select ".blog-post-meta-row > button.difficulty-badge.difficulty-badge-easy.difficulty-badge-filter[data-filter-tag='Easy'] .content-tag-label", text: "Easy"
-    assert_select ".blog-post-meta-row > button.difficulty-badge[data-filter-tag='Easy'] .content-tag-arrow", 0
+    assert_select ".blog-post-meta-row > button.difficulty-badge.difficulty-badge-easy.difficulty-badge-filter[data-filter-tag='difficulty:easy'] .content-tag-label", text: "Easy"
+    assert_select ".blog-post-meta-row > button.difficulty-badge[data-filter-tag='difficulty:easy'] .content-tag-arrow", 0
     assert_select ".blog-post-card[data-filter-tags*='Security Research']"
-    assert_select ".blog-post-card[data-filter-tags*='Easy']"
+    assert_select ".blog-post-card[data-filter-tags*='difficulty:easy']"
     assert_select ".blog-post-card[data-filter-tags*='Research']"
   end
 

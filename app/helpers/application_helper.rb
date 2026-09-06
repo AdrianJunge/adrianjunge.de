@@ -2,7 +2,7 @@ module ApplicationHelper
   def upcoming_date?(value, today: Date.current)
     return false if value.blank?
 
-    date = value.respond_to?(:to_date) ? value.to_date : Time.zone.parse(value.to_s)&.to_date
+    date = ContentDate.parse(value)&.to_date
     date.present? && date > today
   rescue ArgumentError, TypeError
     false
@@ -21,7 +21,7 @@ module ApplicationHelper
     params = {}
     params[:q] = q.to_s.strip if q.present?
     params[:year] = year.to_s.strip if year.present?
-    canonical_tags = tag_values.map { |tag_value| ContentTagTaxonomy.canonical_label(tag_value) }
+    canonical_tags = tag_values.map { |tag_value| ContentTagTaxonomy.canonical_value(tag_value) }
     params[:tag] = canonical_tags.first if canonical_tags.one?
     params[:tags] = canonical_tags.join("|") if canonical_tags.many?
 

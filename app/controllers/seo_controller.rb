@@ -1,6 +1,7 @@
 class SeoController < ApplicationController
   def sitemap
     @urls = sitemap_entries
+    return unless stale?(etag: [ "sitemap-v2", @urls ], public: true)
 
     render layout: false
   end
@@ -29,13 +30,12 @@ class SeoController < ApplicationController
       posts = Array(visible_posts_by_directory[directory])
       next [] if posts.empty?
 
-      files = posts.map { |post| post[:source_path] }
-      entries = [ sitemap_entry("/ctf/#{url_segment(directory)}", newest_mtime(files)) ]
+      entries = [ sitemap_entry("/ctf/#{url_segment(directory)}", posts.map { |post| post[:modified] }.max) ]
 
       entries.concat(posts.map do |post|
         sitemap_entry(
           "/ctf/#{url_segment(directory)}/#{url_segment(post[:slug])}",
-          metadata_date(post[:metadata], post[:source_path])
+          post[:modified]
         )
       end)
 
@@ -45,7 +45,7 @@ class SeoController < ApplicationController
 
   def blog_sitemap_entries
     content_repository.blog_posts.map do |post|
-      sitemap_entry(blog_post_path(post[:slug]), metadata_date(post[:metadata], post[:source_path]))
+      sitemap_entry(blog_post_path(post[:slug]), post[:modified])
     end
   end
 
@@ -67,32 +67,14 @@ class SeoController < ApplicationController
     ERB::Util.url_encode(value.to_s)
   end
 
-  def metadata_date(metadata, file_path)
-    metadata["updated"].presence ||
-      metadata["modified"].presence ||
-      metadata["published"].presence ||
-      File.mtime(file_path)
-  end
-
   def sitemap_date(value)
-    return value.to_date.iso8601 if value.respond_to?(:to_date)
-
-    Time.zone.parse(value.to_s).to_date.iso8601
-  rescue StandardError
-    nil
-  end
-
-  def markdown_metadata(file_path)
-    parsed = content_repository.parse_markdown(File.read(file_path))
-    parsed&.front_matter || {}
-  rescue StandardError
-    {}
+    ContentDate.parse(value)&.to_date&.iso8601
   end
 
   def newest_mtime(paths)
     expanded_paths = Array(paths).flat_map { |path| Dir.glob(path.to_s) }
     times = expanded_paths.select { |path| File.exist?(path) }.map { |path| File.mtime(path) }
-    times.max || Time.current
+    times.max || ContentDate::EPOCH
   end
 
   def site_content_paths

@@ -12,7 +12,6 @@ Rails.application.configure do
 
   config.active_support.deprecation = :stderr
 
-  config.assets.css_compressor = nil
   config.assets.prefix = "/assets-test"
 
   config.action_controller.raise_on_missing_callback_actions = true

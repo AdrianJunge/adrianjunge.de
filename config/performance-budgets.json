@@ -1,0 +1,8 @@
+{
+  "conditions": "Local Rails production build, direct Puma HTTP delivery with build-generated gzip assets (no CDN/proxy), Chrome mobile 390x844 DPR1, simulated default Lighthouse throttling, fresh browser/storage each run; median of 3. Byte budgets include response headers and are transfer bytes, not source/gzip estimates. Rails process is warm after smoke routes; LCP/CLS are reported, not gated across heterogeneous CI hosts.",
+  "pages": [
+    { "path": "/", "limits": { "total_bytes": 220000, "script_bytes": 30000, "stylesheet_bytes": 35000, "image_bytes": 100000, "document_bytes": 45000, "requests": 42 } },
+    { "path": "/timeline", "limits": { "total_bytes": 500000, "script_bytes": 25000, "stylesheet_bytes": 35000, "image_bytes": 75000, "document_bytes": 350000, "requests": 38 } },
+    { "path": "/blog/java-strings", "limits": { "total_bytes": 240000, "script_bytes": 25000, "stylesheet_bytes": 35000, "image_bytes": 100000, "document_bytes": 90000, "requests": 35 } }
+  ]
+}

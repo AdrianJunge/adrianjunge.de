@@ -26,13 +26,5 @@ Rails.application.configure do
 
   config.action_controller.raise_on_missing_callback_actions = true
 
-  config.assets.debug = true
-  config.assets.compile = true
-  config.assets.check_precompiled_asset = false
-  config.serve_static_assets = false
-
-  config.assets.css_compressor = nil
-  config.assets.digest = true
-
   Rails.application.routes.default_url_options[:host] = "localhost:3000"
 end

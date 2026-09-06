@@ -1,21 +1,11 @@
 class ApplicationController < ActionController::Base
   allow_browser versions: :modern
 
-  BASE_PATH = Rails.root.join("app", "assets", "ctf", "writeups")
-  CTF_INFO_PATH = Rails.root.join("app", "assets", "ctf", "ctfs.json")
-  CTF_RESOURCE_BASE_PATH = Rails.root.join("content", "ctf")
-  CTF_CHALLENGE_FILES_PATH = CTF_RESOURCE_BASE_PATH.join("files")
-  CTF_PDF_WRITEUPS_PATH = CTF_RESOURCE_BASE_PATH.join("writeups")
-  BLOG_BASE_PATH = Rails.root.join("app", "assets", "blog", "posts")
-  BLOG_INFO_PATH = Rails.root.join("app", "assets", "blog", "blogs.json")
-  ABOUTME_BASE_PATH = Rails.root.join("app", "assets", "aboutme")
-  ABOUTME_TEXT_PATH = ABOUTME_BASE_PATH.join("about.md")
-  ABOUTME_CVES_PATH = ABOUTME_BASE_PATH.join("cves.json")
-  ABOUTME_BUG_BOUNTIES_PATH = ABOUTME_BASE_PATH.join("bug_bounties.json")
-  ABOUTME_CHALLENGES_PATH = ABOUTME_BASE_PATH.join("challenges.json")
-  ABOUTME_CERTIFICATES_PATH = ABOUTME_BASE_PATH.join("certificates.json")
-  ABOUTME_TALKS_PATH = ABOUTME_BASE_PATH.join("talks.json")
-  ABOUTME_ACHIEVEMENTS_PATH = ABOUTME_BASE_PATH.join("achievements.json")
+  # Compatibility aliases for existing views and authoring/test integrations.
+  ContentConfiguration.constants(false).each do |name|
+    const_set(name, ContentConfiguration.const_get(name))
+  end
+  helper_method :content_repository
   CONTENT_FILTER_KIND_LABELS = ContentTagTaxonomy::CONTENT_TYPE_LABELS.freeze
   ERROR_CONTENT = {
     bad_request: {
