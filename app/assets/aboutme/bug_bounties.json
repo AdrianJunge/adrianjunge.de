@@ -2,9 +2,9 @@
   {
     "id": "frankendancer-netshred-overrun",
     "title": "Firedancer",
-    "subtitle": "Race condition in the netshred module",
+    "subtitle": "Race condition leads to DOS",
     "icon": "blog/solana.svg",
-    "summary": "Before Frankendancer Mainnet v0.910.40000 a race condition in the netshred module could lead to a remotely unauthenticated triggerable Denial of Service.",
+    "summary": "A race condition could lead to a remotely unauthenticated triggerable Denial of Service.",
     "tags": [
       "Medium",
       "Solana",
@@ -21,28 +21,6 @@
       {
         "label": "Frankendancer bug bounty",
         "url": "https://immunefi.com/bug-bounty/Frankendancer/information/"
-      }
-    ],
-    "timeline": [
-      {
-        "date": "2026-04-22",
-        "title": "Reported to Immunefi via the Firedancer v1 audit competition."
-      },
-      {
-        "date": "2026-05-07",
-        "title": "First acknowledgment."
-      },
-      {
-        "date": "2026-05-09",
-        "title": "Confirmation of the issue, initial patch development and acknowledgment that the finding is also valid for the Frankendancer bug bounty program."
-      },
-      {
-        "date": "2026-05-21",
-        "title": "Fixed in Frankendancer Mainnet v0.910.40000."
-      },
-      {
-        "date": "2026-07-22",
-        "title": "Bounty payout"
       }
     ]
   }
