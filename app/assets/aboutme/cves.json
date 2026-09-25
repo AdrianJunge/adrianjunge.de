@@ -1,5 +1,59 @@
 [
   {
+    "id": "suitecrm-portal-get-entry-list-sql-injection",
+    "title": "SuiteCRM",
+    "subtitle": "SQL injection through the legacy SOAP portal_get_entry_list method",
+    "icon": "other/suitecrm.png",
+    "summary": "A low-privileged portal API context could pass SQL expressions through the where and order_by inputs of portal_get_entry_list. Insufficient sanitization during query construction allowed blind extraction of database metadata and potentially sensitive data. Depending on the query context and database permissions, an attacker could also manipulate data or degrade performance with complex queries. On MySQL installations with FILE privilege, SELECT INTO OUTFILE could potentially lead to code execution.",
+    "tags": [
+      "SuiteCRM",
+      "CVE-2026-97377",
+      {
+        "label": "CWE-89",
+        "url": "https://cwe.mitre.org/data/definitions/89.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://github.com/SuiteCRM/SuiteCRM"
+      },
+      {
+        "label": "SuiteCRM 7.15.2 release notes",
+        "url": "https://docs.suitecrm.com/admin/releases/7.15.x/"
+      },
+      {
+        "label": "SuiteCRM 8.10.2 release notes",
+        "url": "https://docs.suitecrm.com/8.x/admin/releases/8.10/"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-03-27",
+        "title": "Reported the vulnerability to SuiteCRM."
+      },
+      {
+        "date": "2026-03-31",
+        "title": "Report acknowledged by SuiteCRM."
+      },
+      {
+        "date": "2026-05-21",
+        "title": "Report accepted by SuiteCRM."
+      },
+      {
+        "date": "2026-07-31",
+        "title": "Fixing SuiteCRM 7.15.2 and 8.10.2 releases published."
+      },
+      {
+        "date": "2026-09-24",
+        "title": "CVE assigned."
+      },
+      {
+        "title": "Security advisory publication pending."
+      }
+    ]
+  },
+  {
     "id": "ffmpeg-dvbsub-parser-integer-overflow-out-of-bounds-write",
     "title": "FFmpeg",
     "subtitle": "DVB subtitle parser heap buffer overflow via WTV file",
@@ -359,6 +413,14 @@
       {
         "label": "Advisory source",
         "url": "https://github.com/SuiteCRM/SuiteCRM/security/advisories/GHSA-pjc8-2w2x-xcgf"
+      },
+      {
+        "label": "SuiteCRM 7.15.2 release notes",
+        "url": "https://docs.suitecrm.com/admin/releases/7.15.x/"
+      },
+      {
+        "label": "SuiteCRM 8.10.2 release notes",
+        "url": "https://docs.suitecrm.com/8.x/admin/releases/8.10/"
       }
     ],
     "timeline": [
@@ -373,6 +435,10 @@
       {
         "date": "2026-05-21",
         "title": "Report accepted by SuiteCRM."
+      },
+      {
+        "date": "2026-07-31",
+        "title": "Fixing SuiteCRM 7.15.2 and 8.10.2 releases published."
       },
       {
         "date": "2026-08-05",

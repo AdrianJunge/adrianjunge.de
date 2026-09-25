@@ -11,12 +11,6 @@ class ContentIndex
       section: "cves"
     },
     {
-      path: ContentConfiguration::ABOUTME_BUG_BOUNTIES_PATH,
-      kind: "bug-bounty",
-      label: "Bug bounty",
-      section: "bug-bounties"
-    },
-    {
       path: ContentConfiguration::ABOUTME_CHALLENGES_PATH,
       kind: "challenge",
       label: AuthoredChallenge::FILTER_LABEL,

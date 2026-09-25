@@ -32,12 +32,8 @@ module SitePageHelpers
   end
 
   def timeline_repository_tags
-    repository_labels = [
-      ApplicationController::ABOUTME_CVES_PATH,
-      ApplicationController::ABOUTME_BUG_BOUNTIES_PATH
-    ].flat_map do |path|
-      repository.about_entries(path).filter_map { |entry| entry["title"].presence }
-    end
+    repository_labels = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
+                                  .filter_map { |entry| entry["title"].presence }
 
     ContentTagTaxonomy.canonical_values(timeline_items.flat_map { |item| item[:tags] }).select do |tag|
       repository_labels.any? { |label| label.casecmp?(tag) }

@@ -27,7 +27,6 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
   test "about collections keep unique ids" do
     [
       ApplicationController::ABOUTME_CVES_PATH,
-      ApplicationController::ABOUTME_BUG_BOUNTIES_PATH,
       ApplicationController::ABOUTME_CERTIFICATES_PATH,
       ApplicationController::ABOUTME_CHALLENGES_PATH,
       ApplicationController::ABOUTME_TALKS_PATH,
@@ -65,7 +64,6 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
 
     [
       ApplicationController::ABOUTME_CVES_PATH,
-      ApplicationController::ABOUTME_BUG_BOUNTIES_PATH,
       ApplicationController::ABOUTME_CERTIFICATES_PATH,
       ApplicationController::ABOUTME_CHALLENGES_PATH,
       ApplicationController::ABOUTME_TALKS_PATH,

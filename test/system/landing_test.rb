@@ -395,7 +395,7 @@ class LandingTest < ApplicationSystemTestCase
     assert_equal blog_styles, landing_styles
   end
 
-  test "landing page exposes about section counters as direct links" do
+  test "landing page links public section counters and keeps the bounty count static" do
     page.current_window.resize_to(1280, 1200)
     visit "/"
 
@@ -502,13 +502,12 @@ class LandingTest < ApplicationSystemTestCase
     assert_equal true, metric_order["sublabelBelowLabel"]
     page.execute_script("document.querySelector('.landing-metrics').scrollIntoView({ block: 'center' })")
 
-    [
-      [ "/about#cves", "CVEs", repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).length ],
-      [ "/about#bug-bounties", "Bounties", repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH).length ]
-    ].each do |href, label, count|
-      assert_selector ".landing-metric[href='#{href}']", text: label
-      assert_selector ".landing-metric[href='#{href}'] .landing-metric-value", text: count.to_s
-    end
+    assert_selector ".landing-metric[href='/about#cves']", text: "CVEs"
+    assert_selector ".landing-metric[href='/about#cves'] .landing-metric-value",
+                    text: repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).length.to_s
+    assert_selector ".landing-metric:not(a) .landing-metric-value", text: "4"
+    assert_selector ".landing-metric:not(a) .landing-metric-label", text: "Bounties"
+    assert_no_selector ".landing-metric[href='/about#bug-bounties']"
 
     assert_selector ".landing-metric[href='/timeline']", text: "Posts"
     assert_selector ".landing-metric[href='/timeline'] .landing-metric-value", text: repository.post_count.to_s

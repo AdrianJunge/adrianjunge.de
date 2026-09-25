@@ -496,23 +496,19 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_operator checked_tag_link_count, :>, 0
   end
 
-  test "hidden TBA findings stay out of public finding sections" do
+  test "hidden TBA findings stay out of the public CVE section" do
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
-    bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
-    bug_bounty_count_label = "#{bug_bounties.length} #{bug_bounties.length == 1 ? 'finding' : 'findings'}"
 
     visit "/about"
     page.execute_script(<<~JS)
-      document.querySelectorAll("#cves, #bug-bounties").forEach((section) => { section.open = true; });
+      document.querySelector("#cves").open = true;
     JS
 
     assert_no_text "TBA"
-    assert_selector "#bug-bounties .aboutme-section-count", text: bug_bounty_count_label
-    assert_selector_count "#bug-bounties .aboutme-finding-card", bug_bounties.length
-    assert_no_selector "#bug-bounties .aboutme-empty-state"
+    assert_no_selector "#bug-bounties", visible: :all
+    assert_selector ".aboutme-stat:not(a) .aboutme-stat-value", text: "4"
     assert_selector_count "#cves article.aboutme-finding-card-static", cves.count { |entry| !about_finding_collapsible?(entry) }
     assert_selector_count "#cves article.aboutme-finding-card-cve > details.profile-card-details", cves.count { |entry| about_finding_collapsible?(entry) }
-    assert_operator bug_bounties.length, :>=, 1
   end
 
   test "timeline rail metadata is centered and future events are highlighted dynamically" do

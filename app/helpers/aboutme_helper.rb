@@ -3,7 +3,6 @@ require "cgi"
 module AboutmeHelper
   PROFILE_SECTIONS = [
     { id: "cves", kind: "cve", title: "CVEs", singular: "entry", plural: "entries", empty_text: "No public CVEs are listed yet." },
-    { id: "bug-bounties", kind: "bug-bounty", title: "Bug bounties", singular: "finding", plural: "findings", empty_text: "No public bounties yet - the disclosure timers are still pretending to be load-bearing." },
     { id: "my-challenges", kind: "challenge", title: "Created CTF Challenges", singular: "challenge", plural: "challenges", empty_text: "No authored challenges are listed yet." },
     { id: "certificates", kind: "certificate", title: "Certificates", singular: "certificate", plural: "certificates", empty_text: "No certificates are listed yet." },
     { id: "talks", kind: "talk", title: "Talks", singular: "talk", plural: "talks", empty_text: "No talks are listed yet." },
@@ -12,7 +11,7 @@ module AboutmeHelper
 
   def about_profile_sections
     collections = {
-      "cves" => [ @cves, @cve_entry_count ], "bug-bounties" => [ @bug_bounties, @bug_bounties.length ],
+      "cves" => [ @cves, @cve_entry_count ],
       "my-challenges" => [ @challenges, @challenges.length ], "certificates" => [ @certificates, @certificates.length ],
       "talks" => [ @talks, @talk_event_count ], "achievements" => [ @achievements, @achievement_event_count ]
     }
@@ -23,9 +22,10 @@ module AboutmeHelper
   end
 
   def about_profile_stats
-    about_profile_sections.map do |section|
+    stats = about_profile_sections.map do |section|
       { label: section[:id] == "achievements" ? "Achievements" : section[:title], value: section[:count], anchor: section[:id] }
     end
+    stats.insert(1, { label: "Bug bounties", value: ApplicationController::BUG_BOUNTY_COUNT })
   end
 
   private

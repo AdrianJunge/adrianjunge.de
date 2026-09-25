@@ -1,9 +1,9 @@
 # About me content
 
 All `/about` JSON collections use the same compact card format. CVEs live in
-`cves.json`, disclosed bounty entries in `bug_bounties.json`, authored CTF
-challenges in `challenges.json`, certificates in `certificates.json`, talks in
-`talks.json`, and achievements in `achievements.json`.
+`cves.json`, authored CTF challenges in `challenges.json`, certificates in
+`certificates.json`, talks in `talks.json`, and achievements in
+`achievements.json`.
 
 ```json
 {

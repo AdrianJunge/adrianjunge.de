@@ -2,7 +2,6 @@ class FixtureContentRepository < ContentRepository
   ROOT = Rails.root.join("test", "fixtures", "content").freeze
   ABOUT_PATHS = {
     ApplicationController::ABOUTME_CVES_PATH.to_s => ROOT.join("about", "cves.json"),
-    ApplicationController::ABOUTME_BUG_BOUNTIES_PATH.to_s => ROOT.join("about", "bug_bounties.json"),
     ApplicationController::ABOUTME_CHALLENGES_PATH.to_s => ROOT.join("about", "challenges.json"),
     ApplicationController::ABOUTME_CERTIFICATES_PATH.to_s => ROOT.join("about", "certificates.json"),
     ApplicationController::ABOUTME_TALKS_PATH.to_s => ROOT.join("about", "talks.json"),

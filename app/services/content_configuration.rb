@@ -9,7 +9,6 @@ class ContentConfiguration
   ABOUTME_BASE_PATH = Rails.root.join("app", "assets", "aboutme")
   ABOUTME_TEXT_PATH = ABOUTME_BASE_PATH.join("about.md")
   ABOUTME_CVES_PATH = ABOUTME_BASE_PATH.join("cves.json")
-  ABOUTME_BUG_BOUNTIES_PATH = ABOUTME_BASE_PATH.join("bug_bounties.json")
   ABOUTME_CHALLENGES_PATH = ABOUTME_BASE_PATH.join("challenges.json")
   ABOUTME_CERTIFICATES_PATH = ABOUTME_BASE_PATH.join("certificates.json")
   ABOUTME_TALKS_PATH = ABOUTME_BASE_PATH.join("talks.json")

@@ -95,7 +95,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     collection = json_ld_by_type("CollectionPage")
     assert collection
-    assert_equal %w[cves bug-bounties my-challenges certificates talks achievements].map { |anchor| absolute_url_for("/about##{anchor}") }.sort,
+    assert_equal %w[cves my-challenges certificates talks achievements].map { |anchor| absolute_url_for("/about##{anchor}") }.sort,
                  collection.dig("mainEntity", "itemListElement").map { |item| item.fetch("url") }.sort
     assert_json_ld_type "BreadcrumbList"
   end

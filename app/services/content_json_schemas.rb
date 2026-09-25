@@ -112,7 +112,6 @@ class ContentJsonSchemas
 
   ARRAY_SCHEMAS = {
     ContentConfiguration::ABOUTME_CVES_PATH.to_s => ABOUT_CARD,
-    ContentConfiguration::ABOUTME_BUG_BOUNTIES_PATH.to_s => ABOUT_CARD,
     ContentConfiguration::ABOUTME_CERTIFICATES_PATH.to_s => ABOUT_CARD,
     ContentConfiguration::ABOUTME_CHALLENGES_PATH.to_s => ABOUT_CARD,
     ContentConfiguration::ABOUTME_TALKS_PATH.to_s => ABOUT_CARD,

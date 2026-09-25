@@ -50,7 +50,12 @@ class AboutmeTest < ApplicationSystemTestCase
     page.current_window.resize_to(1440, 1200)
     visit about_path
     assert_selector "main.aboutme-page"
-    assert_selector ".aboutme-section", count: 6
+    assert_selector ".aboutme-section", count: 5
+    assert_no_selector "#bug-bounties", visible: :all
+    assert_no_selector ".aboutme-finding-card-bug-bounty", visible: :all
+    assert_selector ".aboutme-stat:not(a) .aboutme-stat-value", text: "4"
+    assert_selector ".aboutme-stat:not(a) .aboutme-stat-label", text: "Bug bounties"
+    assert_no_selector "a[href='#bug-bounties']"
     assert_no_selector ".aboutme-section[open]"
     find("#cves > summary").click
     assert_selector ".aboutme-card-header a", minimum: 1

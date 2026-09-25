@@ -7,7 +7,6 @@ class AboutmeController < ApplicationController
     @about_html = render_markdown(parsed_about.content, parsed: true)
     @about_info = parsed_about.front_matter
     @cves = content_repository.about_entries(ABOUTME_CVES_PATH)
-    @bug_bounties = content_repository.about_entries(ABOUTME_BUG_BOUNTIES_PATH)
     @challenges = content_repository.authored_challenges
     @certificates = content_repository.about_entries(ABOUTME_CERTIFICATES_PATH)
     @talks = content_repository.about_entries(ABOUTME_TALKS_PATH)

@@ -8,8 +8,12 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "main.aboutme-page"
-    assert_select ".aboutme-section:not([open])", 6
+    assert_select ".aboutme-section:not([open])", 5
     assert_select ".aboutme-section[open]", 0
+    assert_select "#bug-bounties", 0
+    assert_select ".aboutme-stat:not(a) .aboutme-stat-value", text: "4"
+    assert_select ".aboutme-stat:not(a) .aboutme-stat-label", text: "Bug bounties"
+    assert_select "a[href='#bug-bounties']", 0
     assert_select ".taskbar-link[href=?]", about_path, text: /About me/
 
     ContentTestHelpers::ABOUT_COLLECTIONS.each do |spec|
@@ -40,10 +44,9 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".taskbar-link[href=?]", about_path, text: /About me/
   end
 
-  test "landing page exposes repository-derived summary counters" do
+  test "landing page exposes repository-derived counters and a fixed bounty count" do
     repository = production_content_repository
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
-    bug_bounties = repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH)
 
     get root_path
 
@@ -55,8 +58,9 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".landing-metric.aboutme-stat", 4
     assert_select ".landing-metric:first-child[href=?]", timeline_path, text: /Posts/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
-    assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#bug-bounties", text: bug_bounties.length.to_s
-    assert_select ".landing-metric[href=?]", "#{about_path}#bug-bounties", text: /Bounties/
+    assert_select ".landing-metric:not(a) .landing-metric-value", text: "4"
+    assert_select ".landing-metric:not(a) .landing-metric-label", text: "Bounties"
+    assert_select ".landing-metric[href=?]", "#{about_path}#bug-bounties", false
     assert_select ".landing-metric[href=?]", about_path, text: /& more\.\.\./
     assert_select ".landing-metric[href=?]", "#{about_path}#my-challenges", false
     assert_select ".landing-metric[href=?]", "#{about_path}#certificates", false
@@ -111,7 +115,6 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     end
 
     [
-      ApplicationController::ABOUTME_BUG_BOUNTIES_PATH,
       ApplicationController::ABOUTME_CERTIFICATES_PATH,
       ApplicationController::ABOUTME_TALKS_PATH,
       ApplicationController::ABOUTME_ACHIEVEMENTS_PATH

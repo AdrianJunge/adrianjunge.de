@@ -36,7 +36,7 @@
 <% landing_metrics = [
   { label: "Posts", value: @amount_posts, sublabel: @amount_post_reading_time, link: timeline_link },
   { label: "CVEs", value: @amount_cves, link: about_path(anchor: "cves") },
-  { label: "Bounties", value: @amount_bug_bounties, link: about_path(anchor: "bug-bounties") },
+  { label: "Bounties", value: @amount_bug_bounties },
   { label: "& more...", link: about_link }
 ] %>
 
@@ -88,17 +88,24 @@
         </aside>
     </div>
 
-    <div class="landing-metrics aboutme-stats" aria-label="Site overview links">
+    <div class="landing-metrics aboutme-stats" aria-label="Site overview metrics">
         <% landing_metrics.each do |metric| %>
-            <a href="<%= metric[:link] %>" class="landing-metric aboutme-stat ui-hover-lift">
-                <% if metric.key?(:value) %>
+            <% if metric[:link] %>
+                <a href="<%= metric[:link] %>" class="landing-metric aboutme-stat ui-hover-lift">
+                    <% if metric.key?(:value) %>
+                        <span class="landing-metric-value aboutme-stat-value"><%= metric[:value] %></span>
+                    <% end %>
+                    <span class="landing-metric-label aboutme-stat-label"><%= metric[:label] %></span>
+                    <% if metric[:sublabel].present? %>
+                        <span class="landing-metric-sublabel aboutme-stat-sublabel"><%= metric[:sublabel] %></span>
+                    <% end %>
+                </a>
+            <% else %>
+                <div class="landing-metric aboutme-stat">
                     <span class="landing-metric-value aboutme-stat-value"><%= metric[:value] %></span>
-                <% end %>
-                <span class="landing-metric-label aboutme-stat-label"><%= metric[:label] %></span>
-                <% if metric[:sublabel].present? %>
-                    <span class="landing-metric-sublabel aboutme-stat-sublabel"><%= metric[:sublabel] %></span>
-                <% end %>
-            </a>
+                    <span class="landing-metric-label aboutme-stat-label"><%= metric[:label] %></span>
+                </div>
+            <% end %>
         <% end %>
     </div>
 

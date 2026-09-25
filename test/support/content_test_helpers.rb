@@ -8,13 +8,6 @@ module ContentTestHelpers
       count: ->(repository, entries) { entries.length }
     },
     {
-      id: "bug-bounties",
-      path: ApplicationController::ABOUTME_BUG_BOUNTIES_PATH,
-      kind: "bug-bounty",
-      card_selector: ".aboutme-finding-card",
-      count: ->(repository, entries) { entries.length }
-    },
-    {
       id: "my-challenges",
       path: ApplicationController::ABOUTME_CHALLENGES_PATH,
       kind: "challenge",

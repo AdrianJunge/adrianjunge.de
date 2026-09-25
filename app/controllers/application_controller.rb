@@ -5,6 +5,7 @@ class ApplicationController < ActionController::Base
   ContentConfiguration.constants(false).each do |name|
     const_set(name, ContentConfiguration.const_get(name))
   end
+  BUG_BOUNTY_COUNT = 4
   helper_method :content_repository
   CONTENT_FILTER_KIND_LABELS = ContentTagTaxonomy::CONTENT_TYPE_LABELS.freeze
   ERROR_CONTENT = {
@@ -82,9 +83,7 @@ class ApplicationController < ActionController::Base
   end
 
   def filter_repository_labels
-    [ ABOUTME_CVES_PATH, ABOUTME_BUG_BOUNTIES_PATH ].flat_map do |path|
-      content_repository.about_entries(path).filter_map { |entry| entry["title"] }
-    end
+    content_repository.about_entries(ABOUTME_CVES_PATH).filter_map { |entry| entry["title"] }
   end
 
   def adjacent_content_items(items, slug, directory: nil)

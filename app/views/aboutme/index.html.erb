@@ -2,7 +2,6 @@
   <% about_description = @about_info["description"].presence || "About Adrian Junge, security research, CVEs, bug bounties, certificates, and achievements." %>
   <% about_seo_items = [
        { title: "CVEs", link: about_path(anchor: "cves") },
-       { title: "Bug bounties", link: about_path(anchor: "bug-bounties") },
        { title: "Created CTF challenges", link: about_path(anchor: "my-challenges") },
        { title: "Certificates", link: about_path(anchor: "certificates") },
        { title: "Talks", link: about_path(anchor: "talks") },
@@ -36,10 +35,17 @@
 <% about_stats_content = capture do %>
   <div class="aboutme-stats" aria-label="Public security work summary">
     <% about_stats.each do |stat| %>
-      <a href="#<%= stat[:anchor] %>" class="aboutme-stat ui-hover-lift" aria-label="Jump to <%= stat[:label] %>">
-        <span class="aboutme-stat-value"><%= stat[:value] %></span>
-        <span class="aboutme-stat-label"><%= stat[:label] %></span>
-      </a>
+      <% if stat[:anchor] %>
+        <a href="#<%= stat[:anchor] %>" class="aboutme-stat ui-hover-lift" aria-label="Jump to <%= stat[:label] %>">
+          <span class="aboutme-stat-value"><%= stat[:value] %></span>
+          <span class="aboutme-stat-label"><%= stat[:label] %></span>
+        </a>
+      <% else %>
+        <div class="aboutme-stat">
+          <span class="aboutme-stat-value"><%= stat[:value] %></span>
+          <span class="aboutme-stat-label"><%= stat[:label] %></span>
+        </div>
+      <% end %>
     <% end %>
   </div>
 <% end %>

@@ -63,7 +63,7 @@ class AboutmeFindingCardTest < ActionView::TestCase
     render partial: "aboutme/card", locals: {
       kind: "bug-bounty",
       entry: {
-        "title" => "Firedancer bug bounty finding",
+        "title" => "Example project bug bounty finding",
         "tags" => [ "TBA" ]
       }
     }
@@ -99,7 +99,7 @@ class AboutmeFindingCardTest < ActionView::TestCase
     render partial: "aboutme/card", locals: {
       kind: "bug-bounty",
       entry: {
-        "title" => "Firedancer bug bounty finding"
+        "title" => "Example project bug bounty finding"
       }
     }
 

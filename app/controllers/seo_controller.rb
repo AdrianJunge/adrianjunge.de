@@ -85,7 +85,6 @@ class SeoController < ApplicationController
     [
       ABOUTME_TEXT_PATH,
       ABOUTME_CVES_PATH,
-      ABOUTME_BUG_BOUNTIES_PATH,
       ABOUTME_CHALLENGES_PATH,
       ABOUTME_CERTIFICATES_PATH,
       ABOUTME_TALKS_PATH,

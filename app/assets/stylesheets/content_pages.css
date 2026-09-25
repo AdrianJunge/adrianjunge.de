@@ -3011,8 +3011,8 @@
     color: inherit;
 }
 
-.landing-page .landing-metric:hover,
-.landing-page .landing-metric:focus-visible {
+.landing-page a.landing-metric:hover,
+.landing-page a.landing-metric:focus-visible {
     outline: none;
 }
 

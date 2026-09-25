@@ -4,7 +4,6 @@ module AboutPageHelpers
   def about_section_cases(repository)
     presentation = {
       "cves" => { title: "CVEs", stat_label: "CVEs", singular: "entry", plural: "entries" },
-      "bug-bounties" => { title: "Bug bounties", stat_label: "Bug bounties", singular: "finding", plural: "findings" },
       "my-challenges" => { title: "Created CTF Challenges", stat_label: "Created CTF Challenges", singular: "challenge", plural: "challenges" },
       "certificates" => { title: "Certificates", stat_label: "Certificates", singular: "certificate", plural: "certificates" },
       "talks" => { title: "Talks", stat_label: "Talks", singular: "talk", plural: "talks" },

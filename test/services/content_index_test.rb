@@ -6,10 +6,10 @@ class ContentIndexTest < ActiveSupport::TestCase
     @items = ContentIndex.new(repository: @repository).all_items
   end
 
-  test "bounty severity remains independent from challenge difficulty" do
-    bounty = @items.find { |item| item[:kind] == "bug-bounty" }
-    assert_includes bounty[:tags], "severity:medium"
-    assert_not_includes bounty[:tags], "difficulty:medium"
+  test "CVE severity remains independent from challenge difficulty" do
+    cve = @items.find { |item| item[:kind] == "cve" }
+    assert_includes cve[:tags], "severity:high"
+    assert_not_includes cve[:tags], "difficulty:high"
     assert @items.any? { |item| item[:tags].include?("difficulty:medium") }
   end
 
@@ -140,7 +140,6 @@ class ContentIndexTest < ActiveSupport::TestCase
     ids.concat(repository.ctf_posts.map { |post| "ctf-#{post[:directory].parameterize}-#{post[:slug].parameterize}" })
     ids.concat(repository.blog_posts.map { |post| "blog-#{post[:slug].parameterize}" })
     ids.concat(about_entry_ids(repository, "cve", ApplicationController::ABOUTME_CVES_PATH))
-    ids.concat(about_entry_ids(repository, "bug-bounty", ApplicationController::ABOUTME_BUG_BOUNTIES_PATH))
     ids.concat(repository.authored_challenges.map { |entry| about_id("challenge", entry) })
     ids.concat(about_entry_ids(repository, "certificate", ApplicationController::ABOUTME_CERTIFICATES_PATH))
     ids.concat(about_timeline_event_ids(repository, "talk", ApplicationController::ABOUTME_TALKS_PATH))
@@ -153,7 +152,6 @@ class ContentIndexTest < ActiveSupport::TestCase
       "writeup" => repository.ctf_posts.length,
       "blog" => repository.blog_posts.length,
       "cve" => repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).length,
-      "bug-bounty" => repository.about_entries(ApplicationController::ABOUTME_BUG_BOUNTIES_PATH).length,
       "challenge" => repository.authored_challenges.length,
       "certificate" => repository.about_entries(ApplicationController::ABOUTME_CERTIFICATES_PATH).length,
       "talk" => about_timeline_event_ids(repository, "talk", ApplicationController::ABOUTME_TALKS_PATH).length,
@@ -199,7 +197,7 @@ class ContentIndexTest < ActiveSupport::TestCase
       "writeup"
     when /\Ablog-/
       "blog"
-    when /\Aabout-(bug-bounty|achievement|certificate|challenge|cve|talk)-/
+    when /\Aabout-(achievement|certificate|challenge|cve|talk)-/
       Regexp.last_match(1)
     else
       flunk("unexpected timeline source id #{id.inspect}")
