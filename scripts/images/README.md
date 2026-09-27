@@ -51,8 +51,11 @@ New originals belong under `content/images/originals`, mirroring their intended
 logical asset paths. The export script never overwrites these originals.
 
 `python scripts/images/export.py --check` regenerates all exports into a temporary
-directory and compares their bytes and every manifest descriptor with the
-committed files. It catches missing manifest entries, changed originals with
+directory and compares every manifest descriptor and export with the committed
+files. PNGs are checked for identical pixels, dimensions, color mode, palette,
+and metadata; other formats must match byte for byte. Different Pillow wheels
+can use zlib or zlib-ng and produce different PNG compression for the same image.
+It catches missing manifest entries, changed originals with
 stale exports (even at identical dimensions), missing variants, orphan variants,
 and incorrect image formats. It never modifies sources or published files.
 This can take several minutes because screenshot WebP encoding is lossless.

@@ -88,6 +88,30 @@ class GithubWorkflowsTest < ActiveSupport::TestCase
     assert_includes File.read(Rails.root.join(".github/CODEOWNERS")), "* @AdrianJunge"
   end
 
+  test "accessibility evidence is mandatory after an attempted system test run" do
+    steps = @workflows.fetch("ci.yml").fetch("jobs").fetch("test").fetch("steps")
+    unit_tests = steps.find { |step| step["run"] == "bin/rails content:validate test" }
+    system_tests = steps.find { |step| step["id"] == "system_tests" }
+    summary = steps.find { |step| step["run"] == "npm run accessibility:summary" }
+    evidence = steps.find { |step| step.dig("with", "name") == "accessibility-reports" }
+
+    assert unit_tests, "Unit-test failures must be distinguishable from an attempted browser run"
+    assert system_tests
+    assert_operator steps.index(unit_tests), :<, steps.index(system_tests)
+    assert_equal "bin/rails test:system", system_tests.fetch("run")
+    assert_nil system_tests["if"], "System tests use the normal successful-prerequisites guard"
+    assert summary, "A complete accessibility summary must remain required"
+    assert_operator steps.index(system_tests), :<, steps.index(summary)
+
+    attempted_run = "${{ !cancelled() && (steps.system_tests.outcome == 'success' || steps.system_tests.outcome == 'failure') }}"
+    [ summary, evidence ].each do |step|
+      assert_equal attempted_run, step.fetch("if"), "Preserve evidence after failures, but skip reports when browsers never ran"
+    end
+    [ unit_tests, system_tests, summary ].each do |step|
+      refute step["continue-on-error"], "Test and evidence failures must fail CI"
+    end
+  end
+
   private
 
   def events(workflow)

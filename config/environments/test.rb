@@ -2,6 +2,10 @@ Rails.application.configure do
   config.enable_reloading = false
   config.eager_load = ENV["CI"].present?
 
+  # Initialize before parallel workers fork, avoiding races on tmp/local_secret.txt.
+  # This ephemeral key is used only by the test environment.
+  config.secret_key_base = SecureRandom.hex(64)
+
   config.public_file_server.headers = { "cache-control" => "public, max-age=3600" }
 
   config.consider_all_requests_local = true

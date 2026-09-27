@@ -126,10 +126,16 @@ jobs:
       - name: Run JavaScript tests
         run: npm test
 
-      - name: Run tests
+      - name: Validate content and run unit tests
         env:
           RAILS_ENV: test
-        run: bin/rails content:validate test test:system
+        run: bin/rails content:validate test
+
+      - name: Run system tests
+        id: system_tests
+        env:
+          RAILS_ENV: test
+        run: bin/rails test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -141,12 +147,12 @@ jobs:
           if-no-files-found: ignore
 
       - name: Summarize accessibility evidence and manual review needs
-        if: always()
+        if: ${{ !cancelled() && (steps.system_tests.outcome == 'success' || steps.system_tests.outcome == 'failure') }}
         run: npm run accessibility:summary
 
-      - name: Keep accessibility evidence from every run
+      - name: Keep accessibility evidence from system tests
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
+        if: ${{ !cancelled() && (steps.system_tests.outcome == 'success' || steps.system_tests.outcome == 'failure') }}
         with:
           name: accessibility-reports
           path: tmp/a11y

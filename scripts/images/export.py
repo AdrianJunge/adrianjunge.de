@@ -140,6 +140,30 @@ def image_files(assets: Path) -> dict[str, Path]:
             if path.is_file() and path.suffix.lower() in RASTER | {".svg"}}
 
 
+def png_content(path: Path) -> tuple:
+    """Compare lossless content, independent of the wheel's zlib implementation."""
+    with Image.open(path) as image:
+        if image.format != "PNG" or image.n_frames != 1:
+            raise ValueError("Expected a static PNG export")
+        image.verify()
+    with Image.open(path) as image:
+        pixels = image.tobytes()  # Load metadata following the image data, too.
+        return image.mode, image.size, image.info, image.getpalette(), pixels
+
+
+def equivalent_export(expected: Path, published: Path) -> bool:
+    if expected.read_bytes() == published.read_bytes():
+        return True
+    if expected.suffix.lower() != ".png":
+        return False
+    # Pillow's Python wheels can bundle zlib or zlib-ng. Their compressed PNG
+    # bytes differ even with the same Pillow version and identical pixels.
+    try:
+        return png_content(expected) == png_content(published)
+    except (OSError, SyntaxError, ValueError):
+        return False
+
+
 def compare_exports(expected: Path, manifest: dict) -> None:
     published_manifest = json.loads(MANIFEST.read_text())
     issues = []
@@ -156,7 +180,7 @@ def compare_exports(expected: Path, manifest: dict) -> None:
         published = published_files.get(logical)
         if published is None:
             issues.append(f"Missing image export: {logical}")
-        elif path.read_bytes() != published.read_bytes():
+        elif not equivalent_export(path, published):
             issues.append(f"Stale image export: {logical}")
     for logical in sorted(published_files.keys() - expected_files.keys()):
         issues.append(f"Orphan image export: {logical}")

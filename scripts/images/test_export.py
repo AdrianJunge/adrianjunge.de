@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from PIL import Image
+from PIL import Image, PngImagePlugin
 
 import export
 
@@ -61,6 +61,48 @@ class ImageExportTest(unittest.TestCase):
                 Image.new("RGB", (32, 16), "blue").save(source)
                 with self.assertRaisesRegex(ValueError, "Stale image export: example.png"):
                     export.check()
+
+    def test_identical_png_content_with_different_compression_passes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            originals, assets, source, manifest = self.fixture(root)
+            with patch.object(export, "ORIGINALS", originals), patch.object(export, "ASSETS", assets), patch.object(export, "MANIFEST", manifest):
+                self.publish_fixture(root)
+                published = assets / "example.png"
+                before = published.read_bytes()
+                with Image.open(published) as image:
+                    image.save(root / "uncompressed.png", compress_level=0)
+                published.write_bytes((root / "uncompressed.png").read_bytes())
+                self.assertNotEqual(before, published.read_bytes())
+                export.check()
+
+    def test_identical_png_pixels_with_changed_metadata_fail(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            originals, assets, source, manifest = self.fixture(root)
+            with patch.object(export, "ORIGINALS", originals), patch.object(export, "ASSETS", assets), patch.object(export, "MANIFEST", manifest):
+                self.publish_fixture(root)
+                published = assets / "example.png"
+                metadata = PngImagePlugin.PngInfo()
+                metadata.add_text("Description", "changed metadata")
+                with Image.open(published) as image:
+                    image.save(root / "changed.png", pnginfo=metadata)
+                published.write_bytes((root / "changed.png").read_bytes())
+                with self.assertRaisesRegex(ValueError, "Stale image export: example.png"):
+                    export.check()
+
+    def test_corrupt_png_is_not_accepted_as_a_compression_difference(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            original, corrupt = root / "expected.png", root / "corrupt.png"
+            Image.new("RGBA", (32, 16), "red").save(original)
+            contents = bytearray(original.read_bytes())
+            # Damage an IDAT checksum while leaving the compressed pixels intact.
+            chunk = contents.index(b"IDAT")
+            size = int.from_bytes(contents[chunk - 4:chunk], "big")
+            contents[chunk + 4 + size] ^= 1
+            corrupt.write_bytes(contents)
+            self.assertFalse(export.equivalent_export(original, corrupt))
 
     def test_changed_screenshot_fails_when_its_lossless_variant_is_stale(self):
         with tempfile.TemporaryDirectory() as directory:
