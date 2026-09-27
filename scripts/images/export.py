@@ -72,9 +72,9 @@ def export_social_card(font_dir: Path, assets: Path | None = None) -> None:
     bold = str(font_dir / "DejaVuSans-Bold.ttf")
     regular = str(font_dir / "DejaVuSans.ttf")
     draw.text((140, 120), "ADRIANJUNGE.DE", font=ImageFont.truetype(regular, 25), fill="#a9c8e8")
-    draw.text((135, 205), "Adrian Junge", font=ImageFont.truetype(bold, 76), fill="#f1f7ff")
-    draw.text((140, 328), "Security research & software engineering", font=ImageFont.truetype(regular, 34), fill="#d0e2f5")
-    draw.text((140, 453), "Articles  /  CTF writeups  /  Projects", font=ImageFont.truetype(regular, 27), fill="#a9c8e8")
+    draw.text((135, 205), "Adrian Junge (vurlo)", font=ImageFont.truetype(bold, 76), fill="#f1f7ff")
+    draw.text((140, 328), "Security research & bug bounty hunting", font=ImageFont.truetype(regular, 34), fill="#d0e2f5")
+    draw.text((140, 453), "Posts  /  CTF writeups  /  CVEs", font=ImageFont.truetype(regular, 27), fill="#a9c8e8")
     target = assets / "landing/social-card.png"
     target.parent.mkdir(parents=True, exist_ok=True)
     image.save(target, optimize=True)
