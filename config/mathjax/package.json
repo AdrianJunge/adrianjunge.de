@@ -1,0 +1,9 @@
+{
+  "name": "adrianjunge-mathjax-cdn-inventory",
+  "private": true,
+  "description": "Exact CDN pins consumed by MathjaxDependencies; tracked separately from build tools.",
+  "dependencies": {
+    "@mathjax/mathjax-newcm-font": "4.1.3",
+    "mathjax": "4.1.3"
+  }
+}

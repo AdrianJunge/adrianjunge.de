@@ -1,0 +1,53 @@
+.error-page .error-detours {
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(125, 164, 209, 0.4);
+}
+
+.error-page .error-detours h2 {
+    margin: 0 0 0.75rem;
+    color: #e0f2fe;
+    font-size: 1.15rem;
+    line-height: 1.5;
+}
+
+.error-page .error-detour-list {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.error-page .error-detour-link {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--button-border);
+    border-radius: var(--radius-ui-control);
+    color: var(--button-color);
+    background: var(--button-bg);
+    box-shadow: var(--button-shadow);
+    font-weight: 700;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+    transition: var(--button-transition);
+}
+
+.error-page .error-detour-link:is(:hover, :focus-visible) {
+    border-color: var(--button-border-hover);
+    color: var(--button-color-hover);
+    background: var(--button-bg-hover);
+    box-shadow: var(--button-shadow-hover);
+}
+
+.error-page .error-detour-link:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 3px;
+}
+
+.error-page .error-random-detour .error-detour-link {
+    margin-top: 0.75rem;
+}

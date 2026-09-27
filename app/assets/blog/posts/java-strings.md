@@ -1,4 +1,7 @@
 ---
+title: "Funny Java Strings?"
+logo: "blog/java.png"
+category: "Security Research"
 description: Java Strings are immutable, interned, optimized, and surprisingly easy to misunderstand when secrets are involved. This post digs into String pooling, reflection, Base64 copies, library APIs, and why heap dumps are bad news for secrets.
 categories:
     - Java

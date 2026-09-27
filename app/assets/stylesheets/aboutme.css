@@ -24,15 +24,6 @@
     margin: 0 auto;
 }
 
-.aboutme-kicker,
-.aboutme-section-kicker {
-    margin: 0 0 0.4rem;
-    color: #7dd3fc;
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
 .aboutme-copy {
     max-width: 100%;
 }
@@ -46,6 +37,24 @@
     margin: 0 0 1rem;
     font-size: 1.03rem;
     line-height: 1.72;
+}
+
+.aboutme-copy a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    transition: color var(--motion-fast);
+}
+
+.aboutme-copy a:is(:hover, :focus-visible) {
+    color: #7dd3fc;
+}
+
+.aboutme-copy a:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 0.2rem;
 }
 
 .aboutme-stats {
@@ -121,7 +130,6 @@ a.aboutme-stat:focus-visible {
 
 .aboutme-section {
     --aboutme-section-accent: #7dd3fc;
-    --aboutme-section-accent-soft: rgba(125, 211, 252, 0.16);
     padding: 2.35rem 0 0;
     scroll-margin-top: calc(var(--top-taskbar-height) + 1rem);
 }
@@ -239,8 +247,7 @@ a.aboutme-stat:focus-visible {
 }
 
 .aboutme-finding-card::after,
-.aboutme-achievement-card::after,
-.aboutme-achievement-event::after {
+.aboutme-achievement-card::after {
     position: absolute;
     inset: 0 auto 0 0;
     z-index: 6;
@@ -831,39 +838,10 @@ a.aboutme-cwe-id:focus-visible {
     opacity: 1;
 }
 
-.aboutme-finding-project .aboutme-finding-project-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    max-width: 100%;
-    color: #f8fafc;
-    text-decoration: none;
-}
-
-.aboutme-finding-project .aboutme-finding-project-link::after {
-    width: 0.42rem;
-    height: 0.42rem;
-    flex: 0 0 auto;
-    border-top: 2px solid currentColor;
-    border-right: 2px solid currentColor;
-    content: "";
-    opacity: 0.72;
-    transform: translateY(-0.05rem) rotate(45deg);
-    transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-.aboutme-finding-project .aboutme-finding-project-link:hover::after,
-.aboutme-finding-project .aboutme-finding-project-link:focus-visible::after {
-    opacity: 1;
-}
-
-.aboutme-finding-project .aboutme-finding-project-link:hover,
-.aboutme-finding-project .aboutme-finding-project-link:focus-visible {
-    color: #7dd3fc;
-    text-decoration: none;
-}
-
 .aboutme-timeline {
+    --aboutme-timeline-axis: calc(0.62rem + 1px);
+    --aboutme-timeline-dot-radius: calc(0.35rem + 2px);
+    --aboutme-timeline-first-dot-top: 0.53rem;
     position: relative;
     margin: 0;
     padding: 0.2rem 0 0 1.5rem;
@@ -873,9 +851,9 @@ a.aboutme-cwe-id:focus-visible {
 
 .aboutme-timeline::before {
     position: absolute;
-    top: 0.82rem;
+    top: calc(var(--aboutme-timeline-first-dot-top) + var(--aboutme-timeline-dot-radius));
     bottom: 0.82rem;
-    left: 0.62rem;
+    left: calc(var(--aboutme-timeline-axis) - 1px);
     z-index: 0;
     width: 2px;
     border-radius: var(--radius-ui-pill);
@@ -898,7 +876,7 @@ a.aboutme-cwe-id:focus-visible {
 .aboutme-timeline li::before {
     position: absolute;
     top: 0.33rem;
-    left: -1.28rem;
+    left: calc(var(--aboutme-timeline-axis) - 1.5rem - var(--aboutme-timeline-dot-radius) - var(--aboutme-timeline-item-border, 0px));
     width: 0.7rem;
     height: 0.7rem;
     border: 2px solid #0b1220;
@@ -925,6 +903,7 @@ a.aboutme-cwe-id:focus-visible {
 }
 
 .aboutme-timeline li.aboutme-timeline-item-upcoming {
+    --aboutme-timeline-item-border: 1px;
     margin: 0.1rem 0 0.8rem;
     padding: 0.7rem 0.8rem 0.75rem;
     border: 1px solid color-mix(in srgb, var(--color-accent) 58%, transparent);
@@ -940,6 +919,11 @@ a.aboutme-cwe-id:focus-visible {
 
 .aboutme-timeline li.aboutme-timeline-item-upcoming::before {
     top: 0.95rem;
+}
+
+.aboutme-timeline:has(> .aboutme-timeline-item-upcoming:first-child) {
+    /* List padding, item margin/border, and the upcoming dot's top offset. */
+    --aboutme-timeline-first-dot-top: calc(1.25rem + 1px);
 }
 
 .aboutme-empty-state {
@@ -1016,55 +1000,6 @@ a.aboutme-cwe-id:focus-visible {
     list-style: none;
 }
 
-.aboutme-achievement-event {
-    position: relative;
-    display: block;
-    gap: 0.45rem;
-    padding: 0;
-    border: 1px solid rgba(88, 122, 166, 0.58);
-    border-radius: var(--radius-ui-control);
-    background: rgba(13, 32, 54, 0.42);
-}
-
-.aboutme-achievement-event::before {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 3px;
-    border-radius: var(--radius-ui-control) 0 0 var(--radius-ui-control);
-    background: var(--aboutme-section-accent);
-    content: "";
-}
-
-.aboutme-achievement-event .aboutme-card-title,
-.aboutme-achievement-event h4 {
-    margin: 0;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: 900;
-    line-height: 1.3;
-    overflow-wrap: anywhere;
-}
-
-.aboutme-achievement-event time {
-    color: #bae6fd;
-    font-size: 0.78rem;
-    font-weight: 900;
-}
-
-.aboutme-achievement-event .aboutme-card-summary,
-.aboutme-achievement-event p {
-    margin: 0;
-    color: rgba(226, 232, 240, 0.82);
-    font-size: 0.95rem;
-    line-height: 1.55;
-}
-
-.aboutme-achievement-event-details {
-    margin: 0;
-    padding-left: 1rem;
-    color: rgba(226, 232, 240, 0.8);
-}
-
 @media (min-width: 920px) {
     .aboutme-finding-grid,
     .aboutme-achievement-grid {
@@ -1082,12 +1017,6 @@ a.aboutme-cwe-id:focus-visible {
         width: calc(100% - 2rem);
         margin-right: auto;
         margin-left: auto;
-    }
-
-    .aboutme-kicker,
-    .aboutme-section-kicker {
-        font-size: 0.75rem;
-        line-height: 1.3;
     }
 
     .aboutme-copy p {
@@ -1363,12 +1292,6 @@ details.aboutme-achievement-card {
 .aboutme-timeline-content {
     display: grid;
     gap: 0.25rem;
-}
-
-.aboutme-timeline-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
 }
 
 .aboutme-timeline-title,

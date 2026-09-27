@@ -54,6 +54,8 @@ class ContentJsonSchemas
       "id" => STRING,
       "title" => STRING,
       "date" => DATE,
+      "updated" => DATE,
+      "modified" => DATE,
       "summary" => STRING,
       "url" => STRING,
       "timeline_group" => STRING,
@@ -72,6 +74,8 @@ class ContentJsonSchemas
       "icon" => STRING,
       "url" => STRING,
       "summary" => STRING,
+      "updated" => DATE,
+      "modified" => DATE,
       "timeline_group" => STRING,
       "tags" => { "type" => "array", "items" => TAG },
       "links" => { "type" => "array", "items" => LINK },
@@ -81,32 +85,19 @@ class ContentJsonSchemas
     }
   }.freeze
 
-  BLOG_ENTRY = {
-    "type" => "object",
-    "required" => %w[terminal_path logo title category description],
-    "additionalProperties" => false,
-    "properties" => {
-      "terminal_path" => STRING,
-      "logo" => STRING,
-      "title" => STRING,
-      "category" => STRING,
-      "description" => STRING,
-      "timeline_group" => STRING,
-      "hidden" => { "type" => "boolean" }
-    }
-  }.freeze
-
   CTF_ENTRY = {
     "type" => "object",
-    "required" => %w[terminal_path logo writeups website description],
+    "required" => %w[logo website description],
     "additionalProperties" => false,
     "properties" => {
-      "terminal_path" => STRING,
+      "directory" => STRING,
       "logo" => STRING,
       "writeups" => STRING,
       "website" => STRING,
       "description" => STRING,
-      "hidden" => { "type" => "boolean" }
+      "hidden" => { "type" => "boolean" },
+      "draft" => { "type" => "boolean" },
+      "wip" => { "type" => "boolean" }
     }
   }.freeze
 
@@ -119,7 +110,6 @@ class ContentJsonSchemas
   }.freeze
 
   OBJECT_SCHEMAS = {
-    ContentConfiguration::BLOG_INFO_PATH.to_s => BLOG_ENTRY,
     ContentConfiguration::CTF_INFO_PATH.to_s => CTF_ENTRY
   }.freeze
 
@@ -134,7 +124,20 @@ class ContentJsonSchemas
     schema = schema_for(path)
     return [] unless schema
 
-    JSONSchemer.schema(schema).validate(data).to_a + metadata_errors(data)
+    validation_errors(schema, data) + metadata_errors(data)
+  end
+
+  def self.validation_errors(schema, data)
+    JSONSchemer.schema(schema).validate(data).flat_map do |error|
+      missing = error.dig("details", "missing_keys")
+      next error unless missing
+
+      missing.map { |key| error.merge("data_pointer" => "#{error['data_pointer']}/#{pointer_key(key)}") }
+    end
+  end
+
+  def self.pointer_key(key)
+    key.to_s.gsub("~", "~0").gsub("/", "~1")
   end
 
   def self.metadata_errors(data, pointer = "")
@@ -143,10 +146,10 @@ class ContentJsonSchemas
       data.each_with_index.flat_map { |item, index| metadata_errors(item, "#{pointer}/#{index}") }
     when Hash
       data.flat_map do |key, value|
-        item_pointer = "#{pointer}/#{key}"
+        item_pointer = "#{pointer}/#{pointer_key(key)}"
         error = if %w[date published updated modified].include?(key) && value.present? && ContentDate.parse(value).nil?
           "unsupported date"
-        elsif %w[url website authorlink author_link event_url proof_url].include?(key) && value.present? && !ContentUrl.valid?(value)
+        elsif %w[url website authorlink author_link author_url event_url event-url event_link event-link category_url proof_url proof].include?(key) && value.present? && !ContentUrl.valid?(value)
           "unsupported URL (use a local path, fragment, or HTTP(S) URL)"
         elsif %w[hidden draft wip has_math].include?(key) && ![ true, false ].include?(value)
           "must be a boolean"

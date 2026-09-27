@@ -13,14 +13,21 @@ class ApplicationHelperTest < ActionView::TestCase
 
   test "upcoming status updates across a warm snapshot date boundary" do
     document = production_content_repository.blog_posts.first
-    travel_to Time.zone.local(2026, 9, 5, 23, 59) do
-      assert upcoming_date?("2026-09-06")
-      assert_same document[:body], ContentRepository.new.blog_post(document[:slug])[:body]
+    snapshot_reads = 0
+    trace = TracePoint.new(:call) do |event|
+      snapshot_reads += 1 if event.self.equal?(ContentSnapshot) && event.method_id == :fetch
     end
-    travel_to Time.zone.local(2026, 9, 6, 0, 1) do
-      assert_not upcoming_date?("2026-09-06")
-      assert_same document[:body], ContentRepository.new.blog_post(document[:slug])[:body]
+    trace.enable do
+      travel_to Time.zone.local(2026, 9, 5, 23, 59) do
+        assert upcoming_date?("2026-09-06")
+        assert_equal document[:body], ContentRepository.new.blog_post(document[:slug])[:body]
+      end
+      travel_to Time.zone.local(2026, 9, 6, 0, 1) do
+        assert_not upcoming_date?("2026-09-06")
+        assert_equal document[:body], ContentRepository.new.blog_post(document[:slug])[:body]
+      end
     end
+    assert_equal 0, snapshot_reads, "warm catalog should not reload documents"
   end
 
   test "upcoming dates are derived relative to the current date" do

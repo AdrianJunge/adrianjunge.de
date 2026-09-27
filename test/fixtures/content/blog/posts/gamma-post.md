@@ -1,4 +1,6 @@
 ---
+logo: "blog/java.png"
+category: "Engineering"
 title: Gamma Notes
 description: A synthetic middle-dated post used for adjacency tests.
 published: "2024-01-02"

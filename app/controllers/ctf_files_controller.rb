@@ -1,4 +1,6 @@
 class CtfFilesController < ApplicationController
+  self.requires_modern_browser = false
+
   def download
     requested_id = params[:id].to_s
     return head :not_found unless requested_id.match?(ContentRepository::CTF_ASSET_ID_PATTERN)

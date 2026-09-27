@@ -17,7 +17,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
         assert_operator overflow, :<=, 1, "expected no horizontal overflow at #{width}px on #{path}"
         assert_text expected_text
-        assert_selector "#terminal-container", visible: :all
+        assert_no_selector "#terminal-container, #terminal-taskbar-button", visible: :all
         assert_selector ".taskbar-link[href='/about']", visible: :all
       end
     end
@@ -64,31 +64,6 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_includes metrics["pageBackgroundImage"], "linear-gradient"
   end
 
-  test "global radius tokens keep website corners restrained" do
-    visit "/timeline"
-    assert_selector "body", wait: Capybara.default_max_wait_time do
-      page.evaluate_script(<<~JS).present?
-        window.getComputedStyle(document.documentElement).getPropertyValue("--radius-ui").trim()
-      JS
-    end
-
-    radii = page.evaluate_script(<<~JS)
-      (() => {
-        const root = window.getComputedStyle(document.documentElement);
-
-        return {
-          surface: root.getPropertyValue("--radius-ui").trim(),
-          control: root.getPropertyValue("--radius-ui-control").trim(),
-          tag: root.getPropertyValue("--radius-ui-pill").trim()
-        };
-      })()
-    JS
-
-    assert_equal ".95rem", radii["surface"]
-    assert_equal ".65rem", radii["control"]
-    assert_equal ".72rem", radii["tag"]
-  end
-
   test "top taskbar keeps usable icons on narrow displays" do
     [ 320, 390, 690, 720 ].each do |width|
       page.current_window.resize_to(width, 900)
@@ -100,7 +75,6 @@ class SitePagesTest < ApplicationSystemTestCase
         (() => {
           const taskbar = document.getElementById("top-taskbar");
           const icon = taskbar.querySelector(".taskbar-icon");
-          const terminalItem = taskbar.querySelector(".taskbar-item-terminal");
           const visibleLabels = Array.from(taskbar.querySelectorAll(".taskbar-label")).filter((label) => {
             return label.getClientRects().length > 0;
           });
@@ -116,7 +90,6 @@ class SitePagesTest < ApplicationSystemTestCase
             iconLeft: Math.round(iconRect.left),
             iconWidth: Math.round(iconRect.width),
             taskbarBackground: taskbarStyle.backgroundColor,
-            terminalVisible: terminalItem && window.getComputedStyle(terminalItem).display !== "none",
             visibleLabelCount: visibleLabels.length,
             labelTextOverflows: labelStyles.map((style) => style.textOverflow),
             minLabelFontSize: labelFontSizes.length ? Math.min(...labelFontSizes) : null,
@@ -125,21 +98,23 @@ class SitePagesTest < ApplicationSystemTestCase
         })()
       JS
 
-      assert_equal "rgba(7, 31, 52, 0.64)", metrics["taskbarBackground"]
-      assert_operator metrics["paddingLeft"], :>=, 7, "top taskbar padding collapsed at #{width}px"
+      assert_equal "rgba(7, 31, 52, 0.86)", metrics["taskbarBackground"]
+      assert_operator metrics["paddingLeft"], :>=, width <= 420 ? 6 : 7, "top taskbar padding collapsed at #{width}px"
       assert_operator metrics["iconLeft"], :>=, 7, "top taskbar icon touched the viewport edge at #{width}px"
       assert_operator metrics["iconWidth"], :>=, 24, "top taskbar icon became too small at #{width}px"
       assert_operator metrics["taskbarHeight"], :>=, 48, "top taskbar became too short at #{width}px"
       assert_empty metrics["labelTextOverflows"].grep("ellipsis"), "top taskbar labels still use ellipsis at #{width}px"
-      assert_equal width >= 700, metrics["terminalVisible"], "terminal taskbar visibility was wrong at #{width}px"
 
-      if width <= 420
-        assert_equal 0, metrics["visibleLabelCount"], "top taskbar labels should be hidden at #{width}px"
-      else
-        assert_operator metrics["visibleLabelCount"], :>, 0, "top taskbar labels disappeared too early at #{width}px"
-        assert_operator metrics["minLabelFontSize"], :>=, 8.9, "top taskbar labels became too small at #{width}px"
-        assert_operator metrics["maxLabelFontSize"], :<=, 11, "top taskbar labels became too large at #{width}px"
-      end
+      assert_equal 7, metrics["visibleLabelCount"], "every visible navigation destination needs a label at #{width}px"
+      assert_operator metrics["minLabelFontSize"], :>=, 8.9, "top taskbar labels became too small at #{width}px"
+      assert_operator metrics["maxLabelFontSize"], :<=, 11, "top taskbar labels became too large at #{width}px"
+      assert page.evaluate_script(<<~JS), "navigation labels or touch targets do not fit at #{width}px"
+        [...document.querySelectorAll('.top-taskbar .taskbar-label')].filter(label => label.getClientRects().length).every(label => {
+          const control = label.closest('a, button, summary');
+          const rect = control.getBoundingClientRect();
+          return label.scrollWidth <= label.clientWidth + 1 && rect.width >= 44 && rect.height >= 44 && rect.left >= 0 && rect.right <= innerWidth;
+        })
+      JS
     end
   end
 
@@ -305,7 +280,7 @@ class SitePagesTest < ApplicationSystemTestCase
 
     visit ctf["writeups"]
 
-    assert_selector ".content-hero-title-link[href='#{ctf["website"]}'][target='_blank'][rel='noopener noreferrer'][title='Open #{ctf["terminal_path"].upcase}']"
+    assert_selector ".content-hero-title-link[href='#{ctf["website"]}'][target='_blank'][rel='noopener noreferrer'][title='Open #{ctf["directory"].upcase}']"
     assert_no_selector ".content-hero-title-link .content-hero-link-cue"
 
     styles = page.evaluate_script(<<~JS)
@@ -329,7 +304,7 @@ class SitePagesTest < ApplicationSystemTestCase
       })()
     JS
 
-    assert_equal ctf["terminal_path"].upcase, styles["title"]
+    assert_equal ctf["directory"].upcase, styles["title"]
     assert_equal 0, styles["borderWidth"]
     assert_equal "none", styles["textDecorationLine"]
     assert_not_equal "none", styles["cueContent"]
@@ -350,7 +325,7 @@ class SitePagesTest < ApplicationSystemTestCase
         };
       })()
     JS
-    assert_equal ctf["terminal_path"].upcase, mobile_link_metrics["text"]
+    assert_equal ctf["directory"].upcase, mobile_link_metrics["text"]
     assert_operator mobile_link_metrics["overflowX"], :<=, 1
   end
 
@@ -563,7 +538,6 @@ class SitePagesTest < ApplicationSystemTestCase
 
       assert_operator rail_metrics["maxDateCenterDelta"], :<=, 1
       assert_operator rail_metrics["maxDotCenterDelta"], :<=, 1
-      assert_equal "rgb(85, 170, 255)", rail_metrics["dotColor"]
       assert_not_equal rail_metrics["regularBorderColor"], rail_metrics["upcomingBorderColor"]
       assert_not_equal "none", rail_metrics["upcomingBoxShadow"]
       assert_equal "0px", rail_metrics["upcomingHeadingBorderWidth"]

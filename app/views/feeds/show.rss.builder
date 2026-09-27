@@ -1,5 +1,5 @@
 xml.instruct! :xml, version: "1.0", encoding: "UTF-8"
-xml.rss(version: "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom") do
+xml.rss(version: "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
   xml.channel do
     xml.title       @feed_title
     xml.link        @feed_alternate_url
@@ -17,6 +17,7 @@ xml.rss(version: "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom") do
         xml.link item[:link]
         xml.guid item[:guid]
         xml.pubDate item[:pub_date].rfc2822
+        item[:authors].each { |author| xml.tag! "dc:creator", author[:name] }
       end
     end
   end

@@ -1,40 +1,16 @@
-<% years = Array(local_assigns.fetch(:years, [])).compact.map(&:to_s).reject(&:blank?).uniq.sort.reverse %>
-<% tags = Array(local_assigns.fetch(:tags, [])).compact.map(&:to_s).reject(&:blank?).uniq { |tag| tag.downcase }.sort_by { |tag| ContentRepository.filter_tag_sort_key(tag) } %>
-<% tag_groups = Array(local_assigns.fetch(:tag_groups, [])).filter_map do |group|
-     next unless group.is_a?(Hash)
-
-     group_tags = Array(group[:tags] || group["tags"]).compact.map(&:to_s).reject(&:blank?)
-     next if group_tags.empty?
-
-     sort = (group[:sort] || group["sort"]).to_s
-     sorted_group_tags = group_tags.uniq { |tag| tag.downcase }.sort_by { |tag| ContentTagTaxonomy.sort_key(tag) }
-
-     {
-       label: (group[:label] || group["label"]).to_s,
-       sort: sort,
-       tags: sorted_group_tags
-     }
-   end %>
-<% tag_groups = [ { label: "", tags: tags } ] if tag_groups.empty? && tags.any? %>
-<% total = local_assigns.fetch(:total, 0).to_i %>
-<% scope = local_assigns.fetch(:scope) %>
-<% search_id = local_assigns.fetch(:search_id, "#{scope}-search-input") %>
-<% clear_id = local_assigns.fetch(:clear_id, "#{scope}-search-clear") %>
-<% search_value = local_assigns.fetch(:search_value, nil) %>
-
-<div class="content-filter-panel" data-filter-scope="<%= scope %>" inert>
+<div class="content-filter-panel" data-filter-scope="<%= filters.scope %>" data-filter-aliases="<%= filters.aliases.to_json %>" inert>
   <div class="content-filter-row">
     <div class="content-filter-search search-wrapper">
-      <label for="<%= search_id %>" class="sr-only">Search</label>
+      <label for="<%= filters.search_id %>" class="sr-only">Search</label>
       <input
         type="search"
-        id="<%= search_id %>"
-        placeholder="<%= local_assigns.fetch(:placeholder, "Search...") %>"
-        value="<%= search_value %>"
+        id="<%= filters.search_id %>"
+        placeholder="<%= filters.placeholder %>"
+        value="<%= filters.search_value %>"
         class="content-filter-input"
-        data-filter-search="<%= scope %>"
+        data-filter-search="<%= filters.scope %>"
       >
-      <button type="button" class="search-clear-btn" id="<%= clear_id %>" data-filter-clear="<%= scope %>" aria-label="Clear search">
+      <button type="button" class="search-clear-btn" id="<%= filters.clear_id %>" data-filter-clear="<%= filters.scope %>" aria-label="Clear search">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -42,12 +18,12 @@
       </button>
     </div>
 
-    <% if years.any? %>
+    <% if filters.years.any? %>
       <div class="content-filter-select-wrap">
-        <label for="<%= scope %>-year-filter"><%= local_assigns.fetch(:year_label, "Year") %></label>
-        <select id="<%= scope %>-year-filter" name="year" class="content-filter-select" data-filter-year="<%= scope %>">
+        <label for="<%= filters.scope %>-year-filter"><%= filters.year_label %></label>
+        <select id="<%= filters.scope %>-year-filter" name="year" class="content-filter-select" data-filter-year="<%= filters.scope %>">
           <option value="">All years</option>
-          <% years.each do |year| %>
+          <% filters.years.each do |year| %>
             <option value="<%= year %>"><%= year %></option>
           <% end %>
         </select>
@@ -55,29 +31,25 @@
     <% end %>
   </div>
 
-  <% if tag_groups.any? %>
-    <% first_group = tag_groups.find { |group| group[:label].casecmp?("Content type") } || tag_groups.first %>
-    <% common_tags = ["Blog post", "CTF writeup", "CVE", "Bug bounty", "Certificate", "Talk"].select { |tag| first_group[:tags].include?(tag) } %>
-    <% common_tags = first_group[:tags].first(6) if common_tags.empty? %>
-    <div class="content-filter-common" aria-label="Common filters">
-      <%= render "shared/filter_tag_group", group: first_group.merge(label: "Common filters", tags: common_tags), scope: scope %>
+  <% if filters.common_group %>
+    <div class="content-filter-common" role="group" aria-label="Common filters">
+      <%= render "shared/filter_tag_group", group: filters.common_group, scope: filters.scope %>
     </div>
-    <% additional_groups = [first_group.merge(tags: first_group[:tags] - common_tags), *tag_groups.reject { |group| group.equal?(first_group) }].reject { |group| group[:tags].empty? } %>
-    <% if additional_groups.any? %>
+    <% if filters.additional_groups.any? %>
       <details class="content-filter-more">
         <summary>More filters</summary>
         <p class="content-filter-help">Selected tags combine: results must match every selected tag.</p>
         <div class="content-filter-tag-groups">
-          <% additional_groups.each do |group| %>
-            <%= render "shared/filter_tag_group", group: group, scope: scope %>
+          <% filters.additional_groups.each do |group| %>
+            <%= render "shared/filter_tag_group", group: group, scope: filters.scope %>
           <% end %>
         </div>
       </details>
     <% end %>
   <% end %>
   <div class="content-filter-state">
-    <span role="status" aria-live="polite" aria-atomic="true" data-filter-count="<%= scope %>"><%= total %> / <%= total %> <%= total == 1 ? "item" : "items" %></span>
-    <button type="button" class="content-filter-reset" data-filter-reset="<%= scope %>" aria-hidden="true" tabindex="-1">Clear filters</button>
+    <span role="status" aria-live="polite" aria-atomic="true" data-filter-count="<%= filters.scope %>"><%= filters.total %> / <%= filters.total %> <%= filters.total == 1 ? "item" : "items" %></span>
+    <button type="button" class="content-filter-reset" data-filter-reset="<%= filters.scope %>" aria-hidden="true" tabindex="-1">Clear filters</button>
   </div>
 </div>
 <noscript><style>.content-filter-panel { display: none; }</style><p class="content-filter-help">All entries are shown. Use your browser’s Find command to search this page.</p></noscript>

@@ -107,12 +107,18 @@ function initializeAboutStatsNavigation() {
 
         link.dataset.smoothScrollBound = "true";
         link.addEventListener("click", (event) => {
+            if (event.defaultPrevented || event.button !== 0 ||
+                event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
             const hash = link.getAttribute("href");
             const target = aboutTargetFromHash(hash);
             if (!target) return;
 
             event.preventDefault();
             openDetailsForTarget(target);
+            // Keep the reading and keyboard positions together after a jump.
+            // The native summary is already focusable and leads into its section.
+            const focusTarget = target.matches('details') ? target.querySelector(':scope > summary') : target;
+            focusTarget?.focus({ preventScroll: true });
             scrollToAboutTarget(target, { behavior: reducedMotion.matches ? "auto" : "smooth" });
 
             if (window.location.hash !== hash) {
@@ -187,7 +193,6 @@ function initializeAboutPage() {
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initializeAboutPage);
 else initializeAboutPage();
-document.addEventListener('turbo:load', initializeAboutPage);
 window.addEventListener('pageshow', (event) => {
     // History restores reuse the live DOM, including toggled native details,
     // without DOMContentLoaded. Reset categories only when entering the page.

@@ -1,79 +1,69 @@
 {
   "CSCG": {
-    "terminal_path": "cscg",
+    "directory": "cscg",
     "logo": "ctf/cscg.png",
-    "writeups": "/ctf/cscg",
     "website": "https://cscg.de/",
-    "description": "The CSCG is an annual german CTF competition that spans two months and serves as the qualifier for the DHM, serving as the qualifier for selecting the German team for the ECSC."
+    "description": "The CSCG is an annual German CTF competition that spans two months and serves as the qualifier for the DHM, where the German team for the ECSC is selected."
   },
   "GPNCTF": {
-    "terminal_path": "gpnctf",
+    "directory": "gpnctf",
     "logo": "ctf/gpnctf.png",
-    "writeups": "/ctf/gpnctf",
     "website": "https://ctftime.org/ctf/854/",
     "description": "GPNCTF is an annual CTF competition hosted by KITCTF at the GPN chaos computer club event in Karlsruhe."
   },
   "SEKAICTF": {
-    "terminal_path": "sekaictf",
+    "directory": "sekaictf",
     "logo": "ctf/sekaictf.png",
-    "writeups": "/ctf/sekaictf",
     "website": "https://sekai.team/",
-    "description": "SekaiCTF is an annual CTF competition, hosted by PROJECT SEKAI - a well known international CTF team. The competition itself is known for its sizable prize pools and for serving as a prequalifier for events like MaltaCTF and XCTF."
+    "description": "SekaiCTF is an annual CTF competition, hosted by PROJECT SEKAI - a well-known international CTF team. The competition itself is known for its sizable prize pools and for serving as a prequalifier for events like MaltaCTF and XCTF."
   },
   // "DHM": {
-  //   "terminal_path": "dhm",
+  //   "directory": "dhm",
   //   "logo": "ctf/dhm.png",
   //   "writeups": "/ctf/dhm",
   //   "website": "https://hacking-meisterschaft.de/",
   //   "description": "The DHM is the annual CTF final round of the CSCG qualifiers, where teams of 6 members compete against each other for the chance to qualify for the ECSC."
   // },
   "KITCTF":{
-    "terminal_path": "kitctf",
+    "directory": "kitctf",
     "logo": "ctf/kitctf.png",
-    "writeups": "/ctf/kitctf",
     "website": "https://kitctf.de/",
     "description": "KITCTF organizes the local IntroCTF @KIT every semester and the GPNCTF annually."
   },
   "SMILEYCTF": {
-    "terminal_path": "smileyctf",
+    "directory": "smileyctf",
     "logo": "ctf/smileyctf.png",
-    "writeups": "/ctf/smileyctf",
     "website": "https://play.ctf.gg/",
     "description": "SmileyCTF is hosted by \"America's #1 CTF team\" named .;,;."
   },
   "UMDCTF":{
-    "terminal_path": "umdctf",
+    "directory": "umdctf",
     "logo": "ctf/umdctf.png",
-    "writeups": "/ctf/umdctf",
     "website": "https://umdctf.io/",
     "description": "UMDCTF is an annual CTF competition hosted by the University of Maryland."
   },
   "FCSC":{
-    "terminal_path": "fcsc",
+    "directory": "fcsc",
     "logo": "ctf/fcsc.png",
-    "writeups": "/ctf/fcsc",
     "website": "https://hackropole.fr/",
     "description": "The FCSC is the French equivalent of the CSCG/DHM and serves as the qualifier for selecting the French team for the ECSC."
   },
   "EHAX":{
-    "terminal_path": "ehax",
+    "directory": "ehax",
     "logo": "ctf/ehax.png",
-    "writeups": "/ctf/ehax",
     "website": "https://ctf.ehax.tech/",
     "description": "EHAX is an online 24-hour CTF competition hosted as part of Invictus DTU's mega tech fest in India."
   },
   "LACTF":{
-    "terminal_path": "lactf",
+    "directory": "lactf",
     "logo": "ctf/lactf.png",
-    "writeups": "/ctf/lactf",
     "website": "https://lac.tf/",
-    "description": "LACTF is an annual american CTF competition hosted by ACM Cyber at UCLA."
+    "description": "LACTF is an annual American CTF competition hosted by ACM Cyber at UCLA."
   },
   "DVCTF":{
-    "terminal_path": "dvctf",
+    "directory": "dvctf",
     "logo": "ctf/dvctf.png",
-    "writeups": "/ctf/dvctf",
     "website": "https://dvc.tf/",
-    "description": "DVCTF is annualy held by DaVinciCode, the academic team of the École supérieure d'ingénieurs Léonard-de-Vinci in France."
+    "description": "DVCTF is annually held by DaVinciCode, the academic team of the École supérieure d'ingénieurs Léonard-de-Vinci in France."
   }
 }

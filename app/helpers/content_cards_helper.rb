@@ -1,18 +1,4 @@
 module ContentCardsHelper
-  def landing_blog_metadata(post)
-    config = (@blogs || content_repository.blog_metadata).fetch(post[:slug], {})
-    config.merge(post.fetch(:metadata, {})).merge(
-      "title" => post[:title],
-      "description" => post[:description],
-      "topic" => post[:topic],
-      "categories" => post[:categories],
-      "published" => post[:published].strftime("%Y-%m-%d"),
-      "reading_time_label" => post[:reading_time_label],
-      "reading_time_minutes" => post[:reading_time_minutes],
-      "logo" => post[:logo].presence || config["logo"]
-    )
-  end
-
   def timeline_card_options(item, visible_tags: nil)
     visible_tags ||= Array(item[:tags]).reject { |tag| ContentTagTaxonomy.recognition?(tag) || ContentTagTaxonomy.content_type?(tag) }
     tags = []
@@ -42,10 +28,7 @@ module ContentCardsHelper
       categories = Array(item[:tags]).select { |tag| ContentCategoryTag.recognized?(tag) }
       media_html = get_category_icon(categories).html_safe
     else
-      icon = item[:logo].presence || {
-        "blog" => "task-bar/blog.svg", "cve" => "other/cve.svg", "bug-bounty" => "other/bug-bounty.svg",
-        "certificate" => "other/certificate.svg", "talk" => "other/talk-slides.png"
-      }.fetch(item[:kind], "other/achievement.svg")
+      icon = item[:logo].presence || ContentIconRegistry.for(item[:kind])
       media.merge!(image: icon, alt: "#{item[:title]} icon", image_class: "blog-logo")
     end
 
@@ -54,13 +37,11 @@ module ContentCardsHelper
     when "writeup" then { url: ctf_path, icon: "task-bar/flag.svg", kind: "ctf", label: "Browse CTF writeups" }
     end
 
-    {
-      url: item[:link], class_name: "timeline-content timeline-content-with-media",
-      content_class: "blog-post-card-content timeline-card-content", body_class: "blog-post-card-details timeline-card-details",
-      media_html: media_html, media: media, wrap_content: true, wrap_body: true, hitbox_class: "timeline-card-hitbox",
-      title: item[:title], title_tag: :span, title_class: "timeline-title", tags: tags, tags_class: "timeline-tags", filter_scope: "timeline",
-      description: item[:description], description_class: "timeline-meta", reading_time: item[:reading_time_label],
-      reading_time_class: "timeline-reading-time", section_link: section_link, aria_label: "Open #{item[:title]}"
-    }
+    ContentCardPresenter.new(
+      variant: :timeline, url: item[:link], media_html: media_html, media: media,
+      title: item[:title], tags: tags, filter_scope: "timeline",
+      description: item[:description], reading_time: item[:reading_time_label],
+      section_link: section_link, aria_label: "Open #{item[:title]}"
+    )
   end
 end

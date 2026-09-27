@@ -21,5 +21,9 @@
       <%= link_to "Home", root_path, class: "content-link-button ui-hover-lift" %>
       <%= link_to "Timeline", timeline_path, class: "content-link-button ui-hover-lift" %>
     </div>
+
+    <% if @article_detours.present? %>
+      <%= render "errors/article_detours", detours: @article_detours %>
+    <% end %>
   </section>
 </main>

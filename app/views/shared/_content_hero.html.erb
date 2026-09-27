@@ -57,7 +57,7 @@
         <%= description_html %>
       </div>
     <% elsif description.present? %>
-      <p class="<%= description_class %>"><%= description %></p>
+      <p class="<%= description_class %>"><%= italicize_proper_names(description) %></p>
     <% end %>
 
     <% if after_content.present? %>

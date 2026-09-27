@@ -1,10 +1,20 @@
+function observeArticleLayout(article, update) {
+  const observer = new ResizeObserver(update);
+  observer.observe(article);
+  window.addEventListener('pagehide', () => observer.disconnect());
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    observer.observe(article);
+    update();
+  });
+}
+
 function initBlogTOC() {
   const tocLinks = document.querySelectorAll(".toc-anchor");
   const article = document.querySelector(".writeup-container > .markdown-content") || document.querySelector(".markdown-content");
   const articlePage = document.querySelector(".article-page");
   if (!articlePage || articlePage.dataset.initialized) return;
   articlePage.dataset.initialized = 'true';
-  const headings = article ? article.querySelectorAll("h1, h2, h3, h4, h5, h6") : [];
   const shouldControlInitialHashScroll = Boolean(articlePage && window.location.hash);
   const previousScrollRestoration = 'scrollRestoration' in window.history ? window.history.scrollRestoration : null;
   let initialHashScrollInterrupted = false;
@@ -105,7 +115,10 @@ function initBlogTOC() {
     if (activeId === id) return;
     activeId = id;
     tocLinks.forEach((link) => {
-      link.classList.toggle('active-anchor', hashToId(hashForLink(link)) === id);
+      const active = hashToId(hashForLink(link)) === id;
+      link.classList.toggle('active-anchor', active);
+      if (active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
     });
   }
 
@@ -122,10 +135,11 @@ function initBlogTOC() {
       window.history.pushState(null, '', hash);
     }
 
-    setActiveLinkForId(anchor.id);
+    // The scroll observer owns the active marker; requesting a scroll does not
+    // mean the destination has been reached (or that the scroll will complete).
   }
 
-  if (tocLinks.length > 0) tocLinks[0].classList.add("active-anchor");
+  if (tocLinks.length > 0) setActiveLinkForId(hashToId(hashForLink(tocLinks[0])));
 
   function highlightCurrentSection() {
     let scrollPosition = window.scrollY + topScrollOffset() + 1;
@@ -137,26 +151,25 @@ function initBlogTOC() {
       }
     });
 
-    if (currentSection) {
-      setActiveLinkForId(currentSection.id);
-    }
+    setActiveLinkForId(currentSection?.id || hashToId(hashForLink(tocLinks[0])));
   }
 
   if (tocLinks.length > 0) {
     const refreshOffsets = () => {
-      headingOffsets = Array.from(headings).map(heading => ({
+      headingOffsets = Array.from(article.querySelectorAll('h1, h2, h3, h4, h5, h6')).map(heading => ({
         anchor: heading.querySelector('a[id]'), targetTop: window.scrollY + heading.getBoundingClientRect().top
       }));
       highlightCurrentSection();
     };
-    const observer = new ResizeObserver(refreshOffsets);
-    observer.observe(article);
+    observeArticleLayout(article, refreshOffsets);
     window.addEventListener('resize', refreshOffsets);
+    article.addEventListener('article:content-restored', refreshOffsets);
     tocDisclosure?.addEventListener('toggle', refreshOffsets);
-    window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
     refreshOffsets();
     tocLinks.forEach((link) => {
       link.addEventListener('click', (event) => {
+        if (event.defaultPrevented || event.button !== 0 ||
+            event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
         const hash = hashForLink(link);
         const target = targetForHash(hash);
         if (!target) return;
@@ -270,29 +283,59 @@ function initBlogTOC() {
 }
 
 function initCodeCopy() {
+  const states = new WeakMap();
   document.addEventListener('click', event => {
     const btn = event.target.closest('.copy-btn');
     if (!btn) return;
 
     const code = btn.closest('.code-block')?.querySelector('code');
     if (!code) return;
+    const source = code.textContent;
     const status = btn.closest('.code-block').querySelector('.copy-status');
     const report = message => { if (status) status.textContent = message; };
+    const feedback = value => {
+      btn.dataset.copyState = value;
+      btn.querySelector('.copy-icon')?.toggleAttribute('hidden', value === 'success');
+      btn.querySelector('.copy-check-icon')?.toggleAttribute('hidden', value !== 'success');
+    };
+    const state = states.get(btn) || { request: 0 };
+    states.set(btn, state);
+    const request = ++state.request;
+    window.clearTimeout(state.timer);
+    feedback('idle');
+    report('');
     Promise.resolve().then(() => {
       if (!navigator.clipboard) throw new Error('Clipboard unavailable');
-      return navigator.clipboard.writeText(code.textContent);
+      return navigator.clipboard.writeText(source);
     }).then(() => {
-      btn.textContent = 'Copied';
+      if (request !== state.request) return;
+      feedback('success');
       report('Code copied to clipboard.');
-      window.setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      state.timer = window.setTimeout(() => {
+        if (request === state.request) feedback('idle');
+      }, 2000);
     }).catch(() => {
-      btn.textContent = 'Copy';
+      if (request !== state.request) return;
+      feedback('error');
       report('Copy unavailable. Select the code and copy it manually.');
     });
   });
 }
 
 function initHintSpoilers() {
+  // Serve readable hints if JavaScript is disabled or fails to load. Only apply
+  // the original blur once its Expose control can actually reveal the content.
+  document.querySelectorAll('[data-hint-spoiler]').forEach(spoiler => {
+    if (spoiler.dataset.hintEnhanced === 'true') return;
+    const content = spoiler.querySelector('.writeup-hint-spoiler-content');
+    const button = spoiler.querySelector('[data-hint-spoiler-reveal]');
+    if (!content || !button) return;
+    spoiler.dataset.hintEnhanced = 'true';
+    spoiler.classList.add('is-hidden');
+    content.inert = true;
+    content.setAttribute('aria-hidden', 'true');
+    button.hidden = false;
+  });
   document.addEventListener('click', event => {
     const btn = event.target.closest('[data-hint-spoiler-reveal]');
     if (!btn) return;
@@ -305,7 +348,12 @@ function initHintSpoilers() {
     spoiler.classList.add('is-revealed');
     btn.setAttribute('aria-expanded', 'true');
     btn.hidden = true;
-    if (content) content.setAttribute('aria-hidden', 'false');
+    if (content) {
+      content.setAttribute('aria-hidden', 'false');
+      content.inert = false;
+      content.tabIndex = -1;
+      content.focus({ preventScroll: true });
+    }
   });
 }
 
@@ -357,9 +405,7 @@ function initArticleProgress() {
   window.addEventListener('scroll', scheduleUpdate, { passive: true });
   window.addEventListener('resize', scheduleUpdate);
   document.querySelector('.article-toc-compact')?.addEventListener('toggle', scheduleUpdate);
-  const observer = new ResizeObserver(scheduleUpdate);
-  observer.observe(article);
-  window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
+  observeArticleLayout(article, scheduleUpdate);
   update();
 }
 

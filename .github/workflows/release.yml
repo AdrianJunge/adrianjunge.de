@@ -1,0 +1,284 @@
+name: Publish release image
+
+# Publishing is an explicit owner action; this workflow never deploys.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: publish-release
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: gate
+    if: >-
+      github.repository == 'AdrianJunge/adrianjunge.de' &&
+      github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' &&
+      github.actor == 'AdrianJunge' && github.triggering_actor == 'AdrianJunge'
+    permissions:
+      actions: read # Read CI status without checking out or executing repository code.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require the latest CI run for this exact main commit to pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
+            -f head_sha="$GITHUB_SHA" -f branch=main -f event=push -f per_page=100 \
+            > "$RUNNER_TEMP/release-ci-runs.json"
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          expected = {
+              "GITHUB_REPOSITORY": "AdrianJunge/adrianjunge.de",
+              "GITHUB_REF": "refs/heads/main",
+              "GITHUB_EVENT_NAME": "workflow_dispatch",
+              "GITHUB_ACTOR": "AdrianJunge",
+              "GITHUB_TRIGGERING_ACTOR": "AdrianJunge",
+          }
+          if any(os.environ.get(key) != value for key, value in expected.items()):
+              raise SystemExit("Release requires an owner dispatch on this repository's main branch")
+          commit = os.environ["GITHUB_SHA"]
+          if not re.fullmatch(r"[0-9a-f]{40}", commit):
+              raise SystemExit("Expected a full source commit")
+          runs = json.loads((Path(os.environ["RUNNER_TEMP"]) / "release-ci-runs.json").read_text())["workflow_runs"]
+          if not isinstance(runs, list) or not runs:
+              raise SystemExit("No push CI run exists for this commit")
+          if any(not isinstance(run, dict) or type(run.get("id")) is not int or run["id"] <= 0 for run in runs):
+              raise SystemExit("Invalid CI run identity")
+          # Never fall back to an older success after a failed or unfinished run.
+          latest = max(runs, key=lambda run: run["id"])
+          required = {
+              "head_sha": commit, "head_branch": "main", "event": "push",
+              "path": ".github/workflows/ci.yml", "status": "completed", "conclusion": "success",
+          }
+          if any(latest.get(key) != value for key, value in required.items()):
+              raise SystemExit("The latest push CI run for this exact main commit must finish successfully")
+          for key in ("repository", "head_repository"):
+              if latest.get(key, {}).get("full_name") != expected["GITHUB_REPOSITORY"]:
+                  raise SystemExit("CI run belongs to a different repository")
+          print(f"Verified CI run {latest['id']} for {commit}")
+          PY
+
+  build:
+    name: build
+    needs: gate
+    if: >-
+      github.repository == 'AdrianJunge/adrianjunge.de' &&
+      github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' &&
+      github.actor == 'AdrianJunge' && github.triggering_actor == 'AdrianJunge'
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      archive_sha256: ${{ steps.archive.outputs.archive_sha256 }}
+      image_id: ${{ steps.archive.outputs.image_id }}
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      build_attempt: ${{ steps.archive.outputs.build_attempt }}
+    steps:
+      - name: Checkout the selected main commit without retaining credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Build the uniquely tagged release candidate
+        run: |
+          repository="${GITHUB_REPOSITORY,,}"
+          image="ghcr.io/$repository:sha-$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'RELEASE_IMAGE=%s\n' "$image" >> "$GITHUB_ENV"
+          docker build --build-arg "RUBY_VERSION=$(tr -d '\n' < .ruby-version)" \
+            --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --tag "$image" .
+
+      - name: Test the exact image that will be published
+        run: scripts/container-check.sh "$RELEASE_IMAGE"
+
+      - name: Save the tested image and its identity
+        id: archive
+        run: |
+          mkdir -p "$RUNNER_TEMP/release-candidate"
+          archive="$RUNNER_TEMP/release-candidate/image.tar"
+          docker image save --output "$archive" "$RELEASE_IMAGE"
+          image_id="$(docker image inspect "$RELEASE_IMAGE" --format '{{.Id}}')"
+          archive_sha256="$(sha256sum "$archive" | cut -d ' ' -f 1)"
+          [[ "$image_id" =~ ^sha256:[0-9a-f]{64}$ ]]
+          [[ "$archive_sha256" =~ ^[0-9a-f]{64}$ ]]
+          printf 'image_id=%s\narchive_sha256=%s\n' "$image_id" "$archive_sha256" >> "$GITHUB_OUTPUT"
+          printf 'build_attempt=%s\n' "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+
+      - name: Transfer the tested candidate to the isolated publisher
+        id: upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/release-candidate/image.tar
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Retain container evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: tmp/container-check
+          retention-days: 90
+          if-no-files-found: warn
+
+  publish:
+    name: publish
+    needs: build
+    if: >-
+      github.repository == 'AdrianJunge/adrianjunge.de' &&
+      github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' &&
+      github.actor == 'AdrianJunge' && github.triggering_actor == 'AdrianJunge'
+    permissions:
+      packages: write # Publish the tested artifact without executing candidate code.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      EXPECTED_ARCHIVE_SHA256: ${{ needs.build.outputs.archive_sha256 }}
+      EXPECTED_IMAGE_ID: ${{ needs.build.outputs.image_id }}
+      BUILD_ATTEMPT: ${{ needs.build.outputs.build_attempt }}
+    steps:
+      # No checkout, dependency installation, or candidate execution on this runner.
+      - name: Require one immutable candidate artifact
+        env:
+          ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
+        run: '[[ "$ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]'
+
+      - name: Download only this run's tested candidate
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact_id }}
+          path: ${{ runner.temp }}/release-candidate
+          merge-multiple: true
+
+      - name: Verify the archive and loaded image before registry authentication
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          repository = os.environ["GITHUB_REPOSITORY"]
+          commit = os.environ["GITHUB_SHA"]
+          run_id, attempt = os.environ["GITHUB_RUN_ID"], os.environ["BUILD_ATTEMPT"]
+          publication_attempt = os.environ["GITHUB_RUN_ATTEMPT"]
+          if repository != "AdrianJunge/adrianjunge.de" or not re.fullmatch(r"[0-9a-f]{40}", commit):
+              raise SystemExit("Invalid release source")
+          if not all(re.fullmatch(r"[1-9][0-9]*", value) for value in (run_id, attempt, publication_attempt)):
+              raise SystemExit("Invalid release run identity")
+          if int(attempt) > int(publication_attempt):
+              raise SystemExit("Candidate belongs to a future run attempt")
+          expected_hash, expected_id = os.environ["EXPECTED_ARCHIVE_SHA256"], os.environ["EXPECTED_IMAGE_ID"]
+          if not re.fullmatch(r"[0-9a-f]{64}", expected_hash) or not re.fullmatch(r"sha256:[0-9a-f]{64}", expected_id):
+              raise SystemExit("Missing or invalid build identity")
+          archive = Path(os.environ["RUNNER_TEMP"]) / "release-candidate/image.tar"
+          if archive.is_symlink() or not archive.is_file():
+              raise SystemExit("Expected one regular image archive")
+          with archive.open("rb") as source:
+              if hashlib.file_digest(source, "sha256").hexdigest() != expected_hash:
+                  raise SystemExit("Candidate archive checksum does not match the tested build")
+          image = f"ghcr.io/{repository.lower()}:sha-{commit}-{run_id}-{attempt}"
+          subprocess.run(["docker", "image", "load", "--input", str(archive)], check=True)
+          inspection = json.loads(subprocess.check_output(["docker", "image", "inspect", image], text=True))
+          if not isinstance(inspection, list) or len(inspection) != 1:
+              raise SystemExit("Expected exactly one release image")
+          metadata = inspection[0]
+          labels = metadata.get("Config", {}).get("Labels") or {}
+          if metadata.get("Id") != expected_id or metadata.get("RepoTags") != [image]:
+              raise SystemExit("Loaded candidate is not the exact tested image and tag")
+          if labels.get("org.opencontainers.image.revision") != commit or labels.get("org.opencontainers.image.source") != f"https://github.com/{repository}":
+              raise SystemExit("Loaded candidate has incorrect source labels")
+          with open(os.environ["GITHUB_ENV"], "a") as output:
+              output.write(f"RELEASE_IMAGE={image}\n")
+          PY
+
+      - name: Authenticate to GitHub Container Registry
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/release-docker-config
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$DOCKER_CONFIG"
+          chmod 700 "$DOCKER_CONFIG"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+
+      - name: Publish the tested image and record its immutable identity
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/release-docker-config
+        run: |
+          docker push "$RELEASE_IMAGE"
+          python3 - <<'PY'
+          import datetime
+          import json
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          repository = os.environ["GITHUB_REPOSITORY"].lower()
+          commit = os.environ["GITHUB_SHA"]
+          run_id, attempt = os.environ["GITHUB_RUN_ID"], os.environ["BUILD_ATTEMPT"]
+          image = f"ghcr.io/{repository}:sha-{commit}-{run_id}-{attempt}"
+          if os.environ["RELEASE_IMAGE"] != image:
+              raise SystemExit("Published tag does not match the release identity")
+          inspection = json.loads(subprocess.check_output(["docker", "image", "inspect", image], text=True))
+          if not isinstance(inspection, list) or len(inspection) != 1:
+              raise SystemExit("Expected exactly one published image")
+          metadata = inspection[0]
+          if metadata.get("Id") != os.environ["EXPECTED_IMAGE_ID"]:
+              raise SystemExit("Published image differs from the tested image")
+          digests = set(reference for reference in metadata.get("RepoDigests", [])
+                        if re.fullmatch(re.escape(f"ghcr.io/{repository}@sha256:") + r"[0-9a-f]{64}", reference))
+          if len(digests) != 1:
+              raise SystemExit("Expected exactly one pushed digest for this repository")
+          manifest = {
+              "schema_version": 1, "image_tag": image, "image_digest": digests.pop(),
+              "image_id": metadata["Id"], "source_commit": commit,
+              "source_url": f"https://github.com/{repository}",
+              "workflow_run": f"https://github.com/{repository}/actions/runs/{run_id}/attempts/{attempt}",
+              "publication_workflow_run": f"https://github.com/{repository}/actions/runs/{run_id}/attempts/{os.environ['GITHUB_RUN_ATTEMPT']}",
+              "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
+              "candidate_archive_sha256": os.environ["EXPECTED_ARCHIVE_SHA256"],
+          }
+          output = Path(os.environ["RUNNER_TEMP"]) / "release-manifest/release.json"
+          output.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+          serialized = json.dumps(manifest, indent=2) + "\n"
+          output.write_text(serialized)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              summary.write("```json\n" + serialized + "```\n")
+          print(manifest["image_digest"])
+          PY
+
+      - name: End the isolated registry session
+        if: always()
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/release-docker-config
+        run: |
+          docker logout ghcr.io
+          rm -rf -- "$DOCKER_CONFIG"
+
+      - name: Retain the immutable release identity
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/release-manifest/release.json
+          retention-days: 90
+          if-no-files-found: warn

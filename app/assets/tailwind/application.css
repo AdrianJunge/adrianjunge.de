@@ -1,10 +1,22 @@
 @layer theme, base, components, utilities;
 @import 'tailwindcss' source(none);
 @import '../../../tmp/stylesheets/rouge.css' layer(components);
+@import '../stylesheets/tokens.css' layer(components);
 @import '../stylesheets/aboutme.css' layer(components);
 @import '../stylesheets/content_pages.css' layer(components);
+@import '../stylesheets/filters.css' layer(components);
+@import '../stylesheets/articles.css' layer(components);
+@import '../stylesheets/timeline.css' layer(components);
+@import '../stylesheets/landing.css' layer(components);
 @import '../stylesheets/footer.css' layer(components);
 @import '../stylesheets/application.css' layer(components);
+@import '../stylesheets/controls.css' layer(components);
+@import '../stylesheets/navigation.css' layer(components);
+@import '../stylesheets/tags.css' layer(components);
+@import '../stylesheets/article_enhancements.css' layer(components);
+@import '../stylesheets/search.css' layer(components);
+@import '../stylesheets/error_detours.css' layer(components);
+@import '../stylesheets/print.css' layer(components);
 
 @source '../../views';
 @source '../../helpers';
@@ -17,7 +29,6 @@
   --color-tertiary: #55aaff;
   --color-accent: #ccffff;
   --color-border: #658dbb;
-  --color-chrome: #607b9d;
   --color-page-start: #163f63;
   --color-page-mid: #0c2a44;
   --color-page-end: #041626;
@@ -26,15 +37,11 @@
 @layer base {
   :root {
     --taskbar-icon-size: clamp(2.5rem, 7vmin, 4rem);
-    --taskbar-gutter: clamp(0.625rem, 1vmin, 0.9rem);
-    --taskbar-size: calc(var(--taskbar-icon-size) + (var(--taskbar-gutter) * 2));
-    --taskbar-expanded-width: clamp(11rem, calc(var(--taskbar-size) * 3), 16rem);
     --default-border: 0.3dvh solid var(--color-border);
     --radius-ui: 0.95rem;
     --radius-ui-control: 0.65rem;
     --radius-ui-pill: 0.72rem;
     --motion-fast: 0.18s ease;
-    --motion-standard: 0.2s ease-in-out;
   }
 
   @media (min-width: 480px) {

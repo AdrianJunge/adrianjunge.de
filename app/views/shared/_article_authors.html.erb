@@ -1,0 +1,6 @@
+<div class="article-meta-row article-authors blog-post-authors">
+  <span class="article-meta-row-label">Article by</span>
+  <div class="article-meta-row-value">
+    <%= safe_join(authors.map { |author| content_author_node(author) }, ", ") %>
+  </div>
+</div>

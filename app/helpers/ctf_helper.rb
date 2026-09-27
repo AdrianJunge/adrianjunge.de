@@ -5,11 +5,6 @@ module CtfHelper
   CATEGORY_ICON_DIRECTORY = CATEGORY_ICON_ASSET_ROOT.join("ctf", "categories")
   DEFAULT_CATEGORY_ICON = "default.svg"
 
-  def article_authors(metadata)
-    entries = Array(metadata["article_authors"]).filter_map { |entry| author_from_entry(entry, {}) }
-    entries.presence || [ { name: SeoHelper::SITE_AUTHOR, url: about_path } ]
-  end
-
   def get_category_svg(category)
     icon_path = category_icon_path(category)
     inline_svg = inline_category_svg(icon_path)
@@ -36,10 +31,17 @@ module CtfHelper
     )
   end
 
+  def render_ctf_event_card(name, event, filters)
+    render_content_card(CtfEventCardPresenter.new(
+      name: name, event: event, filters: filters,
+      reading_time: content_repository.format_reading_time(filters[:reading_time_minutes])
+    ))
+  end
+
   def render_writeup_card(writeup, writeup_path, info, logo: nil, interactive_tags: true, show_hints: true, external_recognition_links: true, show_section_icon: false)
     categories = normalized_categories(info["categories"]).presence || [ "Unknown category" ]
     title = info["title"].presence || writeup.capitalize
-    description = info["description"] || "No description available"
+    description = info["reader_summary"].presence || info["description"] || "No description available"
     published = info["published"] || "Unknown date"
     authors = writeup_authors(info)
     published_year = writeup_year(info)
@@ -94,11 +96,9 @@ module CtfHelper
     end
     media_html = logo.present? ? nil : get_category_icon(categories).html_safe
 
-    render_content_card(
+    render_content_card(ContentCardPresenter.new(
+      variant: :writeup,
       url: writeup_path,
-      class_name: "blog-post-card writeup-post-card",
-      hitbox_class: "blog-post-card-hitbox",
-      content_class: "blog-post-card-content",
       media_html: media_html,
       media: {
         image: logo,
@@ -106,29 +106,18 @@ module CtfHelper
         image_class: "blog-logo",
         wrapper_class: "blog-post-card-logo writeup-post-card-logo"
       },
-      body_class: "blog-post-card-details",
       title: title,
-      title_class: "blog-post-title",
       description: description,
-      description_class: "blog-post-description",
-      description_tag: :p,
       date: published,
-      date_class: "blog-post-date",
-      date_text_class: "blog-post-date-text",
       reading_time: info["reading_time_label"],
-      reading_time_class: "blog-post-reading-time",
       meta_items: [
         { label: challenge_stats_label, class_name: "blog-post-challenge-stats" }
       ],
-      meta_item_class: "blog-post-reading-time",
-      tags_outer_class: "blog-post-meta",
-      tags_class: "blog-post-meta-row",
       tags: tags,
       filter_scope: "writeups",
       interactive_tags: interactive_tags,
       authors: authors,
       authors_label: "Challenge by",
-      authors_class: "blog-post-authors",
       data: {
         filter_card: "writeups",
         filter_text: filter_text,
@@ -142,7 +131,7 @@ module CtfHelper
         label: "Browse CTF writeups"
       } : nil,
       aria_label: "Open #{title} writeup"
-    )
+    ))
   end
 
   def render_writeup_winner_badge(info, context: :card)
@@ -226,13 +215,14 @@ module CtfHelper
         end,
         content_tag(:ol, class: "writeup-hints-list") do
           safe_join(hints.each_with_index.map do |hint, index|
-            content_tag(:li, class: "writeup-hint-spoiler is-hidden", data: { hint_spoiler: true }) do
+            content_tag(:li, class: "writeup-hint-spoiler", data: { hint_spoiler: true }) do
               safe_join([
-                content_tag(:div, render_markdown(hint), class: "writeup-hint-content writeup-hint-spoiler-content", aria: { hidden: "true" }),
+                content_tag(:div, render_markdown(hint), class: "writeup-hint-content writeup-hint-spoiler-content"),
                 content_tag(
                   :button,
                   "Expose",
                   type: "button",
+                  hidden: true,
                   class: "writeup-hint-unhide",
                   data: { hint_spoiler_reveal: true },
                   aria: { expanded: "false", label: "Expose hint #{index + 1}" }
@@ -416,11 +406,7 @@ module CtfHelper
   end
 
   def writeup_ctf_year(info)
-    year = info["ctf_year"].presence ||
-           info["event_year"].presence ||
-           info["year"].presence
-
-    year.to_s[/\d{4}/] || writeup_year(info)
+    content_repository.ctf_event_year(info)
   end
 
   def writeup_authors(info)

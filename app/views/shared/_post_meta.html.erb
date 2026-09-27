@@ -5,7 +5,7 @@
 <% items.concat(extra_items) %>
 
 <% if items.any? %>
-  <p class="post-meta-line" aria-label="Post metadata">
+  <p class="post-meta-line">
     <%= safe_join(
           items.map { |item| content_tag(:span, item, class: "post-meta-item") },
           content_tag(:span, "·", class: "post-meta-separator", aria: { hidden: true })

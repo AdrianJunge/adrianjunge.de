@@ -35,9 +35,11 @@ class RefactoringTest < ApplicationSystemTestCase
   end
 
   test "timeline search does not index article body text" do
+    article = production_content_repository.blog_posts.find { |post| post[:link] == "/blog/java-strings" }
+    assert_includes article[:body], "GuardedString"
     visit "/timeline"
     assert_selector ".timeline-item", minimum: 1
-    find("[data-filter-search='timeline']").fill_in(with: "jcmd")
+    find("[data-filter-search='timeline']").fill_in(with: "GuardedString")
     assert_selector "[data-filter-empty='timeline']"
     assert_no_selector ".timeline-item:not([hidden])"
   end
@@ -143,63 +145,22 @@ class RefactoringTest < ApplicationSystemTestCase
     assert_equal %w[both-other-query], visible_ids.call
   end
 
-  test "optional terminal assets load on activation and focus returns on Escape" do
-    page.current_window.resize_to(1440, 900)
-    visit "/blog"
-    page.execute_script("localStorage.removeItem('terminal-open')")
-    visit "/blog"
-    assert_selector ".content-filter-panel:not([hidden])"
-    assert_no_selector "link[rel='stylesheet'][href*='terminal-']", visible: :all
-    requests = page.evaluate_script("performance.getEntriesByType('resource').map(entry => entry.name)")
-    assert_empty requests.grep(/xterm|typed\.module|terminal-[a-f0-9]+\.js/)
-    assert_equal true, page.evaluate_script("document.getElementById('terminal-container').inert")
-    find("#terminal-taskbar-button").click
-    assert_selector ".xterm-helper-textarea", wait: 20, visible: :all
-    assert_selector "#terminal-taskbar-button[aria-expanded='true']"
-    assert_equal true, page.evaluate_script("document.getElementById('terminal-container').contains(document.activeElement)")
-    page.driver.browser.action.send_keys(:escape).perform
-    assert_selector "#terminal-container[hidden][inert]", visible: :all
-    assert_equal "terminal-taskbar-button", page.evaluate_script("document.activeElement.id")
-    find("#terminal-taskbar-button").click
-    assert_selector ".xterm", count: 1
-    assert_selector "link[rel='stylesheet'][href*='terminal-']", count: 1, visible: :all
-    find("#maximize-terminal").click
-    assert_selector "#terminal-container.terminal-maximized"
-    find("#maximize-terminal").click
-    assert_no_selector "#terminal-container.terminal-maximized"
-    find("#minimize-terminal").click
-    assert_selector "#terminal-container[hidden][inert]", visible: :all
-    find("#terminal-taskbar-button").click
-    assert_selector ".xterm", count: 1
-    find("#close-terminal").click
-  end
-
-  test "restoring terminal preference does not take focus or show it on mobile" do
+  test "retired terminal preferences leave ordinary navigation and filters usable" do
     page.current_window.resize_to(1440, 900)
     visit "/blog"
     page.execute_script("localStorage.setItem('terminal-open', 'true')")
     visit "/blog"
-    assert_selector ".xterm", wait: 20
-    assert_equal false, page.evaluate_script("document.getElementById('terminal-container').contains(document.activeElement)")
-    page.current_window.resize_to(390, 900)
-    assert_selector "#terminal-container[hidden][inert]", visible: :all
-    page.execute_script("localStorage.removeItem('terminal-open')")
-  end
-
-  test "optional dependency failure leaves filters and ordinary navigation usable" do
-    page.current_window.resize_to(1440, 900)
-    page.driver.browser.execute_cdp("Network.enable")
-    page.driver.browser.execute_cdp("Network.setBlockedURLs", urls: [ "*xterm*" ])
-    visit "/blog"
-    page.execute_script("localStorage.removeItem('terminal-open')")
-    find("#terminal-taskbar-button").click
-    assert_selector "#terminal-status", text: /could not load/, wait: 20
+    assert_selector ".content-filter-panel:not([hidden])"
+    assert_no_selector "#terminal-container, #terminal-taskbar-button, .xterm", visible: :all
+    requests = page.evaluate_script("performance.getEntriesByType('resource').map(entry => entry.name)")
+    assert_empty requests.grep(/xterm|terminal[-_]/)
+    assert_equal false, page.evaluate_script("document.body.classList.contains('terminal-scroll-locked')")
     find("[data-filter-search='blogs']").fill_in(with: "no-matching-published-post")
     assert_selector "[data-filter-empty='blogs']"
     find(".taskbar-link[href='/about']").click
     assert_selector "main.aboutme-page"
   ensure
-    page.driver.browser.execute_cdp("Network.setBlockedURLs", urls: [])
+    page.execute_script("localStorage.removeItem('terminal-open')")
   end
 
   test "flagged equations render once and survive narrow-width relayout" do
@@ -210,22 +171,55 @@ class RefactoringTest < ApplicationSystemTestCase
     assert_selector ".markdown-content mjx-container", count: count
     assert_no_selector ".code-block mjx-container", visible: :all
     resources = page.evaluate_script("performance.getEntriesByType('resource').map(entry => entry.name).filter(name => name.includes('mathjax'))")
-    assert resources.any? { |name| name.include?("mathjax-newcm-font@4.1.3") }
-    assert resources.all? { |name| name.include?("@4.1.3/") || name.include?("/assets") }, resources.inspect
+    assert resources.any? { |name| name.start_with?("#{MathjaxDependencies.font_url}/") }
+    component_root = MathjaxDependencies.component_url.delete_suffix("tex-chtml.js")
+    assert resources.all? { |name| name.start_with?(component_root, "#{MathjaxDependencies.font_url}/") || name.include?("/assets") }, resources.inspect
     assert_operator page.evaluate_script("document.documentElement.scrollWidth - document.documentElement.clientWidth"), :<=, 1
   end
 
   test "clipboard feedback preserves rendered code exactly and handles denial" do
-    visit "/blog/java-strings"
-    expected = page.evaluate_script("document.querySelector('.code-block code').textContent")
-    page.execute_script("Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: text => { window.copiedCode = text; return Promise.resolve(); } } })")
-    find(".copy-btn", match: :first).click
-    assert_selector ".copy-btn", text: "Copied", match: :first
-    assert_equal expected, page.evaluate_script("window.copiedCode")
-    assert_no_selector ".copy-btn[data-code]", visible: :all
-    page.execute_script("navigator.clipboard.writeText = () => Promise.reject(new Error('denied'))")
-    find(".copy-btn", match: :first).click
-    assert_selector ".copy-status", text: /Select the code/, visible: :all, match: :first
+    repository = fixture_content_repository
+    post = repository.blog_posts.first
+    expected = "\t  example <>&\n\n" + "long-line-" * 160 + "\n  last line\t\n"
+    post[:body] = "# Clipboard fixture\n\n```text\ncopy fixture\n```\n"
+
+    with_stubbed_content_repository(repository) do
+      visit post[:link]
+      # Markdown normalizes tabs before rendering. Exercise the clipboard's
+      # actual boundary directly: the code element's exact current text.
+      page.execute_script("document.querySelector('.code-block code').textContent = arguments[0]", expected)
+      assert_equal expected, page.evaluate_script("document.querySelector('.code-block code').textContent")
+      button = find(".copy-btn")
+      assert_equal "", button.text
+      assert_equal "Copy code", button["aria-label"]
+      assert_selector ".copy-btn .copy-icon:not([hidden])"
+      assert_no_selector ".copy-btn .copy-check-icon"
+      page.execute_script("Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: text => { window.copiedCode = text; return Promise.resolve(); } } })")
+      button.click
+      assert_selector ".copy-btn[data-copy-state='success'] .copy-check-icon:not([hidden])"
+      assert_no_selector ".copy-btn .copy-icon"
+      assert_equal "", button.text
+      assert_selector ".copy-status[role='status']", text: "Code copied to clipboard.", visible: :all
+      assert_equal expected, page.evaluate_script("window.copiedCode")
+      assert_no_selector ".copy-btn[data-code]", visible: :all
+
+      assert_selector ".copy-btn[data-copy-state='idle'] .copy-icon:not([hidden])", wait: 4
+      assert_no_selector ".copy-btn .copy-check-icon"
+      assert_equal "", button.text
+      assert_equal "Copy code", button["aria-label"]
+
+      page.execute_script("navigator.clipboard.writeText = () => new Promise(resolve => { window.finishOldCopy = resolve; })")
+      button.click
+      page.execute_script("navigator.clipboard.writeText = () => Promise.reject(new Error('denied'))")
+      button.click
+      assert_selector ".copy-btn[data-copy-state='error'] .copy-icon:not([hidden])"
+      assert_selector ".copy-status", text: /Select the code/, visible: :all
+      page.execute_script("window.finishOldCopy()")
+      assert_selector ".copy-btn[data-copy-state='error'] .copy-icon:not([hidden])"
+      assert_no_selector ".copy-btn .copy-check-icon"
+      assert_equal "", button.text
+      assert_equal expected, page.evaluate_script("document.querySelector('.code-block code').textContent")
+    end
   end
 
   test "unflagged articles avoid MathJax and motion preference keeps meaningful text" do
@@ -245,7 +239,7 @@ class RefactoringTest < ApplicationSystemTestCase
     visit "/blog"
     assert_selector "main#main-content", count: 1
     assert_selector "#top-taskbar", count: 1
-    assert_selector "#terminal-container", count: 1, visible: :all
+    assert_no_selector "#terminal-container", visible: :all
     page.execute_script("document.querySelector('.skip-link').focus()")
     find(".skip-link").send_keys(:enter)
     assert_equal "main-content", page.evaluate_script("document.activeElement.id")

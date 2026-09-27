@@ -12,8 +12,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_select "meta[property='og:type'][content=?]", "website"
     assert_select "meta[name='twitter:card'][content=?]", "summary_large_image"
     assert_json_ld_type "WebSite"
-    assert_json_ld_type "SearchAction", nested: true
-    assert_select "script[type='application/ld+json']", text: %r{/timeline\?q=\{search_term_string\}}
+    assert_nil json_ld_by_type("WebSite")["potentialAction"]
     assert_select "link[rel='stylesheet'][href*='xterm']", 0
     assert_select "link[rel='alternate'][title='adrianjunge.de (RSS)'][href=?]", feed_xml_url
     assert_select "link[rel='alternate'][title='adrianjunge.de (Atom)'][href=?]", feed_url(format: :atom)
@@ -154,6 +153,53 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_modified
   end
 
+  test "canonical metadata stays on the configured origin across request hosts" do
+    host! "preview.example.test"
+    get root_path, headers: { "X-Forwarded-Host" => "proxy.example.test", "X-Forwarded-Proto" => "http" }
+    assert_response :success
+    assert_select "link[rel='canonical'][href=?]", "https://adrianjunge.de/"
+    assert_select "meta[property='og:image'][content^='https://adrianjunge.de/']", 1
+    assert_select "link[rel='alternate'][href=?]", "https://adrianjunge.de/feed.json"
+
+    get "/sitemap.xml"
+    urls = Nokogiri::XML(response.body).xpath("//*[local-name()='loc']").map(&:text)
+    assert urls.all? { |url| url.start_with?("https://adrianjunge.de/") }
+  end
+
+  test "person schema separates personal profiles from team affiliation" do
+    get about_path
+    person = json_ld_by_type("Person")
+    assert_equal SiteProfile.social_links.values_at(:github, :linkedin), person.fetch("sameAs")
+    assert person.fetch("affiliation").any? { |entry| entry["name"] == "KITCTF" }
+    assert_not_includes person.fetch("sameAs"), "https://ctftime.org/team/7221/"
+  end
+
+  test "blog and CTF coauthors appear in visible attribution and article metadata" do
+    repository = fixture_content_repository
+    posts = [ repository.blog_post("alpha-post"), repository.ctf_post("democtf", "Space Writeup") ]
+    posts.each do |post|
+      post[:metadata]["article_authors"] = [ { "name" => SiteProfile.name, "url" => "/about" }, { "name" => "Guest Writer", "url" => "https://example.org/guest" } ]
+      post[:authors] = ArticleAuthor.normalize(post[:metadata]["article_authors"])
+    end
+
+    with_stubbed_content_repository(repository) do
+      posts.each do |post|
+        get post[:link]
+        assert_response :success
+        assert_select ".article-authors", text: /Article by/
+        assert_select ".article-authors a[href='https://example.org/guest']", text: "Guest Writer"
+        assert_equal [ SiteProfile.name, "Guest Writer" ], meta_contents("meta[property='article:author']")
+        assert_equal [ SiteProfile.name, "Guest Writer" ], json_ld_by_type("TechArticle").fetch("author").map { |author| author.fetch("name") }
+      end
+    end
+  end
+
+  test "site identity is shared by the footer and profile metadata" do
+    get root_path
+    assert_select "footer a[href=?]", SiteProfile.email_url
+    assert_select ".landing-kicker", text: "#{SiteProfile.name} (#{SiteProfile.handle})"
+  end
+
   private
 
   def json_ld_documents
@@ -204,6 +250,6 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
   def absolute_url_for(path)
     return path if path.to_s.match?(%r{\Ahttps?://})
 
-    "http://www.example.com#{path}"
+    SiteProfile.absolute_url(path)
   end
 end

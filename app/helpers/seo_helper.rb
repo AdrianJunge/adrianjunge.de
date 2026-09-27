@@ -1,8 +1,7 @@
 module SeoHelper
-  SITE_NAME = "vurlo".freeze
-  SITE_AUTHOR = "Adrian Junge".freeze
-  DEFAULT_DESCRIPTION =
-    "Security research, CVEs, bug bounty work, source review, CTF writeups, and technical notes by Adrian Junge.".freeze
+  SITE_NAME = SiteProfile.handle
+  SITE_AUTHOR = SiteProfile.name
+  DEFAULT_DESCRIPTION = SiteProfile.description
   DEFAULT_IMAGE = "landing/social-card.png".freeze
 
   def seo_meta_tags(title: nil, description: DEFAULT_DESCRIPTION, type: "website", canonical_path: nil,
@@ -18,7 +17,7 @@ module SeoHelper
     meta_tags = [
       content_tag(:title, page_title),
       tag.meta(name: "description", content: page_description),
-      tag.meta(name: "author", content: SITE_AUTHOR),
+      tag.meta(name: "author", content: author_values.join(", ")),
       tag.meta(name: "robots", content: noindex ? "noindex, nofollow" : "index, follow"),
       tag.meta(property: "og:site_name", content: SITE_NAME),
       tag.meta(property: "og:locale", content: "en_US"),
@@ -64,15 +63,7 @@ module SeoHelper
       "alternateName" => SITE_AUTHOR,
       "url" => canonical_url(root_path),
       "description" => seo_description(description),
-      "author" => seo_person_reference,
-      "potentialAction" => {
-        "@type" => "SearchAction",
-        "target" => {
-          "@type" => "EntryPoint",
-          "urlTemplate" => canonical_url("#{timeline_path}?q={search_term_string}")
-        },
-        "query-input" => "required name=search_term_string"
-      }
+      "author" => seo_person_reference
     }
   end
 
@@ -81,20 +72,12 @@ module SeoHelper
       "@context" => "https://schema.org",
       "@type" => "Person",
       "name" => SITE_AUTHOR,
-      "alternateName" => "vurlo",
+      "alternateName" => SiteProfile.handle,
       "url" => canonical_url(about_path),
       "image" => seo_image_url(DEFAULT_IMAGE),
       "description" => seo_description(description),
-      "sameAs" => [
-        "https://github.com/AdrianJunge/",
-        "https://www.linkedin.com/in/adrian-junge-998a63296/",
-        "https://ctftime.org/team/7221/"
-      ],
-      "affiliation" => [
-        { "@type" => "CollegeOrUniversity", "name" => "Karlsruhe Institute of Technology", "url" => "https://www.kit.edu/" },
-        { "@type" => "Organization", "name" => "FZI Forschungszentrum fuer Informatik", "url" => "https://www.fzi.de/" },
-        { "@type" => "Organization", "name" => "KITCTF", "url" => "https://kitctf.de/" }
-      ]
+      "sameAs" => SiteProfile.social_links.values_at(:github, :linkedin),
+      "affiliation" => SiteProfile.affiliations
     }
   end
 
@@ -179,17 +162,14 @@ module SeoHelper
 
   def canonical_url(path = nil)
     target = path.presence || request.path
-    return target if target.to_s.match?(%r{\Ahttps?://}i)
-
-    normalized_path = target.to_s.start_with?("/") ? target.to_s : "/#{target}"
-    "#{request.base_url}#{normalized_path}"
+    SiteProfile.absolute_url(target)
   end
 
   def seo_image_url(image)
     selected_image = image.presence || DEFAULT_IMAGE
     return selected_image if selected_image.to_s.match?(%r{\Ahttps?://}i)
 
-    asset_url(selected_image)
+    SiteProfile.absolute_url(asset_path(selected_image))
   end
 
   def seo_time(value)
@@ -241,41 +221,18 @@ module SeoHelper
   end
 
   def seo_author_references(authors)
-    normalized_authors = authors.is_a?(Hash) ? [ authors ] : Array(authors)
-
-    references = normalized_authors.filter_map do |author|
-      name = seo_author_name(author)
-      next if name.blank?
-
+    ArticleAuthor.normalize(authors).map do |author|
       reference = {
         "@type" => "Person",
-        "name" => name
+        "name" => author[:name]
       }
-      url = seo_author_url(author)
-      reference["url"] = canonical_url(url) if url.present?
+      reference["url"] = author[:url] if author[:url].present?
       reference
     end
-
-    references.presence || [ seo_person_reference ]
   end
 
   def seo_author_names(authors)
     seo_author_references(authors).filter_map { |author| author["name"].presence }
-  end
-
-  def seo_author_name(author)
-    if author.is_a?(Hash)
-      seo_plain_text(author["name"].presence || author[:name].presence)
-    else
-      seo_plain_text(author)
-    end
-  end
-
-  def seo_author_url(author)
-    return nil unless author.is_a?(Hash)
-
-    urls = author["urls"].presence || author[:urls].presence || author["url"].presence || author[:url].presence
-    Array(urls).map(&:to_s).find(&:present?)
   end
 
   def json_ld_tag(data)

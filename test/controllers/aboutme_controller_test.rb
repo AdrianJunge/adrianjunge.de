@@ -14,7 +14,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".aboutme-stat:not(a) .aboutme-stat-value", text: "4"
     assert_select ".aboutme-stat:not(a) .aboutme-stat-label", text: "Bug bounties"
     assert_select "a[href='#bug-bounties']", 0
-    assert_select ".taskbar-link[href=?]", about_path, text: /About me/
+    assert_select ".taskbar-link[href=?]", about_path, text: "About"
 
     ContentTestHelpers::ABOUT_COLLECTIONS.each do |spec|
       entries = about_collection_entries(spec, repository: repository)
@@ -41,7 +41,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_response :success
-    assert_select ".taskbar-link[href=?]", about_path, text: /About me/
+    assert_select ".taskbar-link[href=?]", about_path, text: "About"
   end
 
   test "landing page exposes repository-derived counters and a fixed bounty count" do

@@ -1,0 +1,45 @@
+/* Recoverable equation loading notices. */
+.article-math-notice button {
+    min-height: 2.75rem;
+    padding: 0.35rem 0.7rem;
+    color: var(--button-color);
+    border: 1px solid var(--button-border);
+    border-radius: var(--radius-ui-control);
+    background: var(--button-bg);
+    box-shadow: var(--button-shadow);
+    cursor: pointer;
+    transition: var(--button-transition);
+}
+
+.article-math-notice button:is(:hover, :focus-visible) {
+    color: var(--button-color-hover);
+    border-color: var(--button-border-hover);
+    background: var(--button-bg-hover);
+    box-shadow: var(--button-shadow-hover);
+}
+
+.article-math-notice button:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 3px;
+}
+
+.article-math-notice,
+.article-math-noscript {
+    margin: 0 0 1.25rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid #c9a753;
+    border-radius: var(--radius-ui-control);
+    background: #302c21;
+    color: #fff1c2;
+    line-height: 1.6;
+}
+
+.article-math-notice p {
+    margin: 0 0 0.65rem;
+}
+
+@media print {
+    .article-math-notice button {
+        display: none;
+    }
+}

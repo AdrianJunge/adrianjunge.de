@@ -3,9 +3,8 @@
 <% content_for :head do %>
   <% writeup_section = @ctf_info["ctf"].presence || @ctf_name %>
   <% writeup_title = "#{@ctf_info["title"]} - #{writeup_section} writeup" %>
-  <% writeup_description = @ctf_info["description"].presence || "Writeup for #{@ctf_info["title"]} from #{writeup_ctf_year(@ctf_info)} CTF." %>
+  <% writeup_description = @article_post[:description].presence || "Writeup for #{@ctf_info["title"]} from #{writeup_ctf_year(@ctf_info)} CTF." %>
   <% writeup_tags = (Array(@ctf_info["categories"]) + [ @ctf_name ]).map(&:to_s).reject(&:blank?).uniq %>
-  <% writeup_modified = @ctf_info["updated"].presence || @ctf_info["modified"].presence %>
   <%= seo_meta_tags(
         title: writeup_title,
         description: writeup_description,
@@ -16,7 +15,7 @@
         modified_time: @modified_time,
         tags: writeup_tags,
         section: writeup_section,
-        authors: article_authors(@ctf_info),
+        authors: @article_authors,
         json_ld: seo_article_schema(
           title: writeup_title,
           description: writeup_description,
@@ -26,7 +25,7 @@
           tags: writeup_tags,
           image: SeoHelper::DEFAULT_IMAGE,
           section: writeup_section,
-          authors: article_authors(@ctf_info)
+          authors: @article_authors
         ),
         breadcrumbs: [
           { title: "Home", link: root_path },
@@ -67,6 +66,7 @@
          *render_writeup_category_badges(@ctf_info, context: :article)
        ].compact %>
     <section class="article-meta-panel ctf-article-meta-panel" aria-label="Challenge details">
+      <%= render "shared/article_authors", authors: @article_authors if @ctf_info["article_authors"].present? %>
       <% if recognition_badges.any? || detail_badges.any? %>
         <div class="article-meta-row article-meta-tags writeup-badge-groups-article">
           <span class="article-meta-row-label">Tags</span>
@@ -132,6 +132,12 @@
 
       <%= render_writeup_hints(@ctf_info) %>
 
+      <% if @ctf_info["reader_summary"].present? %>
+        <%= render "shared/article_description",
+                   description: @ctf_info["reader_summary"],
+                   heading: "About this writeup",
+                   label: "About this writeup" %>
+      <% end %>
       <%= render "shared/article_description",
                  description: @ctf_info["description"],
                  label: "Challenge description" %>

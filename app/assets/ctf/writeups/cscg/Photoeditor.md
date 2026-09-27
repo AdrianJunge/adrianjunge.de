@@ -5,6 +5,7 @@ authors:
     - name:
       url:
 description: Recently I learned ASP .NET Core and boy, it's so magic! Dependency injection, dynamic routing, interfaces everywhere. But for me, it wasn't dynamic enough. So I extended the framework and now I got all the dynamic in the world I could wish for. That surely didn't introduce any vulnerabilities, right?",
+reader_summary: A medium CSCG web challenge built around ASP.NET Core and dynamic application behavior.
 categories:
     - Web
     - .NET

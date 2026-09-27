@@ -12,9 +12,10 @@ require "rbconfig"
 require "socket"
 require "tmpdir"
 require "zlib"
+require_relative "../scripts/support/site_integrity"
 
 class ProductionCheck
-  ROUTES = %w[/ /about /blog /ctf /timeline /blog/java-strings /blog/climbing-stairs /ctf/cscg /ctf/cscg/Photoeditor /feed.xml /feed.atom /feed.json /sitemap.xml].freeze
+  ROUTES = %w[/ /about /blog /ctf /timeline /search/index.json /blog/java-strings /blog/climbing-stairs /ctf/cscg /ctf/cscg/Photoeditor /feed.xml /feed.atom /feed.json /sitemap.xml].freeze
   EXCLUDED = %r{\A(?:\.git(?:/|\z)|\.bundle(?:/|\z)|\.env|\.venv|node_modules/|public/assets/|app/assets/builds/(?!\.keep\z)|tmp/|log/|storage/|config/master\.key\z|config/credentials/.*\.key\z)}
 
   def initialize(performance: false)
@@ -48,7 +49,7 @@ class ProductionCheck
     check_manifest!(manifest)
     asset_digest = built_asset_digest
     with_server do |port|
-      check_routes!(port, manifest)
+      check_routes!(port)
       if @performance
         system({ "PERFORMANCE_BASE_URL" => "http://127.0.0.1:#{port}" }, "node", File.join(@root, "scripts/performance.mjs"), chdir: @root, exception: true)
       end
@@ -80,11 +81,11 @@ class ProductionCheck
       FileUtils.mkdir_p(File.dirname(destination))
       FileUtils.cp(source, destination, preserve: true)
     end
-    %w[app/assets/builds log storage tmp/pids].each { |path| FileUtils.mkdir_p(File.join(@snapshot, path)) }
+    %w[app/assets/builds log tmp/pids].each { |path| FileUtils.mkdir_p(File.join(@snapshot, path)) }
   end
 
   def check_manifest!(manifest)
-    %w[tailwind.css terminal.css application.js favicon.svg].each do |logical|
+    %w[tailwind.css application.js favicon.svg].each do |logical|
       raise "Missing compiled #{logical}" unless manifest.key?(logical)
     end
     forbidden = manifest.keys.select { |path| /\.(?:scss|erb|md|py|sh)\z/i.match?(path) || /(?:\A|\/)(?:blogs|ctfs|schema)\.json\z/.match?(path) }
@@ -147,12 +148,8 @@ class ProductionCheck
     raise "#{path}: expected #{expected}, received #{response.code}" unless response.code.to_i == expected
   end
 
-  def check_routes!(port, manifest)
-    # Lazy terminal styling is deliberately absent from the initial page's
-    # href/src attributes, but must still be delivered by the release pipeline.
-    terminal_css = manifest.fetch("terminal.css")
-    terminal_css = terminal_css.fetch("digested_path") if terminal_css.is_a?(Hash)
-    assets = [ "/assets/#{terminal_css}" ]
+  def check_routes!(port)
+    assets = []
     downloads = []
     metrics = {}
     ROUTES.each do |path|
@@ -163,8 +160,7 @@ class ProductionCheck
 
       page = Nokogiri::HTML5(response.body)
       metrics[path][:dom_elements] = page.css("*").length
-      page.css("[href], [src]").each do |element|
-        url = element["src"] || element["href"]
+      SiteIntegrity.document_urls(page).each do |url|
         assets << url if url.start_with?("/assets/")
         downloads << url if url.start_with?("/ctf/resources/")
       end

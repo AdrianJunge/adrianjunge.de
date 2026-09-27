@@ -10,19 +10,18 @@
 !/tmp/pids/.keep
 
 /storage/*
-!/storage/.keep
 /tmp/storage/*
-!/tmp/storage/
-!/tmp/storage/.keep
 
 /public/assets
 
 /config/master.key
+/config/credentials/*.key
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
 
 /node_modules/*
+**/node_modules/
 /.venv-images/
 /.venv/
 __pycache__/

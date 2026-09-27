@@ -9,9 +9,12 @@ class ContentSnapshot
   @mutex = Mutex.new
 
   class << self
-    def fetch(path, kind: :text)
+    def fetch(path, kind: :text, required: false)
       path = Pathname(path)
-      return yield("") unless path.file?
+      unless path.file?
+        raise Errno::ENOENT, path.to_s if required
+        return yield("")
+      end
 
       @mutex.synchronize do
         stat = path.stat

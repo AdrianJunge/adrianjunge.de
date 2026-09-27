@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+require "fileutils"
+require "rbconfig"
+require "shellwords"
+
+root = File.expand_path("..", __dir__)
+Dir.chdir(root)
+ruby = RbConfig.ruby
+python = ENV.fetch("IMAGE_PYTHON") { File.executable?(".venv-images/bin/python") ? File.join(root, ".venv-images/bin/python") : "python3" }
+image_options = ENV["IMAGE_FONT_DIR"] ? [ "--font-dir", ENV["IMAGE_FONT_DIR"] ] : []
+modes = {
+  "quick" => [ [ ruby, "bin/rubocop" ], [ "git", "diff", "--check" ], [ "git", "diff", "--cached", "--check" ], [ "npm", "test" ], [ ruby, "bin/rails", "content:validate", "test" ] ],
+  "browser" => [ [ ruby, "bin/rails", "test:system" ], [ "node", "scripts/accessibility-summary.mjs" ] ],
+  "cross-browser" => [ [ ruby, "bin/rails", "tailwindcss:build" ], [ "npm", "run", "test:cross-browser" ] ],
+  "mobile" => [ [ ruby, "bin/rails", "tailwindcss:build" ], [ "npm", "run", "test:mobile" ] ],
+  "images" => [ [ python, "-m", "unittest", "discover", "-s", "scripts/images", "-p", "test_*.py" ], [ python, "scripts/images/export.py", "--check", *image_options ] ],
+  "production" => [ [ ruby, "bin/production-check" ] ],
+  "performance" => [ [ ruby, "bin/production-check", "--performance" ] ],
+  "audit" => [ [ ruby, "bin/brakeman", "--no-pager" ], [ "bundle", "exec", "bundler-audit", "check", "--update" ], [ ruby, "bin/importmap", "audit" ], [ "npm", "audit", "--audit-level=high" ], [ "npm", "audit", "--prefix", "config/mathjax", "--audit-level=high" ] ]
+}
+if (ARGV & %w[-h --help --list]).any?
+  puts "Usage: bin/check [#{modes.keys.join(' | ')} | all] ..."
+  puts "Default: quick. all includes browsers, image rebuild, performance and network audits. No deployment or dependency installation."
+  puts "Activate .ruby-version; npm ci; install Playwright browsers. Image tools use .venv-images when present, or IMAGE_PYTHON/IMAGE_FONT_DIR overrides."
+  modes.each { |name, commands| puts "#{name}: #{commands.map { |command| command.shelljoin }.join(' -> ')}" }
+  exit
+end
+requested = ARGV.empty? ? [ "quick" ] : ARGV
+requested = %w[quick browser cross-browser mobile images performance audit] if requested == [ "all" ]
+abort "Unknown mode. Run bin/check --help." unless requested.all? { |name| modes.key?(name) }
+required_ruby = File.read(".ruby-version").strip
+abort "Activate Ruby #{required_ruby} (current: #{RUBY_VERSION})." unless RUBY_VERSION == required_ruby
+ENV["PARALLEL_WORKERS"] ||= "4"
+requested.uniq.each do |name|
+  if name == "browser"
+    FileUtils.mkdir_p("tmp/a11y")
+    Dir["tmp/a11y/*.json", "tmp/a11y/summary.md"].each { |file| File.delete(file) }
+  end
+  failed = false
+  modes.fetch(name).each do |command|
+    puts "[#{name}] #{command.shelljoin}"
+    STDOUT.flush
+    success = system(*command)
+    failed ||= !success
+    # Still write the accessibility summary when the browser suite fails.
+    break if !success && name != "browser"
+  end
+  abort "#{name} failed. See output above." if failed
+end
+puts "Requested checks passed."

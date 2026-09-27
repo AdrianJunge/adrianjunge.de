@@ -7,7 +7,7 @@ module MarkdownHelper
   # Rendered HTML is public, author-controlled content, not user input. Cache
   # only the expensive deterministic rendering, never request-specific URLs.
   RENDER_CACHE = ActiveSupport::Cache::MemoryStore.new(size: 16.megabytes)
-  RENDER_VERSION = "2".freeze
+  RENDER_VERSION = "4".freeze
 
   def render_markdown(text, headings: nil, parsed: false)
     body = parsed ? text.to_s : FrontMatterParser::Parser.new(:md).call(text.to_s).content
@@ -67,6 +67,6 @@ module MarkdownHelper
     path.present? &&
       !path.start_with?("#", "/", "//") &&
       !path.match?(/\A[a-z][a-z0-9+\-.]*:/i) &&
-      path.match?(/\A(?:blog|ctf|variants|landing|other|task-bar|terminal)\//)
+      path.match?(/\A(?:blog|ctf|variants|landing|other|task-bar)\//)
   end
 end

@@ -1,6 +1,6 @@
 module ProfileCardsHelper
   def render_profile_card(card)
-    render "shared/profile_card", card: card
+    render "shared/profile_card", card: ProfileCardPresenter.new(card)
   end
 
   def profile_card_optional_link(label, url, class_name: nil, aria_label: nil, title: nil)
@@ -15,14 +15,14 @@ module ProfileCardsHelper
 
     return content_tag(:span, text, options) if url.blank?
 
-    content_tag(:a, text, options.merge(profile_card_link_options(url)).merge(href: url))
+    content_tag(:a, text, options.merge(content_link_options(url)).merge(href: url))
   end
 
   def profile_card_link_attributes(url, label)
     {
       class: "aboutme-card-link-overlay",
       aria: { label: label }
-    }.merge(profile_card_link_options(url))
+    }.merge(content_link_options(url))
   end
 
   def profile_card_tag(label:, url: nil, class_name: nil, datetime: nil, filter_tag: nil)
@@ -52,10 +52,6 @@ module ProfileCardsHelper
     linked ? profile_card_optional_link(label, url, class_name: tag_classes) : content_tag(:span, label, class: tag_classes)
   end
 
-  def profile_card_ordered_tags(tags)
-    Array(tags).compact.partition { |tag| tag[:url].blank? }.flatten
-  end
-
   def profile_about_card(entry, kind:)
     timeline_items = profile_about_timeline_items(entry["timeline"], kind: kind)
     body_blocks = []
@@ -75,7 +71,7 @@ module ProfileCardsHelper
       title_class: "aboutme-finding-project",
       tags_class: "aboutme-finding-badges",
       description_class: "aboutme-finding-summary",
-      icon: entry["icon"].presence || profile_about_default_icon(kind),
+      icon: entry["icon"].presence || ContentIconRegistry.for(kind),
       title: entry["title"],
       description: entry["subtitle"].presence,
       tags: profile_about_tags(entry, kind: kind),
@@ -92,10 +88,6 @@ module ProfileCardsHelper
 
   private
 
-  def profile_card_link_options(url)
-    url.to_s.start_with?("/") ? {} : { target: "_blank", rel: "noopener noreferrer" }
-  end
-
   def profile_about_card_classes(kind, collapsible)
     [
       "aboutme-finding-card",
@@ -105,23 +97,6 @@ module ProfileCardsHelper
       ("aboutme-achievement-card" unless %w[cve bug-bounty].include?(kind.to_s)),
       ("aboutme-finding-card-static" unless collapsible)
     ].compact.join(" ")
-  end
-
-  def profile_about_default_icon(kind)
-    case kind.to_s
-    when "cve"
-      "other/cve.svg"
-    when "bug-bounty"
-      "other/bug-bounty.svg"
-    when "certificate"
-      "other/certificate.svg"
-    when "talk"
-      "other/talk-slides.png"
-    when "challenge"
-      "ctf/kitctf.png"
-    else
-      "other/achievement.svg"
-    end
   end
 
   def profile_about_tags(entry, kind:)

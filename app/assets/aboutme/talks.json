@@ -25,6 +25,7 @@
   },
   {
     "id": "joomla-sqli",
+    "modified": "2026-09-26",
     "title": "Teaching AI to hack Joomla so I can skip my homework",
     "icon": "blog/joomla.png",
     "summary": "How a manual SQLi hunt turned into an AI-assisted Joomla audit and multiple assigned CVEs for a university course.",

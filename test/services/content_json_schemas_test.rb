@@ -46,16 +46,28 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
     end
   end
 
-  test "ctf and blog metadata keys point at their configured paths" do
-    ctf_metadata = parse_content_json(ApplicationController::CTF_INFO_PATH)
+  test "ctf metadata derives its configured paths" do
+    repository = ContentRepository.new
+    ctf_metadata = repository.ctf_metadata
     ctf_metadata.each do |_name, entry|
-      assert_match %r{\A/ctf/#{Regexp.escape(entry.fetch("terminal_path"))}\z}, entry.fetch("writeups")
+      assert_match %r{\A/ctf/#{Regexp.escape(entry.fetch("directory"))}\z}, entry.fetch("writeups")
     end
+  end
 
-    blog_metadata = parse_content_json(ApplicationController::BLOG_INFO_PATH)
-    blog_metadata.each do |slug, entry|
-      assert_equal slug, entry.fetch("terminal_path")
-    end
+  test "ctf catalog schema accepts derived routes" do
+    assert_empty ContentJsonSchemas.errors_for(ContentConfiguration::CTF_INFO_PATH, {
+      "Event" => { "logo" => "ctf/event.png", "website" => "https://example.com", "description" => "An event" }
+    })
+  end
+
+  test "About cards and events allow explicit authored modification dates" do
+    data = [ {
+      "id" => "talk", "title" => "A talk", "modified" => "2026-09-26",
+      "timeline" => [ { "date" => "2027-01-01", "updated" => "2026-09-25" } ]
+    } ]
+    assert_empty ContentJsonSchemas.errors_for(ContentConfiguration::ABOUTME_TALKS_PATH, data)
+    data.first["timeline"].first["updated"] = "2026-02-30"
+    assert ContentJsonSchemas.errors_for(ContentConfiguration::ABOUTME_TALKS_PATH, data).any? { |error| error["data_pointer"] == "/0/timeline/0/updated" }
   end
 
   test "content image references point at local assets" do
@@ -75,7 +87,7 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
       end
     end
 
-    repository.blog_metadata.each_value { |entry| asset_refs << entry["logo"] }
+    repository.blog_posts.each { |post| asset_refs << post[:logo] }
     repository.ctf_metadata.each_value { |entry| asset_refs << entry["logo"] }
     repository.authored_challenges.each { |entry| asset_refs << entry["icon"] }
 
@@ -116,7 +128,6 @@ class ContentJsonSchemasTest < ActiveSupport::TestCase
     end
 
     about_cases + [
-      [ ApplicationController::BLOG_INFO_PATH, FixtureContentRepository::ROOT.join("blog", "blogs.json") ],
       [ ApplicationController::CTF_INFO_PATH, FixtureContentRepository::ROOT.join("ctf", "ctfs.json") ]
     ]
   end

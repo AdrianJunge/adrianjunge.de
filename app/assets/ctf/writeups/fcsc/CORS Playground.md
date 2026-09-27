@@ -5,6 +5,7 @@ authors:
     - name: Mizu
       url: https://mizu.re/
 description: Perplexed by CORS? Our CORS Playground is your ideal solution. This intuitive and sleek platform lets you effortlessly learn and experiment with CORS policies. Perfect for unraveling the complexities of secure cross-origin requests. Dive in and clarify your CORS concepts!
+reader_summary: An easy FCSC web challenge centered on browser cross-origin policies.
 categories:
     - Web
 difficulty: Easy

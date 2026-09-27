@@ -18,9 +18,6 @@
       ) %>
 <% end %>
 
-<% terminal_paths = @blog_posts.map { |post| { label: post[:slug], url: post[:link] } } %>
-<% @terminal_paths = terminal_paths %>
-
 <main id="main-content" tabindex="-1" class="content-page blog-overview">
   <%= render "shared/content_hero",
              icon_path: "task-bar/blog.svg",
@@ -28,7 +25,7 @@
              title: "Blog",
              description: "Longer notes on security work, learning, and practical writeups outside the CTF archive." %>
 
-  <%= render "shared/content_filters",
+  <%= render_content_filters(
              scope: "blogs",
              search_id: "blog-search-input",
              clear_id: "blog-search-clear",
@@ -36,23 +33,13 @@
              years: @filter_years,
              tags: @filter_tags,
              tag_groups: @filter_tag_groups,
-             total: @blog_posts.length %>
+             total: @blog_posts.length
+           ) %>
 
   <div class="blog-posts-container" data-filter-results="blogs">
     <% @blog_posts.each do |post| %>
       <div class="blog-post-entry">
-        <% blog_data = @blogs[post[:slug]] || {} %>
-        <% blog_data_with_meta = blog_data.merge(post[:metadata] || {}).merge({
-          "title" => post[:title],
-          "description" => post[:description],
-          "topic" => post[:topic],
-          "categories" => post[:categories],
-          "published" => post[:published].strftime("%Y-%m-%d"),
-          "reading_time_label" => post[:reading_time_label],
-          "reading_time_minutes" => post[:reading_time_minutes],
-          "logo" => blog_data["logo"]
-        }) %>
-        <%= render_blog_post_card(post[:slug], blog_data_with_meta) %>
+        <%= render_blog_post_card(post) %>
       </div>
     <% end %>
   </div>

@@ -126,13 +126,62 @@ class FeedsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "entry coauthors are preserved in JSON Atom and RSS attribution" do
+    repository = fixture_content_repository
+    post = repository.blog_posts.first
+    post[:metadata]["article_authors"] = [ { "name" => SiteProfile.name, "url" => "/about" }, { "name" => "Guest Writer", "url" => "https://example.org/guest" } ]
+    post[:authors] = ArticleAuthor.normalize(post[:metadata]["article_authors"])
+
+    with_stubbed_content_repository(repository) do
+      get feed_json_path
+      item = JSON.parse(response.body).fetch("items").find { |entry| entry["title"] == post[:title] }
+      assert_equal post[:authors].as_json, item.fetch("authors")
+
+      get feed_path(format: :atom)
+      document = Nokogiri::XML(response.body)
+      namespace = { "atom" => "http://www.w3.org/2005/Atom" }
+      entry = document.xpath("/atom:feed/atom:entry", namespace).find { |node| node.at_xpath("atom:title", namespace).text == post[:title] }
+      assert_equal [ SiteProfile.name, "Guest Writer" ], entry.xpath("atom:author/atom:name", namespace).map(&:text)
+      assert_equal post[:authors].map { |author| author[:url] }, entry.xpath("atom:author/atom:uri", namespace).map(&:text)
+
+      get feed_path
+      document = Nokogiri::XML(response.body)
+      entry = document.xpath("/rss/channel/item").find { |node| node.at_xpath("title").text == post[:title] }
+      assert_equal [ SiteProfile.name, "Guest Writer" ], entry.xpath("dc:creator", "dc" => "http://purl.org/dc/elements/1.1/").map(&:text)
+    end
+  end
+
+  test "feed URLs and validators do not depend on the incoming host" do
+    get feed_json_path
+    body = response.body
+    etag = response.headers.fetch("ETag")
+    host! "preview.example.test"
+    get feed_json_path
+    assert_response :success
+    assert_equal body, response.body
+    assert_equal etag, response.headers["ETag"]
+    assert JSON.parse(body).fetch("items").all? { |item| item.fetch("url").start_with?(SiteProfile.origin) }
+  end
+
+  test "changing article authors invalidates the feed validator" do
+    repository = fixture_content_repository
+    with_stubbed_content_repository(repository) do
+      get feed_json_path
+      etag = response.headers.fetch("ETag")
+      repository.blog_posts.first[:authors] = [ { name: "Updated Writer" } ]
+      get feed_json_path, headers: { "If-None-Match" => etag }
+      assert_response :success
+      assert_not_equal etag, response.headers["ETag"]
+    end
+  end
+
   private
 
   def expected_feed_urls
     production_content_repository.feed_posts.map do |item|
       path, fragment = item[:link].to_s.split("#", 2)
       encoded_path = path.split("/", -1).map { |segment| ERB::Util.url_encode(CGI.unescape(segment)) }.join("/")
-      "http://www.example.com#{encoded_path}#{"##{fragment}" if fragment.present?}"
+      SiteProfile.absolute_url("#{encoded_path}#{"##{fragment}" if fragment.present?}")
     end
   end
 

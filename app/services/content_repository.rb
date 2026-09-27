@@ -1,4 +1,3 @@
-require "cgi"
 require "digest"
 
 class ContentRepository
@@ -41,14 +40,15 @@ class ContentRepository
   class InvalidContentPath < StandardError; end
   class InvalidContent < StandardError; end
 
+  attr_reader :configuration
+
   def initialize(
     configuration: ContentConfiguration.new,
     ctf_base_path: configuration.path(:BASE_PATH),
     blog_base_path: configuration.path(:BLOG_BASE_PATH),
     ctf_challenge_files_path: configuration.path(:CTF_CHALLENGE_FILES_PATH),
     ctf_pdf_writeups_path: configuration.path(:CTF_PDF_WRITEUPS_PATH),
-    ctf_metadata_data: nil,
-    blog_metadata_data: nil
+    ctf_metadata_data: nil
   )
     @configuration = configuration
     @ctf_base_path = Pathname(ctf_base_path)
@@ -56,7 +56,7 @@ class ContentRepository
     @ctf_challenge_files_path = Pathname(ctf_challenge_files_path)
     @ctf_pdf_writeups_path = Pathname(ctf_pdf_writeups_path)
     @ctf_metadata = ctf_metadata_data.deep_stringify_keys unless ctf_metadata_data.nil?
-    @blog_metadata = blog_metadata_data.deep_stringify_keys unless blog_metadata_data.nil?
+    @cache_catalog = self.class == ContentRepository && ctf_metadata_data.nil?
   end
 
   def self.filter_tag_sort_key(value)
@@ -70,26 +70,27 @@ class ContentRepository
   def about_entries(path, include_hidden: false)
     cache_key = [ path.to_s, include_hidden ]
     about_entries_cache[cache_key] ||= begin
-      entries = normalize_about_entries(read_json_array(path), path: path)
-      include_hidden ? entries : sorted_about_entries(visible_about_entries(entries, path), fallback_path: path)
+      cached_collection([ :about, *cache_key ]) do
+        entries = normalize_about_entries(read_json_array(path), path: path)
+        include_hidden ? entries : sorted_about_entries(visible_about_entries(entries, path), fallback_path: path)
+      end
     end
-  end
-
-  def blog_metadata
-    @blog_metadata ||= read_json_object(configuration.path(:BLOG_INFO_PATH))
   end
 
   def ctf_metadata
     @visible_ctf_metadata ||= begin
       metadata = @ctf_metadata ||= read_json_object(configuration.path(:CTF_INFO_PATH))
-      metadata.reject { |_name, entry| hidden_content?(entry) }
+      metadata.reject { |_name, entry| hidden_content?(entry) }.to_h do |name, entry|
+        slug = entry["directory"].presence || name.downcase
+        [ name, entry.merge("directory" => slug, "writeups" => "/ctf/#{slug}") ]
+      end
     end
   end
 
   def ctf_events
     @ctf_events ||= begin
       events = ctf_metadata.map do |name, metadata|
-        slug = metadata["terminal_path"].presence || name.downcase
+        slug = metadata["directory"].presence || name.downcase
         validate_identifier!(slug, CTF_EVENT_SLUG_PATTERN, "CTF event slug")
 
         {
@@ -138,7 +139,13 @@ class ContentRepository
   end
 
   def ctf_posts(link_prefix: "/ctf")
-    ctf_posts_cache[link_prefix] ||= ctf_events.flat_map do |event|
+    ctf_posts_cache[link_prefix] ||= cached_collection([ :ctf_posts, link_prefix ]) do
+      build_ctf_posts(link_prefix: link_prefix)
+    end
+  end
+
+  def build_ctf_posts(link_prefix:)
+    ctf_events.flat_map do |event|
       trusted_files(
         root: ctf_base_path,
         pattern: ctf_base_path.join(event[:slug], "*.md")
@@ -150,82 +157,54 @@ class ContentRepository
         meta = document[:metadata].deep_dup
         next if hidden_content?(meta)
 
-        title = meta["title"].presence || slug.humanize
-        published = parsed_time(meta["published"], fallback: file_time(discovered_file[:canonical], legacy_year(meta)))
+        meta["title"] = meta["title"].presence || slug.humanize
+        meta["logo"] = event[:metadata]["logo"]
+        meta["ctf_event_url"] = event[:metadata]["website"]
+        published = parsed_time(meta["published"], fallback: parsed_time(legacy_year(meta), fallback: ContentDate::EPOCH))
 
-        {
+        ContentPost.from_document(
           type: "ctf",
-          which: event[:name],
-          item: event[:name],
+          source: event[:name],
           directory: event[:slug],
           slug: slug,
-          title: title,
           published: published,
-          modified: modified_time(meta, published),
           link: encoded_local_path("#{link_prefix}/#{event[:slug]}/#{slug}"),
-          description: meta["description"].to_s,
-          categories: normalized_metadata_categories(meta),
-          logo: event[:metadata]["logo"],
-          content: document[:content],
-          body: document[:body],
+          document: document,
           source_path: discovered_file[:canonical],
-          word_count: meta["word_count"],
-          word_count_label: meta["word_count_label"],
-          reading_time_minutes: meta["reading_time_minutes"],
-          reading_time_label: meta["reading_time_label"],
-          metadata: meta.merge("ctf_event_url" => event[:metadata]["website"])
-        }
+          metadata: meta
+        ).to_h
       end
     end.sort_by { |item| -item[:published].to_i }.tap do |posts|
       unique_index(posts, ->(post) { [ post[:directory], post[:slug] ] }, "CTF writeup path")
     end
   end
+  private :build_ctf_posts
 
   def blog_posts
-    @blog_posts ||= begin
-      metadata = blog_metadata
-      metadata.each_key { |slug| validate_identifier!(slug, BLOG_SLUG_PATTERN, "blog post slug") }
-
-      trusted_files(
-        root: blog_base_path,
-        pattern: blog_base_path.join("*.md")
-      ).filter_map do |discovered_file|
+    @blog_posts ||= cached_collection(:blog_posts) do
+      trusted_files(root: blog_base_path, pattern: blog_base_path.join("*.md")).filter_map do |discovered_file|
         slug = File.basename(discovered_file[:candidate], ".md")
-        next unless metadata.key?(slug)
-
         validate_identifier!(slug, BLOG_SLUG_PATTERN, "blog post slug")
+
         document = markdown_document(discovered_file[:canonical])
         meta = document[:metadata].deep_dup
-        blog_info = metadata.fetch(slug)
-        next if hidden_content?(meta) || hidden_content?(blog_info)
+        next if hidden_content?(meta)
 
-        category = blog_info["category"] || "POST"
-        title = blog_info["title"].presence || meta["title"].presence || slug.humanize
-        meta = meta.merge("title" => title, "logo" => blog_info["logo"], "category" => category)
-        published = parsed_time(meta["published"], fallback: file_time(discovered_file[:canonical], legacy_year(meta)))
+        meta["title"] = meta["title"].presence || slug.humanize
+        meta["category"] = meta["category"].presence || "POST"
 
-        {
+        published = parsed_time(meta["published"], fallback: parsed_time(legacy_year(meta), fallback: ContentDate::EPOCH))
+
+        ContentPost.from_document(
           type: "blog",
-          which: category,
-          item: slug,
+          source: meta["category"],
           slug: slug,
-          title: title,
           published: published,
-          modified: modified_time(meta, published),
           link: "/blog/#{slug}",
-          description: meta["description"].to_s,
-          topic: meta["topic"].to_s,
-          categories: normalized_metadata_categories(meta),
-          content: document[:content],
-          body: document[:body],
-          logo: blog_info["logo"],
+          document: document,
           source_path: discovered_file[:canonical],
-          word_count: meta["word_count"],
-          word_count_label: meta["word_count_label"],
-          reading_time_minutes: meta["reading_time_minutes"],
-          reading_time_label: meta["reading_time_label"],
           metadata: meta
-        }
+        ).to_h
       end.sort_by { |item| -item[:published].to_i }.tap do |posts|
         unique_index(posts, :slug, "blog post slug")
       end
@@ -383,14 +362,16 @@ class ContentRepository
   end
 
   def markdown_document(path)
-    ContentSnapshot.fetch(path, kind: :markdown) do |content|
+    ContentSnapshot.fetch(path, kind: :markdown, required: true) do |content|
       parsed = parse_markdown(content, path: path)
-      errors = ContentJsonSchemas.metadata_errors(parsed.front_matter)
+      errors = ContentFrontMatterSchemas.errors_for(parsed.front_matter, required: false)
       if errors.any?
         raise InvalidContent, "#{path}: #{errors.map { |error| "#{error["data_pointer"]}: #{error["type"]}" }.join(', ')}"
       end
       { content: content, body: parsed.content, metadata: post_metadata_from(parsed) }
     end
+  rescue Errno::ENOENT
+    raise InvalidContent, "#{path}: required content file is missing"
   end
 
   def post_metadata_from(parsed)
@@ -409,20 +390,8 @@ class ContentRepository
     )
   end
 
-  def reading_time_minutes(markdown)
-    reading_time_minutes_for_word_count(markdown_word_count(markdown))
-  end
-
-  def reading_time_label(markdown)
-    format_reading_time(reading_time_minutes(markdown))
-  end
-
   def parsed_time(value, fallback:)
     ContentDate.parse(value, fallback: fallback)
-  end
-
-  def modified_time(metadata, published)
-    parsed_time(metadata["updated"].presence || metadata["modified"], fallback: published)
   end
 
   def file_time(path, year = nil)
@@ -461,13 +430,26 @@ class ContentRepository
     end
   end
 
+  def cached_collection(key)
+    return yield unless @cache_catalog
+
+    ContentCatalog.fetch(key, revision: content_revision) { yield }
+  end
+
+  def content_revision
+    @content_revision ||= ContentCatalog.revision(
+      [ ctf_base_path, blog_base_path, configuration.path(:CTF_INFO_PATH) ] +
+      Dir.glob(ctf_base_path.join("*", "*.md")) + Dir.glob(blog_base_path.join("*.md")) +
+      Dir.glob(configuration.path(:ABOUTME_BASE_PATH).join("*"))
+    )
+  end
+
   private
 
   attr_reader :ctf_base_path,
               :blog_base_path,
               :ctf_challenge_files_path,
-              :ctf_pdf_writeups_path,
-              :configuration
+              :ctf_pdf_writeups_path
 
   def ctf_events_by_slug
     @ctf_events_by_slug ||= unique_index(ctf_events, :slug, "CTF event slug")
@@ -586,18 +568,22 @@ class ContentRepository
   end
 
   def read_file(path)
-    ContentSnapshot.fetch(path) { |content| content }
+    ContentSnapshot.fetch(path, required: true) { |content| content }
+  rescue Errno::ENOENT
+    raise InvalidContent, "#{path}: required content file is missing"
   end
 
   def parse_json_content(path)
     path = configuration.resolve(path)
-    ContentSnapshot.fetch(path, kind: :json) do |content|
+    ContentSnapshot.fetch(path, kind: :json, required: true) do |content|
       data = JSON.parse(content, allow_comments: true)
       ContentJsonSchemas.validate!(configuration.schema_path(path), data)
       data
     end.deep_dup
   rescue JSON::ParserError => error
     raise InvalidContent, "#{path}: invalid JSON: #{error.message}"
+  rescue Errno::ENOENT
+    raise InvalidContent, "#{path}: required content file is missing"
   end
 
   def register_fragment!(ids, id, path)
@@ -649,10 +635,7 @@ class ContentRepository
   end
 
   def encoded_local_path(path)
-    path = path.to_s
-    return path unless path.start_with?("/")
-
-    path.split("/").map { |segment| CGI.escape(CGI.unescape(segment)).gsub("+", "%20") }.join("/")
+    ContentUrl.encoded_path(path)
   end
 
   def feed_post_from(post, source)
@@ -667,6 +650,7 @@ class ContentRepository
       link: post[:link],
       published: post[:published],
       modified: post[:modified],
+      authors: post[:authors],
       guid: post[:link],
       reading_time_label: post[:reading_time_label],
       word_count: post[:word_count] || post.dig(:metadata, "word_count")

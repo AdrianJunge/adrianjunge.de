@@ -19,6 +19,7 @@ class MarkdownHelperTest < ActionView::TestCase
     assert_equal 3, fragment.css(".code-block pre.highlight code .code-line-content").length
     assert_equal "puts \"one\"\n\nputs \"two\"\n", fragment.at_css(".code-block code").text
     assert_nil fragment.at_css(".copy-btn")["data-code"]
+    assert_equal "--code-line-number-width: 3ch", fragment.at_css(".code-block")["style"]
   end
 
   test "markdown links opened in new tabs include noopener noreferrer" do
@@ -104,13 +105,27 @@ class MarkdownHelperTest < ActionView::TestCase
   end
 
   test "clipboard text preserves whitespace without a second copy of the source" do
-    [ "", "\n", "\n\n", "one", "one\n", "one\n\n", "\t  λ <>&\n\n  two\t\n", "one\r\ntwo\r\n" ].each do |source|
+    [ "", "\n", "\n\n", "one", "one\n", "one\n\n", "\t  λ <>&\n\n  two\t\n", "one\r\ntwo\r\n", "long-line-" * 200 + "\n\nlast\n" ].each do |source|
       fragment = Nokogiri::HTML.fragment(HtmlWithCopy.new.block_code(source, "text"))
       assert_equal source, fragment.at_css("code").text, source.inspect
       assert_nil fragment.at_css("button")["data-code"]
       assert_equal "Copy code", fragment.at_css("button")["aria-label"]
-      assert fragment.at_css(".copy-status[role=status]")
+      assert_equal "", fragment.at_css("button").text.strip
+      assert_nil fragment.at_css("button")["title"]
+      assert fragment.at_css(".copy-icon:not([hidden])[aria-hidden=true][focusable=false]")
+      assert fragment.at_css(".copy-check-icon[hidden][aria-hidden=true][focusable=false]")
+      assert fragment.at_css(".copy-status.visually-hidden[role=status][aria-live=polite][aria-atomic=true]")
     end
+  end
+
+  test "four digit logical line numbers reserve enough gutter without changing source" do
+    source = (1..1000).map { |number| "line #{number}" }.join("\n") + "\n"
+    fragment = Nokogiri::HTML.fragment(HtmlWithCopy.new.block_code(source, "text"))
+
+    assert_equal "--code-line-number-width: 4ch", fragment.at_css(".code-block")["style"]
+    assert_equal 1000, fragment.css(".code-line").length
+    assert_equal "1000", fragment.css(".code-line").last["data-line"]
+    assert_equal source, fragment.at_css("code").text
   end
 
   test "unknown or ambiguous language labels fall back to escaped plain text" do

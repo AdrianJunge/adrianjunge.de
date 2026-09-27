@@ -1,5 +1,5 @@
 <% content_for :head do %>
-  <% about_description = @about_info["description"].presence || "About Adrian Junge, security research, CVEs, bug bounties, certificates, and achievements." %>
+  <% about_description = @about_info["description"].presence || "About #{SiteProfile.name}, security research, CVEs, bug bounties, certificates, and achievements." %>
   <% about_seo_items = [
        { title: "CVEs", link: about_path(anchor: "cves") },
        { title: "Created CTF challenges", link: about_path(anchor: "my-challenges") },
@@ -8,7 +8,7 @@
        { title: "Relevant achievements", link: about_path(anchor: "achievements") }
      ] %>
   <%= seo_meta_tags(
-        title: "About Adrian Junge",
+        title: "About #{SiteProfile.name}",
         description: about_description,
         type: "profile",
         canonical_path: about_path,
@@ -16,7 +16,7 @@
         json_ld: [
           seo_person_schema(description: about_description),
           seo_collection_schema(
-            title: "About Adrian Junge",
+            title: "About #{SiteProfile.name}",
             description: about_description,
             canonical_path: about_path,
             items: about_seo_items
@@ -33,7 +33,7 @@
 <% about_sections = about_profile_sections %>
 
 <% about_stats_content = capture do %>
-  <div class="aboutme-stats" aria-label="Public security work summary">
+  <div class="aboutme-stats" role="group" aria-label="Public security work summary">
     <% about_stats.each do |stat| %>
       <% if stat[:anchor] %>
         <a href="#<%= stat[:anchor] %>" class="aboutme-stat ui-hover-lift" aria-label="Jump to <%= stat[:label] %>">

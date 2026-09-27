@@ -1,6 +1,10 @@
 require "test_helper"
 
 class CtfHelperTest < ActionView::TestCase
+  def content_repository
+    @content_repository ||= fixture_content_repository
+  end
+
   test "writeup cards render complete descriptions" do
     description = "A" * 220 + " complete ending"
 
@@ -343,7 +347,7 @@ class CtfHelperTest < ActionView::TestCase
     assert_equal "2024", writeup_ctf_year("year" => "2024", "published" => "2026-01-01")
   end
 
-  test "article hints render as blurred spoilers" do
+  test "article hints remain readable until the blur control is enhanced" do
     render inline: "<%= render_writeup_hints(info) %>", locals: {
       info: {
         "optional" => {
@@ -359,9 +363,10 @@ class CtfHelperTest < ActionView::TestCase
     assert_select "section.writeup-hints.writeup-hints-spoilers"
     assert_select ".writeup-hints-summary", text: /Hints/
     assert_select ".writeup-hints-count", text: "2 hints"
-    assert_select "ol.writeup-hints-list li.writeup-hint-spoiler.is-hidden", 2
-    assert_select ".writeup-hint-spoiler-content[aria-hidden='true'] code", text: "in_array"
-    assert_select "button.writeup-hint-unhide[data-hint-spoiler-reveal='true']", text: "Expose"
+    assert_select "ol.writeup-hints-list li.writeup-hint-spoiler", 2
+    assert_select ".writeup-hint-spoiler-content[inert], .writeup-hint-spoiler-content[aria-hidden='true']", false
+    assert_select ".writeup-hint-spoiler-content code", text: "in_array"
+    assert_select "button.writeup-hint-unhide[data-hint-spoiler-reveal='true'][hidden]", text: "Expose"
   end
 
   test "article difficulty badge falls back when metadata is omitted" do

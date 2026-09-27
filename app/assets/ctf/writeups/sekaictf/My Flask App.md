@@ -5,6 +5,7 @@ authors:
     - name: belugagemink
       url: https://lordrukie.com
 description: I created a Web application in Flask, what could be wrong?
+reader_summary: A small Flask application from an easy SekaiCTF web challenge.
 categories:
     - web
 difficulty: Easy

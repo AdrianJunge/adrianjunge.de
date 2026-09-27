@@ -1,4 +1,8 @@
 ---
+title: "HTB CPTS"
+logo: "blog/htb-cpts.png"
+category: "Certificate"
+timeline_group: "htb-cpts"
 description: My experience completing the Hack The Box Certified Penetration Testing Specialist (HTB CPTS) certification. I share the journey, rough timeline, exam tips, and tools that helped me succeed.
 categories:
     - Penetration Testing
@@ -7,6 +11,10 @@ categories:
     - Web Exploitation
 published: "2026-03-23"
 ---
+
+# TL;DR
+
+CPTS took me roughly 30 days of mixed full-time and part-time preparation, followed by a 10-day exam window. The most valuable parts for me were Active Directory, structured notes, and report writing.
 
 # My Background
 
@@ -64,9 +72,9 @@ When writing the report, I focused on reproducing a clear attack chain and added
 
 The most important lesson is simple: **good notes are everything**. If your notes are structured well during the course, you are already giving yourself a huge advantage for both the exam and the report. A few other things mattered a lot for me:
 
-- Even small remarks from the content can be useful later; tiny details can turn into a breakthrough.
+- Even small remarks from the content can be useful later, tiny details can turn into a breakthrough.
 - The last module felt very similar to one of the exam machines, so do not treat the final module as "just another chapter" but more as a test before the exam.
-- Exam machines are not equally expensive in terms of time; some move fast, others eat your day.
+- Exam machines are not equally expensive in terms of time, some move fast, others eat your day.
 - During the exam, copy everything relevant: commands, outputs, screenshots, and context, because your future self will thank you for it.
 - Learn and use [ligolo-ng](https://github.com/nicocha30/ligolo-ng). For me, it was a huge quality-of-life improvement for pivoting compared to the more elaborate combination of [Chisel](https://github.com/jpillora/chisel) and [Proxychains](https://github.com/haad/proxychains). I published my [ligolo setup](https://github.com/AdrianJunge/ligolo-setup).
 

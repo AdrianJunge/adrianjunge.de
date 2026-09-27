@@ -6,6 +6,16 @@
       <button type="button" class="collapse-toc-button toc-toggle-button writeup-toc-restore-button"
               title="Show table of contents" aria-label="Show table of contents"
               data-toc-toggle="toc" aria-expanded="true" aria-controls="toc">☰</button>
+      <% if has_math == true %>
+        <div class="article-math-notice" data-math-notice hidden
+             data-mathjax-component-url="<%= MathjaxDependencies.component_url %>"
+             data-mathjax-font-url="<%= MathjaxDependencies.font_url %>"
+             data-mathjax-font-path="<%= MathjaxDependencies.font_path %>">
+          <p role="status" data-math-status></p>
+          <button type="button" data-math-retry>Reload to retry math</button>
+        </div>
+        <noscript><p class="article-math-noscript">Equations are shown as TeX source. Enable JavaScript for formatted math.</p></noscript>
+      <% end %>
       <%= yield %>
     </article>
   </div>

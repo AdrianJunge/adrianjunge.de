@@ -7,8 +7,8 @@ xml.feed xmlns: "http://www.w3.org/2005/Atom" do
   xml.link                  rel: "self", href: @feed_self_url
   xml.link                  rel: "alternate", href: @feed_alternate_url
   xml.author do
-    xml.name "Adrian Junge"
-    xml.uri about_url
+    xml.name SiteProfile.name
+    xml.uri SiteProfile.author.fetch(:url)
   end
 
   @items.each do |item|
@@ -19,6 +19,12 @@ xml.feed xmlns: "http://www.w3.org/2005/Atom" do
       xml.link            rel: "alternate", href: item[:link]
       xml.updated         item[:modified].iso8601
       xml.published       item[:pub_date].iso8601
+      item[:authors].each do |author|
+        xml.author do
+          xml.name author[:name]
+          xml.uri author[:url] if author[:url].present?
+        end
+      end
       xml.summary         type: "html" do
         xml.cdata!        item[:description].to_s
       end

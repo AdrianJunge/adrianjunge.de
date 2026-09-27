@@ -26,7 +26,7 @@
              title: "Timeline",
              description: timeline_description %>
 
-  <%= render "shared/content_filters",
+  <%= render_content_filters(
              scope: "timeline",
              years: @filter_years,
              tags: @filter_tags,
@@ -35,8 +35,8 @@
              search_id: "timeline-search-input",
              clear_id: "timeline-search-clear",
              search_value: @initial_query,
-             placeholder: "Search writeups, blog posts, CVEs, talks, achievements...",
-             tag_label: "Filters" %>
+             placeholder: "Search writeups, blog posts, CVEs, talks, achievements..."
+           ) %>
 
   <div class="timeline-shell" data-filter-results="timeline">
     <ul class="timeline">

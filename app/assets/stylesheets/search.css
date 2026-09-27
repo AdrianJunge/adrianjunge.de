@@ -1,0 +1,183 @@
+.site-search-dialog {
+    position: fixed;
+    inset: 0;
+    width: min(46rem, calc(100vw - 2rem));
+    height: min(40rem, calc(100dvh - 2rem));
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: 1.25rem;
+    overflow: hidden;
+    color: #f1f5f9;
+    border: 1px solid #7e9ebf;
+    border-radius: var(--radius-ui);
+    background: #102b43;
+    box-shadow: 0 1rem 4rem #0008;
+}
+
+.site-search-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.site-search-dialog::backdrop {
+    background: #04111ecc;
+}
+
+.site-search-dialog-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+    flex: 0 0 auto;
+}
+
+.site-search-title {
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+.site-search-title-icon {
+    width: 2rem;
+    height: 2rem;
+}
+
+.site-search-form {
+    flex: 0 0 auto;
+}
+
+.site-search-feedback {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    flex: 0 0 auto;
+}
+
+.site-search-status {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    color: #cbd5e1;
+    line-height: 1.5;
+}
+
+.site-search-dialog-heading button,
+.site-search-retry {
+    min-height: 2.75rem;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--button-border);
+    border-radius: var(--radius-ui-control);
+    background: var(--button-bg);
+    color: var(--button-color);
+    box-shadow: var(--button-shadow);
+    cursor: pointer;
+    transition: var(--button-transition);
+}
+
+.site-search-results {
+    display: grid;
+    align-content: start;
+    flex: 1 1 0;
+    min-height: 0;
+    gap: 0.7rem;
+    margin: 0;
+    padding: 0.25rem;
+    list-style: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(125, 211, 252, 0.6) rgba(18, 55, 87, 0.7);
+}
+
+.site-search-results::-webkit-scrollbar {
+    width: 0.6rem;
+}
+
+.site-search-results::-webkit-scrollbar-track {
+    background: rgba(18, 55, 87, 0.7);
+    border-radius: var(--radius-ui-control);
+}
+
+.site-search-results::-webkit-scrollbar-thumb {
+    border: 2px solid rgba(18, 55, 87, 0.7);
+    border-radius: var(--radius-ui-control);
+    background: rgba(125, 211, 252, 0.6);
+}
+
+.site-search-results::-webkit-scrollbar-thumb:hover {
+    background: #9edcfa;
+}
+
+.site-search-results li {
+    min-width: 0;
+}
+
+.site-search-results .site-search-result-link {
+    display: block;
+    padding: 0.85rem;
+    border: 1px solid #52738e;
+    border-radius: var(--radius-ui-control);
+    background: #0b2237;
+    color: #9edcfa;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+    transition: var(--button-transition);
+}
+
+.site-search-results .site-search-result-link:is(:hover, :focus-visible) {
+    border-color: var(--button-border-hover);
+    background: var(--button-bg-hover);
+    box-shadow: var(--button-shadow-hover);
+}
+
+.site-search-result-title {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    font-weight: 700;
+}
+
+.site-search-results p {
+    margin-top: 0.45rem;
+    color: #d8e2ec;
+    line-height: 1.65;
+}
+
+.site-search-dialog :is(button, a):focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 3px;
+}
+
+.site-search-dialog-heading .site-search-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 2.75rem;
+    width: 2.75rem;
+    padding: 0;
+}
+
+.site-search-dialog-heading .site-search-close:hover,
+.site-search-retry:hover {
+    border-color: var(--button-border-hover);
+    color: var(--button-color-hover);
+    background: var(--button-bg-hover);
+    box-shadow: var(--button-shadow-hover);
+}
+
+.site-search-dialog-heading .site-search-close:focus-visible,
+.site-search-retry:focus-visible {
+    border-color: var(--button-border-hover);
+    color: var(--button-color-hover);
+    background: var(--button-bg-hover);
+    box-shadow: var(--button-focus-shadow);
+}
+
+.site-search-result-kind {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #bdcfe2;
+    font-size: 0.8rem;
+}

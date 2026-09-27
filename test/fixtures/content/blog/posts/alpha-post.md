@@ -1,4 +1,7 @@
 ---
+logo: "blog/java.png"
+category: "Security Research"
+timeline_group: "shared-certificate"
 title: Alpha Research
 description: A synthetic research post used only by tests.
 published: "2025-02-02"

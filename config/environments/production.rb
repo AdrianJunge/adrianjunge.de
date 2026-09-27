@@ -32,10 +32,4 @@ Rails.application.configure do
   config.active_support.report_deprecations = false
 
   config.i18n.fallbacks = true
-
-  config.active_record.dump_schema_after_migration = false
-  config.active_record.attributes_for_inspect = [ :id ]
-
-  Rails.application.routes.default_url_options[:host] = "adrianjunge.de"
-  Rails.application.routes.default_url_options[:protocol] = "https"
 end

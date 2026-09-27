@@ -20,6 +20,13 @@ module ContentCategoryTag
     "privilege escalation" => "privesc"
   }.freeze
 
+  CATEGORY_LABELS = {
+    "web" => "Web", "pwn" => "Pwn", "crypto" => "Crypto",
+    "reverse" => "Reverse", "misc" => "Misc", "forensics" => "Forensics",
+    "osint" => "OSINT", "blockchain" => "Blockchain", "dotnet" => ".NET",
+    "privesc" => "Privilege Escalation"
+  }.freeze
+
   module_function
 
   def css_key(value)
@@ -28,6 +35,10 @@ module ContentCategoryTag
 
   def recognized?(value)
     CATEGORY_KEYS.key?(normalized(value))
+  end
+
+  def canonical_label(value)
+    CATEGORY_LABELS[CATEGORY_KEYS[normalized(value)]]
   end
 
   def normalized(value)

@@ -1,0 +1,67 @@
+{
+  "algorithm_records": [
+    { "id": "cafe", "text": "Café memory corruption", "tags": ["Web", "CWE-787"], "years": ["2025"] },
+    { "id": "privilege", "text": "Kernel privilege escalation", "tags": ["Pwn", "CVE-2099-0001"], "years": ["2024"] },
+    { "id": "algorithms", "text": "Ordered algorithms", "tags": ["Algorithms"], "years": ["2025"] }
+  ],
+  "algorithm_cases": [
+    { "query": "CAFE", "expected": ["cafe"] },
+    { "query": "prvlg", "expected": ["privilege"] },
+    { "query": "pglvr", "expected": [] },
+    { "query": "cwe787", "expected": ["cafe"] },
+    { "query": "cve20990001", "expected": ["privilege"] },
+    { "query": "café web", "expected": ["cafe"] },
+    { "query": "café crypto", "expected": [] },
+    { "query": "", "year": "2025", "expected": ["cafe", "algorithms"] },
+    { "query": "", "tags": ["web", "cwe-787"], "expected": ["cafe"] },
+    { "query": "", "tags": ["web", "pwn"], "expected": [] },
+    { "query": "prvlg", "year": "2025", "expected": [] },
+    { "query": "", "expected": ["cafe", "privilege", "algorithms"] }
+  ],
+  "pages": [
+    {
+      "path": "/blog", "scope": "blogs", "title_selector": ".blog-post-title", "total": 3,
+      "cases": [
+        { "params": {}, "titles": ["Alpha Research", "Gamma Notes", "Beta Algorithms"] },
+        { "params": {"q": "ALPHA"}, "titles": ["Alpha Research"] },
+        { "params": {"q": "algrthms"}, "titles": ["Beta Algorithms"] },
+        { "params": {"q": "smhtrgla"}, "titles": [] },
+        { "params": {"year": "2024"}, "titles": ["Gamma Notes"] },
+        { "params": {"tag": "Web", "year": "2025", "q": "research"}, "titles": ["Alpha Research"] },
+        { "params": {"tag": "Web", "year": "2024"}, "titles": [] }
+      ]
+    },
+    {
+      "path": "/ctf", "scope": "ctfs", "title_selector": ".ctf-name", "total": 1,
+      "cases": [
+        { "params": {"q": "dmctf"}, "titles": ["DEMOCTF"] },
+        { "params": {"q": "HIDDENCTF"}, "titles": [] },
+        { "params": {"tag": "Pwn", "year": "2025"}, "titles": ["DEMOCTF"] }
+      ]
+    },
+    {
+      "path": "/ctf/democtf", "scope": "writeups", "title_selector": ".blog-post-title", "total": 3,
+      "cases": [
+        { "params": {}, "titles": ["Space Writeup", "Winning Writeup", "Middle Writeup"] },
+        { "params": {"q": "spce"}, "titles": ["Space Writeup"] },
+        { "params": {"year": "2024"}, "titles": ["Winning Writeup", "Middle Writeup"] },
+        { "params": {"tag": "Medium"}, "titles": ["Middle Writeup"] },
+        { "params": {"tag": ["Pwn", "Hard"]}, "titles": ["Space Writeup"] },
+        { "params": {"q": "Space", "year": "2024"}, "titles": [] },
+        { "params": {"q": "Hidden"}, "titles": [] }
+      ]
+    },
+    {
+      "path": "/timeline", "scope": "timeline", "title_selector": ".timeline-title", "total": 11,
+      "cases": [
+        { "params": {"q": "certificate"}, "titles": ["Alpha Research"] },
+        { "params": {"q": "cve20990001"}, "titles": ["Fixture Project"] },
+        { "params": {"q": "cwe787"}, "titles": ["Fixture Project"] },
+        { "params": {"q": "wnng"}, "titles": ["Winning Writeup"] },
+        { "params": {"tag": "CTF writeup", "year": "2024"}, "titles": ["Winning Writeup", "Middle Writeup"] },
+        { "params": {"tag": "Web"}, "titles": ["Alpha Research", "Winning Writeup"] },
+        { "params": {"q": "Hidden"}, "titles": [] }
+      ]
+    }
+  ]
+}

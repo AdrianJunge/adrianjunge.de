@@ -3,15 +3,19 @@
   "private": true,
   "scripts": {
     "test": "node --test test/javascript/*.mjs",
+    "test:cross-browser": "playwright test",
+    "test:mobile": "playwright test --config=playwright.mobile.config.mjs",
+    "accessibility:summary": "node scripts/accessibility-summary.mjs",
     "performance": "node scripts/performance.mjs"
   },
   "engines": {
     "node": ">=24"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "axe-core": "4.13.0",
     "chrome-launcher": "1.2.1",
-    "lighthouse": "13.4.1",
+    "lighthouse": "13.5.0",
     "svgo": "4.1.0"
   }
 }

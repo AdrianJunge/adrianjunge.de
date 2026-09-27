@@ -1,4 +1,6 @@
 ---
+logo: "blog/leetcode.png"
+category: "Algorithms"
 title: Beta Algorithms
 description: A synthetic algorithms post used only by tests.
 published: "2023-01-02"

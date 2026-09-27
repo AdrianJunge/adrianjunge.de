@@ -1,4 +1,7 @@
 ---
+title: "Teaching AI to hack Joomla so I can skip my homework"
+logo: "blog/joomla.png"
+category: "Security Research"
 description: How a manual SQLi hunt turned into an AI-assisted Joomla audit, two assigned CVEs, and a surprisingly valid way to pass a university lab.
 categories:
     - PHP
@@ -8,9 +11,17 @@ categories:
 published: "2026-06-13"
 ---
 
+# TL;DR
+
+A university lab sent me down a PHP rabbit hole, from ChurchCRM to Joomla and two assigned CVEs. This is the story of that research, the role AI played in it, and what I learned along the way.
+
 # A Random PHP Detour
 
-The main reason I started hunting for CVEs was the [Real-world Vulnerability Discovery and Exploits](https://intellisec.de/teaching/2026-ss/exploits/) practical lab at my univesity KIT which you only pass if you got a CVE assigned or a bug bounty payed out. While looking for a target for the lab, I randomly found a **CRM** repository written in **PHP** for managing churches called [ChurchCRM](https://github.com/ChurchCRM/CRM). The [GitHub advisory history](https://github.com/ChurchCRM/CRM/security/advisories) already had a couple of interesting vulnerabilities, including several **SQL injections**, **XSS** issues, and other typical web application bugs. After taking a closer look at the **SQL injection** advisories, the vulnerable code looked fairly simple to me, including some textbook **SQL injections**. So I became curious whether there were more **SQL** related issues in this repository and looked at how the application interacts with the database. In [ChurchCRM 7.0.5](https://github.com/ChurchCRM/CRM/blob/7.0.5/) this turned out to be quite easy. A lot of legacy code constructs raw **SQL** strings and then passes them into the `RunQuery` function, which delegates the query execution to the underlying database. That gives you a pretty simple source-to-sink search strategy. By searching for `RunQuery` and inspecting the code that constructs the **SQL** query, you can manually trace all the relevant variables backwards. One representative example is the vulnerable code in [ChurchCRM 7.0.5 SettingsUser.php](https://github.com/ChurchCRM/CRM/blob/7.0.5/src/SettingsUser.php#L14-L47):
+The main reason I started hunting for CVEs was the [Real-world Vulnerability Discovery and Exploits](https://intellisec.de/teaching/2026-ss/exploits/) practical lab at my university, KIT. Passing the lab required an assigned CVE or a paid bug bounty.
+
+While looking for a target for the lab, I randomly found a **CRM** repository written in **PHP** for managing churches called [ChurchCRM](https://github.com/ChurchCRM/CRM).
+
+The [GitHub advisory history](https://github.com/ChurchCRM/CRM/security/advisories) already had a couple of interesting vulnerabilities, including several **SQL injections**, **XSS** issues, and other typical web application bugs. After taking a closer look at the **SQL injection** advisories, the vulnerable code looked fairly simple to me, including some textbook **SQL injections**. So I became curious whether there were more **SQL** related issues in this repository and looked at how the application interacts with the database. In [ChurchCRM 7.0.5](https://github.com/ChurchCRM/CRM/blob/7.0.5/) this turned out to be quite easy. A lot of legacy code constructs raw **SQL** strings and then passes them into the `RunQuery` function, which delegates the query execution to the underlying database. That gives you a pretty simple source-to-sink search strategy. By searching for `RunQuery` and inspecting the code that constructs the **SQL** query, you can manually trace all the relevant variables backwards. One representative example is the vulnerable code in [ChurchCRM 7.0.5 SettingsUser.php](https://github.com/ChurchCRM/CRM/blob/7.0.5/src/SettingsUser.php#L14-L47):
 
 ```php
 if (isset($_POST['save'])) {

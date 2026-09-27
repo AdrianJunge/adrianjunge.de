@@ -4,9 +4,7 @@ class LandingController < ApplicationController
     @amount_posts = content_repository.post_count
     @amount_post_reading_time = content_repository.format_reading_time(content_repository.total_post_reading_time_minutes)
     @amount_cves = content_repository.about_entries(ABOUTME_CVES_PATH).length
-    @amount_bug_bounties = BUG_BOUNTY_COUNT
-
-    @blogs = content_repository.blog_metadata
+    @amount_bug_bounties = SiteProfile.bug_bounty_count
   end
 
   private

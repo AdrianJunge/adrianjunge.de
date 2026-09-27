@@ -1,0 +1,170 @@
+/* Controls component styles and responsive states. */
+
+.back-button,
+.collapse-toc-button,
+.ui-article-action,
+.content-link-button,
+.content-page .download-btn,
+.content-page .open-pdf-btn,
+.content-page .previous-writeup-btn,
+.content-page .next-writeup-btn,
+.content-page .content-hero-feed-link,
+.landing-page .landing-action,
+.landing-page .landing-affiliation-link,
+.footer-link {
+    border: 1px solid var(--button-border);
+    color: var(--button-color);
+    background: var(--button-bg);
+    box-shadow: var(--button-shadow);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    text-decoration: none;
+    transition: var(--button-transition);
+}
+
+.back-button,
+.collapse-toc-button,
+.ui-article-action,
+.content-link-button,
+.content-page .download-btn,
+.content-page .open-pdf-btn,
+.content-page .previous-writeup-btn,
+.content-page .next-writeup-btn,
+.content-page .content-hero-feed-link,
+.landing-page .landing-action,
+.landing-page .landing-affiliation-link,
+.footer-link,
+.content-page .copy-btn,
+.content-page .search-clear-btn,
+.content-page .content-filter-reset {
+    font: inherit;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .back-button:hover,
+    .collapse-toc-button:hover,
+    .ui-article-action:hover,
+    .content-link-button:hover,
+    .content-page .download-btn:hover,
+    .content-page .open-pdf-btn:hover,
+    .content-page .previous-writeup-btn:hover,
+    .content-page .next-writeup-btn:hover,
+    .content-page .content-hero-feed-link:hover,
+    .landing-page .landing-action:hover,
+    .landing-page .landing-affiliation-link:hover,
+    .footer-link:hover {
+        border-color: var(--button-border);
+        color: var(--button-color-hover);
+        background-color: var(--button-bg-hover);
+        box-shadow: var(--button-shadow-hover);
+        transform: var(--button-hover-transform);
+    }
+}
+
+.back-button:focus-visible,
+.collapse-toc-button:focus-visible,
+.ui-article-action:focus-visible,
+.content-link-button:focus-visible,
+.content-page .download-btn:focus-visible,
+.content-page .open-pdf-btn:focus-visible,
+.content-page .previous-writeup-btn:focus-visible,
+.content-page .next-writeup-btn:focus-visible,
+.content-page .content-hero-feed-link:focus-visible,
+.landing-page .landing-action:focus-visible,
+.landing-page .landing-affiliation-link:focus-visible,
+.footer-link:focus-visible {
+    border-color: var(--button-border-hover);
+    color: var(--button-color-hover);
+    background-color: var(--button-bg-hover);
+    box-shadow: var(--button-focus-shadow);
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.back-button:active,
+.collapse-toc-button:active,
+.ui-article-action:active,
+.content-link-button:active,
+.content-page .download-btn:active,
+.content-page .open-pdf-btn:active,
+.content-page .previous-writeup-btn:active,
+.content-page .next-writeup-btn:active,
+.content-page .content-hero-feed-link:active,
+.landing-page .landing-action:active,
+.landing-page .landing-affiliation-link:active,
+.footer-link:active {
+    border-color: var(--button-border);
+    background-color: var(--button-bg);
+    box-shadow: var(--button-shadow-active);
+    transform: translateY(0);
+}
+
+.back-button:disabled,
+.collapse-toc-button:disabled,
+.ui-article-action:disabled,
+.content-link-button:disabled,
+.content-page .download-btn:disabled,
+.content-page .open-pdf-btn:disabled,
+.content-page .previous-writeup-btn:disabled,
+.content-page .next-writeup-btn:disabled,
+.content-page .content-hero-feed-link[aria-disabled="true"],
+.landing-page .landing-action[aria-disabled="true"],
+.landing-page .landing-affiliation-link[aria-disabled="true"],
+.footer-link[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.ui-card-surface,
+.content-page .ui-card-surface,
+.landing-page .ui-card-surface,
+.landing-page .landing-writeup-cards .ui-card-surface,
+.aboutme-page .ui-card-surface {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(88, 122, 166, 0.7);
+    border-radius: var(--radius-ui);
+    background-color: rgba(18, 34, 56, 0.88);
+    background-image: none;
+    box-shadow: 0 1rem 2rem rgba(2, 12, 24, 0.25);
+    isolation: isolate;
+    transition: box-shadow var(--motion-fast), transform var(--motion-fast);
+}
+
+.ui-card-surface > * {
+    position: relative;
+    z-index: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .ui-card-surface:hover,
+    .content-page .ui-card-surface:hover,
+    .landing-page .ui-card-surface:hover,
+    .landing-page .landing-writeup-cards .ui-card-surface:hover,
+    .aboutme-page .ui-card-surface:hover {
+        border-color: rgba(125, 211, 252, 0.76);
+        background-color: rgba(24, 54, 84, 0.92);
+        box-shadow: 0 1rem 2rem rgba(2, 12, 24, 0.28);
+    }
+}
+
+.profile-card {
+    --profile-card-accent: var(--aboutme-section-accent, #7dd3fc);
+}
+
+.content-page .blog-post-static-chip,
+.landing-page .landing-writeup-cards .blog-post-static-chip,
+:not(a).aboutme-card-tag,
+:not(a).aboutme-cve-id,
+:not(a).aboutme-cwe-id {
+    cursor: default;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .content-page .markdown-content a:focus-visible {
+        top: -0.08rem;
+        color: #7dd3fc;
+        text-decoration-color: currentColor;
+    }
+}

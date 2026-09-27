@@ -135,9 +135,7 @@ module SitePageHelpers
 
   def landing_post_logo?(post)
     case post[:type]
-    when "blog"
-      repository.blog_metadata.dig(post[:slug], "logo").present?
-    when "ctf"
+    when "blog", "ctf"
       post[:logo].present?
     else
       false
@@ -161,7 +159,7 @@ module SitePageHelpers
   end
 
   def ctf_directory(name, metadata)
-    metadata["terminal_path"].presence || name.downcase
+    metadata["directory"].presence || name.downcase
   end
 
   def ctf_overview_items
@@ -240,16 +238,6 @@ module SitePageHelpers
     groups.values.select { |group| group[:items].length < ctf_overview_items.length }.min_by { |group| group[:items].length } ||
       groups.values.first ||
       flunk("expected at least one CTF difficulty filter")
-  end
-
-  def ctf_overview_search_case
-    ctf_overview_items.each do |item|
-      query = item[:name]
-      matches = ctf_overview_items.select { |candidate| ordered_search_match?(query, [ candidate[:text], candidate[:tags] ].flatten.join(" ")) }
-      return { query: query, items: matches } if matches.any?
-    end
-
-    flunk("expected at least one searchable CTF")
   end
 
   def ctf_overview_year_case
@@ -360,16 +348,6 @@ module SitePageHelpers
     { tag: candidate[:tag], items: candidate[:posts] }
   end
 
-  def blog_search_case
-    blog_posts.each do |post|
-      query = post[:title]
-      matches = blog_posts.select { |candidate| ordered_search_match?(query, blog_filter_text(candidate)) }
-      return { query: query, post: post, items: matches } if matches.any?
-    end
-
-    flunk("expected at least one searchable blog post")
-  end
-
   def blog_year_case
     groups = {}
     blog_posts.each do |post|
@@ -381,14 +359,6 @@ module SitePageHelpers
     groups.values.find { |group| group[:items].length < blog_posts.length } ||
       groups.values.first ||
       flunk("expected at least one blog year")
-  end
-
-  def blog_filter_text(post)
-    published = post[:published].strftime("%Y-%m-%d")
-    ([ post[:title], post[:description], published, post[:published].year, post[:topic], post[:which] ] + Array(post[:categories]))
-      .compact
-      .join(" ")
-      .downcase
   end
 
   def first_timeline_post_with_tags
@@ -415,119 +385,6 @@ module SitePageHelpers
 
   def special_filter_tag?(tag)
     [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(tag) || WriteupDifficulty.filter_label?(tag)
-  end
-
-  def timeline_search_case
-    timeline_items.each do |item|
-      query = item[:title].to_s
-      next if query.blank?
-
-      matches = timeline_items.select { |candidate| timeline_search_match?(query, candidate) }
-      return { query: query, items: matches } if matches.any?
-    end
-
-    flunk("expected at least one searchable timeline item")
-  end
-
-  def timeline_tag_search_case
-    timeline_tag_case_candidates.each do |candidate|
-      matches = timeline_items.select { |item| timeline_tag_search_match?(candidate[:tag], item) }
-      next unless matches.any? && matches.length < timeline_items.length
-
-      return candidate.merge(query: candidate[:tag], items: matches)
-    end
-
-    flunk("expected at least one searchable timeline tag")
-  end
-
-  def timeline_fuzzy_search_case
-    timeline_items.each do |item|
-      normalized_title = normalized_search_words(item[:title]).find { |word| word.length >= 8 }
-      next unless normalized_title
-
-      query = normalized_title.chars.each_with_index.filter_map { |character, index| character if index.even? }.join
-      next if query.length < 4 || normalized_title.include?(query)
-
-      matches = timeline_items.select { |candidate| timeline_search_match?(query, candidate) }
-      next unless matches.include?(item) && matches.length < timeline_items.length
-
-      return { query: query, items: matches, item: item }
-    end
-
-    flunk("expected at least one fuzzy-searchable timeline item")
-  end
-
-  def timeline_tag_case_candidates
-    groups = {}
-    timeline_items.each do |item|
-      visible_timeline_tags(item).each do |tag|
-        key = tag.downcase
-        groups[key] ||= { tag: tag, exact_items: [] }
-        groups[key][:exact_items] << item
-      end
-    end
-
-    groups.values.sort_by { |group| [ group[:exact_items].length, group[:tag] ] }
-  end
-
-  def timeline_search_match?(query, item)
-    search_terms = normalized_search_words(timeline_filter_text(item))
-    Array(item[:tags]).each do |tag|
-      tag_words = normalized_search_words(tag)
-      search_terms.concat(tag_words)
-      search_terms << tag_words.join if tag_words.any?
-    end
-
-    normalized_search_words(query).all? do |query_term|
-      search_terms.any? { |search_term| ordered_search_term_match?(query_term, search_term) }
-    end
-  end
-
-  def timeline_tag_search_match?(query, item)
-    tag_terms = Array(item[:tags]).flat_map do |tag|
-      words = normalized_search_words(tag)
-      compact = words.join
-      compact.present? ? words + [ compact ] : words
-    end.uniq
-    query_terms = normalized_search_words(query)
-    return true if query_terms.empty?
-
-    query_terms.all? do |query_term|
-      tag_terms.any? { |tag_term| ordered_search_term_match?(query_term, tag_term) }
-    end
-  end
-
-  def timeline_filter_text(item)
-    item[:search_text]
-  end
-
-  def ordered_search_match?(query, value)
-    query_terms = normalized_search_words(query)
-    return true if query_terms.empty?
-
-    value_terms = normalized_search_words(value)
-    query_terms.all? do |query_term|
-      value_terms.any? { |value_term| ordered_search_term_match?(query_term, value_term) }
-    end
-  end
-
-  def ordered_search_term_match?(query_term, value_term)
-    query_index = 0
-    value_term.each_char do |character|
-      query_index += 1 if character == query_term[query_index]
-      return true if query_index == query_term.length
-    end
-
-    false
-  end
-
-  def normalized_search_words(value)
-    value.to_s
-         .downcase
-         .unicode_normalize(:nfkd)
-         .gsub(/\p{Mn}/, "")
-         .gsub(/[^a-z0-9]+/, " ")
-         .split
   end
 
   def timeline_tag_case
@@ -892,80 +749,5 @@ module SitePageHelpers
   def click_card_link_area(card)
     target = card.first(".blog-post-title, .ctf-name", visible: true)
     page.driver.browser.action.move_to(target.native).click.perform
-  end
-
-  def post_card_styles(selector)
-    page.evaluate_script(<<~JS)
-      (() => {
-        const card = document.querySelector(#{selector.to_json});
-        const logo = card.querySelector(".blog-post-card-logo");
-        const title = card.querySelector(".blog-post-title");
-        const chip = card.querySelector(".filter-chip");
-        const cardStyle = window.getComputedStyle(card);
-        const logoStyle = window.getComputedStyle(logo);
-        const titleStyle = window.getComputedStyle(title);
-        const chipStyle = chip ? window.getComputedStyle(chip) : null;
-
-        return {
-          borderRadius: cardStyle.borderTopLeftRadius,
-          borderColor: cardStyle.borderTopColor,
-          backgroundColor: cardStyle.backgroundColor,
-          backgroundImage: cardStyle.backgroundImage,
-          boxShadow: cardStyle.boxShadow,
-          logoBackground: logoStyle.backgroundColor,
-          logoBorderRight: logoStyle.borderRightColor,
-          titleFontSize: titleStyle.fontSize,
-          titleFontWeight: titleStyle.fontWeight,
-          chipBorderRadius: chipStyle?.borderTopLeftRadius || null
-        };
-      })()
-    JS
-  end
-
-  def card_surface_styles(selector)
-    page.evaluate_script(<<~JS)
-      (() => {
-        const card = document.querySelector(#{selector.to_json});
-        const style = window.getComputedStyle(card);
-
-        return {
-          borderRadius: style.borderTopLeftRadius,
-          borderColor: style.borderTopColor,
-          backgroundColor: style.backgroundColor,
-          backgroundImage: style.backgroundImage,
-          boxShadow: style.boxShadow
-        };
-      })()
-    JS
-  end
-
-  def profile_card_highlight_styles(selector)
-    page.evaluate_async_script(<<~JS)
-      const done = arguments[arguments.length - 1];
-      (() => {
-        const card = document.querySelector(#{selector.to_json});
-        const summary = card.querySelector("summary");
-        const wasOpen = card.open;
-
-        card.open = true;
-
-        window.setTimeout(() => {
-          const cardStyle = window.getComputedStyle(card);
-          const summaryStyle = window.getComputedStyle(summary);
-          const summaryHighlightStyle = window.getComputedStyle(summary, "::before");
-          const accentStyle = window.getComputedStyle(card, "::after");
-          const result = {
-            accent: cardStyle.getPropertyValue("--profile-card-accent").trim(),
-            accentSoft: cardStyle.getPropertyValue("--profile-card-accent-soft").trim(),
-            leftAccent: accentStyle.backgroundImage,
-            summaryBackground: summaryHighlightStyle.backgroundColor,
-            summaryBorder: summaryStyle.borderBottomColor
-          };
-
-          card.open = wasOpen;
-          done(result);
-        }, 360);
-      })()
-    JS
   end
 end

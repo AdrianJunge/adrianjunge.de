@@ -1,70 +1,50 @@
 require "test_helper"
 require "set"
-require "uri"
+require_relative "../../scripts/support/site_integrity"
 
+# This suite intentionally crawls the real published catalog. Synthetic filter
+# behavior has its own independently specified fixtures in the system suite.
 class PublicPagesIntegrityTest < ActionDispatch::IntegrationTest
   test "all generated public page routes render successfully" do
     public_page_paths.each do |path|
       get path
 
       assert_response :success, "expected #{path} to render"
-      assert_select "#terminal-container", 1, "expected #{path} to include the terminal shell"
+      assert_select "#terminal-container, #terminal-taskbar-button", 0, "expected #{path} to omit the retired terminal"
       assert_select "nav#top-taskbar", 1, "expected #{path} to include the top taskbar"
     end
   end
 
-  test "internal links from generated public pages resolve" do
-    checked_paths = Set.new
+  test "all published internal links finish successfully and fragments exist after redirects" do
+    links = SiteIntegrity::LocalLinks.new(origins: [ "http://www.example.com", "https://www.example.com", SiteProfile.origin ]) do |path|
+      get path
+      [ response.status, response.headers.to_h, response.body.dup ]
+    end
+    checked = Set.new
+    destinations = Set.new
+    documents = {}
 
     public_page_paths.each do |path|
-      get path
-      assert_response :success, "expected #{path} to render before checking links"
-
-      internal_page_links.each do |href|
-        target_path = normalized_internal_link_path(href)
-        next if target_path.blank? || checked_paths.include?(target_path)
-
-        checked_paths << target_path
-        get target_path
-
-        assert_includes [ 200, 301, 302 ], response.status, "expected #{href} from #{path} to resolve"
-      end
-    end
-
-    missing_public_pages = public_page_paths.to_set - checked_paths
-    assert_empty missing_public_pages, "public pages without an internal link: #{missing_public_pages.to_a.sort.join(', ')}"
-  end
-
-  test "internal link normalization rejects external and malformed URLs" do
-    assert_equal "/blog/example?q=term", normalized_internal_link_path("/blog/example?q=term#result")
-    assert_equal "/about", normalized_internal_link_path("https://www.example.com/about")
-    assert_nil normalized_internal_link_path("https://external.example/about")
-    assert_nil normalized_internal_link_path("//external.example/about")
-    assert_nil normalized_internal_link_path("mailto:test@example.com")
-    assert_nil normalized_internal_link_path("http://[")
-  end
-
-  test "same-page and cross-page fragment links have rendered destinations" do
-    pages = public_page_paths.to_h do |path|
-      get path
-      assert_response :success
-      [ path, Nokogiri::HTML(response.body) ]
-    end
-    pages.each do |path, document|
-      document.css("a[href]").each do |link|
-        uri = URI.join("http://www.example.com#{path}", link["href"])
-        next unless uri.host == "www.example.com" && uri.fragment.present?
-        next if ignored_internal_path?(uri.path)
-
-        target = pages[uri.path]
+      source = links.resolve(links.target(path))
+      source_document = Nokogiri::HTML(source.body)
+      source_document.css("a[href], area[href]").each do |element|
+        href = element["href"]
+        target = links.target(href, from: source.uri)
         next unless target
+        next if ignored_internal_path?(target.path) || checked.include?(target.to_s)
 
-        id = URI::DEFAULT_PARSER.unescape(uri.fragment)
-        assert target.css("[id]").any? { |element| element["id"] == id }, "missing ##{id} on #{uri.path}, linked from #{path}"
-      rescue URI::InvalidURIError
-        # Malformed links are covered by the route/link validation checks.
+        checked << target.to_s
+        result = links.resolve(target)
+        destinations << result.uri.path
+        document = documents[result.uri.request_uri] ||= Nokogiri::HTML(result.body)
+        assert links.fragment_exists?(result, document: document), "missing #{result.uri.fragment.inspect} on #{result.uri.path}, linked by #{href.inspect} from #{path}"
+      rescue SiteIntegrity::Failure => error
+        flunk "#{href.inspect} from #{path}: #{error.message}"
       end
     end
+
+    missing_public_pages = public_page_paths.to_set - destinations
+    assert_empty missing_public_pages, "public pages without an internal link: #{missing_public_pages.to_a.sort.join(', ')}"
   end
 
   private
@@ -79,30 +59,8 @@ class PublicPagesIntegrityTest < ActionDispatch::IntegrationTest
     (main_paths + ctf_overview_paths + ctf_post_paths + blog_post_paths).uniq
   end
 
-  def internal_page_links
-    css_select("a[href], area[href]").filter_map { |node| node["href"].presence }
-  end
-
-  def normalized_internal_link_path(href)
-    uri = URI.parse(href)
-    return nil if uri.host.present? && uri.host != "www.example.com"
-    return nil if uri.scheme.present? && !%w[http https].include?(uri.scheme)
-
-    path = uri.path.presence || root_path
-    return nil if ignored_internal_path?(path)
-
-    query = uri.query.present? ? "?#{uri.query}" : ""
-    "#{path}#{query}"
-  rescue URI::InvalidURIError
-    nil
-  end
-
   def ignored_internal_path?(path)
-    path.start_with?(
-      "#{asset_path_prefix}/",
-      "/ctf/resources/",
-      "/rails/",
-      "/pgp-vurlo.asc"
-    )
+    # Downloads and generated responsive assets are checked in production-check.
+    path.start_with?("#{asset_path_prefix}/", "/ctf/resources/", "/rails/", "/pgp-vurlo.asc")
   end
 end

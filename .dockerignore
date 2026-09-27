@@ -26,27 +26,18 @@
 /tmp/pids/*
 !/tmp/pids/.keep
 
-# Ignore storage (uploaded files in development and any SQLite databases).
+# Exclude legacy local databases retained from earlier checkouts.
 /storage/*
-!/storage/.keep
 /tmp/storage/*
-!/tmp/storage/.keep
 
 # Ignore assets.
-/node_modules/
+**/node_modules/
 /app/assets/builds/*
 !/app/assets/builds/.keep
 /public/assets
 
 # Ignore CI service files.
 /.github
-
-# Ignore Kamal files.
-/config/deploy*.yml
-/.kamal
-
-# Ignore development files
-/.devcontainer
 
 # Ignore Docker-related files
 /.dockerignore
@@ -60,11 +51,13 @@
 /.overcommit.yml
 /.rubocop.yml
 /package*.json
-/lighthouserc.cjs
 /content/images
 /bin/setup
+/bin/update
 /bin/dev
 /bin/rubocop
 /bin/brakeman
 /bin/production-check
-/Procfile.dev
+/bin/check
+/playwright.config.mjs
+/playwright.mobile.config.mjs

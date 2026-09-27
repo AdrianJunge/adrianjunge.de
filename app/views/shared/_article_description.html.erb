@@ -3,7 +3,7 @@
 
 <% if article_description_text.present? %>
   <section class="article-description" aria-label="<%= article_description_label %>">
-    <h2 class="article-description-heading">Description</h2>
+    <h2 class="article-description-heading"><%= local_assigns.fetch(:heading, "Description") %></h2>
     <p><%= article_description_text %></p>
   </section>
 <% end %>

@@ -1,6 +1,12 @@
 module ContentUiHelper
   def render_content_card(card)
+    raise ArgumentError, "expected a ContentCardPresenter" unless card.is_a?(ContentCardPresenter)
+
     render "shared/content_card", card: card
+  end
+
+  def render_content_filters(**options)
+    render "shared/content_filters", filters: ContentFiltersPresenter.new(**options)
   end
 
   def content_tag_badge(label, classes:, title: nil, url: nil, filter_scope: nil, filter_tag: label, aria_label: nil, static_class: nil, label_class: nil, arrow: nil, link_target: nil, timeline_redirect: true)

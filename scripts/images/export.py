@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 import re
 import shutil
+import subprocess
+import tempfile
 import xml.etree.ElementTree as ET
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -18,6 +20,8 @@ ASSETS = ROOT / "app/assets/images"
 ORIGINALS = ROOT / "content/images/originals"
 MANIFEST = ROOT / "config/image_variants.json"
 RASTER = {".png", ".jpg", ".jpeg", ".webp"}
+SVGO = ROOT / "node_modules/.bin/svgo"
+FONT_DIR = Path("/usr/share/fonts/truetype/dejavu")
 
 
 def is_logo(path: Path) -> bool:
@@ -31,9 +35,10 @@ def save_webp(image: Image.Image, path: Path, *, lossless: bool = False) -> None
     image.save(path, "WEBP", quality=88, method=6, lossless=lossless, exact=True)
 
 
-def export_logo(source: Path, manifest: dict) -> None:
+def export_logo(source: Path, manifest: dict, assets: Path | None = None) -> None:
+    assets = assets or ASSETS
     relative = source.relative_to(ORIGINALS)
-    target = ASSETS / relative
+    target = assets / relative
     target.parent.mkdir(parents=True, exist_ok=True)
     with Image.open(source) as original:
         original = ImageOps.exif_transpose(original).convert("RGBA")
@@ -49,7 +54,7 @@ def export_logo(source: Path, manifest: dict) -> None:
                 continue
             name = re.sub(r"[^a-zA-Z0-9_.-]+", "-", relative.stem)
             logical = Path("variants") / relative.parent / f"{name}-{image.width}.webp"
-            save_webp(image, ASSETS / logical)
+            save_webp(image, assets / logical)
             variants.append({"path": logical.as_posix(), "width": image.width})
         manifest[relative.as_posix()] = {
             "src": variants[-1]["path"], "width": fallback.width,
@@ -57,7 +62,8 @@ def export_logo(source: Path, manifest: dict) -> None:
         }
 
 
-def export_social_card(font_dir: Path) -> None:
+def export_social_card(font_dir: Path, assets: Path | None = None) -> None:
+    assets = assets or ASSETS
     # A typography-led card avoids enlarging the 128px avatar into a blurry hero.
     image = Image.new("RGB", (1200, 630), "#102139")
     draw = ImageDraw.Draw(image)
@@ -69,7 +75,9 @@ def export_social_card(font_dir: Path) -> None:
     draw.text((135, 205), "Adrian Junge", font=ImageFont.truetype(bold, 76), fill="#f1f7ff")
     draw.text((140, 328), "Security research & software engineering", font=ImageFont.truetype(regular, 34), fill="#d0e2f5")
     draw.text((140, 453), "Articles  /  CTF writeups  /  Projects", font=ImageFont.truetype(regular, 27), fill="#a9c8e8")
-    image.save(ASSETS / "landing/social-card.png", optimize=True)
+    target = assets / "landing/social-card.png"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    image.save(target, optimize=True)
 
 
 def svg_dimensions(path: Path) -> tuple[int, int] | None:
@@ -81,68 +89,109 @@ def svg_dimensions(path: Path) -> tuple[int, int] | None:
     return (round(float(viewbox[2])), round(float(viewbox[3]))) if len(viewbox) == 4 else None
 
 
-def check() -> None:
-    manifest = json.loads(MANIFEST.read_text())
-    for logical, entry in manifest.items():
-        assert (ASSETS / logical).is_file(), f"Missing logical asset: {logical}"
-        for variant in [{"path": entry["src"], "width": entry["width"]}, *entry.get("variants", [])]:
-            path = ASSETS / variant["path"]
-            assert path.is_file(), f"Missing variant: {path}"
-            if path.suffix == ".svg":
-                width, height = svg_dimensions(path)
-            else:
-                with Image.open(path) as image:
-                    assert image.format == Image.registered_extensions()[path.suffix], f"Incorrect extension: {path}"
-                    width, height = image.size
-            assert width == variant["width"], f"Incorrect width: {path}"
-            if variant["path"] == entry["src"]:
-                assert height == entry["height"], f"Incorrect height: {path}"
-    print(f"Verified {len(manifest)} image descriptors and their published variants.")
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true")
-    parser.add_argument("--import-current", action="store_true", help="Copy new logo originals from assets once; existing originals are never overwritten.")
-    parser.add_argument("--font-dir", type=Path, default=Path("/usr/share/fonts/truetype/dejavu"))
-    args = parser.parse_args()
-    if args.check:
-        check()
-        return
-    if args.import_current:
-        for source in sorted(ASSETS.rglob("*")):
-            if source.suffix in RASTER and is_logo(source.relative_to(ASSETS)):
-                target = ORIGINALS / source.relative_to(ASSETS)
-                if not target.exists():
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(source, target)
+def rebuild(assets: Path, font_dir: Path) -> dict:
+    """Generate into a fresh directory, excluding previously generated variants."""
+    for source in sorted(ASSETS.rglob("*")):
+        relative = source.relative_to(ASSETS)
+        if source.is_file() and relative.parts[0] != "variants":
+            target = assets / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
     manifest = {}
     for source in sorted(ORIGINALS.rglob("*")):
-        if source.suffix in RASTER and is_logo(source.relative_to(ORIGINALS)):
-            export_logo(source, manifest)
-    export_social_card(args.font_dir)
-    for source in sorted(ASSETS.rglob("*")):
-        relative = source.relative_to(ASSETS).as_posix()
+        relative = source.relative_to(ORIGINALS)
+        if source.suffix.lower() in RASTER and is_logo(relative):
+            export_logo(source, manifest, assets)
+        elif source.suffix.lower() == ".svg":
+            if not SVGO.is_file():
+                raise ValueError("Missing locked SVG optimizer; run npm ci first.")
+            target = assets / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run([str(SVGO), str(source), "--output", str(target), "--quiet"], check=True)
+    export_social_card(font_dir, assets)
+    for source in sorted(assets.rglob("*")):
+        relative = source.relative_to(assets).as_posix()
         if relative in manifest or relative.startswith("variants/"):
             continue
-        if source.suffix in RASTER:
+        if source.suffix.lower() in RASTER:
             with Image.open(source) as original:
+                if original.format != Image.registered_extensions()[source.suffix.lower()]:
+                    raise ValueError(f"Incorrect image extension: {relative}")
                 width, height = original.size
                 target = source
                 if source.suffix == ".png" and {"posts", "writeups"}.intersection(source.parts):
                     buffer = io.BytesIO()
                     original.save(buffer, "WEBP", lossless=True, method=6, exact=True)
                     if buffer.tell() < source.stat().st_size:
-                        target = ASSETS / "variants" / Path(relative).with_suffix(".webp")
+                        target = assets / "variants" / Path(relative).with_suffix(".webp")
                         target.parent.mkdir(parents=True, exist_ok=True)
                         target.write_bytes(buffer.getvalue())
-                manifest[relative] = {"src": target.relative_to(ASSETS).as_posix(), "width": width, "height": height}
-        elif source.suffix == ".svg":
+                manifest[relative] = {"src": target.relative_to(assets).as_posix(), "width": width, "height": height}
+        elif source.suffix.lower() == ".svg":
             dimensions = svg_dimensions(source)
-            if dimensions:
-                manifest[relative] = {"src": relative, "width": dimensions[0], "height": dimensions[1]}
-    MANIFEST.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-    check()
+            if not dimensions or min(dimensions) <= 0:
+                raise ValueError(f"SVG needs positive intrinsic dimensions or a viewBox: {relative}")
+            manifest[relative] = {"src": relative, "width": dimensions[0], "height": dimensions[1]}
+    return manifest
+
+
+def image_files(assets: Path) -> dict[str, Path]:
+    return {path.relative_to(assets).as_posix(): path for path in assets.rglob("*")
+            if path.is_file() and path.suffix.lower() in RASTER | {".svg"}}
+
+
+def compare_exports(expected: Path, manifest: dict) -> None:
+    published_manifest = json.loads(MANIFEST.read_text())
+    issues = []
+    missing = sorted(manifest.keys() - published_manifest.keys())
+    extra = sorted(published_manifest.keys() - manifest.keys())
+    changed = sorted(key for key in manifest.keys() & published_manifest.keys()
+                     if manifest[key] != published_manifest[key])
+    for label, paths in (("Missing manifest entries", missing), ("Unexpected manifest entries", extra),
+                         ("Outdated image descriptors", changed)):
+        if paths:
+            issues.append(f"{label}: {', '.join(paths)}")
+    expected_files, published_files = image_files(expected), image_files(ASSETS)
+    for logical, path in expected_files.items():
+        published = published_files.get(logical)
+        if published is None:
+            issues.append(f"Missing image export: {logical}")
+        elif path.read_bytes() != published.read_bytes():
+            issues.append(f"Stale image export: {logical}")
+    for logical in sorted(published_files.keys() - expected_files.keys()):
+        issues.append(f"Orphan image export: {logical}")
+    if issues:
+        raise ValueError("\n".join(issues) + "\nRun scripts/images/export.py with the locked dependencies to regenerate exports.")
+
+
+def check(font_dir: Path = FONT_DIR) -> None:
+    with tempfile.TemporaryDirectory(prefix="image-exports-check-") as directory:
+        expected = Path(directory)
+        manifest = rebuild(expected, font_dir)
+        compare_exports(expected, manifest)
+    print(f"Verified {len(manifest)} image descriptors and reproducible image exports.")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="Rebuild in a temporary directory and compare every descriptor and export without writing to the repository.")
+    parser.add_argument("--font-dir", type=Path, default=FONT_DIR)
+    args = parser.parse_args()
+    if args.check:
+        check(args.font_dir)
+        return
+    with tempfile.TemporaryDirectory(prefix="image-exports-") as directory:
+        expected = Path(directory)
+        manifest = rebuild(expected, args.font_dir)
+        expected_files = image_files(expected)
+        for logical in image_files(ASSETS).keys() - expected_files.keys():
+            (ASSETS / logical).unlink()
+        for logical, source in expected_files.items():
+            target = ASSETS / logical
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+        MANIFEST.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    print(f"Exported {len(manifest)} image descriptors and their public images.")
 
 
 if __name__ == "__main__":

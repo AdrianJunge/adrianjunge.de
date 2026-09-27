@@ -1,7 +1,21 @@
 require "uri"
+require "cgi"
 
 module ContentUrl
   module_function
+
+  # Encode path segments once while preserving query templates and fragments.
+  # URI unescape keeps literal plus signs, which represent spaces only in queries.
+  def encoded_path(value)
+    raw = value.to_s
+    return raw unless raw.start_with?("/") && !raw.start_with?("//")
+
+    path, suffix = raw.split(/(?=[?#])/, 2)
+    encoded = path.split("/", -1).map do |segment|
+      CGI.escape(URI::DEFAULT_PARSER.unescape(segment)).gsub("+", "%20")
+    end.join("/")
+    "#{encoded}#{suffix}"
+  end
 
   # Metadata links are either same-site absolute paths/fragments or ordinary
   # HTTP(S) destinations. Article Markdown is separately trusted author input.

@@ -29,12 +29,45 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     assert_includes error.message, "front matter"
   end
 
+  test "runtime documents reject malformed author hint optional and difficulty shapes with source properties" do
+    Dir.mktmpdir("runtime-content-validation") do |directory|
+      cases = {
+        "authors:\n  - name: [Unexpected, Array]" => "/authors/0/name",
+        "article_authors:\n  - name: 42" => "/article_authors/0/name",
+        "optional:\n  hints:\n    - text: [Unexpected, Array]" => "/optional/hints/0/text",
+        "optional: []" => "/optional",
+        "difficulty:\n  label: []" => "/difficulty/label"
+      }
+      cases.each_with_index do |(metadata, pointer), index|
+        path = Pathname(directory).join("invalid-#{index}.md")
+        path.write("---\n#{metadata}\n---\nBody")
+        error = assert_raises(ContentRepository::InvalidContent) { ContentRepository.new.markdown_document(path) }
+        assert_includes error.message, path.to_s
+        assert_includes error.message, pointer
+      end
+    end
+  end
+
+  test "runtime document shape checks preserve partial metadata and reject mistakes after edits" do
+    Dir.mktmpdir("runtime-content-validation") do |directory|
+      path = Pathname(directory).join("partial.md")
+      path.write("---\ntitle: Partial document\n---\nBody")
+      document = ContentRepository.new.markdown_document(path)
+      assert_equal "Partial document", document[:metadata]["title"]
+      assert_equal "Body", document[:body]
+
+      path.write("---\ntitle: Partial document\noptional:\n  hints: [42]\n---\nBody")
+      error = assert_raises(ContentRepository::InvalidContent) { ContentRepository.new.markdown_document(path) }
+      assert_includes error.message, "/optional/hints/0"
+      path.write("---\ntitle: Corrected\noptional:\n  hints: [Helpful hint]\n---\nBody")
+      assert_equal "Corrected", ContentRepository.new.markdown_document(path)[:metadata]["title"]
+    end
+  end
+
   test "parsed bodies and publication timestamps survive edits independently" do
     repository = ContentRepository.new
     published = repository.parsed_time("2026-05-27T14:23:45+02:00", fallback: nil)
     assert_equal "2026-05-27T12:23:45Z", published.utc.iso8601
-    assert_equal published, repository.modified_time({}, published)
-    assert_equal "2026-06-01", repository.modified_time({ "updated" => "2026-06-01" }, published).to_date.iso8601
     post = production_content_repository.blog_posts.first
     assert_not post[:body].start_with?("---\n")
     assert_equal post[:word_count], post[:metadata]["word_count"]
@@ -215,30 +248,19 @@ class ContentRepositoryTest < ActiveSupport::TestCase
       File.symlink(outside, paths[:ctf].join("declared", "Leaked Post.md"))
 
       write_markdown(paths[:blog].join("published-post.md"), title: "Published Blog")
-      write_markdown(paths[:blog].join("hidden-post.md"), title: "Hidden Blog")
-      write_markdown(paths[:blog].join("unlisted-post.md"), title: "Unlisted Blog")
+      write_markdown(paths[:blog].join("hidden-post.md"), title: "Hidden Blog", extra: "hidden: true")
+      write_markdown(paths[:blog].join("draft-post.md"), title: "Draft Blog", extra: "draft: true")
+      write_markdown(paths[:blog].join("wip-post.md"), title: "WIP Blog", extra: "wip: true")
 
       ctf_metadata = {
         "DECLARED" => {
-          "terminal_path" => "declared",
+          "directory" => "declared",
           "website" => "https://example.com/"
-        }
-      }
-      blog_metadata = {
-        "published-post" => {
-          "title" => "Published Blog",
-          "category" => "Test"
-        },
-        "hidden-post" => {
-          "title" => "Hidden Blog",
-          "category" => "Test",
-          "hidden" => true
         }
       }
       repository = repository_for(
         paths,
-        ctf_metadata: ctf_metadata,
-        blog_metadata: blog_metadata
+        ctf_metadata: ctf_metadata
       )
 
       assert_equal [ "Published Post" ], repository.ctf_posts.map { |post| post[:title] }
@@ -246,7 +268,8 @@ class ContentRepositoryTest < ActiveSupport::TestCase
       assert_nil repository.ctf_post("declared", "Leaked Post")
       assert_equal [ "published-post" ], repository.blog_posts.map { |post| post[:slug] }
       assert_nil repository.blog_post("hidden-post")
-      assert_nil repository.blog_post("unlisted-post")
+      assert_nil repository.blog_post("draft-post")
+      assert_nil repository.blog_post("wip-post")
     end
   end
 
@@ -277,7 +300,7 @@ class ContentRepositoryTest < ActiveSupport::TestCase
 
       metadata = {
         "DECLARED" => {
-          "terminal_path" => "declared",
+          "directory" => "declared",
           "website" => "https://example.com/"
         }
       }
@@ -313,8 +336,7 @@ class ContentRepositoryTest < ActiveSupport::TestCase
 
   test "warm document snapshots respect publishing edits additions and deletion" do
     with_content_roots do |paths|
-      metadata = { "sample" => { "title" => "Sample", "category" => "Post" } }
-      create_repository = -> { repository_for(paths, ctf_metadata: {}, blog_metadata: metadata) }
+      create_repository = -> { repository_for(paths, ctf_metadata: {}) }
       file = paths[:blog].join("sample.md")
       assert_empty create_repository.call.blog_posts
 
@@ -355,14 +377,13 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     end
   end
 
-  def repository_for(paths, ctf_metadata: nil, blog_metadata: nil)
+  def repository_for(paths, ctf_metadata: nil)
     ContentRepository.new(
       ctf_base_path: paths[:ctf],
       blog_base_path: paths[:blog],
       ctf_challenge_files_path: paths[:challenge_files],
       ctf_pdf_writeups_path: paths[:pdf_writeups],
-      ctf_metadata_data: ctf_metadata,
-      blog_metadata_data: blog_metadata
+      ctf_metadata_data: ctf_metadata
     )
   end
 

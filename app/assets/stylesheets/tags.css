@@ -1,0 +1,902 @@
+/* Tags component styles and responsive states. */
+
+.content-page .filter-chip,
+.landing-page .landing-writeup-cards .filter-chip,
+.content-page .difficulty-badge,
+.landing-page .landing-writeup-cards .difficulty-badge,
+.content-page .category-badge,
+.landing-page .landing-writeup-cards .category-badge,
+.content-page .severity-badge,
+.landing-page .landing-writeup-cards .severity-badge,
+.content-page .writeup-winner-badge,
+.landing-page .landing-writeup-cards .writeup-winner-badge,
+.content-page .authored-challenge-badge,
+.landing-page .landing-writeup-cards .authored-challenge-badge {
+    position: relative;
+    z-index: 3;
+    pointer-events: auto;
+}
+
+.content-page .difficulty-badge,
+.landing-page .landing-writeup-cards .difficulty-badge {
+    --difficulty-border: rgba(125, 211, 252, 0.5);
+    --difficulty-color: #cffafe;
+    --difficulty-bg: var(--content-tag-fill);
+    --difficulty-bg-active: var(--content-tag-fill-active);
+    --difficulty-active-shadow: rgba(2, 12, 24, 0.2);
+    --tag-border: var(--difficulty-border);
+    --tag-border-hover: rgba(255, 255, 255, 0.72);
+    --tag-color: var(--difficulty-color);
+    --tag-color-hover: #fff;
+    --tag-bg: var(--difficulty-bg);
+    --tag-bg-hover: var(--difficulty-bg-active);
+    --tag-shadow: var(--difficulty-active-shadow);
+    --tag-shadow-hover: var(--difficulty-active-shadow);
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 1.7rem;
+    overflow: hidden;
+    border: 1px solid var(--tag-border);
+    border-radius: var(--radius-ui-pill);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.38rem 0.9rem var(--tag-shadow);
+    font-weight: 900;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: default;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.content-page .difficulty-badge-intro,
+.landing-page .landing-writeup-cards .difficulty-badge-intro {
+    --difficulty-border: rgba(186, 230, 253, 0.7);
+    --difficulty-color: #e0f2fe;
+    --difficulty-bg: rgba(8, 145, 178, 0.32);
+    --difficulty-bg-active: rgba(8, 145, 178, 0.52);
+    --difficulty-active-shadow: rgba(14, 165, 233, 0.16);
+}
+
+.content-page .difficulty-badge-easy,
+.landing-page .landing-writeup-cards .difficulty-badge-easy {
+    --difficulty-border: rgba(125, 211, 252, 0.76);
+    --difficulty-color: #dff7ff;
+    --difficulty-bg: rgba(14, 116, 144, 0.42);
+    --difficulty-bg-active: rgba(14, 116, 144, 0.64);
+    --difficulty-active-shadow: rgba(14, 165, 233, 0.2);
+}
+
+.content-page .difficulty-badge-medium,
+.landing-page .landing-writeup-cards .difficulty-badge-medium {
+    --difficulty-border: rgba(96, 165, 250, 0.78);
+    --difficulty-color: #dbeafe;
+    --difficulty-bg: rgba(37, 99, 235, 0.46);
+    --difficulty-bg-active: rgba(37, 99, 235, 0.66);
+    --difficulty-active-shadow: rgba(37, 99, 235, 0.24);
+}
+
+.content-page .difficulty-badge-hard,
+.landing-page .landing-writeup-cards .difficulty-badge-hard {
+    --difficulty-border: rgba(129, 140, 248, 0.78);
+    --difficulty-color: #e0e7ff;
+    --difficulty-bg: rgba(49, 46, 129, 0.52);
+    --difficulty-bg-active: rgba(67, 56, 202, 0.7);
+    --difficulty-active-shadow: rgba(99, 102, 241, 0.24);
+}
+
+.content-page .difficulty-badge-insane,
+.landing-page .landing-writeup-cards .difficulty-badge-insane {
+    --difficulty-border: rgba(196, 181, 253, 0.72);
+    --difficulty-color: #ede9fe;
+    --difficulty-bg: rgba(76, 29, 149, 0.68);
+    --difficulty-bg-active: rgba(91, 33, 182, 0.82);
+    --difficulty-active-shadow: rgba(124, 58, 237, 0.28);
+}
+
+.content-page .difficulty-badge-unknown,
+.landing-page .landing-writeup-cards .difficulty-badge-unknown {
+    --difficulty-border: rgba(148, 163, 184, 0.62);
+    --difficulty-color: #e2e8f0;
+    --difficulty-bg: rgba(51, 65, 85, 0.46);
+    --difficulty-bg-active: rgba(71, 85, 105, 0.66);
+    --difficulty-active-shadow: rgba(148, 163, 184, 0.16);
+}
+
+.content-page .category-badge,
+.landing-page .landing-writeup-cards .category-badge {
+    --category-border: rgba(125, 211, 252, 0.5);
+    --category-color: #cffafe;
+    --category-bg: var(--content-tag-fill);
+    --category-bg-active: var(--content-tag-fill-active);
+    --category-glow: rgba(2, 12, 24, 0.2);
+    --tag-border: var(--category-border);
+    --tag-border-hover: rgba(255, 255, 255, 0.72);
+    --tag-color: var(--category-color);
+    --tag-color-hover: #fff;
+    --tag-bg: var(--category-bg);
+    --tag-bg-hover: var(--category-bg-active);
+    --tag-shadow: var(--category-glow);
+    --tag-shadow-hover: var(--category-glow);
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 1.7rem;
+    gap: 0.42rem;
+    overflow: hidden;
+    border: 1px solid var(--tag-border);
+    border-radius: var(--radius-ui-pill);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.38rem 0.9rem var(--tag-shadow);
+    font-weight: 850;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.content-page .writeup-winner-badge,
+.landing-page .landing-writeup-cards .writeup-winner-badge {
+    --recognition-border: rgba(250, 204, 21, 0.84);
+    --recognition-border-active: rgba(255, 255, 255, 0.72);
+    --recognition-color: #fef3c7;
+    --recognition-bg: linear-gradient(135deg, rgba(113, 63, 18, 0.82), rgba(234, 179, 8, 0.48));
+    --recognition-bg-active: linear-gradient(135deg, rgba(113, 63, 18, 0.94), rgba(234, 179, 8, 0.64));
+    --recognition-glow: rgba(250, 204, 21, 0.16);
+    --tag-border: var(--recognition-border);
+    --tag-border-hover: var(--recognition-border-active);
+    --tag-color: var(--recognition-color);
+    --tag-color-hover: #fff;
+    --tag-bg: var(--recognition-bg);
+    --tag-bg-hover: var(--recognition-bg-active);
+    --tag-shadow: var(--recognition-glow);
+    --tag-shadow-hover: var(--recognition-glow);
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    gap: 0.42rem;
+    overflow: hidden;
+    border: 1px solid var(--tag-border);
+    border-radius: var(--radius-ui-pill);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.48rem 1.15rem var(--tag-shadow);
+    font-weight: 900;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    isolation: isolate;
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.content-page .authored-challenge-badge,
+.landing-page .landing-writeup-cards .authored-challenge-badge {
+    --recognition-border: rgba(129, 140, 248, 0.78);
+    --recognition-border-active: rgba(255, 255, 255, 0.72);
+    --recognition-color: #e0e7ff;
+    --recognition-bg: rgba(49, 46, 129, 0.52);
+    --recognition-bg-active: rgba(67, 56, 202, 0.7);
+    --recognition-glow: rgba(99, 102, 241, 0.24);
+    --tag-border: var(--recognition-border);
+    --tag-border-hover: var(--recognition-border-active);
+    --tag-color: var(--recognition-color);
+    --tag-color-hover: #fff;
+    --tag-bg: var(--recognition-bg);
+    --tag-bg-hover: var(--recognition-bg-active);
+    --tag-shadow: var(--recognition-glow);
+    --tag-shadow-hover: var(--recognition-glow);
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    gap: 0.42rem;
+    overflow: hidden;
+    border: 1px solid var(--tag-border);
+    border-radius: var(--radius-ui-pill);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.48rem 1.15rem var(--tag-shadow);
+    font-weight: 900;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    isolation: isolate;
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.content-page .writeup-winner-badge-article {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+}
+
+.content-page .authored-challenge-badge-article {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+}
+
+.content-page .difficulty-badge-article {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+}
+
+.content-page .category-badge-article {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+}
+
+.content-page .writeup-winner-badge-card,
+.landing-page .landing-writeup-cards .writeup-winner-badge-card {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .authored-challenge-badge-card,
+.landing-page .landing-writeup-cards .authored-challenge-badge-card {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .difficulty-badge-card,
+.landing-page .landing-writeup-cards .difficulty-badge-card {
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .category-badge-card,
+.landing-page .landing-writeup-cards .category-badge-card {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .writeup-hints-chip {
+    --tag-border: rgba(125, 211, 252, 0.42);
+    --tag-border-hover: rgba(255, 255, 255, 0.72);
+    --tag-color: #bae6fd;
+    --tag-color-hover: #fff;
+    --tag-bg: rgba(14, 116, 144, 0.2);
+    --tag-bg-hover: rgba(14, 116, 144, 0.44);
+    --tag-shadow: rgba(2, 12, 24, 0.16);
+    --tag-shadow-hover: rgba(14, 165, 233, 0.18);
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    border: 1px solid var(--tag-border);
+    border-radius: var(--radius-ui-pill);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    color: var(--tag-color);
+    font-size: 0.76rem;
+    font-weight: 850;
+    letter-spacing: 0.02em;
+    cursor: default;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.content-page .writeup-winner-badge-filter {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .authored-challenge-badge-filter {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .category-badge-filter {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .writeup-winner-label,
+.landing-page .landing-writeup-cards .writeup-winner-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.content-page .authored-challenge-label,
+.landing-page .landing-writeup-cards .authored-challenge-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.content-page .content-tag-label,
+.landing-page .landing-writeup-cards .content-tag-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.content-page .content-tag-arrow,
+.landing-page .landing-writeup-cards .content-tag-arrow {
+    flex: 0 0 auto;
+    margin-left: 0.05rem;
+    color: currentColor;
+    font-weight: 950;
+    opacity: 0.72;
+}
+
+.content-page .filter-chip,
+.landing-page .landing-writeup-cards .filter-chip {
+    --tag-border: rgba(125, 211, 252, 0.32);
+    --tag-border-hover: rgba(255, 255, 255, 0.72);
+    --tag-color: #cffafe;
+    --tag-color-hover: #fff;
+    --tag-bg: var(--content-tag-fill);
+    --tag-bg-hover: var(--content-tag-fill-active);
+    --tag-shadow: rgba(2, 12, 24, 0.2);
+    --tag-shadow-hover: rgba(2, 12, 24, 0.24);
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.7rem;
+    padding: 0.22rem 0.55rem;
+    border: 1px solid var(--tag-border);
+    border-radius: var(--radius-ui-pill);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.38rem 0.9rem var(--tag-shadow);
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1.1;
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.content-page .content-tag-action,
+.landing-page .landing-writeup-cards .content-tag-action {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.content-page .content-tag-static,
+.landing-page .landing-writeup-cards .content-tag-static {
+    cursor: default;
+    pointer-events: auto;
+    transform: none;
+}
+
+.content-page button.filter-chip:focus-visible,
+.content-page button.filter-chip.is-active,
+.landing-page .landing-writeup-cards button.filter-chip:focus-visible,
+.landing-page .landing-writeup-cards button.filter-chip.is-active {
+    border-color: var(--tag-border-hover);
+    color: var(--tag-color-hover);
+    background: var(--glass-tag-highlight), var(--tag-bg-hover);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+        0 0.55rem 1.25rem var(--tag-shadow-hover);
+    outline: 2px solid rgba(125, 211, 252, 0.7);
+    outline-offset: 2px;
+}
+
+.content-page .filter-chip.writeup-winner-badge-filter {
+    --tag-border: var(--recognition-border);
+    --tag-border-hover: var(--recognition-border-active);
+    --tag-color: var(--recognition-color);
+    --tag-color-hover: #fff;
+    --tag-bg: var(--recognition-bg);
+    --tag-bg-hover: var(--recognition-bg-active);
+    --tag-shadow: var(--recognition-glow);
+    --tag-shadow-hover: var(--recognition-glow);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.48rem 1.15rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.authored-challenge-badge-filter {
+    --tag-border: var(--recognition-border);
+    --tag-border-hover: var(--recognition-border-active);
+    --tag-color: var(--recognition-color);
+    --tag-color-hover: #fff;
+    --tag-bg: var(--recognition-bg);
+    --tag-bg-hover: var(--recognition-bg-active);
+    --tag-shadow: var(--recognition-glow);
+    --tag-shadow-hover: var(--recognition-glow);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.48rem 1.15rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.category-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter {
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.severity-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter {
+    --tag-border: var(--severity-border, var(--aboutme-static-tag-border, rgba(125, 211, 252, 0.32)));
+    --tag-border-hover: rgba(255, 255, 255, 0.72);
+    --tag-color: var(--severity-color, #cffafe);
+    --tag-color-hover: #fff;
+    --tag-bg: var(--severity-bg, var(--content-tag-fill));
+    --tag-bg-hover: var(--severity-bg-active, var(--severity-bg, var(--content-tag-fill-active)));
+    --tag-shadow: var(--severity-shadow, rgba(14, 165, 233, 0.14));
+    --tag-shadow-hover: var(--severity-shadow, rgba(14, 165, 233, 0.18));
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px var(--aboutme-static-tag-ring, rgba(226, 232, 240, 0.06)), 0 0.42rem 1rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.cve-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter {
+    --vulnerability-border: rgba(129, 140, 248, 0.78);
+    --vulnerability-border-active: rgba(255, 255, 255, 0.72);
+    --vulnerability-color: #e0e7ff;
+    --vulnerability-bg: rgba(49, 46, 129, 0.52);
+    --vulnerability-bg-active: rgba(67, 56, 202, 0.7);
+    --vulnerability-shadow: rgba(99, 102, 241, 0.24);
+    --tag-border: var(--vulnerability-border);
+    --tag-border-hover: var(--vulnerability-border-active);
+    --tag-color: var(--vulnerability-color);
+    --tag-color-hover: #fff;
+    --tag-bg: var(--vulnerability-bg);
+    --tag-bg-hover: var(--vulnerability-bg-active);
+    --tag-shadow: var(--vulnerability-shadow);
+    --tag-shadow-hover: var(--vulnerability-shadow);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(224, 231, 255, 0.16), 0 0.42rem 1rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.cwe-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter {
+    --vulnerability-border: rgba(125, 211, 252, 0.5);
+    --vulnerability-border-active: rgba(125, 211, 252, 0.85);
+    --vulnerability-color: #cffafe;
+    --vulnerability-bg: var(--content-tag-fill);
+    --vulnerability-bg-active: var(--content-tag-fill-active);
+    --vulnerability-shadow: rgba(2, 12, 24, 0.2);
+    --tag-border: var(--vulnerability-border);
+    --tag-border-hover: var(--vulnerability-border-active);
+    --tag-color: var(--vulnerability-color);
+    --tag-color-hover: #fff;
+    --tag-bg: var(--vulnerability-bg);
+    --tag-bg-hover: var(--vulnerability-bg-active);
+    --tag-shadow: var(--vulnerability-shadow);
+    --tag-shadow-hover: var(--vulnerability-shadow);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.38rem 0.9rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.difficulty-badge-filter {
+    --tag-border: var(--difficulty-border);
+    --tag-border-hover: rgba(255, 255, 255, 0.72);
+    --tag-color: var(--difficulty-color);
+    --tag-color-hover: #fff;
+    --tag-bg: var(--difficulty-bg);
+    --tag-bg-hover: var(--difficulty-bg-active);
+    --tag-shadow: var(--difficulty-active-shadow);
+    --tag-shadow-hover: var(--difficulty-active-shadow);
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.content-page .filter-chip.difficulty-badge-intro {
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.difficulty-badge-easy {
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.difficulty-badge-medium {
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.difficulty-badge-hard {
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.difficulty-badge-insane {
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.difficulty-badge-unknown {
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--glass-tag-highlight), var(--tag-bg);
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.06), 0 0.42rem 1rem var(--tag-shadow);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .content-page .content-tag-action:hover,
+    .landing-page .landing-writeup-cards .content-tag-action:hover {
+        border-color: var(--tag-border-hover);
+        box-shadow:
+            inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+            0 0.45rem 1rem var(--tag-shadow-hover);
+        color: var(--tag-color-hover);
+        background: var(--glass-tag-highlight), var(--tag-bg-hover);
+        outline: none;
+    }
+
+    .content-page .content-tag-action:hover .content-tag-arrow,
+    .landing-page .landing-writeup-cards .content-tag-action:hover .content-tag-arrow {
+        opacity: 1;
+    }
+}
+
+.content-page .content-tag-link:focus-visible,
+.landing-page .landing-writeup-cards .content-tag-link:focus-visible {
+    border-color: var(--tag-border-hover);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+        0 0.45rem 1rem var(--tag-shadow-hover);
+    color: var(--tag-color-hover);
+    background: var(--glass-tag-highlight), var(--tag-bg-hover);
+    outline: 2px solid rgba(125, 211, 252, 0.7);
+    outline-offset: 2px;
+}
+
+.content-page .content-tag-link:focus-visible .content-tag-arrow,
+.landing-page .landing-writeup-cards .content-tag-link:focus-visible .content-tag-arrow {
+    opacity: 1;
+}
+
+.content-page .article-meta-panel .writeup-winner-badge-article,
+.content-page .article-meta-panel .authored-challenge-badge-article,
+.content-page .article-meta-panel .difficulty-badge-article,
+.content-page .article-meta-panel .category-badge-article {
+    min-height: 1.55rem;
+    padding: 0.28rem 0.56rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.015em;
+}
+
+.timeline-page .timeline-tags .filter-chip {
+    pointer-events: auto;
+}
+
+.content-page .writeup-winner-badge-timeline,
+.content-page .authored-challenge-badge-timeline {
+    min-height: 1.7rem;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.content-page .content-tag-arrow,
+.landing-page .landing-writeup-cards .content-tag-arrow {
+    transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.content-page .filter-chip,
+.landing-page .landing-writeup-cards .filter-chip,
+.content-page .difficulty-badge,
+.landing-page .landing-writeup-cards .difficulty-badge,
+.content-page .category-badge,
+.landing-page .landing-writeup-cards .category-badge,
+.content-page .severity-badge,
+.landing-page .landing-writeup-cards .severity-badge,
+.content-page .writeup-winner-badge,
+.landing-page .landing-writeup-cards .writeup-winner-badge,
+.content-page .authored-challenge-badge,
+.landing-page .landing-writeup-cards .authored-challenge-badge,
+.content-page .writeup-hints-chip,
+.aboutme-card-tag.aboutme-tag-action {
+    --tag-border: rgba(125, 211, 252, 0.34);
+    --tag-border-hover: rgba(165, 243, 252, 0.68);
+    --tag-color: #dff7ff;
+    --tag-color-hover: #ffffff;
+    --tag-bg: rgba(14, 116, 144, 0.42);
+    --tag-bg-hover: rgba(20, 135, 170, 0.54);
+    --tag-shadow: rgba(2, 12, 24, 0.18);
+    --tag-shadow-hover: rgba(2, 12, 24, 0.24);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.05), 0 0.35rem 0.8rem var(--tag-shadow);
+    transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+}
+
+.content-page .content-tag-static,
+.landing-page .landing-writeup-cards .content-tag-static,
+.content-page .blog-post-static-chip,
+.landing-page .landing-writeup-cards .blog-post-static-chip,
+.aboutme-card-tag.aboutme-tag-static,
+.aboutme-tag-static,
+.aboutme-card-linked .aboutme-tag-static,
+:not(a).aboutme-card-tag,
+:not(a).aboutme-cve-id,
+:not(a).aboutme-cwe-id,
+:not(a).aboutme-card-tag.aboutme-cve-id,
+:not(a).aboutme-card-tag.cve-badge,
+:not(a).aboutme-card-tag.aboutme-cwe-id,
+:not(a).aboutme-card-tag.cwe-badge,
+.aboutme-severity {
+    --tag-border: rgba(96, 165, 250, 0.26);
+    --tag-color: rgba(191, 219, 254, 0.84);
+    --tag-bg: rgba(22, 52, 79, 0.56);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: none;
+    cursor: default;
+    transition: none;
+}
+
+.content-page .content-tag-action:hover,
+.landing-page .landing-writeup-cards .content-tag-action:hover,
+.content-page .content-tag-link:focus-visible,
+.landing-page .landing-writeup-cards .content-tag-link:focus-visible,
+.content-page button.filter-chip:focus-visible,
+.content-page button.filter-chip.is-active,
+.landing-page .landing-writeup-cards button.filter-chip:focus-visible,
+.landing-page .landing-writeup-cards button.filter-chip.is-active,
+.aboutme-card-tag.aboutme-tag-action:hover,
+a.aboutme-card-tag.aboutme-tag-action:focus-visible {
+    border-color: var(--tag-border-hover);
+    color: var(--tag-color-hover);
+    background: var(--tag-bg-hover);
+    background-image: none;
+    box-shadow: inset 0 -2px 0 rgba(125, 211, 252, 0.82), 0 0.45rem 0.95rem var(--tag-shadow);
+}
+
+.content-page button.filter-chip.is-active,
+.landing-page .landing-writeup-cards button.filter-chip.is-active {
+    outline: 2px solid rgba(125, 211, 252, 0.65);
+    outline-offset: 2px;
+    transform: none;
+}
+
+.content-page .filter-chip.writeup-winner-badge-filter,
+.content-page .filter-chip.authored-challenge-badge-filter,
+.content-page .filter-chip.category-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter,
+.content-page .filter-chip.severity-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter,
+.content-page .filter-chip.cve-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter,
+.content-page .filter-chip.cwe-badge-filter,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter,
+.content-page .filter-chip.difficulty-badge-filter,
+.content-page .filter-chip.difficulty-badge-intro,
+.content-page .filter-chip.difficulty-badge-easy,
+.content-page .filter-chip.difficulty-badge-medium,
+.content-page .filter-chip.difficulty-badge-hard,
+.content-page .filter-chip.difficulty-badge-insane,
+.content-page .filter-chip.difficulty-badge-unknown {
+    --tag-border: rgba(125, 211, 252, 0.34);
+    --tag-border-hover: rgba(165, 243, 252, 0.68);
+    --tag-color: #dff7ff;
+    --tag-color-hover: #ffffff;
+    --tag-bg: rgba(14, 116, 144, 0.42);
+    --tag-bg-hover: rgba(20, 135, 170, 0.54);
+    --tag-shadow: rgba(2, 12, 24, 0.18);
+    --tag-shadow-hover: rgba(2, 12, 24, 0.24);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.05), 0 0.35rem 0.8rem var(--tag-shadow);
+}
+
+.content-page .filter-chip.writeup-winner-badge-filter:hover,
+.content-page .filter-chip.authored-challenge-badge-filter:hover,
+.content-page .filter-chip.category-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter:hover,
+.content-page .filter-chip.severity-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter:hover,
+.content-page .filter-chip.cve-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter:hover,
+.content-page .filter-chip.cwe-badge-filter:hover,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter:hover,
+.content-page .filter-chip.difficulty-badge-filter:hover,
+.content-page .filter-chip.difficulty-badge-intro:hover,
+.content-page .filter-chip.difficulty-badge-easy:hover,
+.content-page .filter-chip.difficulty-badge-medium:hover,
+.content-page .filter-chip.difficulty-badge-hard:hover,
+.content-page .filter-chip.difficulty-badge-insane:hover,
+.content-page .filter-chip.difficulty-badge-unknown:hover,
+.content-page .filter-chip.writeup-winner-badge-filter:focus-visible,
+.content-page .filter-chip.authored-challenge-badge-filter:focus-visible,
+.content-page .filter-chip.category-badge-filter:focus-visible,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter:focus-visible,
+.content-page .filter-chip.severity-badge-filter:focus-visible,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter:focus-visible,
+.content-page .filter-chip.cve-badge-filter:focus-visible,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter:focus-visible,
+.content-page .filter-chip.cwe-badge-filter:focus-visible,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter:focus-visible,
+.content-page .filter-chip.difficulty-badge-filter:focus-visible,
+.content-page .filter-chip.difficulty-badge-intro:focus-visible,
+.content-page .filter-chip.difficulty-badge-easy:focus-visible,
+.content-page .filter-chip.difficulty-badge-medium:focus-visible,
+.content-page .filter-chip.difficulty-badge-hard:focus-visible,
+.content-page .filter-chip.difficulty-badge-insane:focus-visible,
+.content-page .filter-chip.difficulty-badge-unknown:focus-visible,
+.content-page .filter-chip.writeup-winner-badge-filter.is-active,
+.content-page .filter-chip.authored-challenge-badge-filter.is-active,
+.content-page .filter-chip.category-badge-filter.is-active,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter.is-active,
+.content-page .filter-chip.severity-badge-filter.is-active,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter.is-active,
+.content-page .filter-chip.cve-badge-filter.is-active,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter.is-active,
+.content-page .filter-chip.cwe-badge-filter.is-active,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter.is-active,
+.content-page .filter-chip.difficulty-badge-filter.is-active,
+.content-page .filter-chip.difficulty-badge-intro.is-active,
+.content-page .filter-chip.difficulty-badge-easy.is-active,
+.content-page .filter-chip.difficulty-badge-medium.is-active,
+.content-page .filter-chip.difficulty-badge-hard.is-active,
+.content-page .filter-chip.difficulty-badge-insane.is-active,
+.content-page .filter-chip.difficulty-badge-unknown.is-active {
+    border-color: var(--tag-border-hover);
+    color: var(--tag-color-hover);
+    background: var(--tag-bg-hover);
+    background-image: none;
+}
+
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cve-id,
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id,
+a.aboutme-card-tag.aboutme-tag-action.cve-badge,
+a.aboutme-card-tag.aboutme-tag-action.cwe-badge {
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+}
+
+.content-page .content-tag-action:hover,
+.landing-page .landing-writeup-cards .content-tag-action:hover,
+.content-page .content-tag-link:focus-visible,
+.landing-page .landing-writeup-cards .content-tag-link:focus-visible,
+.content-page button.filter-chip:focus-visible,
+.landing-page .landing-writeup-cards button.filter-chip:focus-visible,
+.aboutme-card-tag.aboutme-tag-action:hover,
+a.aboutme-card-tag.aboutme-tag-action:focus-visible,
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cve-id:hover,
+a.aboutme-card-tag.aboutme-tag-action.aboutme-cwe-id:hover,
+a.aboutme-card-tag.aboutme-tag-action.cve-badge:hover,
+a.aboutme-card-tag.aboutme-tag-action.cwe-badge:hover {
+    border-color: var(--tag-border-hover);
+    color: var(--tag-color-hover);
+    background: var(--tag-bg-hover);
+    background-image: none;
+}
+
+.content-page .content-filter-panel button.filter-chip.is-uncombinable:not(.is-active),
+.content-page .content-filter-panel button.filter-chip.is-uncombinable:not(.is-active):hover,
+.content-page .content-filter-panel button.filter-chip.is-uncombinable:not(.is-active):focus-visible {
+    --tag-border: rgba(148, 163, 184, 0.22);
+    --tag-border-hover: var(--tag-border);
+    --tag-color: rgba(203, 213, 225, 0.72);
+    --tag-color-hover: var(--tag-color);
+    --tag-bg: rgba(30, 41, 59, 0.4);
+    --tag-bg-hover: var(--tag-bg);
+    --tag-shadow: transparent;
+    --tag-shadow-hover: transparent;
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.54;
+    outline: none;
+    transform: none;
+}
+
+a.aboutme-card-tag.aboutme-tag-timeline::after,
+a.aboutme-card-tag.aboutme-tag-timeline:hover::after,
+a.aboutme-card-tag.aboutme-tag-timeline:focus-visible::after {
+    display: none;
+    content: none;
+}
+
+a.aboutme-card-tag.aboutme-tag-action,
+a.aboutme-card-tag.aboutme-tag-timeline {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.landing-page .content-tag-static,
+.landing-page .blog-post-static-chip,
+.landing-page .difficulty-badge.content-tag-static,
+.landing-page .category-badge.content-tag-static,
+.landing-page :not(a).aboutme-card-tag.aboutme-tag-static,
+.landing-page :not(a).aboutme-card-tag.difficulty-badge,
+.landing-page :not(a).aboutme-card-tag.category-badge,
+.landing-page :not(a).aboutme-card-tag.severity-badge {
+    --tag-border: rgba(96, 165, 250, 0.26);
+    --tag-color: rgba(191, 219, 254, 0.84);
+    --tag-bg: rgba(22, 52, 79, 0.56);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: none;
+    cursor: default;
+    transition: none;
+}
+
+.content-page .filter-chip.content-tag-static,
+.content-page .filter-chip.blog-post-static-chip,
+.landing-page .landing-writeup-cards .filter-chip.content-tag-static,
+.landing-page .landing-writeup-cards .filter-chip.blog-post-static-chip,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter.content-tag-static,
+.landing-page .landing-writeup-cards .filter-chip.difficulty-badge-filter.content-tag-static,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter.content-tag-static,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter.content-tag-static,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter.content-tag-static,
+.content-page .filter-chip.content-tag-static:hover,
+.content-page .filter-chip.blog-post-static-chip:hover,
+.landing-page .landing-writeup-cards .filter-chip.content-tag-static:hover,
+.landing-page .landing-writeup-cards .filter-chip.blog-post-static-chip:hover,
+.landing-page .landing-writeup-cards .filter-chip.category-badge-filter.content-tag-static:hover,
+.landing-page .landing-writeup-cards .filter-chip.difficulty-badge-filter.content-tag-static:hover,
+.landing-page .landing-writeup-cards .filter-chip.severity-badge-filter.content-tag-static:hover,
+.landing-page .landing-writeup-cards .filter-chip.cve-badge-filter.content-tag-static:hover,
+.landing-page .landing-writeup-cards .filter-chip.cwe-badge-filter.content-tag-static:hover {
+    --tag-border: rgba(96, 165, 250, 0.26);
+    --tag-color: rgba(191, 219, 254, 0.84);
+    --tag-bg: rgba(22, 52, 79, 0.56);
+    border-color: var(--tag-border);
+    color: var(--tag-color);
+    background: var(--tag-bg);
+    background-image: none;
+    box-shadow: none;
+    cursor: default;
+    transform: none;
+    transition: none;
+}
+
+.content-page .content-filter-panel,
+.content-page .content-filter-input,
+.content-page .search-clear-btn,
+.content-page .content-hero-feed-link,
+.landing-page .landing-action,
+.landing-page .landing-affiliation-link,
+.footer-link {
+    transition-property: transform, box-shadow, opacity, visibility;
+}

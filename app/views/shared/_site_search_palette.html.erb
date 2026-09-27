@@ -1,0 +1,17 @@
+<dialog id="site-search-dialog" class="site-search-dialog" data-site-search-dialog aria-labelledby="site-search-dialog-title">
+  <div class="site-search-dialog-heading">
+    <h2 id="site-search-dialog-title" class="site-search-title">
+      <%= image_tag "task-bar/search.svg", width: 32, height: 32, alt: "", class: "site-search-title-icon taskbar-icon-image", aria: { hidden: true } %>
+      <span class="sr-only">Search</span>
+    </h2>
+    <button type="button" class="site-search-close" data-site-search-close aria-label="Close search">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <%= render "shared/site_search_form" %>
+  <div class="site-search-feedback">
+    <p class="site-search-status" role="status" data-site-search-status></p>
+    <button type="button" class="site-search-retry" data-site-search-retry hidden>Retry</button>
+  </div>
+  <ol class="site-search-results" data-site-search-results aria-label="Search results"></ol>
+</dialog>

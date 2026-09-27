@@ -75,33 +75,38 @@ class AboutmeTest < ApplicationSystemTestCase
   end
 
   test "whole About card surfaces and native keyboard summaries toggle details once" do
-    visit about_path
-    find("#cves > summary").click
-    card = find("#cves .profile-card[data-disclosure-bound='true']", match: :first)
-    details_selector = "##{card['id']} > .profile-card-details"
-    assert_no_selector "#{details_selector}[open]"
+    [ 390, 1440 ].each do |width|
+      page.current_window.resize_to(width, 1000)
+      visit about_path
+      find("#cves > summary").click
+      card = find("#cves .profile-card[data-disclosure-bound='true']", match: :first)
+      details_selector = "##{card['id']} > .profile-card-details"
+      assert_no_selector "#{details_selector}[open]"
 
-    card.find(".aboutme-card-title").click
-    assert_selector "#{details_selector}[open]"
-    card.find(".aboutme-card-body p", match: :first).click
-    assert_no_selector "#{details_selector}[open]"
+      card.find(".aboutme-card-title").click
+      assert_selector "#{details_selector}[open]"
+      card.find(".aboutme-card-body p", match: :first).click
+      assert_no_selector "#{details_selector}[open]"
 
-    summary = card.find(".profile-card-details > summary")
-    summary.send_keys(:enter)
-    assert_selector "#{details_selector}[open]"
-    summary.send_keys(:space)
-    assert_no_selector "#{details_selector}[open]"
-    assert_selector "#{details_selector} > summary:focus"
+      summary = card.find(".profile-card-details > summary")
+      summary.send_keys(:enter)
+      assert_selector "#{details_selector}[open]"
+      summary.send_keys(:space)
+      assert_no_selector "#{details_selector}[open]"
+      assert_selector "#{details_selector} > summary:focus"
 
-    card.click(x: 6, y: 6)
-    assert_selector "#{details_selector}[open]"
-    card.click(x: 6, y: 6)
-    assert_no_selector "#{details_selector}[open]"
+      # Click a noninteractive card surface, not a coordinate that may land on
+      # a badge/link when the card reflows or expands beyond the viewport.
+      card.find(".aboutme-card-logo").click
+      assert_selector "#{details_selector}[open]"
+      card.find(".aboutme-card-logo").click
+      assert_no_selector "#{details_selector}[open]"
 
-    find("#certificates > summary").send_keys(:enter)
-    assert_selector "#certificates[open]"
-    find("#certificates > summary").send_keys(:space)
-    assert_no_selector "#certificates[open]"
+      find("#certificates > summary").send_keys(:enter)
+      assert_selector "#certificates[open]"
+      find("#certificates > summary").send_keys(:space)
+      assert_no_selector "#certificates[open]"
+    end
   end
 
   test "About category defaults are restored on a cached page entry, not during the visit" do
@@ -110,10 +115,7 @@ class AboutmeTest < ApplicationSystemTestCase
     assert_no_selector ".aboutme-section[open]"
     find("#certificates > summary").click
     assert_selector "#certificates[open]"
-    page.execute_script(<<~JS)
-      window.location.hash = '#talks';
-      document.dispatchEvent(new Event('turbo:load'));
-    JS
+    page.execute_script("window.location.hash = '#talks'")
     assert_selector "#talks[open]"
     assert_selector "#certificates[open]"
 
@@ -220,14 +222,15 @@ class AboutmeTest < ApplicationSystemTestCase
     parent_selector = "##{card['id']} > .profile-card-details"
     page.execute_script(<<~JS)
       const body = document.querySelector(#{parent_selector.to_json}).querySelector('.aboutme-card-body');
-      body.insertAdjacentHTML('afterbegin', '<article id="about-child-fixture" class="profile-card" data-card-disclosure><h4>Child card</h4><details class="profile-card-details"><summary>Child details</summary><p>Child body</p></details></article><details id="about-nested-details"><summary>Nested details</summary><p>Nested body</p></details>');
-      document.dispatchEvent(new Event('turbo:load'));
-      document.dispatchEvent(new Event('turbo:load'));
+      body.insertAdjacentHTML('afterbegin', '<article id="about-child-fixture" class="profile-card"><h4>Child card</h4><details class="profile-card-details"><summary>Child details</summary><p>Child body</p></details></article><details id="about-nested-details"><summary>Nested details</summary><p>Nested body</p></details>');
     JS
     find("#about-child-fixture h4").click
+    assert_no_selector "#about-child-fixture > details[open]"
+    assert_selector "#{parent_selector}[open]"
+    find("#about-child-fixture summary").click
     assert_selector "#about-child-fixture > details[open]"
     assert_selector "#{parent_selector}[open]"
-    find("#about-child-fixture p").click
+    find("#about-child-fixture summary").click
     assert_no_selector "#about-child-fixture > details[open]"
     assert_selector "#{parent_selector}[open]"
     find("#about-nested-details summary").click
@@ -323,7 +326,9 @@ class AboutmeTest < ApplicationSystemTestCase
             targetTop: Math.round(targetRect.top),
             targetBottom: Math.round(targetRect.bottom),
             taskbarBottom: Math.round(taskbar.bottom),
-            viewportHeight: window.innerHeight
+            viewportHeight: window.innerHeight,
+            scrollTop: window.scrollY,
+            maximumScrollTop: Math.max(0, document.scrollingElement.scrollHeight - window.innerHeight)
           };
         })()
       JS
@@ -332,7 +337,9 @@ class AboutmeTest < ApplicationSystemTestCase
         anchor_metrics["sectionOpen"] &&
         anchor_metrics["cardOpen"] &&
         anchor_metrics["cardTop"] >= anchor_metrics["taskbarBottom"] + 8 &&
-        anchor_metrics["cardTop"] <= anchor_metrics["taskbarBottom"] + 48 &&
+        (anchor_metrics["cardTop"] <= anchor_metrics["taskbarBottom"] + 48 ||
+          (anchor_metrics["scrollTop"] - anchor_metrics["maximumScrollTop"]).abs <= 1) &&
+        anchor_metrics["targetTop"] >= anchor_metrics["taskbarBottom"] + 8 &&
         anchor_metrics["targetBottom"] <= anchor_metrics["viewportHeight"] + 1
       break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
 
@@ -343,7 +350,10 @@ class AboutmeTest < ApplicationSystemTestCase
     assert anchor_metrics["sectionOpen"]
     assert anchor_metrics["cardOpen"]
     assert_operator anchor_metrics["cardTop"], :>=, anchor_metrics["taskbarBottom"] + 8
-    assert_operator anchor_metrics["cardTop"], :<=, anchor_metrics["taskbarBottom"] + 48
+    assert anchor_metrics["cardTop"] <= anchor_metrics["taskbarBottom"] + 48 ||
+      (anchor_metrics["scrollTop"] - anchor_metrics["maximumScrollTop"]).abs <= 1,
+      "Expected the card below the taskbar or at the document's natural scroll limit: #{anchor_metrics.inspect}"
+    assert_operator anchor_metrics["targetTop"], :>=, anchor_metrics["taskbarBottom"] + 8
     assert_operator anchor_metrics["targetBottom"], :<=, anchor_metrics["viewportHeight"] + 1
   end
 

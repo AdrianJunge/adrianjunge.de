@@ -1,0 +1,57 @@
+/* Print component styles and responsive states. */
+
+@media print {
+    .top-taskbar, .back-button-floating,
+    .skip-link, footer, .table-of-content, .article-toc-compact, .toc-toggle-button,
+    .copy-btn, .copy-status, .article-progress, .next-previous-writeups {
+        display: none !important;
+    }
+
+    body.site-background, .article-page, .article-page .writeup-wrapper,
+    .article-page .writeup-container {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: #fff !important;
+        color: #000 !important;
+        box-shadow: none !important;
+    }
+
+    body.site-background::before { display: none !important; }
+    .article-page * {
+        color: #000 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+    .article-page .markdown-content, .article-page .code-block,
+    .article-page .markdown-content pre {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    .article-page .markdown-content pre {
+        padding: .5rem !important;
+        white-space: pre-wrap !important;
+        overflow-wrap: anywhere !important;
+        border-color: #aaa !important;
+    }
+    .article-page .markdown-content pre code { white-space: normal !important; }
+    .article-page .markdown-content .code-line { display: block !important; }
+    .article-page .markdown-content .code-line::before { display: none !important; }
+    .article-page .markdown-content .code-line-content {
+        white-space: pre-wrap !important;
+        overflow-wrap: anywhere !important;
+    }
+    .article-page h1, .article-page h2, .article-page h3 { break-after: avoid; }
+    .article-page figure, .article-page tr { break-inside: avoid; }
+    .article-page img { max-width: 100% !important; height: auto !important; }
+    .article-page table { display: table !important; width: 100% !important; }
+    .article-page th, .article-page td { white-space: normal !important; overflow-wrap: anywhere; }
+}

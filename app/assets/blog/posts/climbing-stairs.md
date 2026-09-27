@@ -1,4 +1,7 @@
 ---
+title: "Climbing Stairs from Two Angles"
+logo: "blog/leetcode.png"
+category: "Algorithms"
 description: LeetCode's Climbing Stairs problem looks like a simple dynamic-programming challenge, but a closer look connects Fibonacci numbers, binomial coefficients, and Pascal's triangle.
 categories:
     - LeetCode

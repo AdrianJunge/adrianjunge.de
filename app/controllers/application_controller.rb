@@ -1,11 +1,12 @@
 class ApplicationController < ActionController::Base
-  allow_browser versions: :modern
+  class_attribute :requires_modern_browser, default: true
+  allow_browser versions: :modern, if: :requires_modern_browser
 
   # Compatibility aliases for existing views and authoring/test integrations.
   ContentConfiguration.constants(false).each do |name|
     const_set(name, ContentConfiguration.const_get(name))
   end
-  BUG_BOUNTY_COUNT = 4
+  BUG_BOUNTY_COUNT = SiteProfile.bug_bounty_count
   helper_method :content_repository
   CONTENT_FILTER_KIND_LABELS = ContentTagTaxonomy::CONTENT_TYPE_LABELS.freeze
   ERROR_CONTENT = {
@@ -38,6 +39,7 @@ class ApplicationController < ActionController::Base
   def render_error_page(key)
     @error_content = ERROR_CONTENT.fetch(key)
     @status_code = Rack::Utils.status_code(@error_content[:status])
+    @article_detours = error_article_detours if key == :not_found
 
     render "errors/show", formats: [ :html ], content_type: "text/html", status: @error_content[:status]
   end
@@ -46,7 +48,19 @@ class ApplicationController < ActionController::Base
     content_repository.parse_markdown(content)
   end
 
+  def default_url_options
+    SiteProfile.url_options
+  end
+
   private
+
+  def error_article_detours
+    ArticleDetours.new(repository: content_repository).call(request.path)
+  rescue StandardError => error
+    # Recovery links are optional; unavailable content must not break the error page.
+    Rails.logger.warn("404 article detours unavailable (#{error.class.name})")
+    nil
+  end
 
   def content_repository
     @content_repository ||= ContentRepository.new

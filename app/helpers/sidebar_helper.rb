@@ -1,18 +1,18 @@
 module SidebarHelper
   def default_taskbar_items
     [
-      { image_path: "task-bar/home.svg", alt_text: "Home Icon", label: "Home", link: root_path },
-      { image_path: "task-bar/about.svg", alt_text: "About Icon", label: "About me", link: about_path },
-      { image_path: "task-bar/flag.svg", alt_text: "CTF Icon", label: "CTF", link: ctf_path },
-      { image_path: "task-bar/blog.svg", alt_text: "Blog Icon", label: "Blog", link: blog_path }
+      { image_path: "task-bar/home.svg", label: "Home", link: root_path },
+      { image_path: "task-bar/about.svg", label: "About", link: about_path },
+      { image_path: "task-bar/flag.svg", label: "CTF", link: ctf_path },
+      { image_path: "task-bar/blog.svg", label: "Blog", link: blog_path }
     ]
   end
 
-  def taskbar_icon_item(image_path:, alt_text:, label:, link: nil, icon_class:, label_class:, id: nil, target: nil, active: false)
+  def taskbar_icon_item(image_path:, label:, link: nil, icon_class:, label_class:, id: nil, target: nil, active: false)
     icon = content_tag(:span, class: icon_class) do
       image_tag(image_path, alt: "", width: 32, height: 32, class: "taskbar-icon-image", aria: { hidden: true })
     end
-    item_classes = [ "taskbar-item", ("taskbar-item-terminal" if id == "terminal-taskbar-button"), ("is-active" if active) ].compact.join(" ")
+    item_classes = [ "taskbar-item", ("is-active" if active) ].compact.join(" ")
     control_classes = [ (link ? "taskbar-link" : "taskbar-button-container"), ("is-active" if active) ].compact.join(" ")
 
     content_tag :div, class: item_classes do
@@ -27,8 +27,10 @@ module SidebarHelper
         )
       else
         aria = { label: label }
-        aria.merge!(controls: "terminal-container", expanded: false) if id == "terminal-taskbar-button"
-        content_tag(:button, type: "button", class: control_classes, id: id, aria: aria) do
+        search_button = id == "search-taskbar-button"
+        aria.merge!(controls: "site-search-dialog", expanded: false, haspopup: "dialog") if search_button
+        content_tag(:button, type: "button", class: control_classes, id: id, aria: aria,
+                    disabled: search_button, data: (search_button ? { site_search_open: true } : nil)) do
           concat(icon)
           concat(content_tag(:span, label, class: label_class))
         end
@@ -75,7 +77,6 @@ module SidebarHelper
       rendered_links << link_key
       nodes << taskbar_icon_item(
         image_path: item[:image_path],
-        alt_text: item[:alt_text],
         label: item[:label],
         link: item[:link],
         icon_class: taskbar_icon_class,
@@ -87,7 +88,6 @@ module SidebarHelper
 
     nodes << taskbar_icon_item(
       image_path: "task-bar/timeline.svg",
-      alt_text: "Timeline Icon",
       label: "Timeline",
       link: timeline_path,
       icon_class: taskbar_icon_class,
@@ -101,12 +101,11 @@ module SidebarHelper
     )
 
     nodes << taskbar_icon_item(
-      image_path: "task-bar/terminal-prompt.svg",
-      alt_text: "Terminal Icon",
-      label: "Terminal",
+      image_path: "task-bar/search.svg",
+      label: "Search",
       icon_class: taskbar_icon_class,
       label_class: taskbar_label_class,
-      id: "terminal-taskbar-button"
+      id: "search-taskbar-button"
     )
 
     nodes
@@ -114,9 +113,9 @@ module SidebarHelper
 
   def feed_dropdown_items
     [
-      { href: feed_xml_path, icon: "task-bar/feed-rss.svg", alt: "RSS Feed Icon", label: "RSS" },
-      { href: feed_path(format: :atom), icon: "task-bar/feed-atom.svg", alt: "Atom Feed Icon", label: "Atom" },
-      { href: feed_json_path, icon: "task-bar/feed-json.svg", alt: "JSON Feed Icon", label: "JSON" }
+      { href: feed_xml_path, icon: "task-bar/feed-rss.svg", label: "RSS" },
+      { href: feed_path(format: :atom), icon: "task-bar/feed-atom.svg", label: "Atom" },
+      { href: feed_json_path, icon: "task-bar/feed-json.svg", label: "JSON" }
     ].map do |item|
       link_to(
         item[:href],

@@ -1,9 +1,6 @@
 <% content_for :head do %>
-  <% blog_config = @blogs[@post_slug] || {} %>
-  <% blog_description = @blog_info["description"].presence || blog_config["description"].presence || @post_slug.humanize %>
+  <% blog_description = @blog_info["description"].presence || @post_slug.humanize %>
   <% blog_tags = (Array(@blog_info["categories"]) + [ @blog_category ]).map(&:to_s).reject(&:blank?).uniq %>
-  <% blog_image = blog_config["logo"].presence || "blog/htb-cpts.png" %>
-  <% blog_modified = @blog_info["updated"].presence || @blog_info["modified"].presence %>
   <%= seo_meta_tags(
         title: "#{@blog_title} - Blog",
         description: blog_description,
@@ -14,6 +11,7 @@
         modified_time: @modified_time,
         tags: blog_tags,
         section: @blog_category,
+        authors: @article_authors,
         json_ld: seo_article_schema(
           title: @blog_title,
           description: blog_description,
@@ -22,7 +20,8 @@
           modified: @modified_time,
           tags: blog_tags,
           image: SeoHelper::DEFAULT_IMAGE,
-          section: @blog_category
+          section: @blog_category,
+          authors: @article_authors
         ),
         breadcrumbs: [
           { title: "Home", link: root_path },
@@ -39,8 +38,9 @@
     <%= render "shared/post_meta", items: [ @blog_info["published"] ], reading_time: @blog_info["reading_time_label"] %>
 
     <section class="article-meta-panel blog-article-meta-panel" aria-label="Post details">
+      <%= render "shared/article_authors", authors: @article_authors if @blog_info["article_authors"].present? %>
       <%= render "shared/article_description",
-                 description: @blog_info["description"].presence || blog_config["description"],
+                 description: @blog_info["description"],
                  label: "Post description" %>
     </section>
 

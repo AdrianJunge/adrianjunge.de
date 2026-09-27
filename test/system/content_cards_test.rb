@@ -90,42 +90,6 @@ class ContentCardsTest < ApplicationSystemTestCase
     assert_includes article_hit["className"], "blog-post-author-link"
   end
 
-  test "main content cards share the blue surface treatment" do
-    visit "/"
-    assert_selector ".landing-writeup-cards .blog-post-card.ui-card-surface", count: landing_latest_posts.length
-    latest_styles = card_surface_styles(".landing-writeup-cards .blog-post-card")
-
-    visit "/timeline"
-    assert_selector ".timeline-content.ui-card-surface", minimum: 1
-    assert_selector ".timeline-content.content-card", minimum: 1
-    assert_selector ".timeline-item:not(.timeline-item-upcoming) .timeline-content", minimum: 1
-    assert_equal latest_styles, card_surface_styles(".timeline-item:not(.timeline-item-upcoming) .timeline-content")
-
-    visit "/ctf"
-    assert_selector ".ctf-card.ui-card-surface", minimum: 1
-    assert_selector ".ctf-card.content-card", minimum: 1
-    assert_equal latest_styles, card_surface_styles(".ctf-card")
-
-    visit "/ctf/#{first_ctf_event_with_writeups[:directory]}"
-    assert_selector ".writeup-overview .blog-post-card.ui-card-surface", minimum: 1
-    assert_selector ".writeup-overview .blog-post-card.content-card", minimum: 1
-    assert_equal latest_styles, card_surface_styles(".writeup-overview .blog-post-card")
-
-    visit "/blog"
-    assert_selector ".blog-posts-container .blog-post-card.ui-card-surface", minimum: 1
-    assert_selector ".blog-posts-container .blog-post-card.content-card", minimum: 1
-    assert_equal latest_styles, card_surface_styles(".blog-posts-container .blog-post-card")
-
-    visit "/about"
-    page.execute_script(<<~JS)
-      document.querySelectorAll(".aboutme-section").forEach((section) => { section.open = true; });
-    JS
-    assert_selector ".aboutme-finding-card.ui-card-surface", minimum: 1
-    assert_selector ".aboutme-achievement-card.ui-card-surface", minimum: 1
-    assert_equal latest_styles, card_surface_styles(".aboutme-finding-card")
-    assert_equal profile_card_highlight_styles(".aboutme-finding-card"), profile_card_highlight_styles("#cves .aboutme-finding-card")
-  end
-
   test "timeline entries are full-card links" do
     page.current_window.resize_to(1280, 1200)
     timeline_post = first_timeline_post_with_tags
@@ -274,66 +238,7 @@ class ContentCardsTest < ApplicationSystemTestCase
     assert_no_selector ".ctf-card .ctf-card-cta"
     assert_selector ".ctf-card .ctf-writeup-count-text", minimum: 1, text: /writeups?/
     target_path = URI.parse(first_card.find(".blog-post-card-hitbox", visible: :all)[:href]).path
-    ctf_metadata_styles = page.evaluate_script(<<~JS)
-      (() => {
-        const count = document.querySelector(".ctf-card .ctf-writeup-count-text");
-        const readingTime = document.querySelector(".ctf-card .ctf-total-reading-time");
-        const countStyle = window.getComputedStyle(count);
-        const readingTimeStyle = window.getComputedStyle(readingTime);
-
-        return {
-          countClassName: count.className,
-          countColor: countStyle.color,
-          countBackgroundColor: countStyle.backgroundColor,
-          countBorderTopWidth: countStyle.borderTopWidth,
-          countBorderTopLeftRadius: countStyle.borderTopLeftRadius,
-          countPaddingLeft: countStyle.paddingLeft,
-          countFontSize: countStyle.fontSize,
-          countFontWeight: countStyle.fontWeight,
-          countLineHeight: countStyle.lineHeight,
-          readingTimeColor: readingTimeStyle.color,
-          readingTimeFontSize: readingTimeStyle.fontSize,
-          readingTimeFontWeight: readingTimeStyle.fontWeight,
-          readingTimeLineHeight: readingTimeStyle.lineHeight
-        };
-      })()
-    JS
-    assert_not_includes ctf_metadata_styles["countClassName"], "content-tag"
-    assert_equal "rgb(254, 243, 199)", ctf_metadata_styles["countColor"]
-    assert_equal "rgba(0, 0, 0, 0)", ctf_metadata_styles["countBackgroundColor"]
-    assert_equal "0px", ctf_metadata_styles["countBorderTopWidth"]
-    assert_equal "0px", ctf_metadata_styles["countBorderTopLeftRadius"]
-    assert_equal "0px", ctf_metadata_styles["countPaddingLeft"]
     assert_selector ".ctf-card .ctf-total-reading-time", minimum: 1, text: /min read/
-
-    visit target_path
-    writeup_metadata_styles = page.evaluate_script(<<~JS)
-      (() => {
-        const date = document.querySelector(".writeup-overview .blog-post-date-text");
-        const readingTime = document.querySelector(".writeup-overview .blog-post-reading-time");
-        const dateStyle = window.getComputedStyle(date);
-        const readingTimeStyle = window.getComputedStyle(readingTime);
-
-        return {
-          dateColor: dateStyle.color,
-          dateFontSize: dateStyle.fontSize,
-          dateFontWeight: dateStyle.fontWeight,
-          dateLineHeight: dateStyle.lineHeight,
-          readingTimeColor: readingTimeStyle.color,
-          readingTimeFontSize: readingTimeStyle.fontSize,
-          readingTimeFontWeight: readingTimeStyle.fontWeight,
-          readingTimeLineHeight: readingTimeStyle.lineHeight
-        };
-      })()
-    JS
-    assert_equal writeup_metadata_styles["dateColor"], ctf_metadata_styles["countColor"]
-    assert_equal writeup_metadata_styles["dateFontSize"], ctf_metadata_styles["countFontSize"]
-    assert_equal writeup_metadata_styles["dateFontWeight"], ctf_metadata_styles["countFontWeight"]
-    assert_equal writeup_metadata_styles["dateLineHeight"], ctf_metadata_styles["countLineHeight"]
-    assert_equal writeup_metadata_styles["readingTimeColor"], ctf_metadata_styles["readingTimeColor"]
-    assert_equal writeup_metadata_styles["readingTimeFontSize"], ctf_metadata_styles["readingTimeFontSize"]
-    assert_equal writeup_metadata_styles["readingTimeFontWeight"], ctf_metadata_styles["readingTimeFontWeight"]
-    assert_equal writeup_metadata_styles["readingTimeLineHeight"], ctf_metadata_styles["readingTimeLineHeight"]
 
     visit "/ctf"
     first_card = find(".ctf-card", match: :first)

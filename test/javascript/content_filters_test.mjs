@@ -65,3 +65,30 @@ test('unknown year values reset while known values remain selected', () => {
   assert.equal(filters.validSelectValue(select, '2099'), '');
   assert.equal(filters.validSelectValue(null, '2025'), '2025');
 });
+
+test('server supplied aliases preserve category URLs and legacy difficulty filters', () => {
+  const available = new Set(['reverse', 'blockchain', 'difficulty:medium']);
+  const aliases = { rev: 'Reverse', reversing: 'Reverse', web3: 'Blockchain' };
+  assert.equal(filters.canonicalFilterTag(' REV ', available, aliases), 'reverse');
+  assert.equal(filters.canonicalFilterTag('reversing', available, aliases), 'reverse');
+  assert.equal(filters.canonicalFilterTag('web3', available, aliases), 'blockchain');
+  assert.equal(filters.canonicalFilterTag('Medium', available, aliases), 'difficulty:medium');
+  assert.equal(filters.canonicalFilterTag('unknown', available, aliases), 'unknown');
+  assert.equal(filters.canonicalFilterTag('rev', new Set(), aliases), 'rev');
+});
+
+test('independent fixture cases cover exact fuzzy combined and empty outcomes', async () => {
+  const contract = JSON.parse(await readFile(new URL('../fixtures/content_filter_cases.json', import.meta.url), 'utf8'));
+  const records = contract.algorithm_records.map(record => ({
+    id: record.id,
+    searchTerms: filters.searchTermsFrom(record.text, record.tags),
+    tagSet: new Set(record.tags.map(tag => tag.toLowerCase())),
+    yearSet: new Set(record.years)
+  }));
+  for (const example of contract.algorithm_cases) {
+    const actual = records.filter(record => filters.matchesCardRecord(
+      record, filters.normalizeSearchWords(example.query), example.year || '', example.tags || []
+    )).map(record => record.id);
+    assert.deepEqual(actual, example.expected, JSON.stringify(example));
+  }
+});

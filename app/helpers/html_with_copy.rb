@@ -60,13 +60,18 @@ class HtmlWithCopy < Redcarpet::Render::HTML
     source       = code.to_s
     lexer        = code_lexer(language, source)
     formatter    = Rouge::Formatters::HTML.new
-    highlighted  = CodeBlockLineFormatter.new(formatter, line_count(source), trailing_newline: source.end_with?("\n")).format(lexer.lex(source))
+    logical_lines = line_count(source)
+    gutter_width = [ logical_lines.to_s.length, 3 ].max
+    highlighted  = CodeBlockLineFormatter.new(formatter, logical_lines, trailing_newline: source.end_with?("\n")).format(lexer.lex(source))
 
     <<~HTML
-      <div class="code-block">
-        <button class="copy-btn" type="button" aria-label="Copy code" title="Copy to clipboard">📋</button>
-        <span class="copy-status visually-hidden" role="status"></span>
-        <pre class="highlight" tabindex="0" aria-label="Code sample"><code>#{highlighted}</code></pre>
+      <div class="code-block" style="--code-line-number-width: #{gutter_width}ch">
+        <button class="copy-btn" type="button" aria-label="Copy code" data-copy-state="idle">
+          <svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+          <svg class="copy-check-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" hidden><path d="m5 12 4 4L19 6"/></svg>
+        </button>
+        <span class="copy-status visually-hidden" role="status" aria-live="polite" aria-atomic="true"></span>
+        <pre class="highlight" tabindex="0" role="group" aria-label="Code sample"><code>#{highlighted}</code></pre>
       </div>
     HTML
   end

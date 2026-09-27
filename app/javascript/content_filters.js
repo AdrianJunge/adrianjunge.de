@@ -2,6 +2,14 @@ function normalizeToken(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function canonicalFilterTag(value, availableTags, aliases = {}) {
+  const tag = normalizeToken(value);
+  const alias = Object.hasOwn(aliases, tag) ? normalizeToken(aliases[tag]) : tag;
+  if (availableTags.has(alias)) return alias;
+  const difficulty = 'difficulty:' + (tag === 'introductory' ? 'intro' : tag);
+  return availableTags.has(difficulty) ? difficulty : tag;
+}
+
 function normalizeSearchValue(value) {
   return normalizeToken(value)
     .normalize('NFKD')
@@ -225,22 +233,19 @@ function initFilterPanel(panel) {
   const moreFilters = panel.querySelector('.content-filter-more');
   const moreFilterChips = moreFilters ? panelChips.filter(chip => moreFilters.contains(chip)) : [];
   const tagLabels = new Map(chips.map(chip => [normalizeToken(chip.dataset.filterTag), chip.dataset.filterTag]));
+  const tagAliases = JSON.parse(panel.dataset.filterAliases || '{}');
   const activeTags = new Set();
   const groups = Array.from(document.querySelectorAll(`[data-filter-group="${scope}"]`)).map(group => ({
     group, cards: Array.from(group.querySelectorAll(`[data-filter-card="${scope}"]`)),
     count: group.querySelector(`[data-filter-group-count="${scope}"]`)
   }));
-  function legacyTag(tag) {
-    const typed = `difficulty:${tag === 'introductory' ? 'intro' : tag}`;
-    return tagLabels.has(typed) ? typed : tag;
-  }
   function readStateFromUrl() {
     const params = new URLSearchParams(window.location.search);
     if (search) search.value = params.get('q') || '';
     if (year) year.value = validSelectValue(year, params.get('year') || '');
 
     activeTags.clear();
-    tagValuesFromParams(params).forEach(tag => activeTags.add(legacyTag(tag)));
+    tagValuesFromParams(params).forEach(tag => activeTags.add(canonicalFilterTag(tag, tagLabels, tagAliases)));
   }
 
   function writeStateToUrl(query, selectedYear, replace = false) {
@@ -347,6 +352,7 @@ function initFilterPanel(panel) {
       if (year) year.value = '';
       activeTags.clear();
       applyFilters();
+      search?.focus();
     });
   }
 
@@ -413,6 +419,7 @@ if (typeof document !== 'undefined') {
 }
 
 export {
+  canonicalFilterTag,
   matchesCardRecord,
   matchesSearchQuery,
   matchesSearchTerms,

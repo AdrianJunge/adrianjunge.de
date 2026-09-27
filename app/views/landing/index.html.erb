@@ -21,18 +21,12 @@
       ) %>
 <% end %>
 
-<% @terminal_paths = [
-  { label: "about", url: about_path },
-  { label: "ctf", url: ctf_path },
-  { label: "blog", url: blog_path },
-  { label: "timeline", url: timeline_path }
-] %>
 <% timeline_link = timeline_path %>
 <% about_link = about_path %>
-<% discord_link = "https://discord.com/users/305624492221267968/" %>
-<% kitctf_link = "https://kitctf.de/" %>
-<% kit_link = "https://www.kit.edu/" %>
-<% pgp_link = "/pgp-vurlo.asc" %>
+<% discord_link = SiteProfile.social_links.fetch(:discord) %>
+<% kitctf_link = SiteProfile.affiliations.find { |entry| entry["name"] == "KITCTF" }.fetch("url") %>
+<% kit_link = SiteProfile.affiliations.find { |entry| entry["@type"] == "CollegeOrUniversity" }.fetch("url") %>
+<% pgp_link = SiteProfile.pgp_path %>
 <% landing_metrics = [
   { label: "Posts", value: @amount_posts, sublabel: @amount_post_reading_time, link: timeline_link },
   { label: "CVEs", value: @amount_cves, link: about_path(anchor: "cves") },
@@ -44,17 +38,17 @@
 <section id="landing-top">
     <div class="landing-hero-shell">
         <div class="landing-hero-copy">
-            <p class="landing-kicker">Adrian Junge (vurlo)</p>
+            <p class="landing-kicker"><%= SiteProfile.name %> (<%= SiteProfile.handle %>)</p>
             <h1>Welcome to my <span class="landing-title-nowrap">bug collection <span class="landing-title-emoji">🐛</span></span></h1>
             <p class="landing-lead">
-                CTF player, vulnerability researcher, and computer science student creating writeups, collecting CVEs, bounties, and notes from real targets and challenges, occasionally algorithmic and LeetCode challenges. I poke things politely and occasionally convince software to confess.
+                <%= italicize_proper_names("CTF player, vulnerability researcher, and computer science student creating writeups, collecting CVEs, bounties, and notes from real targets and challenges, occasionally algorithmic challenges. I poke things politely and sometimes convince software to confess.") %>
             </p>
 
             <div class="landing-typed-line">
                 <span id="typing" class="font-medium inline-block min-h-[1.5rem]">Politely asking software uncomfortable questions.</span>
             </div>
 
-            <div class="landing-actions" aria-label="Primary links">
+            <div class="landing-actions" role="group" aria-label="Primary links">
                 <a href="<%= timeline_link %>" class="landing-action landing-action-primary ui-hover-lift">
                     <%= content_image_tag("task-bar/timeline.svg", alt: "", class: "landing-action-icon", aria: { hidden: true }) %>
                     <span>Timeline</span>
@@ -68,7 +62,7 @@
 
         <aside class="landing-profile-panel" aria-label="Profile summary">
             <a href="<%= discord_link %>" target="_blank" rel="noopener noreferrer" class="landing-profile-link" title="Open Discord profile" aria-label="Open Discord profile">
-                <%= content_image_tag("landing/profile.webp", alt: "Adrian Junge profile image", class: "landing-profile-image", loading: "eager", fetchpriority: "high") %>
+                <%= content_image_tag("landing/profile.webp", alt: "#{SiteProfile.name} profile image", class: "landing-profile-image", loading: "eager", fetchpriority: "high") %>
             </a>
 
             <div class="landing-affiliation-links">
@@ -88,7 +82,7 @@
         </aside>
     </div>
 
-    <div class="landing-metrics aboutme-stats" aria-label="Site overview metrics">
+    <div class="landing-metrics aboutme-stats" role="group" aria-label="Site overview metrics">
         <% landing_metrics.each do |metric| %>
             <% if metric[:link] %>
                 <a href="<%= metric[:link] %>" class="landing-metric aboutme-stat ui-hover-lift">
@@ -129,9 +123,8 @@
     <div class="landing-writeup-cards">
         <% @most_recent_posts.each do |post| %>
             <% if post[:type] == "blog" %>
-                <% blog_data_with_meta = landing_blog_metadata(post) %>
                 <div class="blog-post-entry">
-                    <%= render_blog_post_card(post[:slug], blog_data_with_meta, interactive_tags: false, show_section_icon: true) %>
+                    <%= render_blog_post_card(post, interactive_tags: false, show_section_icon: true) %>
                 </div>
             <% elsif post[:type] == "ctf" %>
                 <div class="blog-post-entry writeup-post-entry">

@@ -1,0 +1,91 @@
+#!/usr/bin/env ruby
+require "json"
+require "open3"
+require "rbconfig"
+require "shellwords"
+
+if ARGV == [ "--help" ] || ARGV == [ "-h" ]
+  puts "Usage: bin/update"
+  puts "Upgrade and install gems within Gemfile constraints, npm tools, MathJax, and image dependencies."
+  puts "Install Playwright browsers, refresh image exports, build CSS, and run bin/check."
+  puts "Updates dependency manifests and lockfiles; does not start the server or pull Git changes."
+  puts "Requires .ruby-version, Node 24+, npm, and Python 3.12+ with venv support."
+  puts "Image tools use .venv-images; IMAGE_PYTHON selects the Python used to create it."
+  puts "Requires DejaVu Sans fonts; IMAGE_FONT_DIR overrides /usr/share/fonts/truetype/dejavu."
+  exit
+end
+abort "Usage: bin/update (or --help)" unless ARGV.empty?
+
+def run_command(*command, env: {})
+  puts "+ #{command.shelljoin}"
+  STDOUT.flush
+  abort "Update stopped: #{command.shelljoin}" unless system(env, *command)
+end
+
+def command_output(*command)
+  output, status = Open3.capture2(*command)
+  abort "Update stopped: #{command.shelljoin}" unless status.success?
+  output
+end
+
+def update_npm(directory, lock_only: false)
+  manifest = JSON.parse(File.read(File.join(directory, "package.json")))
+  options = [ "--prefix", directory, "--include=dev" ]
+  options += [ "--package-lock-only", "--ignore-scripts" ] if lock_only
+  { "dependencies" => "--save-prod", "devDependencies" => "--save-dev" }.each do |group, flag|
+    packages = manifest.fetch(group, {}).keys.map { |name| "#{name}@latest" }
+    next if packages.empty?
+    run_command("npm", "install", *options, flag, "--save-exact", *packages)
+  end
+  # Refresh transitive dependencies too, retaining the new exact direct pins.
+  run_command("npm", "update", *options, "--save-exact")
+end
+
+Dir.chdir(File.expand_path("..", __dir__)) do
+  required_ruby = File.read(".ruby-version").strip
+  abort "Activate Ruby #{required_ruby} before running bin/update (active: #{RUBY_VERSION})." unless RUBY_VERSION == required_ruby
+
+  # Check prerequisites before changing any dependency manifests.
+  run_command("node", "-e", "if (Number(process.versions.node.split('.')[0]) < 24) { console.error('Node 24+ is required.'); process.exit(1); }")
+  run_command("npm", "--version")
+  run_command("bundle", "--version")
+  python = ENV.fetch("IMAGE_PYTHON", "python3")
+  run_command(python, "-c", "import sys, venv, ensurepip; sys.exit('Python 3.12+ is required.' if sys.version_info < (3, 12) else 0)")
+  font_directory = File.expand_path(ENV.fetch("IMAGE_FONT_DIR", "/usr/share/fonts/truetype/dejavu"))
+  unless %w[DejaVuSans.ttf DejaVuSans-Bold.ttf].all? { |font| File.readable?(File.join(font_directory, font)) }
+    abort "Install DejaVu Sans fonts or set IMAGE_FONT_DIR to their directory before running bin/update."
+  end
+
+  requirements_path = "scripts/images/requirements.txt"
+  requirements = File.read(requirements_path)
+  packages = requirements.lines.filter_map do |line|
+    next if line.strip.empty? || line.lstrip.start_with?("#")
+    match = line.match(/\A([A-Za-z0-9][A-Za-z0-9_.-]*)==[^\s#]+(?:\s+#.*)?\s*\z/)
+    abort "Expected an exact package==version pin in #{requirements_path}: #{line.strip}" unless match
+    match[1]
+  end
+
+  image_python = File.expand_path(".venv-images/bin/python")
+  run_command(python, "-m", "venv", ".venv-images") unless File.executable?(image_python)
+  run_command(image_python, "-c", "import sys; sys.exit('Recreate .venv-images with Python 3.12+.' if sys.version_info < (3, 12) or sys.prefix == sys.base_prefix else 0)")
+  run_command(image_python, "-m", "pip", "--version")
+
+  # This command installs development/test tools too, without persisting Bundler settings.
+  ENV.update("BUNDLE_FROZEN" => "false", "BUNDLE_DEPLOYMENT" => "false", "BUNDLE_WITHOUT" => "")
+  run_command("bundle", "update", "--all")
+  update_npm(".")
+  # MathJax is served from its pinned CDN URLs; keep its audit inventory current.
+  update_npm("config/mathjax", lock_only: true)
+
+  run_command(image_python, "-m", "pip", "install", "--upgrade", "--upgrade-strategy", "eager", *packages)
+  versions = JSON.parse(command_output(image_python, "-c", "import importlib.metadata, json, sys; print(json.dumps({name: importlib.metadata.version(name) for name in sys.argv[1:]}))", *packages))
+  updated_requirements = requirements.gsub(/^([A-Za-z0-9][A-Za-z0-9_.-]*)==[^\s#]+/) { "#{Regexp.last_match(1)}==#{versions.fetch(Regexp.last_match(1))}" }
+  File.write(requirements_path, updated_requirements) if updated_requirements != requirements
+
+  run_command("node_modules/.bin/playwright", "install", "chromium", "firefox", "webkit")
+  run_command(image_python, "scripts/images/export.py", "--font-dir", font_directory)
+  run_command(RbConfig.ruby, "bin/rails", "tailwindcss:build")
+  run_command(RbConfig.ruby, "bin/check", env: { "IMAGE_PYTHON" => image_python })
+
+  puts "Dependencies upgraded and installed; image exports, CSS, and main checks completed."
+end

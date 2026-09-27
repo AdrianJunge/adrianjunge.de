@@ -14,8 +14,7 @@ class FixtureContentRepository < ContentRepository
       blog_base_path: ROOT.join("blog", "posts"),
       ctf_challenge_files_path: ROOT.join("ctf", "files"),
       ctf_pdf_writeups_path: ROOT.join("ctf", "pdfs"),
-      ctf_metadata_data: read_fixture_json(ROOT.join("ctf", "ctfs.json")),
-      blog_metadata_data: read_fixture_json(ROOT.join("blog", "blogs.json"))
+      ctf_metadata_data: read_fixture_json(ROOT.join("ctf", "ctfs.json"))
     )
   end
 

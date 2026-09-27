@@ -2,12 +2,14 @@
 
 These helpers generate the circular black-rim badges used by the site image assets.
 
-Install the only dependency:
+Install the pinned Python dependency and the locked SVG optimizer (Node version
+from `.node-version`). Linux also needs the `fonts-dejavu-core` system package:
 
 ```bash
 python -m venv .venv-images
 . .venv-images/bin/activate
 python -m pip install -r scripts/images/requirements.txt
+npm ci
 ```
 
 Render a logo on a white inner circle:
@@ -48,17 +50,25 @@ The manifest supplies intrinsic dimensions, including SVG view boxes, to Rails.
 New originals belong under `content/images/originals`, mirroring their intended
 logical asset paths. The export script never overwrites these originals.
 
-`python scripts/images/export.py --check` verifies all manifest files, dimensions,
-and actual formats without modifying them. Normal Rails builds consume the
-committed exports; Python/Pillow are authoring-only dependencies.
+`python scripts/images/export.py --check` regenerates all exports into a temporary
+directory and compares their bytes and every manifest descriptor with the
+committed files. It catches missing manifest entries, changed originals with
+stale exports (even at identical dimensions), missing variants, orphan variants,
+and incorrect image formats. It never modifies sources or published files.
+This can take several minutes because screenshot WebP encoding is lossless.
+Use the locked Pillow/SVGO versions and DejaVu Sans fonts for reproducible output;
+updates to the encoders may require regenerating the committed exports.
+Normal Rails builds consume the committed exports; Python/Pillow and SVGO are
+authoring-only dependencies.
 
 Run `python -m unittest discover -s scripts/images -p 'test_*.py'` for authoring
-regressions covering JPEG fallback, source preservation, transparency and sizing.
-Optimize vectors with `npm exec -- svgo INPUT.svg -o OUTPUT.svg`, preserving a
-copy under `content/images/originals` first, then rebuild the image manifest.
+regressions covering JPEG fallback, source preservation, transparency, sizing,
+manifest completeness and stale/missing/orphan outputs.
+SVG originals under `content/images/originals` are optimized automatically with
+the locked SVGO version during export. Keep new vector originals there, mirroring
+their intended public paths. A normal export also removes unused generated
+variants; authoring originals remain unchanged.
 
-The previous category artwork and unused profile exports are retained in
-`content/images/archive`, outside Rails' public asset paths. AVIF is deferred:
-these small logos already compress well with WebP, and screenshots prioritize
+AVIF is deferred: these small logos already compress well with WebP, and screenshots prioritize
 lossless text. The social card uses installed DejaVu Sans; pass `--font-dir` if
 its directory differs from `/usr/share/fonts/truetype/dejavu`.

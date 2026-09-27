@@ -3,7 +3,7 @@ require "application_system_test_case"
 class AccessibilityTest < ApplicationSystemTestCase
   test "representative pages have no confirmed accessibility violations" do
     page.current_window.resize_to(390, 900)
-    [ "/", "/timeline", "/about", "/blog/java-strings" ].each do |path|
+    [ "/", "/timeline", "/about", "/blog/java-strings", "/blog/java-strngs" ].each do |path|
       visit path
       assert_accessible_state("#{path.parameterize.presence || 'home'}-default-mobile")
     end
@@ -30,18 +30,13 @@ class AccessibilityTest < ApplicationSystemTestCase
     assert_accessible_state("about-supporting-details-open-mobile")
   end
 
-  test "open desktop terminal has no confirmed accessibility violations" do
-    page.current_window.resize_to(1440, 900)
+  test "open site search with results has no confirmed accessibility violations" do
+    page.current_window.resize_to(390, 900)
     visit "/blog"
-    page.execute_script("localStorage.removeItem('terminal-open')")
-    visit "/blog"
-    assert_selector "#terminal-taskbar-button[data-initialized='true']"
-    find("#terminal-taskbar-button").click
-    assert_selector "#terminal-container:not([hidden]):not([inert]) .xterm-rows", text: "adrian@my-space", wait: 30
-    assert_selector ".xterm-helper-textarea", visible: :all
-    assert_accessible_state("blog-terminal-open-desktop")
-  ensure
-    page.execute_script("localStorage.removeItem('terminal-open')")
+    find("[data-site-search-open][aria-keyshortcuts]", match: :first).click
+    fill_in "site-search-palette-query", with: "Fibonacci"
+    assert_selector "dialog[open] .site-search-results a", minimum: 1
+    assert_accessible_state("site-search-dialog-results-mobile")
   end
 
   private
@@ -53,13 +48,25 @@ class AccessibilityTest < ApplicationSystemTestCase
     report = page.driver.browser.execute_async_script(<<~JS)
       const done = arguments[arguments.length - 1];
       axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })
-        .then(result => done({ violations: result.violations, incomplete: result.incomplete }))
+        .then(result => done({
+          schema: 1,
+          capturedAt: new Date().toISOString(),
+          path: location.pathname,
+          viewport: { width: innerWidth, height: innerHeight },
+          axeVersion: result.testEngine.version,
+          violations: result.violations,
+          incomplete: result.incomplete
+        }))
         .catch(error => done({ error: error.message }));
     JS
     directory = Rails.root.join("tmp/a11y")
     FileUtils.mkdir_p(directory)
     File.write(directory.join("#{state}.json"), JSON.pretty_generate(report))
     assert_nil report["error"], "#{state}: axe did not complete: #{report['error']}"
+    # axe cannot resolve aria-controls on a closed native dialog in the rendered
+    # tree. Check the actual DOM reference, and audit the open dialog separately.
+    assert_selector "#site-search-dialog", visible: :all
+    assert_equal "site-search-dialog", find("#search-taskbar-button")["aria-controls"]
     assert report.fetch("violations").empty?, "#{state}: #{report.fetch('violations').map { |v| [ v['id'], v['nodes'].map { |n| n['target'] } ] }.inspect}"
   end
 end

@@ -34,4 +34,13 @@ class ContentTagTaxonomyTest < ActiveSupport::TestCase
     assert_equal [ "Repository One", "Repository Two" ], grouped_tags.fetch("Repositories")
     assert_equal [ "Web" ], grouped_tags.fetch("Categories")
   end
+
+  test "reverse and blockchain aliases collapse to single category filters" do
+    values = [ "rev", "Reverse", "reversing", "web3", "Blockchain" ]
+    assert_equal [ "Reverse", "Blockchain" ], ContentTagTaxonomy.canonical_values(values)
+    groups = ContentTagTaxonomy.filter_groups(values)
+    assert_equal 1, groups.length
+    assert_equal "category", groups.first[:sort]
+    assert_equal [ "Blockchain", "Reverse" ], groups.first[:tags]
+  end
 end

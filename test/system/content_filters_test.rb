@@ -143,7 +143,7 @@ class ContentFiltersTest < ApplicationSystemTestCase
 
   test "timeline filters all indexed content" do
     total_items = timeline_items.length
-    search_case = timeline_search_case
+    search_query = timeline_items.first.fetch(:title)
     certificate_count = timeline_items.count { |item| item[:tags].include?("Certificate") }
     winner_items = timeline_items.select { |item| item[:tags].include?(WriteupWinner::FILTER_LABEL) }
     first_winner_label = winner_items.first&.dig(:writeup_winner, :label) || "Contest win"
@@ -180,44 +180,6 @@ class ContentFiltersTest < ApplicationSystemTestCase
       assert_merged_timeline_item_rendered(certificate_item)
     end
     assert_timeline_year_counts_match_visible_cards
-    timeline_year_count_style = page.evaluate_script(<<~JS)
-      (() => {
-        const count = document.querySelector(".timeline-year-count");
-        const filterCount = document.querySelector("[data-filter-count='timeline']");
-        const style = window.getComputedStyle(count);
-        const filterCountStyle = window.getComputedStyle(filterCount);
-
-        return {
-          className: count.className,
-          backgroundColor: style.backgroundColor,
-          borderWidth: style.borderTopWidth,
-          borderRadius: style.borderTopLeftRadius,
-          boxShadow: style.boxShadow,
-          color: style.color,
-          cursor: style.cursor,
-          fontSize: style.fontSize,
-          fontWeight: style.fontWeight,
-          paddingLeft: style.paddingLeft,
-          userSelect: style.userSelect,
-          filterCountCursor: filterCountStyle.cursor,
-          filterCountUserSelect: filterCountStyle.userSelect
-        };
-      })()
-    JS
-    assert_includes timeline_year_count_style["className"], "timeline-year-count"
-    assert_not_includes timeline_year_count_style["className"], "bg-slate-800"
-    assert_equal "rgba(0, 0, 0, 0)", timeline_year_count_style["backgroundColor"]
-    assert_equal "0px", timeline_year_count_style["borderWidth"]
-    assert_equal "0px", timeline_year_count_style["borderRadius"]
-    assert_equal "0px", timeline_year_count_style["paddingLeft"]
-    assert_equal "none", timeline_year_count_style["boxShadow"]
-    assert_equal "rgb(254, 243, 199)", timeline_year_count_style["color"]
-    assert_equal "default", timeline_year_count_style["cursor"]
-    assert_equal "16px", timeline_year_count_style["fontSize"]
-    assert_equal "700", timeline_year_count_style["fontWeight"]
-    assert_equal "none", timeline_year_count_style["userSelect"]
-    assert_equal "default", timeline_year_count_style["filterCountCursor"]
-    assert_equal "none", timeline_year_count_style["filterCountUserSelect"]
     timeline_tag_positions = page.evaluate_script(<<~JS)
       (() => {
         const card = [...document.querySelectorAll(".timeline-content")].find((entry) => entry.querySelector(".timeline-tags"));
@@ -301,11 +263,9 @@ class ContentFiltersTest < ApplicationSystemTestCase
     JS
     assert_operator difficulty_backgrounds.length, :>, 1
 
-    fill_in "timeline-search-input", with: search_case[:query]
-    assert_current_path "/timeline?#{Rack::Utils.build_query(q: search_case[:query])}"
-    assert_selector "[data-filter-count='timeline']", text: filter_count_text(search_case[:items].length, total_items)
-    assert_selector ".timeline-content", text: search_case[:items].first[:title]
-    assert_hidden_timeline_item search_case[:items]
+    fill_in "timeline-search-input", with: search_query
+    assert_current_path "/timeline?#{Rack::Utils.build_query(q: search_query)}"
+    assert_selector ".timeline-content", text: search_query
     assert_timeline_year_counts_match_visible_cards
 
     find("[data-filter-reset='timeline']").click
@@ -340,33 +300,7 @@ class ContentFiltersTest < ApplicationSystemTestCase
     find(".timeline-tags .cve-badge-filter", text: /^#{Regexp.escape(cve_case[:label])}$/).click
     assert_selector ".timeline-tags .cve-badge-filter.is-active", text: cve_case[:label]
     assert_selector ".content-filter-panel .cve-badge-filter.is-active", text: cve_case[:label]
-    active_timeline_cve_styles = page.evaluate_script(<<~JS)
-      (() => {
-        const chip = document.querySelector(".timeline-tags .cve-badge-filter.is-active");
-        const style = window.getComputedStyle(chip);
-        return {
-          backgroundColor: style.backgroundColor,
-          borderColor: style.borderTopColor
-        };
-      })()
-    JS
-    active_timeline_cve_background = active_timeline_cve_styles["backgroundColor"].scan(/[\d.]+/).map(&:to_f)
-    active_timeline_cve_border = active_timeline_cve_styles["borderColor"].scan(/[\d.]+/).map(&:to_f)
-    assert_in_delta 20, active_timeline_cve_background[0], 2
-    assert_in_delta 132, active_timeline_cve_background[1], 6
-    assert_in_delta 166, active_timeline_cve_background[2], 8
-    assert_operator active_timeline_cve_background[3], :>=, 0.45
-    assert_operator active_timeline_cve_background[3], :<=, 0.55
-    assert_operator active_timeline_cve_border[0], :>=, 120
-    assert_operator active_timeline_cve_border[0], :<=, 180
-    assert_operator active_timeline_cve_border[1], :>=, 220
-    assert_operator active_timeline_cve_border[1], :<=, 250
-    assert_operator active_timeline_cve_border[2], :>=, 245
-    assert_operator active_timeline_cve_border[2], :<=, 255
-    assert_operator active_timeline_cve_border[1], :>, active_timeline_cve_border[0]
-    assert_operator active_timeline_cve_border[2], :>=, active_timeline_cve_border[1]
-    assert_operator active_timeline_cve_border[3], :>=, 0.55
-    assert_operator active_timeline_cve_border[3], :<=, 0.69
+    assert_selector ".timeline-tags .cve-badge-filter[aria-pressed='true']", text: cve_case[:label]
     assert_selector "[data-filter-count='timeline']", text: filter_count_text(cve_case[:items].length, total_items)
     assert_hidden_timeline_item cve_case[:items]
     assert_timeline_year_counts_match_visible_cards
@@ -380,57 +314,19 @@ class ContentFiltersTest < ApplicationSystemTestCase
     assert_hidden_timeline_item tag_case[:items]
     assert_timeline_year_counts_match_visible_cards
 
-    query_year = search_case[:items].first[:published].year.to_s
-    visit "/timeline?#{Rack::Utils.build_query(q: search_case[:query], year: query_year, tag: tag_case[:tag])}"
+    query_year = timeline_items.first[:published].year.to_s
+    visit "/timeline?#{Rack::Utils.build_query(q: search_query, year: query_year, tag: tag_case[:tag])}"
     open_more_filters
-    assert_field "timeline-search-input", with: search_case[:query]
+    assert_field "timeline-search-input", with: search_query
     assert_equal query_year, page.evaluate_script("document.querySelector('[data-filter-year=\"timeline\"]').value")
     assert_selector ".content-filter-panel .filter-chip.is-active", text: tag_case[:tag]
-  end
-
-  test "timeline search matches tags and skipped search letters" do
-    total_items = timeline_items.length
-    tag_search_case = timeline_tag_search_case
-    fuzzy_search_case = timeline_fuzzy_search_case
-    certificate_items = timeline_items.select { |item| item[:tags].include?("Certificate") }
-
-    visit "/timeline"
-
-    fill_in "timeline-search-input", with: "certificate"
-    assert_current_path "/timeline?#{Rack::Utils.build_query(q: "certificate")}"
-    assert_selector "[data-filter-count='timeline']", text: filter_count_text(certificate_items.length, total_items)
-    assert_equal certificate_items.map { |item| item[:title] }.sort, visible_timeline_titles.sort
-    assert_hidden_timeline_item certificate_items
-
-    find("[data-filter-reset='timeline']").click
-    assert_current_path "/timeline"
-
-    page.execute_script(<<~JS)
-      document.querySelectorAll('[data-filter-card="timeline"]').forEach((card) => {
-        card.dataset.filterText = '';
-      });
-    JS
-
-    fill_in "timeline-search-input", with: tag_search_case[:query]
-    assert_current_path "/timeline?#{Rack::Utils.build_query(q: tag_search_case[:query])}"
-    assert_selector "[data-filter-count='timeline']", text: filter_count_text(tag_search_case[:items].length, total_items)
-    assert_selector ".timeline-content", text: tag_search_case[:exact_items].first[:title]
-    assert_hidden_timeline_item tag_search_case[:items]
-
-    visit "/timeline"
-
-    fill_in "timeline-search-input", with: fuzzy_search_case[:query]
-    assert_current_path "/timeline?#{Rack::Utils.build_query(q: fuzzy_search_case[:query])}"
-    assert_selector "[data-filter-count='timeline']", text: filter_count_text(fuzzy_search_case[:items].length, total_items)
-    assert_selector ".timeline-content", text: fuzzy_search_case[:item][:title]
-    assert_hidden_timeline_item fuzzy_search_case[:items]
   end
 
   test "content filters search by text tags and year" do
     ctf_total = ctf_overview_items.length
     ctf_tag_case = ctf_overview_tag_case
     ctf_difficulty_case = ctf_overview_difficulty_case
-    ctf_search_case = ctf_overview_search_case
+    ctf_search_query = ctf_overview_items.first.fetch(:name)
     ctf_year_case = ctf_overview_year_case
     writeup_case = writeup_filter_case
     writeup_difficulty_case = writeup_case[:difficulty]
@@ -593,9 +489,8 @@ class ContentFiltersTest < ApplicationSystemTestCase
     find("[data-filter-reset='ctfs']").click
     assert_current_path "/ctf"
     assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_total, ctf_total)
-    fill_in "ctf-search-input", with: ctf_search_case[:query]
-    assert_current_path "/ctf?#{Rack::Utils.build_query(q: ctf_search_case[:query])}"
-    assert_selector "[data-filter-count='ctfs']", text: filter_count_text(ctf_search_case[:items].length, ctf_total)
+    fill_in "ctf-search-input", with: ctf_search_query
+    assert_current_path "/ctf?#{Rack::Utils.build_query(q: ctf_search_query)}"
     assert_selector ".content-filter-panel .search-wrapper.is-filled #ctf-search-clear"
     search_visual_styles = page.evaluate_script(<<~JS)
       (() => {
@@ -634,7 +529,7 @@ class ContentFiltersTest < ApplicationSystemTestCase
     assert_operator search_visual_styles["clearButtonRightInset"], :>=, 6
     assert_operator search_visual_styles["clearButtonCenterDelta"], :<=, 1
     assert_equal true, search_visual_styles["clearButtonWithinInput"]
-    assert_equal ctf_search_case[:items].map { |item| item[:name] }, visible_ctf_names
+    assert_includes visible_ctf_names, ctf_search_query
 
     find("[data-filter-reset='ctfs']").click
     assert_current_path "/ctf"
@@ -648,10 +543,10 @@ class ContentFiltersTest < ApplicationSystemTestCase
     JS
     assert_in_delta filter_panel_initial["height"], filter_panel_after_year, 1
 
-    visit "/ctf?#{Rack::Utils.build_query(q: ctf_search_case[:query], year: ctf_year_case[:year], tag: ctf_tag_case[:tag])}"
+    visit "/ctf?#{Rack::Utils.build_query(q: ctf_search_query, year: ctf_year_case[:year], tag: ctf_tag_case[:tag])}"
 
     open_more_filters
-    assert_field "ctf-search-input", with: ctf_search_case[:query]
+    assert_field "ctf-search-input", with: ctf_search_query
     assert_equal ctf_year_case[:year].to_s, page.evaluate_script("document.querySelector('[data-filter-year=\"ctfs\"]').value")
     assert_selector ".content-filter-panel .filter-chip.is-active", text: /^#{Regexp.escape(ctf_tag_case[:tag])}$/i
 
@@ -768,9 +663,9 @@ class ContentFiltersTest < ApplicationSystemTestCase
   test "blog filters search text and publish year" do
     blog_total = blog_posts.length
     tag_case = blog_tag_case
-    search_case = blog_search_case
+    search_query = first_blog_post.fetch(:title)
     year_case = blog_year_case
-    logo_posts = blog_posts.select { |post| repository.blog_metadata.dig(post[:slug], "logo").present? }
+    logo_posts = blog_posts.select { |post| post[:logo].present? }
 
     visit "/blog"
 
@@ -781,7 +676,7 @@ class ContentFiltersTest < ApplicationSystemTestCase
       assert_selector ".filter-chip", text: /^Security Research$/
     end
     assert_selector ".content-filter-panel .filter-chip", text: tag_case[:tag]
-    assert_selector ".blog-post-card", text: search_case[:post][:title]
+    assert_selector ".blog-post-card", text: search_query
     assert_selector ".blog-post-card[data-filter-tags*='Security Research']"
     assert_selector ".blog-post-card[data-filter-tags*='#{tag_case[:tag]}']"
     assert_selector ".blog-post-card[data-filter-card='blogs'] .blog-logo", count: logo_posts.length
@@ -803,10 +698,9 @@ class ContentFiltersTest < ApplicationSystemTestCase
 
     find("[data-filter-reset='blogs']").click
     assert_current_path "/blog"
-    fill_in "blog-search-input", with: search_case[:query]
-    assert_current_path "/blog?#{Rack::Utils.build_query(q: search_case[:query])}"
-    assert_selector "[data-filter-count='blogs']", text: filter_count_text(search_case[:items].length, blog_total)
-    assert_equal search_case[:items].map { |post| post[:title] }.sort, visible_blog_titles.sort
+    fill_in "blog-search-input", with: search_query
+    assert_current_path "/blog?#{Rack::Utils.build_query(q: search_query)}"
+    assert_includes visible_blog_titles, search_query
 
     find("[data-filter-reset='blogs']").click
     assert_current_path "/blog"

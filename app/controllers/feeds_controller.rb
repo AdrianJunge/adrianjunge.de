@@ -1,18 +1,20 @@
 class FeedsController < ApplicationController
+  self.requires_modern_browser = false
+
   include ActionView::Helpers::SanitizeHelper
 
   DESCRIPTION_TAGS = %w[p br strong em a code pre img].freeze
   DESCRIPTION_ATTRIBUTES = %w[href src alt title].freeze
 
   def show
-    @feed_title = "adrianjunge.de"
-    @feed_description = "Latest blog posts and CTF writeups from Adrian Junge."
+    @feed_title = SiteProfile.feed_title
+    @feed_description = "Latest blog posts and CTF writeups from #{SiteProfile.name}."
     @feed_alternate_url = root_url
 
     @items = content_repository.feed_posts.map { |item| normalize_feed_item(item) }
     @feed_updated = @items.map { |item| item[:modified] }.max || ContentDate::EPOCH
     @feed_self_url = feed_self_url
-    return unless stale?(etag: [ "feeds-v2", @feed_title, @feed_description, @feed_alternate_url, @feed_self_url, @items, request.format.to_s ], public: true)
+    return unless stale?(etag: [ "feeds-v3", SiteProfile.author, @feed_title, @feed_description, @feed_alternate_url, @feed_self_url, @items, request.format.to_s ], public: true)
 
     respond_to do |format|
       format.rss do
@@ -46,12 +48,7 @@ class FeedsController < ApplicationController
       feed_url: feed_json_url,
       description: @feed_description,
       language: "en",
-      authors: [
-        {
-          name: "Adrian Junge",
-          url: about_url
-        }
-      ],
+      authors: [ SiteProfile.author ],
       items: @items.map { |item| json_feed_item(item) }
     }
   end
@@ -65,12 +62,13 @@ class FeedsController < ApplicationController
       summary: strip_tags(item[:description]).squish,
       date_published: item[:pub_date].iso8601,
       date_modified: item[:modified].iso8601,
-      tags: [ item[:source] ]
+      tags: [ item[:source] ],
+      authors: item[:authors]
     }.compact
   end
 
   def normalize_feed_item(item)
-    link = absolute_feed_link(item[:link])
+    link = SiteProfile.absolute_url(item[:link])
 
     {
       source: item[:source_label],
@@ -80,26 +78,8 @@ class FeedsController < ApplicationController
       link: link,
       pub_date: item[:published] || ContentDate::EPOCH,
       modified: item[:modified] || item[:published] || ContentDate::EPOCH,
-      guid: link
+      guid: link,
+      authors: item[:authors] || ArticleAuthor.normalize(item.dig(:metadata, "article_authors"))
     }
-  end
-
-  def absolute_feed_link(link)
-    raw = link.to_s
-    return raw if raw.match?(%r{\Ahttps?://}i)
-
-    path = raw.start_with?("/") ? raw : "/#{raw}"
-    path_without_fragment, fragment = path.split("#", 2)
-    path_without_query, query = path_without_fragment.split("?", 2)
-    encoded_path = path_without_query.split("/", -1).map do |segment|
-      ERB::Util.url_encode(CGI.unescape(segment))
-    end.join("/")
-    encoded_path = "/" if encoded_path.blank?
-
-    suffix = +""
-    suffix << "?#{query}" if query.present?
-    suffix << "##{fragment}" if fragment.present?
-
-    "#{request.base_url}#{encoded_path}#{suffix}"
   end
 end

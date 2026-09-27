@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "axeVersion": "4.13.0",
+  "triagedOn": "2026-09-27",
+  "reviewPolicy": "This is a reviewed classification of axe's limitations, not proof of accessibility or a completed manual review. Unknown rules, new reasons, changed DOM references, and growth beyond the stated envelopes require triage. Confirmed violations always fail. Review actual contrast and screen-reader behavior manually.",
+  "rules": {
+    "color-contrast": {
+      "messageKeys": ["pseudoContent"],
+      "reason": "The site background includes a pseudo-element layer. axe cannot determine the composited background for these nodes; their contrast remains unresolved until checked visually and with a contrast tool across the background. The envelopes allow modest content/date variation, not new failure types.",
+      "manualStatus": "pending contrast review"
+    },
+    "aria-valid-attr-value": {
+      "messageKeys": ["controlsWithinPopup"],
+      "targets": [["#search-taskbar-button"]],
+      "reason": "The closed native search dialog is outside the rendered accessibility tree. The browser test asserts the referenced dialog ID exists in the DOM and audits the dialog after opening it.",
+      "manualStatus": "DOM reference verified; screen-reader announcement review pending"
+    }
+  },
+  "states": {
+    "home-default-mobile": {"color-contrast": 70, "aria-valid-attr-value": 1},
+    "timeline-default-mobile": {"color-contrast": 600, "aria-valid-attr-value": 1},
+    "about-default-mobile": {"color-contrast": 45, "aria-valid-attr-value": 1},
+    "blog-java-strings-default-mobile": {"color-contrast": 460, "aria-valid-attr-value": 1},
+    "blog-java-strngs-default-mobile": {"color-contrast": 30, "aria-valid-attr-value": 1},
+    "timeline-more-filters-open-selected-mobile": {"color-contrast": 130, "aria-valid-attr-value": 1},
+    "about-supporting-details-open-mobile": {"color-contrast": 280, "aria-valid-attr-value": 1},
+    "site-search-dialog-results-mobile": {"color-contrast": 10}
+  }
+}

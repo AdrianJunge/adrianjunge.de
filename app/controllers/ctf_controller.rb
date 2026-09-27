@@ -4,7 +4,7 @@ class CtfController < ApplicationController
   def index
     @ctfs = content_repository.ctf_metadata
     @ctf_filters = @ctfs.to_h do |name, ctf|
-      directory = ctf["terminal_path"].presence || name.downcase
+      directory = ctf["directory"].presence || name.downcase
       metadata = content_repository.ctf_posts_for_event(directory).map { |post| post[:metadata] }
 
       [ name, {
@@ -16,10 +16,6 @@ class CtfController < ApplicationController
     end
     @ctf_years = @ctf_filters.transform_values { |filters| filters[:years] }
     @ctf_tags = @ctf_filters.transform_values { |filters| filters[:tags] }
-    @ctf_writeup_counts = @ctf_filters.transform_values { |filters| filters[:writeup_count] }
-    @ctf_reading_times = @ctf_filters.transform_values do |filters|
-      content_repository.format_reading_time(filters[:reading_time_minutes])
-    end
     @filter_years = @ctf_years.values.flatten.uniq.sort.reverse
     @filter_tags = sorted_filter_values(@ctf_tags.values.flatten)
     @filter_tag_groups = filter_tag_groups(@filter_tags, topic_label: "Challenge tags")
@@ -33,7 +29,8 @@ class CtfController < ApplicationController
     @which = event[:slug]
     @ctf_name = event[:name]
     @ctf = event[:metadata]
-    @ctf_info = content_repository.ctf_posts_for_event(@which).to_h do |post|
+    @ctf_posts = content_repository.ctf_posts_for_event(@which)
+    @ctf_info = @ctf_posts.to_h do |post|
       [ post[:slug], post[:metadata] ]
     end
     @writeups = @ctf_info.keys
@@ -50,12 +47,14 @@ class CtfController < ApplicationController
     return render_error_page(:not_found) unless event
 
     @which = post[:directory]
+    @article_post = post
     @writeup = post[:slug]
     @ctfs = content_repository.ctf_metadata
     @ctf_name = event[:name]
     @ctf = event[:metadata]
     @markdown_content = post[:body]
     @ctf_info = post[:metadata]
+    @article_authors = post[:authors] || ArticleAuthor.normalize(@ctf_info["article_authors"])
     @published_time = post[:published]
     @modified_time = post[:modified]
     @has_math = @ctf_info["has_math"]

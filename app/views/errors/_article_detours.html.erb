@@ -1,0 +1,18 @@
+<% if detours[:suggestions].any? %>
+  <section class="error-detours" aria-labelledby="error-detours-title">
+    <h2 id="error-detours-title">Were you looking for one of these?</h2>
+    <ul class="error-detour-list">
+      <% detours[:suggestions].each do |article| %>
+        <li><%= link_to article[:title], article[:url], class: "error-detour-link" %></li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>
+
+<% if (article = detours[:random_article]) %>
+  <section class="error-detours error-random-detour" aria-labelledby="error-random-detour-title">
+    <h2 id="error-random-detour-title">Take the scenic route</h2>
+    <p>A random <%= article[:type] == "ctf" ? "CTF writeup" : "post" %>, freshly picked for this wrong turn.</p>
+    <%= link_to article[:title], article[:url], class: "error-detour-link", data: { random_article: true } %>
+  </section>
+<% end %>

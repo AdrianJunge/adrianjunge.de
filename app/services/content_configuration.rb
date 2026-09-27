@@ -5,7 +5,6 @@ class ContentConfiguration
   CTF_CHALLENGE_FILES_PATH = CTF_RESOURCE_BASE_PATH.join("files")
   CTF_PDF_WRITEUPS_PATH = CTF_RESOURCE_BASE_PATH.join("writeups")
   BLOG_BASE_PATH = Rails.root.join("app", "assets", "blog", "posts")
-  BLOG_INFO_PATH = Rails.root.join("app", "assets", "blog", "blogs.json")
   ABOUTME_BASE_PATH = Rails.root.join("app", "assets", "aboutme")
   ABOUTME_TEXT_PATH = ABOUTME_BASE_PATH.join("about.md")
   ABOUTME_CVES_PATH = ABOUTME_BASE_PATH.join("cves.json")
@@ -13,6 +12,8 @@ class ContentConfiguration
   ABOUTME_CERTIFICATES_PATH = ABOUTME_BASE_PATH.join("certificates.json")
   ABOUTME_TALKS_PATH = ABOUTME_BASE_PATH.join("talks.json")
   ABOUTME_ACHIEVEMENTS_PATH = ABOUTME_BASE_PATH.join("achievements.json")
+
+  attr_reader :root
 
   def initialize(root: Rails.root)
     @root = Pathname(root)

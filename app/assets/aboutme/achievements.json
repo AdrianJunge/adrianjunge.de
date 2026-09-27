@@ -20,7 +20,7 @@
       {
         "id": "firedancer-v1-audit-competition",
         "title": "Firedancer v1 audit competition",
-        "date": "2024-04-09",
+        "date": "2026-04-09",
         "summary": "Participated in the Firedancer v1 audit competition.",
         "url": "https://immunefi.com/audit-competition/firedancer-v1-audit-comp/leaderboard/#:~:text=vurlo"
       }
@@ -127,13 +127,6 @@
         "date": "2024-11-23",
         "summary": "#3 at GlacierCTF, qualifying for DHM 2025 as KITCTF team.",
         "url": "https://ctftime.org/event/2402"
-      },
-      {
-        "id": "kitctf-swampctf-2024",
-        "title": "KITCTF #1 at SwampCTF 2024",
-        "date": "2024-04-07",
-        "summary": "#1 at SwampCTF.",
-        "url": "https://ctftime.org/event/2138"
       }
     ]
   }

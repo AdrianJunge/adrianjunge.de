@@ -33,7 +33,7 @@ class ArticlePagesTest < ApplicationSystemTestCase
         assert_empty metrics["duplicateIds"]
         if width <= 1400
           assert_selector "#toc"
-          assert_selector "#toc > .article-back-link", text: "Back to overview"
+          assert_selector "#toc > .article-back-link", text: path.start_with?("/blog/") ? "All blog posts" : /writeups/
           assert_no_selector ".back-button-floating"
           assert_no_selector ".article-toc-compact[open]"
           find(".article-toc-compact > summary").click
@@ -719,7 +719,7 @@ class ArticlePagesTest < ApplicationSystemTestCase
         const pre = document.querySelector(".code-block pre.highlight");
         const containerRect = container.getBoundingClientRect();
         const blockRect = block.getBoundingClientRect();
-        const style = window.getComputedStyle(pre);
+        const style = window.getComputedStyle(pre.querySelector(".code-line-content"));
 
         return {
           blockWidth: Math.round(blockRect.width),
@@ -738,8 +738,8 @@ class ArticlePagesTest < ApplicationSystemTestCase
 
     assert_operator metrics["blockWidth"], :<, metrics["containerWidth"] * 0.95
     assert_in_delta metrics["containerCenter"], metrics["blockCenter"], 2
-    assert_equal "pre", metrics["whiteSpace"]
-    assert_equal "normal", metrics["overflowWrap"]
+    assert_equal "pre-wrap", metrics["whiteSpace"]
+    assert_equal "anywhere", metrics["overflowWrap"]
     assert_operator metrics["codeLineCount"], :>, 0
     assert_equal "grid", metrics["firstLineDisplay"]
     assert_equal '"1"', metrics["firstLineNumber"]
@@ -759,6 +759,66 @@ class ArticlePagesTest < ApplicationSystemTestCase
     JS
 
     assert_operator mobile_font_sizes["code"], :<=, mobile_font_sizes["content"]
+  end
+
+  test "real blog and CTF code samples fit narrow and desktop articles without horizontal scrolling" do
+    [ 320, 390, 1440 ].each do |width|
+      page.current_window.resize_to(width, 1200)
+
+      [ "/blog/java-strings", "/ctf/gpnctf/Scanwich%20Station" ].each do |path|
+        visit path
+        assert_selector ".code-block pre.highlight"
+        assert_code_samples_fit_article("#{path} at #{width}px")
+      end
+    end
+  end
+
+  test "wrapped code preserves logical lines source whitespace and aligned line numbers" do
+    fixture_repository = fixture_content_repository
+    posts = [ fixture_repository.blog_posts.first, fixture_repository.ctf_posts.first ]
+    lines = (1..102).map { |number| "line #{number}" }
+    [ 1, 10, 100 ].each { |number| lines[number - 1] = "    #{'long_token_' * 32}" }
+    lines[2] = ""
+    lines[3] = ""
+    lines[4] = "    indented value"
+    lines[5] = '<sample value="preserved"> & source'
+    source = "#{lines.join("\n")}\n"
+    posts.each { |post| post[:body] = "# Code wrapping\n\n```text\n#{source}```\n" }
+
+    with_stubbed_content_repository(fixture_repository) do
+      [ 320, 390, 1440 ].each do |width|
+        page.current_window.resize_to(width, 1200)
+
+        posts.each do |post|
+          visit post[:link]
+          assert_selector ".code-block .code-line", count: lines.length, visible: :all
+          context = "#{post[:type]} at #{width}px"
+          metrics = wrapped_code_metrics
+
+          assert_equal source, metrics["source"], "CSS wrapping must preserve the clipboard source: #{context}"
+          assert_equal lines, metrics["lines"], "Indentation and blank lines must survive rendering: #{context}"
+          assert_equal (1..lines.length).map(&:to_s), metrics["numbers"], context
+          assert_code_samples_fit_article(context)
+
+          metrics["wrappedLines"].each do |line|
+            assert_equal line["number"].to_json, line["numberContent"], context
+            assert_operator line["rows"].length, :>, 1, "Long tokens must visibly wrap: #{context}"
+            assert_operator line["rows"].first["left"], :>, line["contentLeft"] + 8, "First-row indentation must remain visible: #{context}"
+            line["rows"].drop(1).each do |row|
+              assert_in_delta line["contentLeft"], row["left"], 1.5, "Continuation must align with the code column: #{context}"
+            end
+            assert_operator line["contentLeft"], :>, line["lineLeft"] + 20, "Line-number gutter must stay separate: #{context}"
+          end
+          assert_in_delta metrics["wrappedLines"].first["contentLeft"], metrics["wrappedLines"].last["contentLeft"], 1, context
+          metrics["blankLines"].each do |line|
+            assert_in_delta line["lineHeight"], line["height"], 1, "Blank logical lines retain one row: #{context}"
+          end
+
+          find(".code-block").scroll_to(:top)
+          page.save_screenshot(Rails.root.join("tmp", "article-code-wrap", "#{post[:type]}-#{width}.png"))
+        end
+      end
+    end
   end
 
   test "article markdown keeps readable heading typography" do
@@ -799,6 +859,74 @@ class ArticlePagesTest < ApplicationSystemTestCase
   end
 
   private
+
+  def assert_code_samples_fit_article(context)
+    overflows = page.evaluate_script(<<~JS)
+      (() => {
+        const article = document.querySelector(".writeup-container").getBoundingClientRect();
+        return [...document.querySelectorAll(".code-block")].flatMap((block, index) => {
+          const blockRect = block.getBoundingClientRect();
+          const failures = [];
+          if (blockRect.left < article.left - 1 || blockRect.right > article.right + 1) {
+            failures.push(`block ${index + 1} extends beyond the article`);
+          }
+          for (const node of block.querySelectorAll("pre, code, .code-line-content")) {
+            if (node.scrollWidth > node.clientWidth + 1) {
+              failures.push(`block ${index + 1} ${node.className || node.tagName} overflows by ${node.scrollWidth - node.clientWidth}px`);
+            }
+          }
+          return failures;
+        });
+      })()
+    JS
+
+    assert_equal [], overflows, context
+  end
+
+  def wrapped_code_metrics
+    page.evaluate_script(<<~JS)
+      (() => {
+        const code = document.querySelector(".code-block pre code");
+        const lines = [...code.querySelectorAll(".code-line")];
+        const wrappedLines = [1, 10, 100].map((number) => {
+          const line = lines[number - 1];
+          const content = line.querySelector(".code-line-content");
+          const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+          const rows = [];
+          let text;
+          while ((text = walker.nextNode())) {
+            for (let offset = 0; offset < text.length; offset += 1) {
+              if (/\\s/.test(text.data[offset])) continue;
+              const range = document.createRange();
+              range.setStart(text, offset);
+              range.setEnd(text, offset + 1);
+              const rect = range.getBoundingClientRect();
+              const row = rows.find((candidate) => Math.abs(candidate.top - rect.top) < 0.5);
+              if (row) row.left = Math.min(row.left, rect.left);
+              else rows.push({ top: rect.top, left: rect.left });
+            }
+          }
+          return {
+            number: String(number),
+            numberContent: getComputedStyle(line, "::before").content,
+            lineLeft: line.getBoundingClientRect().left,
+            contentLeft: content.getBoundingClientRect().left,
+            rows
+          };
+        });
+        return {
+          source: code.textContent,
+          lines: lines.map((line) => line.querySelector(".code-line-content").textContent),
+          numbers: lines.map((line) => line.dataset.line),
+          wrappedLines,
+          blankLines: [3, 4].map((number) => ({
+            height: lines[number - 1].getBoundingClientRect().height,
+            lineHeight: parseFloat(getComputedStyle(lines[number - 1]).lineHeight)
+          }))
+        };
+      })()
+    JS
+  end
 
   def assert_compact_anchor_clears_contents
     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time

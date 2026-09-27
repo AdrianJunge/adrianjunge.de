@@ -1,7 +1,7 @@
 require "application_system_test_case"
 
 class YearFilterTest < ApplicationSystemTestCase
-  test "year popup matches the rounded dark controls and retains native input behavior" do
+  test "year popup retains native pointer keyboard and history behavior" do
     page.current_window.resize_to(1440, 1000)
     visit "/timeline"
     assert_selector ".content-filter-panel[data-initialized='true']"
@@ -14,24 +14,6 @@ class YearFilterTest < ApplicationSystemTestCase
 
     select.click
     assert_selector ".content-filter-select:open"
-    styles = page.evaluate_script(<<~JS)
-      (() => {
-        const select = document.querySelector('.content-filter-select');
-        const picker = getComputedStyle(select, '::picker(select)');
-        const control = getComputedStyle(select);
-        return {
-          appearance: control.appearance, radius: picker.borderTopLeftRadius,
-          controlRadius: control.borderTopLeftRadius, background: picker.backgroundColor,
-          borderWidth: picker.borderTopWidth, overflow: picker.overflowY
-        };
-      })()
-    JS
-    assert_equal "base-select", styles["appearance"]
-    assert_equal styles["controlRadius"], styles["radius"]
-    assert_operator styles["radius"].to_f, :>=, 10
-    assert_equal "rgb(10, 31, 54)", styles["background"]
-    assert_equal "1px", styles["borderWidth"]
-    assert_equal "auto", styles["overflow"]
     save_picker_screenshot("desktop")
 
     page.driver.browser.action.move_to(select.find("option[value='#{years.first}']").native).click.perform

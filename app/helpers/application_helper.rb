@@ -36,4 +36,8 @@ module ApplicationHelper
     parent = "/" if parent == "."
     parent
   end
+
+  def article_parent_label
+    @ctf_name.present? ? "#{@ctf_name} writeups" : "All blog posts"
+  end
 end

@@ -1,8 +1,7 @@
 <% content_for :head do %>
-  <% ctf_label = @ctf_name.presence || @ctf["terminal_path"].to_s.upcase %>
+  <% ctf_label = @ctf_name.presence || @ctf["directory"].to_s.upcase %>
   <% ctf_title = "#{ctf_label} CTF writeups" %>
   <% ctf_description = "Writeups for the #{ctf_label} Capture The Flag competition." %>
-  <% ctf_items = @ctf_info.map { |writeup, info| { title: info["title"].presence || writeup, link: "/ctf/#{@which}/#{writeup}" } } %>
   <%= seo_meta_tags(
         title: ctf_title,
         description: ctf_description,
@@ -12,7 +11,7 @@
           title: ctf_title,
           description: ctf_description,
           canonical_path: request.path,
-          items: ctf_items
+          items: @ctf_posts
         ),
         breadcrumbs: [
           { title: "Home", link: root_path },
@@ -22,9 +21,6 @@
       ) %>
 <% end %>
 
-<% terminal_paths = @writeups.map { |writeup| { label: writeup, url: "/ctf/#{@which}/#{ERB::Util.url_encode(writeup)}" } } %>
-<% @terminal_paths = terminal_paths %>
-
 <main id="main-content" tabindex="-1" class="content-page ctf-container">
   <%= render "shared/content_hero",
              icon_path: @ctf["logo"],
@@ -32,11 +28,11 @@
              icon_class: "content-hero-logo",
              invert_icon: false,
              title: @which.upcase,
-             description: "Writeups for #{@ctf["terminal_path"].upcase} challenges.",
+             description: "Writeups for #{@ctf["directory"].upcase} challenges.",
              url: @ctf["website"],
              external: true %>
 
-  <%= render "shared/content_filters",
+  <%= render_content_filters(
              scope: "writeups",
              search_id: "writeup-search-input",
              clear_id: "writeup-search-clear",
@@ -44,14 +40,14 @@
              years: @filter_years,
              tags: @filter_tags,
              tag_groups: @filter_tag_groups,
-             total: @ctf_info.length %>
+             total: @ctf_info.length
+           ) %>
 
   <div class="writeup-content" data-filter-results="writeups">
     <div class="writeup-overview">
-      <% @ctf_info.each do |writeup, info| %>
-        <% writeup_path = "/ctf/#{@which}/#{ERB::Util.url_encode(writeup)}" %>
+      <% @ctf_posts.each do |post| %>
         <div class="blog-post-entry writeup-post-entry">
-          <%= render_writeup_card(writeup, writeup_path, info) %>
+          <%= render_writeup_card(post[:slug], post[:link], post[:metadata]) %>
         </div>
       <% end %>
     </div>

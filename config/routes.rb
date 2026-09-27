@@ -8,6 +8,7 @@ Rails.application.routes.draw do
 
   get "/about", to: "aboutme#index", as: :about
   get "/aboutme", to: redirect("/about")
+  get "/search/index.json", to: "search#data", as: :site_search_index, defaults: { format: :json }
   get "/sitemap.xml", to: "seo#sitemap", defaults: { format: :xml }
   get "/feed", to: "feeds#show", as: :feed, defaults: { format: :rss }
   get "/feed.xml", to: "feeds#show", as: :feed_xml, defaults: { format: :rss }

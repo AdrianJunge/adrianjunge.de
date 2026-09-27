@@ -1,0 +1,28 @@
+{
+  "documents": [
+    {"title":"Body notes","url":"/blog/body","kind":"Blog post","tags":[],"sections":[{"heading":"Background","anchor":"background","text":"A rare needle appears only in this section."}]},
+    {"title":"Heading paper","url":"/blog/heading","kind":"Blog post","tags":[],"sections":[{"heading":"Needle section","anchor":"needle-section","text":"Background material."}]},
+    {"title":"Tag journal","url":"/blog/tag","kind":"Blog post","tags":["Needle"],"sections":[{"heading":"","anchor":null,"text":"Background material."}]},
+    {"title":"Needle report","url":"/blog/title","kind":"Blog post","tags":[],"sections":[{"heading":"","anchor":null,"text":"Background material."}]},
+    {"title":"Café notes","url":"/blog/cafe","kind":"Blog post","tags":[],"sections":[{"heading":"Café","anchor":"cafe","text":"Introductory material."},{"heading":"Runtime","anchor":"runtime","text":"A jcmd example for a synthetic fixture."},{"heading":"Other","anchor":"other","text":"Unrelated material."}]},
+    {"title":"Split topics","url":"/blog/split","kind":"Blog post","tags":[],"sections":[{"heading":"First","anchor":"first","text":"Oranges are discussed here."},{"heading":"Pears","anchor":"pears","text":"A different topic is discussed here."}]},
+    {"title":"Case study","url":"/about#case-study","kind":"CVE","tags":["CVE-2099-0001","CWE-89","High"],"sections":[{"heading":"","anchor":null,"text":"Parent summary with distinctive research context."},{"heading":"Disclosure published","anchor":"case-published","text":"Public release on 2099-02-03."}]},
+    {"title":"Equal Z","url":"/blog/tie-z","kind":"CTF writeup","tags":[],"sections":[{"heading":"First","anchor":"first","text":"Tie marker here."},{"heading":"Second","anchor":"second","text":"Tie marker here too."}]},
+    {"title":"Equal A","url":"/blog/tie-a","kind":"CTF writeup","tags":[],"sections":[{"heading":"First","anchor":"first","text":"Tie marker here."}]},
+    {"title":"Equal A","url":"/blog/tie-b","kind":"CTF writeup","tags":[],"sections":[{"heading":"First","anchor":"first","text":"Tie marker here."}]}
+  ],
+  "queries": [
+    {"q":"needle","urls":["/blog/title","/blog/tag","/blog/heading#needle-section","/blog/body#background"]},
+    {"q":"cafe jcmd","urls":["/blog/cafe#runtime"]},
+    {"q":"NEEDLE rare","urls":["/blog/body#background"]},
+    {"q":"needle missing","urls":[]},
+    {"q":"!!!","urls":[]},
+    {"q":"oranges pears","urls":["/blog/split#pears"]},
+    {"q":"oranges jcmd","urls":[]},
+    {"q":"distinctive 2099-02-03","urls":["/about#case-published"]},
+    {"q":"CVE-2099-0001 high","urls":["/about#case-study"]},
+    {"q":"case published","urls":["/about#case-published"]},
+    {"q":"tie marker","urls":["/blog/tie-a#first","/blog/tie-b#first","/blog/tie-z#first"]},
+    {"q":"needle needle","urls":["/blog/title","/blog/tag","/blog/heading#needle-section","/blog/body#background"]}
+  ]
+}

@@ -1,9 +1,3 @@
-// Shared taskbar initializer - retained for the import hook used on every page.
-function initSidebar() {
-  document.documentElement.classList.add("has-top-taskbar");
-  initFeedMenus();
-}
-
 function initFeedMenus() {
   const feedMenus = Array.from(document.querySelectorAll('.taskbar-feed-menu'));
   if (feedMenus.length === 0) return;
@@ -29,7 +23,7 @@ function initFeedMenus() {
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initSidebar);
+  document.addEventListener('DOMContentLoaded', initFeedMenus);
 } else {
-  initSidebar();
+  initFeedMenus();
 }

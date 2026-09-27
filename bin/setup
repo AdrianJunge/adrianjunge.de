@@ -1,6 +1,4 @@
 #!/usr/bin/env ruby
-require "fileutils"
-
 APP_ROOT = File.expand_path("..", __dir__)
 
 Dir.chdir(APP_ROOT) do
@@ -15,7 +13,7 @@ Dir.chdir(APP_ROOT) do
   puts "Installing locked dependencies"
   system({ "BUNDLE_FROZEN" => "true" }, "bundle", "install", exception: true)
   system("npm", "ci", exception: true)
-  system("bin/rails", "db:prepare", "tailwindcss:build", exception: true)
+  system("bin/rails", "tailwindcss:build", exception: true)
 
   unless ARGV.include?("--skip-server")
     STDOUT.flush

@@ -124,7 +124,7 @@ class LandingTest < ApplicationSystemTestCase
     ]
     page.current_window.resize_to(1440, 1100)
     preload = page.driver.browser.execute_cdp("Page.addScriptToEvaluateOnNewDocument", source: <<~JS)
-      // Accelerate only this browser test while exercising the real Typed.js loop.
+      // Accelerate only this browser test while exercising the real animation.
       const originalSetTimeout = window.setTimeout;
       window.setTimeout = (callback, delay, ...args) => originalSetTimeout.call(window, callback, Math.min(Number(delay) || 0, 1), ...args);
       document.addEventListener('DOMContentLoaded', () => {
@@ -132,9 +132,12 @@ class LandingTest < ApplicationSystemTestCase
         const phrases = #{phrases.to_json};
         const completedPhrases = new Set();
         let previous = element.textContent;
-        window.taglineLog = { completed: [], deleting: false, retyping: false, repeated: false };
+        window.taglineLog = { completed: [], deleting: false, retyping: false, repeated: false, jumps: [] };
         new MutationObserver(() => {
           const text = element.textContent;
+          if (text !== previous && (Math.abs(text.length - previous.length) !== 1 || !(text.startsWith(previous) || previous.startsWith(text)))) {
+            window.taglineLog.jumps.push({ from: previous, to: text });
+          }
           if (text.length < previous.length) window.taglineLog.deleting = true;
           if (window.taglineLog.deleting && text.length > previous.length) window.taglineLog.retyping = true;
           if (text !== previous && phrases.includes(text)) {
@@ -157,6 +160,7 @@ class LandingTest < ApplicationSystemTestCase
     assert log.fetch("deleting")
     assert log.fetch("retyping")
     assert log.fetch("repeated")
+    assert_empty log.fetch("jumps"), "Every transition must type or delete one character without replacing a partial sentence"
   ensure
     page.driver.browser.execute_cdp("Page.removeScriptToEvaluateOnNewDocument", identifier: preload["identifier"]) if preload
   end
@@ -385,21 +389,13 @@ class LandingTest < ApplicationSystemTestCase
       JS
       assert_equal "none", landing_difficulty_hover_styles["transform"]
     end
-
-    landing_styles = post_card_styles(".landing-writeup-cards .blog-post-card")
-
-    visit "/blog"
-    assert_selector ".blog-posts-container .blog-post-card"
-    blog_styles = post_card_styles(".blog-posts-container .blog-post-card")
-
-    assert_equal blog_styles, landing_styles
   end
 
   test "landing page links public section counters and keeps the bounty count static" do
     page.current_window.resize_to(1280, 1200)
     visit "/"
 
-    assert_text "I poke things politely and occasionally convince software to confess."
+    assert_text "I poke things politely and sometimes convince software to confess."
     assert_no_text "Security researcher and computer science student focused on web security"
     assert_no_text "Welcome to my flag collection"
     assert_selector ".landing-action[href='/timeline']", text: "Timeline"
@@ -518,40 +514,6 @@ class LandingTest < ApplicationSystemTestCase
     assert_no_selector ".landing-metric", text: "Achievements"
     assert_no_selector ".landing-metric[href='/ctf']", text: "CTFs"
     assert_no_selector ".landing-metric", text: "Tags"
-    find("#terminal-taskbar-button").click
-    assert_selector "#terminal-container:not(.terminal-minimized)"
-    assert_selector ".xterm-rows", text: "Email:"
-    assert_selector ".xterm-rows", text: "PGP:"
-    assert_selector ".xterm-rows", text: "GitHub:"
-    assert_selector ".xterm-rows", text: "LinkedIn:"
-    assert_selector ".xterm-rows", text: "Discord"
-    assert_selector ".xterm-rows", text: "Telegram:"
-    terminal_text_without_wraps = page.evaluate_script(<<~JS)
-      document.querySelector(".xterm-rows").innerText.replace(/\\s+/g, "")
-    JS
-    assert_includes terminal_text_without_wraps, "@FullyIncredibleCreativeUsername"
-    terminal_contact_order = page.evaluate_script(<<~JS)
-      (() => {
-        const text = document.querySelector(".xterm-rows").innerText;
-
-        return {
-          email: text.indexOf("Email:"),
-          pgp: text.indexOf("PGP:"),
-          github: text.indexOf("GitHub:"),
-          linkedin: text.indexOf("LinkedIn:"),
-          discord: text.indexOf("Discord:"),
-          telegram: text.indexOf("Telegram:")
-        };
-      })()
-    JS
-    assert_operator terminal_contact_order["email"], :>=, 0
-    assert_operator terminal_contact_order["email"], :<, terminal_contact_order["pgp"]
-    assert_operator terminal_contact_order["pgp"], :<, terminal_contact_order["github"]
-    assert_operator terminal_contact_order["github"], :<, terminal_contact_order["linkedin"]
-    assert_operator terminal_contact_order["linkedin"], :<, terminal_contact_order["discord"]
-    assert_operator terminal_contact_order["discord"], :<, terminal_contact_order["telegram"]
-    find("#minimize-terminal").click
-    assert_selector "#terminal-container.terminal-minimized", visible: :all
     assert_no_selector "#landing-featured-title", visible: :all
     assert_no_selector ".landing-featured-card", visible: :all
     assert_no_selector ".landing-metric .aboutme-stat-icon", visible: :all

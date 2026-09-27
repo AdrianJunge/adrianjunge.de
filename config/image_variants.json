@@ -1,23 +1,4 @@
 {
-  "blog/ffmpeg.png": {
-    "height": 384,
-    "src": "variants/blog/ffmpeg-384.webp",
-    "variants": [
-      {
-        "path": "variants/blog/ffmpeg-96.webp",
-        "width": 96
-      },
-      {
-        "path": "variants/blog/ffmpeg-192.webp",
-        "width": 192
-      },
-      {
-        "path": "variants/blog/ffmpeg-384.webp",
-        "width": 384
-      }
-    ],
-    "width": 384
-  },
   "blog/htb-cpts.png": {
     "height": 384,
     "src": "variants/blog/htb-cpts-372.webp",
@@ -133,11 +114,6 @@
     "height": 1214,
     "src": "variants/blog/posts/joomla-sqli/publisher-created-by-alias-browser.webp",
     "width": 1387
-  },
-  "blog/solana.svg": {
-    "height": 312,
-    "src": "blog/solana.svg",
-    "width": 398
   },
   "ctf/categories/crypto.png": {
     "height": 384,
@@ -824,25 +800,6 @@
     ],
     "width": 384
   },
-  "other/solana-firedancer.png": {
-    "height": 320,
-    "src": "variants/other/solana-firedancer-309.webp",
-    "variants": [
-      {
-        "path": "variants/other/solana-firedancer-93.webp",
-        "width": 93
-      },
-      {
-        "path": "variants/other/solana-firedancer-185.webp",
-        "width": 185
-      },
-      {
-        "path": "variants/other/solana-firedancer-309.webp",
-        "width": 309
-      }
-    ],
-    "width": 309
-  },
   "other/suitecrm.png": {
     "height": 384,
     "src": "variants/other/suitecrm-384.webp",
@@ -885,16 +842,6 @@
     "height": 512,
     "src": "task-bar/about.svg",
     "width": 512
-  },
-  "task-bar/arrow-left.svg": {
-    "height": 20,
-    "src": "task-bar/arrow-left.svg",
-    "width": 21
-  },
-  "task-bar/arrow-right.svg": {
-    "height": 20,
-    "src": "task-bar/arrow-right.svg",
-    "width": 21
   },
   "task-bar/blog.svg": {
     "height": 800,
@@ -966,44 +913,19 @@
     "src": "task-bar/pgp.svg",
     "width": 128
   },
-  "task-bar/post.svg": {
-    "height": 800,
-    "src": "task-bar/post.svg",
-    "width": 800
+  "task-bar/search.svg": {
+    "height": 32,
+    "src": "task-bar/search.svg",
+    "width": 32
   },
   "task-bar/telegram.svg": {
     "height": 800,
     "src": "task-bar/telegram.svg",
     "width": 800
   },
-  "task-bar/terminal-prompt.svg": {
-    "height": 24,
-    "src": "task-bar/terminal-prompt.svg",
-    "width": 24
-  },
-  "task-bar/terminal.svg": {
-    "height": 2051,
-    "src": "task-bar/terminal.svg",
-    "width": 2500
-  },
   "task-bar/timeline.svg": {
     "height": 800,
     "src": "task-bar/timeline.svg",
-    "width": 800
-  },
-  "terminal/close-icon.svg": {
-    "height": 800,
-    "src": "terminal/close-icon.svg",
-    "width": 800
-  },
-  "terminal/maximize-icon.svg": {
-    "height": 800,
-    "src": "terminal/maximize-icon.svg",
-    "width": 800
-  },
-  "terminal/minimize-icon.svg": {
-    "height": 800,
-    "src": "terminal/minimize-icon.svg",
     "width": 800
   }
 }

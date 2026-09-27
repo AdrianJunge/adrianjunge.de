@@ -41,7 +41,9 @@ class ContentIndex
   end
 
   def all_items
-    @all_items ||= merged_timeline_items(post_items + about_items).sort_by { |item| -item[:published].to_i }
+    @all_items ||= repository.cached_collection(:timeline) do
+      merged_timeline_items(post_items + about_items).sort_by { |item| -item[:published].to_i }
+    end
   end
 
   private
@@ -78,8 +80,6 @@ class ContentIndex
   end
 
   def blog_items
-    blog_metadata = repository.blog_metadata
-
     repository.blog_posts.map do |post|
       metadata = post[:metadata] || {}
 
@@ -94,8 +94,8 @@ class ContentIndex
         display_date: post[:published].strftime("%Y-%m-%d"),
         link: post[:link],
         tags: [ post[:which] ] + repository.metadata_tags(metadata),
-        timeline_group: metadata["timeline_group"].presence || blog_metadata.dig(post[:slug], "timeline_group").presence,
-        logo: blog_metadata.dig(post[:slug], "logo"),
+        timeline_group: metadata["timeline_group"].presence,
+        logo: post[:logo],
         reading_time_minutes: post[:reading_time_minutes],
         reading_time_label: post[:reading_time_label]
       )
@@ -279,31 +279,7 @@ class ContentIndex
   end
 
   def about_entry_icon(entry, collection)
-    entry["icon"].presence || about_collection_default_icon(collection[:kind], entry)
-  end
-
-  def about_collection_default_icon(kind, entry)
-    title = entry["title"].to_s.downcase
-
-    case kind
-    when "cve"
-      "other/cve.svg"
-    when "bug-bounty"
-      "other/bug-bounty.svg"
-    when "certificate"
-      "other/certificate.svg"
-    when "talk"
-      "other/talk-slides.png"
-    when "achievement"
-      "other/achievement.svg"
-    when "challenge"
-      "ctf/kitctf.png"
-    else
-      return "other/talk-slides.png" if title.match?(/\btalk\b|intro/)
-      return "other/certificate.svg" if title.match?(/certif|cpts/)
-
-      "other/achievement.svg"
-    end
+    entry["icon"].presence || ContentIconRegistry.for(collection[:kind], title: entry["title"])
   end
 
   def about_entry_timeline_link(entry, id, collection)

@@ -25,7 +25,7 @@ module AboutmeHelper
     stats = about_profile_sections.map do |section|
       { label: section[:id] == "achievements" ? "Achievements" : section[:title], value: section[:count], anchor: section[:id] }
     end
-    stats.insert(1, { label: "Bug bounties", value: ApplicationController::BUG_BOUNTY_COUNT })
+    stats.insert(1, { label: "Bug bounties", value: SiteProfile.bug_bounty_count })
   end
 
   private

@@ -16,18 +16,9 @@ module ContentTagTaxonomy
   ].freeze
   CONTENT_TYPE_LOOKUP = CONTENT_TYPE_LABELS.to_h { |label| [ label.downcase, label ] }.freeze
 
-  TECHNICAL_LABELS = {
-    "web" => "Web",
-    "web exploitation" => "Web",
-    "pwn" => "Pwn",
-    "pwnable" => "Pwn",
-    "binary exploitation" => "Pwn",
-    "crypto" => "Crypto",
-    "cryptography" => "Crypto",
-    "privilege escalation" => "Privilege Escalation",
-    ".net" => ".NET",
-    "dotnet" => ".NET"
-  }.freeze
+  TECHNICAL_LABELS = ContentCategoryTag::CATEGORY_KEYS.transform_values do |key|
+    ContentCategoryTag::CATEGORY_LABELS.fetch(key)
+  end.freeze
 
   LABEL_ALIASES = TECHNICAL_LABELS.merge(
     "algorithm" => "Algorithms",

@@ -1,33 +1,24 @@
 require "test_helper"
 
 class ProductionContentContractTest < ActionDispatch::IntegrationTest
-  test "blog catalog and Markdown files have consistent identities" do
+  test "public blog posts come directly from visible Markdown files" do
     repository = production_content_repository
-    metadata_slugs = repository.blog_metadata.keys.sort
-    visible_metadata_slugs = repository.blog_metadata.reject do |_slug, metadata|
-      repository.hidden_content?(metadata)
-    end.keys.sort
     markdown_paths = trusted_markdown_paths(ApplicationController::BLOG_BASE_PATH, "*.md")
-    markdown_slugs = markdown_paths.map { |path| File.basename(path, ".md") }.sort
-
-    assert_empty markdown_slugs - metadata_slugs, "Markdown files without blog metadata"
-    assert_empty visible_metadata_slugs - markdown_slugs, "visible blog metadata without Markdown files"
-    expected_public_slugs = markdown_paths.filter_map do |path|
-      slug = File.basename(path, ".md")
-      metadata = parsed_markdown_metadata(path, repository)
-      next if repository.hidden_content?(metadata) || repository.hidden_content?(repository.blog_metadata.fetch(slug))
-
-      slug
+    expected_public_paths = markdown_paths.reject do |path|
+      repository.hidden_content?(parsed_markdown_metadata(path, repository))
     end
+    expected_public_slugs = expected_public_paths.map { |path| File.basename(path, ".md") }
 
     assert_equal expected_public_slugs.sort, repository.blog_posts.map { |post| post[:slug] }.sort
+    assert_equal expected_public_paths.map(&:to_s).sort,
+                 repository.blog_posts.map { |post| post[:source_path].realpath.to_s }.sort
   end
 
   test "every CTF Markdown file belongs to a configured event" do
     repository = production_content_repository
     raw_metadata = parse_content_json(ApplicationController::CTF_INFO_PATH)
     raw_event_pairs = raw_metadata.map do |name, metadata|
-      [ metadata["terminal_path"].presence || name.downcase, metadata ]
+      [ metadata["directory"].presence || name.downcase, metadata ]
     end
     event_slugs = raw_event_pairs.map(&:first)
     assert_equal event_slugs.uniq.length, event_slugs.length
@@ -76,7 +67,7 @@ class ProductionContentContractTest < ActionDispatch::IntegrationTest
     repository = production_content_repository
     raw_metadata = parse_content_json(ApplicationController::CTF_INFO_PATH)
     raw_events_by_slug = raw_metadata.to_h do |name, metadata|
-      [ metadata["terminal_path"].presence || name.downcase, metadata ]
+      [ metadata["directory"].presence || name.downcase, metadata ]
     end
     referenced_paths = []
     expected_public_paths = []

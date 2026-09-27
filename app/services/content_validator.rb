@@ -5,23 +5,33 @@ class ContentValidator
     end
   end
 
-  def initialize(repository: ContentRepository.new)
-    @repository = repository
-    @errors = []
-    @warnings = []
-    @documents = 0
+  def initialize(repository: nil, configuration: nil)
+    @configuration = configuration || repository&.configuration || ContentConfiguration.new
+    @repository = repository || ContentRepository.new(configuration: @configuration)
+    reset
   end
 
   def call
+    reset
     validate_catalogs
     validate_documents
-    capture("published content catalog") do
-      repository.blog_posts
-      repository.ctf_posts
-      repository.ctf_assets
-      ContentIndex.new(repository: repository).all_items
+    # Invalid input already has source/property diagnostics. Do not feed those
+    # invalid shapes into consumers that expect validated content.
+    if @errors.empty?
+      capture("published content catalog") do
+        repository.blog_posts
+        repository.ctf_posts
+        repository.ctf_assets
+        ContentIndex.new(repository: repository).all_items
+      end
     end
     Result.new(errors: @errors.freeze, warnings: @warnings.freeze, documents: @documents)
+  end
+
+  def reset
+    @errors = []
+    @warnings = []
+    @documents = 0
   end
 
   def markdown_image_errors(body, path:)
@@ -31,7 +41,7 @@ class ContentValidator
       next if reference.start_with?("//") || reference.match?(/\A[a-z][a-z0-9+.-]*:/i)
 
       pathname = URI::DEFAULT_PARSER.unescape(reference.split(/[?#]/, 2).first.to_s)
-      root = pathname.start_with?("/") ? Rails.root.join("public") : Rails.root.join("app/assets/images")
+      root = pathname.start_with?("/") ? configuration.root.join("public") : configuration.root.join("app/assets/images")
       candidate = root.join(pathname.delete_prefix("/"))
       "#{path}: missing local Markdown image #{reference.inspect}" unless TrustedContentPath.file(root: root, candidate: candidate)
     end
@@ -39,16 +49,22 @@ class ContentValidator
 
   private
 
-  attr_reader :repository
+  attr_reader :repository, :configuration
+
+  private :reset
 
   def validate_catalogs
     ids = {}
-    ContentJsonSchemas.registered_paths.each do |path|
+    ContentJsonSchemas.registered_paths.each do |schema_path|
+      path = configuration.resolve(schema_path)
       capture(path) do
         data = JSON.parse(File.read(path), allow_comments: true)
-        ContentJsonSchemas.validate!(path, data)
+        errors = ContentJsonSchemas.errors_for(schema_path, data)
+        report_schema_errors(path, errors)
+        next if errors.any?
+
         validate_images(data, path)
-        if ContentJsonSchemas::ARRAY_SCHEMAS.key?(path)
+        if ContentJsonSchemas::ARRAY_SCHEMAS.key?(schema_path)
           repository.normalize_about_entries(data, path: path).each do |entry|
             [ entry, *Array(entry["timeline"]) ].each do |item|
               id = item.fetch("id")
@@ -58,12 +74,10 @@ class ContentValidator
           end
         else
           data.each do |key, entry|
-            slug = entry["terminal_path"]
-            if path == ContentConfiguration::BLOG_INFO_PATH.to_s
-              @errors << "#{path}: #{key.inspect} must match terminal_path" unless key == slug
-              @errors << "#{path}: missing post #{slug.inspect}" unless ContentConfiguration::BLOG_BASE_PATH.join("#{slug}.md").file?
-            elsif entry["writeups"] != "/ctf/#{slug}"
-              @errors << "#{path}: #{key.inspect} has an inconsistent writeups path"
+            pointer = "/#{ContentJsonSchemas.pointer_key(key)}"
+            slug = entry["directory"].presence || key.downcase
+            if entry.key?("writeups") && entry["writeups"] != "/ctf/#{slug}"
+              @errors << "#{path}#{pointer}/writeups: must match derived path /ctf/#{slug}"
             end
           end
         end
@@ -72,31 +86,20 @@ class ContentValidator
   end
 
   def validate_documents
-    files = Dir.glob(ContentConfiguration::BLOG_BASE_PATH.join("*.md")) + Dir.glob(ContentConfiguration::BASE_PATH.join("*", "*.md"))
+    blog_root = configuration.path(:BLOG_BASE_PATH)
+    about_path = configuration.path(:ABOUTME_TEXT_PATH)
+    files = Dir.glob(blog_root.join("*.md")) + Dir.glob(configuration.path(:BASE_PATH).join("*", "*.md")) + [ about_path.to_s ]
     files.sort.each do |path|
       capture(path) do
-        document = repository.markdown_document(path)
-        metadata = document[:metadata]
-        if File.dirname(path) == ContentConfiguration::BLOG_BASE_PATH.to_s
-          catalog_metadata = repository.blog_metadata.fetch(File.basename(path, ".md"), {})
-          metadata = catalog_metadata.merge(metadata)
-        end
+        next if File.dirname(path) == blog_root.to_s && !validate_blog_path(path, blog_root)
+
+        document = repository.parse_markdown(File.read(path), path: path)
+        metadata = document.front_matter.deep_stringify_keys
         @documents += 1
-        @errors.concat(markdown_image_errors(document[:body], path: path))
-        %w[title description published].each do |key|
-          @errors << "#{path}: missing required #{key}" if metadata[key].blank?
-        end
-        ContentJsonSchemas.metadata_errors(metadata).each do |error|
-          @errors << "#{path}#{error["data_pointer"]}: #{error["type"]}"
-        end
-        if metadata["article_authors"].present? && !metadata["article_authors"].is_a?(Array)
-          @errors << "#{path}: article_authors must be an array of names or name/url objects"
-        end
-        Array(metadata["article_authors"]).each do |author|
-          name = author.is_a?(Hash) ? author["name"] : author
-          @errors << "#{path}: article author must have a name" if name.to_s.strip.blank?
-        end
-        document[:body].scan(/^\s*`{3,}([^\s`]+).*$/).flatten.uniq.each do |language|
+        report_schema_errors(path, ContentFrontMatterSchemas.errors_for(metadata, about: path == about_path.to_s))
+        validate_images(metadata, path)
+        @errors.concat(markdown_image_errors(document.content, path: path))
+        document.content.scan(/^\s*`{3,}([^\s`]+).*$/).flatten.uniq.each do |language|
           next if Rouge::Lexer.find(language)
 
           @warnings << "#{path}: unknown code language #{language.inspect}; rendered as plain text"
@@ -105,17 +108,36 @@ class ContentValidator
     end
   end
 
-  def validate_images(value, path)
+  def validate_blog_path(path, root)
+    slug = File.basename(path, ".md")
+    unless ContentRepository::BLOG_SLUG_PATTERN.match?(slug)
+      @errors << "#{path}: invalid blog filename slug #{slug.inspect}; use lowercase letters and digits separated by single hyphens"
+    end
+    unless TrustedContentPath.file(root: root, candidate: path)
+      @errors << "#{path}: blog Markdown must be a file within #{root}"
+      return false
+    end
+
+    true
+  end
+
+  def report_schema_errors(path, errors)
+    errors.each { |error| @errors << "#{path}#{error['data_pointer']}: #{error['type']}" }
+  end
+
+  def validate_images(value, path, pointer = "")
     case value
     when Array
-      value.each { |entry| validate_images(entry, path) }
+      value.each_with_index { |entry, index| validate_images(entry, path, "#{pointer}/#{index}") }
     when Hash
       value.each do |key, entry|
-        if %w[icon logo].include?(key) && entry.present?
-          image = TrustedContentPath.file(root: Rails.root.join("app/assets/images"), candidate: Rails.root.join("app/assets/images", entry))
-          @errors << "#{path}: missing local image #{entry.inspect}" unless image
+        entry_pointer = "#{pointer}/#{ContentJsonSchemas.pointer_key(key)}"
+        if %w[icon logo].include?(key) && entry.is_a?(String) && entry.present?
+          root = configuration.root.join("app/assets/images")
+          image = TrustedContentPath.file(root: root, candidate: root.join(entry))
+          @errors << "#{path}#{entry_pointer}: missing local image #{entry.inspect}" unless image
         else
-          validate_images(entry, path)
+          validate_images(entry, path, entry_pointer)
         end
       end
     end
@@ -123,7 +145,9 @@ class ContentValidator
 
   def capture(path)
     yield
-  rescue ContentRepository::InvalidContent, ContentRepository::InvalidContentPath, ContentJsonSchemas::ValidationError, JSON::ParserError, Errno::ENOENT => error
+  rescue Errno::ENOENT
+    @errors << "#{path}: required content file is missing"
+  rescue ContentRepository::InvalidContent, ContentRepository::InvalidContentPath, ContentJsonSchemas::ValidationError, JSON::ParserError => error
     @errors << "#{path}: #{error.message}"
   end
 end

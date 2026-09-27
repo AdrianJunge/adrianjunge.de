@@ -39,8 +39,6 @@ PreCommit:
 
   TrailingWhitespace:
     enabled: true
-    exclude:
-      - '**/db/structure.sql'
 
   RunTests:
     enabled: true
