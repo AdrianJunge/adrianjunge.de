@@ -38,6 +38,7 @@
 - Auf Raspberry Pi Server hosten und bei Heroku canceln (auto build pipeline aufbauen für pushes zu main branch)
 - `vurlo.de` sichern und DNS einrichten sodass sowohl `adrianjunge.de` als auch `vurlo.de` auf dieselbe IP zeigen
 - Email einrichten für Domaine
+    - https://www.webkeydirectory.com/ => WKD einrichten mit PGP
     - Email redirect von cloud flare
     - referenced emails (todo@adrianjunge.de) replacen
     - obfuscated email (no static email addresses present on the page but instead JS only loads the email address at rendering time - antiscraping)
@@ -66,3 +67,4 @@
 # Useful websites
 - https://www.magnific.com/search?format=search&iconType=standard&last_filter=query&last_value=web+security+3d&query=web+security+3d&type=icon#uuid=54ee002c-935c-4814-a015-fc1f2278474c
 - https://www.remove.bg/
+- https://www.svgrepo.com/
