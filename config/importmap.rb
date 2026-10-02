@@ -3,6 +3,7 @@
 pin "application", preload: true
 
 pin "sidebar", to: "sidebar.js"
+pin "contact_email", to: "contact_email.js"
 pin "landing", to: "landing.js"
 pin "blog", to: "blog.js"
 pin "content_filters", to: "content_filters.js"

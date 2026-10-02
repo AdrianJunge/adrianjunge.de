@@ -196,7 +196,9 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
 
   test "site identity is shared by the footer and profile metadata" do
     get root_path
-    assert_select "footer a[href=?]", SiteProfile.email_url
+    assert_select "footer a[data-contact-email=?][hidden]:not([href])", SiteProfile.encoded_email
+    assert_not_includes response.body, SiteProfile.email
+    assert_select "footer noscript", text: "Email: #{SiteProfile.readable_email}"
     assert_select ".landing-kicker", text: "#{SiteProfile.name} (#{SiteProfile.handle})"
   end
 

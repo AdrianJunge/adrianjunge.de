@@ -39,3 +39,23 @@ Image tooling: [scripts/images](scripts/images/README.md).
 docker build --build-arg RUBY_VERSION=$(tr -d '\n' < .ruby-version) -t adrian-site:local .
 scripts/container-check.sh adrian-site:local
 ```
+
+## OpenPGP and Web Key Directory
+
+After updating the **public** certificate, use GnuPG 2.2 or later to regenerate the export, then commit the public certificate and generated files together:
+
+```bash
+ruby scripts/update_wkd.rb
+ruby scripts/update_wkd.rb --check    # Also required by bin/check and CI
+```
+
+## Useful websites
+- https://www.magnific.com/search?format=search&iconType=standard&last_filter=query&last_value=web+security+3d&query=web+security+3d&type=icon#uuid=54ee002c-935c-4814-a015-fc1f2278474c
+- https://www.remove.bg/
+- https://www.svgrepo.com/
+
+## Latex to Markdown find and replace
+- `\\textit\{([^}]+)\}` => `**$1**`
+- `\\command\{([^}]+)\}` => `$1`
+- `\\href\{([^}]+)\}\{([^}]+)\}` => `[$2]($1)`
+- `\` => ``

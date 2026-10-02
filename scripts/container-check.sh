@@ -31,6 +31,6 @@ docker exec "$container_id" bundle exec ruby -e 'forbidden = %w[capybara seleniu
 for route in / /about /blog /ctf /timeline /search/index.json /blog/java-strings /blog/climbing-stairs /feed.xml /feed.atom /feed.json /sitemap.xml; do
   curl --fail --silent --connect-timeout 3 --max-time 15 "http://127.0.0.1:$port$route" >/dev/null
 done
-docker exec --interactive "$container_id" bin/rails runner - < "$app_root/scripts/check_container_downloads.rb" | tee "$reports/downloads.json"
+cat "$app_root/scripts/support/openpgp_checks.rb" "$app_root/scripts/check_container_downloads.rb" | docker exec --interactive "$container_id" bin/rails runner - | tee "$reports/downloads.json"
 docker image inspect "$image" --format '{{.Size}}' > "$reports/image-size-bytes.txt"
 printf 'Non-root production container routes passed; image bytes: %s\n' "$(< "$reports/image-size-bytes.txt")"

@@ -22,13 +22,28 @@ class PostDeployCheckTest < ActiveSupport::TestCase
     [ @css, @js ].each { |path| @routes[path] = response(200, { "cache-control" => "public, max-age=31536000, immutable", "content-encoding" => "gzip", "vary" => "Accept-Encoding" }) }
     @routes[@zip] = response(200, { "content-type" => "application/zip", "content-disposition" => 'attachment; filename="file.zip"' }, "PKfixture")
     @routes[@pdf] = response(200, { "content-type" => "application/pdf", "content-disposition" => 'inline; filename="file.pdf"' }, "%PDF-fixture")
+    @wkd_key = "/.well-known/openpgpkey/hu/53a3k6s45xb3w5niiaq14mjsf1xeuoz3?l=stdin"
+    {
+      "/.well-known/openpgpkey/policy" => "text/plain",
+      @wkd_key => "application/octet-stream",
+      SiteProfile.pgp_path => "application/pgp-keys"
+    }.each do |path, type|
+      body = File.binread(Rails.root.join("public", path.split("?", 2).first.delete_prefix("/")))
+      @routes[path] = response(200, {
+        "content-type" => type, "access-control-allow-origin" => "*", "x-content-type-options" => "nosniff",
+        "cache-control" => "public, max-age=0, must-revalidate", "content-length" => body.bytesize.to_s
+      }, body)
+    end
+    [ "/.well-known/openpgpkey", "/.well-known/openpgpkey/", "/.well-known/openpgpkey/hu/", "/.well-known/openpgpkey/hu/#{'0' * 32}?l=unpublished" ].each do |path|
+      @routes[path] = response(404)
+    end
     @routes["/robots.txt"] = response(200, { "cache-control" => "public, max-age=0, must-revalidate" }, "User-agent: *")
     @routes["/this-page-does-not-exist"] = response(404)
   end
 
   test "checks representative routes canonical URLs downloads validators and gzip without external requests" do
     report = checker.run
-    assert_equal 18, report[:checks].length
+    assert_equal 32, report[:checks].length
     assert @calls.all? { |uri, _method, _headers| uri.host == "127.0.0.1" }
     assert_equal 2, report[:checks].count { |check| check[:sha256] }
     assert @calls.any? { |uri, method, headers| uri.path == @css && method == "HEAD" && headers["Accept-Encoding"] == "gzip" }
@@ -65,6 +80,18 @@ class PostDeployCheckTest < ActiveSupport::TestCase
     assert_raises(PostDeployCheck::Failure) { checker.send(:request, "/hop0") }
   end
 
+  test "refuses a stale WKD export missing CORS or a directory listing" do
+    original = @routes[@wkd_key].body
+    @routes[@wkd_key].body = "stale certificate"
+    assert_raises(PostDeployCheck::Failure) { checker.send(:check_openpgp) }
+    @routes[@wkd_key].body = original
+    @routes[@wkd_key].headers.delete("access-control-allow-origin")
+    assert_raises(PostDeployCheck::Failure) { checker.send(:check_openpgp) }
+    @routes[@wkd_key].headers["access-control-allow-origin"] = "*"
+    @routes["/.well-known/openpgpkey/hu/"] = response(200, {}, "directory listing")
+    assert_raises(PostDeployCheck::Failure) { checker.send(:check_openpgp) }
+  end
+
   test "fails broken routes truncated downloads and unexpected download bodies" do
     @routes["/about"] = response(500)
     assert_raises(PostDeployCheck::Failure) { checker.run }
@@ -88,7 +115,8 @@ class PostDeployCheckTest < ActiveSupport::TestCase
       if headers["If-None-Match"] == '"fixture"'
         response(304)
       else
-        @routes.fetch(uri.request_uri) { flunk "unexpected network request #{uri}" }
+        result = @routes.fetch(uri.request_uri) { flunk "unexpected network request #{uri}" }
+        method == "HEAD" ? response(result.status, result.headers) : result
       end
     end
     PostDeployCheck.new(base_url: "http://127.0.0.1:1234", transport: transport)

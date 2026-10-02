@@ -8,7 +8,8 @@
       <%= link_to(content_image_tag("task-bar/discord.svg", alt: "Discord Icon", class: footer_icon_class), SiteProfile.social_links.fetch(:discord), target: "_blank", rel: "noopener noreferrer", class: "footer-link ui-hover-lift", aria: { label: "Discord" }) %>
       <%= link_to(content_image_tag("task-bar/telegram.svg", alt: "Telegram Icon", class: footer_icon_class), SiteProfile.social_links.fetch(:telegram), target: "_blank", rel: "noopener noreferrer", class: "footer-link ui-hover-lift", aria: { label: "Telegram" }) %>
       <%= link_to(content_image_tag("task-bar/instagram.svg", alt: "Instagram Icon", class: footer_icon_class), SiteProfile.social_links.fetch(:instagram), target: "_blank", rel: "noopener noreferrer", class: "footer-link ui-hover-lift", aria: { label: "Instagram" }) %>
-      <%= link_to(content_image_tag("task-bar/mail.svg", alt: "Mail Icon", class: footer_icon_class), SiteProfile.email_url, class: "footer-link ui-hover-lift", aria: { label: "Email #{SiteProfile.name}" }) %>
+      <%= tag.a(content_image_tag("task-bar/mail.svg", alt: "Mail Icon", class: footer_icon_class), class: "footer-link ui-hover-lift", aria: { label: "Email #{SiteProfile.name}" }, data: { contact_email: SiteProfile.encoded_email }, hidden: true) %>
+      <noscript><span class="footer-info">Email: <%= SiteProfile.readable_email %></span></noscript>
     </div>
 
 

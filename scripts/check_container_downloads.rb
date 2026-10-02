@@ -21,4 +21,11 @@ checks = %i[challenge writeup].map do |kind|
   { kind: kind, filename: asset[:basename], bytes: asset[:size], sha256: expected_hash }
 end
 
+checks.concat(OpenpgpChecks.run(root: Rails.root) do |path, method|
+  response = Net::HTTP.start("127.0.0.1", 80, nil, open_timeout: 3, read_timeout: 15) do |http|
+    http.request((method == "HEAD" ? Net::HTTP::Head : Net::HTTP::Get).new(path, "Accept-Encoding" => "identity"))
+  end
+  [ response.code.to_i, response.to_hash.transform_values(&:first), response.body ]
+end)
+
 puts JSON.pretty_generate(checks)

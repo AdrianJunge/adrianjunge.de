@@ -134,7 +134,7 @@ class SiteSearchTest < ActiveSupport::TestCase
     }.each do |query, prefix|
       assert search.search(query).any? { |result| result[:url].start_with?(prefix) }, query
     end
-    assert_includes search.search(SiteProfile.email).pluck(:url), "/"
+    assert_includes search.search("Email contact").pluck(:url), "/"
     assert_includes search.search("PGP key").pluck(:url), "/about"
     assert_includes search.search("authored challenge").pluck(:url), "/ctf/gpnctf/Scanwich%20Station"
     assert_includes search.search("writeup winner").pluck(:url), "/ctf/umdctf/A%20Minecraft%20Movie"
@@ -158,11 +158,11 @@ class SiteSearchTest < ActiveSupport::TestCase
       post.delete
       assert search.call.documents.none? { |document| document[:url] == "/blog/example" }
 
-      original_email = SiteProfile.method(:email)
-      SiteProfile.define_singleton_method(:email) { "revisionneedle@example.com" }
+      original_name = SiteProfile.method(:name)
+      SiteProfile.define_singleton_method(:name) { "Revisionneedle Researcher" }
       assert_includes search.call.search("revisionneedle").pluck(:url), "/"
     ensure
-      SiteProfile.define_singleton_method(:email, original_email) if original_email
+      SiteProfile.define_singleton_method(:name, original_name) if original_name
     end
   end
 

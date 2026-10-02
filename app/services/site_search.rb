@@ -4,7 +4,7 @@ class SiteSearch
   include MarkdownHelper
 
   VERSION = "2".freeze
-  CACHE_VERSION = "main-pages-v2".freeze
+  CACHE_VERSION = "main-pages-v3".freeze
   QUERY_LIMIT = 200
   SNIPPET_LENGTH = 200
   ABOUT_COLLECTIONS = [
@@ -161,11 +161,12 @@ class SiteSearch
   end
 
   def contact_text
-    "#{SiteProfile.name} (#{SiteProfile.handle}). Email #{SiteProfile.email}. Public PGP key. #{SiteProfile.social_links.keys.join(' ')}."
+    # Keep the address out of public JSON so it does not bypass the footer's obfuscation.
+    "#{SiteProfile.name} (#{SiteProfile.handle}). Email contact. Public PGP key. #{SiteProfile.social_links.keys.join(' ')}."
   end
 
   def profile_revision
-    [ SiteProfile.name, SiteProfile.handle, SiteProfile.description, SiteProfile.email,
+    [ SiteProfile.name, SiteProfile.handle, SiteProfile.description,
       SiteProfile.pgp_path, SiteProfile.modified, SiteProfile.social_links, SiteProfile.affiliations, SiteProfile.bug_bounty_count ]
   end
 

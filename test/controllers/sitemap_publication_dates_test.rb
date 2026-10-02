@@ -68,16 +68,17 @@ class SitemapPublicationDatesTest < ActionDispatch::IntegrationTest
     assert_equal original_dates, sitemap_dates, "event occurrence never becomes an editorial modification"
     travel_to Time.zone.local(2026, 10, 10)
 
-    change_talks { |talks| talks.first["modified"] = "2026-10-01" }
+    editorial_date = "2026-10-03"
+    change_talks { |talks| talks.first["modified"] = editorial_date }
     fetch_sitemap
-    assert_equal "2026-10-01", sitemap_dates.fetch("/about")
-    assert_equal "2026-10-01", sitemap_dates.fetch("/timeline")
-    assert_equal "2026-10-01", sitemap_dates.fetch("/")
+    assert_equal editorial_date, sitemap_dates.fetch("/about")
+    assert_equal editorial_date, sitemap_dates.fetch("/timeline")
+    assert_equal editorial_date, sitemap_dates.fetch("/")
     assert_equal original_dates.fetch("/blog"), sitemap_dates.fetch("/blog")
 
     travel_to Time.zone.local(2041, 1, 1)
     fetch_sitemap
-    assert_equal "2026-10-01", sitemap_dates.fetch("/about"), "an explicit modification date stays authoritative when the scheduled event passes"
+    assert_equal editorial_date, sitemap_dates.fetch("/about"), "an explicit modification date stays authoritative when the scheduled event passes"
   end
 
   test "the published About page keeps its date when the scheduled BSides talk arrives" do

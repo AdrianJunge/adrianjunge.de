@@ -6,13 +6,13 @@ module SiteProfile
   HANDLE = "vurlo".freeze
   ORIGIN = "https://adrianjunge.de".freeze
   FEED_TITLE = "adrianjunge.de".freeze
-  EMAIL = "todo@adrianjunge.de".freeze
+  EMAIL = "stdin@adrianjunge.de".freeze
   PGP_PATH = "/pgp-vurlo.asc".freeze
   SOURCE_URL = "https://github.com/AdrianJunge/adrianjunge.de".freeze
   BUG_BOUNTY_COUNT = 4
   # Update when editing profile copy, identity, or undated About information.
   # This is an editorial date, never the deployment or checkout timestamp.
-  MODIFIED = "2026-09-27".freeze
+  MODIFIED = "2026-10-02".freeze
   DESCRIPTION = "Security research, CVEs, bug bounty work, source review, CTF writeups, and technical notes by #{NAME}.".freeze
   SOCIAL_LINKS = {
     github: "https://github.com/AdrianJunge/",
@@ -34,6 +34,8 @@ module SiteProfile
   def feed_title = FEED_TITLE
   def email = EMAIL
   def email_url = "mailto:#{email}"
+  def encoded_email = [ email ].pack("m0")
+  def readable_email = email.gsub("@", " [at] ").gsub(".", " [dot] ")
   def pgp_path = PGP_PATH
   def source_url = SOURCE_URL
   def bug_bounty_count = BUG_BOUNTY_COUNT

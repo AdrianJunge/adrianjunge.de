@@ -13,6 +13,8 @@ require "socket"
 require "tmpdir"
 require "zlib"
 require_relative "../scripts/support/site_integrity"
+require_relative "../scripts/support/openpgp_checks"
+require_relative "../app/models/site_profile"
 
 class ProductionCheck
   ROUTES = %w[/ /about /blog /ctf /timeline /search/index.json /blog/java-strings /blog/climbing-stairs /ctf/cscg /ctf/cscg/Photoeditor /feed.xml /feed.atom /feed.json /sitemap.xml].freeze
@@ -188,6 +190,11 @@ class ProductionCheck
     response = request(port, "/robots.txt")
     expect_status(response, 200, "/robots.txt")
     raise "Stable public file lacks revalidation" unless response["cache-control"].include?("must-revalidate")
+    openpgp = OpenpgpChecks.run(root: @snapshot) do |path, method|
+      response = request(port, path, head: method == "HEAD")
+      [ response.code.to_i, response.to_hash.transform_values(&:first), response.body ]
+    end
+    File.write(File.join(@reports, "openpgp.json"), JSON.pretty_generate(openpgp))
     expect_status(request(port, "/this-page-does-not-exist"), 404, "error page")
     File.write(File.join(@reports, "pages.json"), JSON.pretty_generate(metrics))
   end

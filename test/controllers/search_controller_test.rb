@@ -8,6 +8,7 @@ class SearchControllerTest < ActionDispatch::IntegrationTest
       assert_response :success
       payload = response.parsed_body
       assert_equal "2", payload.fetch("version")
+      assert_not_includes response.body, SiteProfile.email
       assert_equal SiteSearch.new(repository: repository).documents.pluck(:url), payload.fetch("documents").pluck("url")
       assert_not payload.key?("articles")
       assert_includes response.headers["Cache-Control"], "public"

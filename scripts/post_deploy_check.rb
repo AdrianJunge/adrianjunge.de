@@ -9,6 +9,7 @@ require "optparse"
 require "time"
 require "uri"
 require_relative "../app/models/site_profile"
+require_relative "support/openpgp_checks"
 
 # Read-only release verification. URLs are bounded to one explicitly supplied
 # origin; a page cannot turn this check into a crawl of linked external sites.
@@ -68,6 +69,7 @@ class PostDeployCheck
       require_header(response, "vary", /(?:\A|,)\s*accept-encoding\s*(?:,|\z)/i, path)
     end
     check_downloads(downloads)
+    check_openpgp
     robots = request("/robots.txt")
     require_header(robots, "cache-control", /must-revalidate/, "/robots.txt")
     request("/this-page-does-not-exist", expected: 404)
@@ -75,6 +77,16 @@ class PostDeployCheck
   end
 
   private
+
+  def check_openpgp
+    OpenpgpChecks.run(root: File.expand_path("..", __dir__)) do |path, method|
+      # WKD deliberately returns 404 for directories and unpublished keys.
+      response = request(path, method: method, expected: nil)
+      [ response.status, response.headers, response.body ]
+    end
+  rescue OpenpgpChecks::Failure => error
+    raise Failure, error.message
+  end
 
   def check_downloads(downloads)
     { zip: [ /application\/zip/, "PK" ], pdf: [ /application\/pdf/, "%PDF-" ] }.each do |kind, (content_type, signature)|
@@ -110,7 +122,7 @@ class PostDeployCheck
         uri = URI.join(uri.to_s, location)
         next
       end
-      raise Failure, "#{path}: expected HTTP #{expected}, received #{response.status}" unless response.status == expected
+      raise Failure, "#{path}: expected HTTP #{expected}, received #{response.status}" if expected && response.status != expected
 
       @checks << { path: path, method: method, status: response.status, final_url: uri.to_s, bytes: response.body.bytesize }
       return response
@@ -170,7 +182,7 @@ if $PROGRAM_NAME == __FILE__
     report = PostDeployCheck.new(**options.except(:output)).run
     FileUtils.mkdir_p(File.dirname(options.fetch(:output)))
     File.write(options.fetch(:output), JSON.pretty_generate(report) + "\n")
-    puts "Post-deploy routes, canonical URLs, downloads, cache validators, and gzip passed. Report: #{options.fetch(:output)}"
+    puts "Post-deploy routes, canonical URLs, downloads, WKD, cache validators, and gzip passed. Report: #{options.fetch(:output)}"
   rescue PostDeployCheck::Failure, OptionParser::ParseError, IOError, SystemCallError, Timeout::Error, OpenSSL::SSL::SSLError => error
     warn error.message
     exit 1

@@ -411,7 +411,7 @@ class LandingTest < ApplicationSystemTestCase
     assert_selector ".landing-affiliation-link[href='#{kit_link}'] img"
     assert_selector ".landing-affiliation-link-pgp[href='/pgp-vurlo.asc']", text: "PGP key"
     assert_selector ".landing-affiliation-link-pgp img[src*='pgp']"
-    assert_selector "footer a[href='mailto:todo@adrianjunge.de'] img[alt='Mail Icon']"
+    assert_selector "footer a[href='mailto:stdin@adrianjunge.de'][title='stdin@adrianjunge.de'] img[alt='Mail Icon']"
     assert_selector "footer a[href='https://t.me/FullyIncredibleCreativeUsername'][target='_blank'][rel='noopener noreferrer'] img[alt='Telegram Icon']"
     assert File.exist?(Rails.root.join("public", "pgp-vurlo.asc"))
     affiliation_image_size = page.evaluate_script(<<~JS)

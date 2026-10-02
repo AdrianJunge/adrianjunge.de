@@ -9,7 +9,7 @@ ruby = RbConfig.ruby
 python = ENV.fetch("IMAGE_PYTHON") { File.executable?(".venv-images/bin/python") ? File.join(root, ".venv-images/bin/python") : "python3" }
 image_options = ENV["IMAGE_FONT_DIR"] ? [ "--font-dir", ENV["IMAGE_FONT_DIR"] ] : []
 modes = {
-  "quick" => [ [ ruby, "bin/rubocop" ], [ "git", "diff", "--check" ], [ "git", "diff", "--cached", "--check" ], [ "npm", "test" ], [ ruby, "bin/rails", "content:validate", "test" ] ],
+  "quick" => [ [ ruby, "bin/rubocop" ], [ "git", "diff", "--check" ], [ "git", "diff", "--cached", "--check" ], [ ruby, "scripts/update_wkd.rb", "--check" ], [ "npm", "test" ], [ ruby, "bin/rails", "content:validate", "test" ] ],
   "browser" => [ [ ruby, "bin/rails", "test:system" ], [ "node", "scripts/accessibility-summary.mjs" ] ],
   "cross-browser" => [ [ ruby, "bin/rails", "tailwindcss:build" ], [ "npm", "run", "test:cross-browser" ] ],
   "mobile" => [ [ ruby, "bin/rails", "tailwindcss:build" ], [ "npm", "run", "test:mobile" ] ],
@@ -21,7 +21,7 @@ modes = {
 if (ARGV & %w[-h --help --list]).any?
   puts "Usage: bin/check [#{modes.keys.join(' | ')} | all] ..."
   puts "Default: quick. all includes browsers, image rebuild, performance and network audits. No deployment or dependency installation."
-  puts "Activate .ruby-version; npm ci; install Playwright browsers. Image tools use .venv-images when present, or IMAGE_PYTHON/IMAGE_FONT_DIR overrides."
+  puts "Activate .ruby-version; npm ci; install GnuPG and Playwright browsers. Image tools use .venv-images when present, or IMAGE_PYTHON/IMAGE_FONT_DIR overrides."
   modes.each { |name, commands| puts "#{name}: #{commands.map { |command| command.shelljoin }.join(' -> ')}" }
   exit
 end

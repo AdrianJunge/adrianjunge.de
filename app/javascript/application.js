@@ -1,4 +1,5 @@
 import "sidebar";
+import "contact_email";
 import "landing";
 import "content_filters";
 import "aboutme";
