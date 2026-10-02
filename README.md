@@ -42,11 +42,12 @@ scripts/container-check.sh adrian-site:local
 
 ## OpenPGP and Web Key Directory
 
-After updating the **public** certificate, use GnuPG 2.2 or later to regenerate the export, then commit the public certificate and generated files together:
+After updating the **public** certificate, use GnuPG 2.2 or later to regenerate both exports, then commit the public certificate and generated files together:
 
 ```bash
 ruby scripts/update_wkd.rb
 ruby scripts/update_wkd.rb --check    # Also required by bin/check and CI
+bundle exec ruby scripts/post_deploy_check.rb --base-url https://adrianjunge.de
 ```
 
 ## Useful websites

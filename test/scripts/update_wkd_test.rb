@@ -27,24 +27,37 @@ class UpdateWkdTest < ActiveSupport::TestCase
     assert_equal result, @publisher.run(check: true)
     assert_equal original, @source.binread
     assert_equal File.binread(Rails.root.join("public/.well-known/openpgpkey/hu", result[:hash])), key_path.binread
-    assert @root.join("public/.well-known/openpgpkey/policy").zero?
+    assert_equal key_path.binread, key_path(advanced: true).binread
+    [ false, true ].each { |advanced| assert key_path(advanced: advanced).dirname.parent.join("policy").zero? }
   end
 
   test "checking detects a stale binary or missing policy and regeneration repairs them" do
     @publisher.run
-    key_path.binwrite("stale")
-    error = assert_raises(WkdPublisher::Failure) { @publisher.run(check: true) }
-    assert_includes error.message, "stale"
-    @publisher.run
-    @root.join("public/.well-known/openpgpkey/policy").delete
-    assert_raises(WkdPublisher::Failure) { @publisher.run(check: true) }
-    @publisher.run
+    [ false, true ].each do |advanced|
+      path = key_path(advanced: advanced)
+      path.binwrite("stale")
+      error = assert_raises(WkdPublisher::Failure) { @publisher.run(check: true) }
+      assert_includes error.message, "stale"
+      @publisher.run
+      path.delete
+      assert_raises(WkdPublisher::Failure) { @publisher.run(check: true) }
+      @publisher.run
+      path.dirname.parent.join("policy").delete
+      assert_raises(WkdPublisher::Failure) { @publisher.run(check: true) }
+      @publisher.run
+    end
     assert @publisher.run(check: true)
   end
 
   test "checking refuses unintended extra public WKD files" do
     @publisher.run
-    key_path.dirname.join("unexpected.asc").write("unintended public file")
+    [ false, true ].each do |advanced|
+      extra = key_path(advanced: advanced).dirname.join("unexpected.asc")
+      extra.write("unintended public file")
+      assert_raises(WkdPublisher::Failure) { @publisher.run(check: true) }
+      extra.delete
+    end
+    @root.join("public/.well-known/openpgpkey/another.example").mkdir
     assert_raises(WkdPublisher::Failure) { @publisher.run(check: true) }
   end
 
@@ -63,7 +76,9 @@ class UpdateWkdTest < ActiveSupport::TestCase
 
   private
 
-  def key_path
-    @root.join("public/.well-known/openpgpkey/hu", @publisher.hash)
+  def key_path(advanced: false)
+    directory = @root.join("public/.well-known/openpgpkey")
+    directory = directory.join("adrianjunge.de") if advanced
+    directory.join("hu", @publisher.hash)
   end
 end

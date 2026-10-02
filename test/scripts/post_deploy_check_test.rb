@@ -23,9 +23,12 @@ class PostDeployCheckTest < ActiveSupport::TestCase
     @routes[@zip] = response(200, { "content-type" => "application/zip", "content-disposition" => 'attachment; filename="file.zip"' }, "PKfixture")
     @routes[@pdf] = response(200, { "content-type" => "application/pdf", "content-disposition" => 'inline; filename="file.pdf"' }, "%PDF-fixture")
     @wkd_key = "/.well-known/openpgpkey/hu/53a3k6s45xb3w5niiaq14mjsf1xeuoz3?l=stdin"
+    @advanced_wkd_key = @wkd_key.sub("openpgpkey/", "openpgpkey/adrianjunge.de/")
     {
       "/.well-known/openpgpkey/policy" => "text/plain",
       @wkd_key => "application/octet-stream",
+      "/.well-known/openpgpkey/adrianjunge.de/policy" => "text/plain",
+      @advanced_wkd_key => "application/octet-stream",
       SiteProfile.pgp_path => "application/pgp-keys"
     }.each do |path, type|
       body = File.binread(Rails.root.join("public", path.split("?", 2).first.delete_prefix("/")))
@@ -34,8 +37,10 @@ class PostDeployCheckTest < ActiveSupport::TestCase
         "cache-control" => "public, max-age=0, must-revalidate", "content-length" => body.bytesize.to_s
       }, body)
     end
-    [ "/.well-known/openpgpkey", "/.well-known/openpgpkey/", "/.well-known/openpgpkey/hu/", "/.well-known/openpgpkey/hu/#{'0' * 32}?l=unpublished" ].each do |path|
-      @routes[path] = response(404)
+    %w[/.well-known/openpgpkey /.well-known/openpgpkey/adrianjunge.de].each do |base|
+      [ base, "#{base}/", "#{base}/hu/", "#{base}/hu/#{'0' * 32}?l=unpublished" ].each do |path|
+        @routes[path] = response(404)
+      end
     end
     @routes["/robots.txt"] = response(200, { "cache-control" => "public, max-age=0, must-revalidate" }, "User-agent: *")
     @routes["/this-page-does-not-exist"] = response(404)
@@ -43,7 +48,7 @@ class PostDeployCheckTest < ActiveSupport::TestCase
 
   test "checks representative routes canonical URLs downloads validators and gzip without external requests" do
     report = checker.run
-    assert_equal 32, report[:checks].length
+    assert_equal 44, report[:checks].length
     assert @calls.all? { |uri, _method, _headers| uri.host == "127.0.0.1" }
     assert_equal 2, report[:checks].count { |check| check[:sha256] }
     assert @calls.any? { |uri, method, headers| uri.path == @css && method == "HEAD" && headers["Accept-Encoding"] == "gzip" }
@@ -53,6 +58,25 @@ class PostDeployCheckTest < ActiveSupport::TestCase
   test "requires explicit safe origins and the configured canonical public host" do
     [ "http://adrianjunge.de", "https://other.example", "https://user@adrianjunge.de", "https://adrianjunge.de/path", "https://adrianjunge.de?q=1", "http://[" ].each do |url|
       assert_raises(PostDeployCheck::Failure, url) { PostDeployCheck.new(base_url: url) }
+    end
+  end
+
+  test "public WKD checks use the advanced hostname only for the advanced layout" do
+    checker(base_url: SiteProfile.origin).send(:check_openpgp)
+    assert_equal 26, @calls.length
+    @calls.each do |uri, _method, _headers|
+      advanced = uri.path.start_with?("/.well-known/openpgpkey/adrianjunge.de")
+      assert_equal advanced ? "openpgpkey.adrianjunge.de" : "adrianjunge.de", uri.host
+      assert_equal "https", uri.scheme
+    end
+  end
+
+  test "advanced WKD refuses redirects to the website or an external hostname" do
+    %w[https://adrianjunge.de https://external.example].each do |origin|
+      @calls.clear
+      @routes[@advanced_wkd_key] = response(302, { "location" => "#{origin}#{@advanced_wkd_key}" })
+      assert_raises(PostDeployCheck::Failure) { checker(base_url: SiteProfile.origin).send(:check_openpgp) }
+      assert @calls.none? { |uri, _method, _headers| uri.request_uri == @advanced_wkd_key && uri.host != "openpgpkey.adrianjunge.de" }
     end
   end
 
@@ -81,13 +105,15 @@ class PostDeployCheckTest < ActiveSupport::TestCase
   end
 
   test "refuses a stale WKD export missing CORS or a directory listing" do
-    original = @routes[@wkd_key].body
-    @routes[@wkd_key].body = "stale certificate"
-    assert_raises(PostDeployCheck::Failure) { checker.send(:check_openpgp) }
-    @routes[@wkd_key].body = original
-    @routes[@wkd_key].headers.delete("access-control-allow-origin")
-    assert_raises(PostDeployCheck::Failure) { checker.send(:check_openpgp) }
-    @routes[@wkd_key].headers["access-control-allow-origin"] = "*"
+    [ @wkd_key, @advanced_wkd_key ].each do |path|
+      original = @routes[path].body
+      @routes[path].body = "stale certificate"
+      assert_raises(PostDeployCheck::Failure) { checker.send(:check_openpgp) }
+      @routes[path].body = original
+      @routes[path].headers.delete("access-control-allow-origin")
+      assert_raises(PostDeployCheck::Failure) { checker.send(:check_openpgp) }
+      @routes[path].headers["access-control-allow-origin"] = "*"
+    end
     @routes["/.well-known/openpgpkey/hu/"] = response(200, {}, "directory listing")
     assert_raises(PostDeployCheck::Failure) { checker.send(:check_openpgp) }
   end
@@ -109,7 +135,7 @@ class PostDeployCheckTest < ActiveSupport::TestCase
     PostDeployCheck::Response.new(status: status, headers: headers, body: body)
   end
 
-  def checker
+  def checker(base_url: "http://127.0.0.1:1234")
     transport = lambda do |uri, method, headers|
       @calls << [ uri, method, headers ]
       if headers["If-None-Match"] == '"fixture"'
@@ -119,6 +145,6 @@ class PostDeployCheckTest < ActiveSupport::TestCase
         method == "HEAD" ? response(result.status, result.headers) : result
       end
     end
-    PostDeployCheck.new(base_url: "http://127.0.0.1:1234", transport: transport)
+    PostDeployCheck.new(base_url: base_url, transport: transport)
   end
 end

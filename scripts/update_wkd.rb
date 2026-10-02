@@ -15,6 +15,7 @@ class WkdPublisher
     @root = Pathname(root)
     @email = email
     @directory = @root.join("public/.well-known/openpgpkey")
+    @domain = @email.split("@", 2).last.downcase
   end
 
   def hash
@@ -26,20 +27,23 @@ class WkdPublisher
 
   def run(check: false)
     binary, fingerprint = export
-    key_path = @directory.join("hu", hash)
-    policy_path = @directory.join("policy")
-    if check
-      unless key_path.file? && key_path.binread == binary && policy_path.file? && policy_path.size.zero?
-        raise Failure, "WKD files are missing or stale. Run: ruby scripts/update_wkd.rb"
+    [ @directory, @directory.join(@domain) ].each do |directory|
+      key_path = directory.join("hu", hash)
+      policy_path = directory.join("policy")
+      if check
+        unless key_path.file? && key_path.binread == binary && policy_path.file? && policy_path.size.zero?
+          raise Failure, "WKD files are missing or stale. Run: ruby scripts/update_wkd.rb"
+        end
+        expected = directory == @directory ? [ @domain, "hu", "policy" ].sort : %w[hu policy]
+        unless directory.children.map(&:basename).map(&:to_s).sort == expected &&
+               key_path.dirname.children.map(&:basename).map(&:to_s) == [ hash ]
+          raise Failure, "Unexpected files in the public WKD directory"
+        end
+      else
+        FileUtils.mkdir_p(key_path.dirname)
+        key_path.binwrite(binary)
+        policy_path.binwrite("")
       end
-      unless @directory.children.map(&:basename).map(&:to_s).sort == %w[hu policy] &&
-             key_path.dirname.children.map(&:basename).map(&:to_s) == [ hash ]
-        raise Failure, "Unexpected files in the public WKD directory"
-      end
-    else
-      FileUtils.mkdir_p(key_path.dirname)
-      key_path.binwrite(binary)
-      policy_path.binwrite("")
     end
     { email: @email, fingerprint: fingerprint, hash: hash, bytes: binary.bytesize }
   end

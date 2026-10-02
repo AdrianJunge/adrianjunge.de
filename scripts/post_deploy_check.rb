@@ -11,8 +11,8 @@ require "uri"
 require_relative "../app/models/site_profile"
 require_relative "support/openpgp_checks"
 
-# Read-only release verification. URLs are bounded to one explicitly supplied
-# origin; a page cannot turn this check into a crawl of linked external sites.
+# Read-only release verification. URLs are bounded to the supplied origin and
+# the configured WKD hostname; pages cannot cause requests to other origins.
 class PostDeployCheck
   class Failure < StandardError; end
   Response = Struct.new(:status, :headers, :body, keyword_init: true)
@@ -28,6 +28,7 @@ class PostDeployCheck
     raise Failure, "Public checks require HTTPS" unless @base.scheme == "https" || loopback
     raise Failure, "Base URL must use the expected canonical origin" unless loopback || @base == @canonical
 
+    @advanced_wkd = loopback ? @base : origin_uri("https://openpgpkey.#{SiteProfile.email.split('@', 2).last.downcase}")
     @transport = transport || method(:http_request)
     @checks = []
   end
@@ -79,9 +80,10 @@ class PostDeployCheck
   private
 
   def check_openpgp
-    OpenpgpChecks.run(root: File.expand_path("..", __dir__)) do |path, method|
+    OpenpgpChecks.run(root: File.expand_path("..", __dir__)) do |path, method, layout|
       # WKD deliberately returns 404 for directories and unpublished keys.
-      response = request(path, method: method, expected: nil)
+      origin = layout == :advanced ? @advanced_wkd : @base
+      response = request(path, method: method, expected: nil, origin: origin)
       [ response.status, response.headers, response.body ]
     end
   rescue OpenpgpChecks::Failure => error
@@ -104,11 +106,11 @@ class PostDeployCheck
     end
   end
 
-  def request(path, method: "GET", headers: {}, expected: 200)
-    uri = URI.join(@base.to_s, path)
+  def request(path, method: "GET", headers: {}, expected: 200, origin: @base)
+    uri = URI.join(origin.to_s, path)
     seen = []
     loop do
-      raise Failure, "External redirect or asset refused: #{uri}" unless same_origin?(uri, @base) && !uri.userinfo
+      raise Failure, "External redirect or asset refused: #{uri}" unless same_origin?(uri, origin) && !uri.userinfo
       raise Failure, "Redirect loop at #{uri}" if seen.include?(uri.to_s)
       raise Failure, "Too many redirects for #{path}" if seen.length > 5
 
