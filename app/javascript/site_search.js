@@ -1,13 +1,63 @@
 const QUERY_LIMIT = 200;
 const SNIPPET_LENGTH = 200;
+const searchSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 let indexPromise;
 
 export function searchQuery(value) {
   return typeof value === 'string' ? Array.from(value.trim()).slice(0, QUERY_LIMIT).join('') : '';
 }
 
+function foldSiteSearch(value) {
+  return String(value || '').normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
+}
+
 export function normalizeSiteSearch(value) {
-  return String(value || '').normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  return foldSiteSearch(value).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+}
+
+function siteSearchTerms(value) {
+  return [...new Set(normalizeSiteSearch(searchQuery(value)).split(' ').filter(Boolean))];
+}
+
+export function siteSearchHighlightRanges(value, terms) {
+  const text = String(value || '');
+  if (!text || !terms.length) return [];
+  const normalized = foldSiteSearch(text);
+  const offsets = [];
+  // Map folded characters back to the original accents, ligatures and graphemes.
+  for (const { segment, index } of searchSegmenter.segment(text)) {
+    const length = foldSiteSearch(segment).length;
+    for (let offset = 0; offset < length; offset += 1) {
+      offsets.push([index, index + segment.length]);
+    }
+  }
+  const matches = [];
+  for (const term of terms) {
+    if (!term) continue;
+    for (let index = normalized.indexOf(term); index !== -1; index = normalized.indexOf(term, index + 1)) {
+      matches.push([offsets[index][0], offsets[index + term.length - 1][1]]);
+    }
+  }
+  const ranges = [];
+  for (const [start, end] of matches.sort((left, right) => left[0] - right[0])) {
+    const previous = ranges.at(-1);
+    if (previous && start <= previous[1]) previous[1] = Math.max(previous[1], end);
+    else ranges.push([start, end]);
+  }
+  return ranges;
+}
+
+function appendHighlightedText(element, value, terms) {
+  const text = String(value || '');
+  let offset = 0;
+  for (const [start, end] of siteSearchHighlightRanges(text, terms)) {
+    element.append(document.createTextNode(text.slice(offset, start)));
+    const mark = document.createElement('mark');
+    mark.textContent = text.slice(start, end);
+    element.append(mark);
+    offset = end;
+  }
+  element.append(document.createTextNode(text.slice(offset)));
 }
 
 export function siteSearchSnippet(value, terms) {
@@ -19,7 +69,7 @@ export function siteSearchSnippet(value, terms) {
 }
 
 export function searchSite(documents, value, { limit } = {}) {
-  const terms = [...new Set(normalizeSiteSearch(searchQuery(value)).split(' ').filter(Boolean))];
+  const terms = siteSearchTerms(value);
   if (!terms.length) return [];
   const results = documents.flatMap(document => {
     const title = normalizeSiteSearch(document.title);
@@ -44,7 +94,7 @@ export function searchSite(documents, value, { limit } = {}) {
       bestScore = sectionScore;
     }
     return [{
-      title: document.title, kind: document.kind, heading: best?.heading || '',
+      title: document.title, kind: document.kind, icon: document.icon, heading: best?.heading || '',
       url: sectionTerms.length && best?.anchor ? `${document.url.split('#')[0]}#${best.anchor}` : document.url,
       snippet: siteSearchSnippet(best?.text, terms), score
     }];
@@ -128,6 +178,7 @@ export function initializeSiteSearch(root) {
       const documents = await loadSiteSearchIndex();
       if (currentRevision !== revision) return;
       const matches = searchSite(documents, query);
+      const terms = siteSearchTerms(query);
       results.replaceChildren(...matches.map(match => {
         const row = document.createElement('li');
         const link = document.createElement('a');
@@ -135,13 +186,27 @@ export function initializeSiteSearch(root) {
         link.href = match.url;
         const title = document.createElement('span');
         title.className = 'site-search-result-title';
-        title.textContent = [match.title, match.heading].filter(Boolean).join(' — ');
+        appendHighlightedText(title, [match.title, match.heading].filter(Boolean).join(' — '), terms);
         const kind = document.createElement('span');
         kind.className = 'site-search-result-kind';
-        kind.textContent = match.kind;
+        appendHighlightedText(kind, match.kind, terms);
         const snippet = document.createElement('p');
-        snippet.textContent = match.snippet;
-        link.append(kind, title, snippet);
+        appendHighlightedText(snippet, match.snippet, terms);
+        if (match.icon?.src) {
+          const icon = document.createElement('img');
+          icon.className = `site-search-result-icon${match.icon.inverted ? ' site-search-result-icon-inverted' : ''}`;
+          icon.src = match.icon.src;
+          icon.alt = '';
+          icon.width = 44;
+          icon.height = 44;
+          icon.loading = 'lazy';
+          icon.decoding = 'async';
+          link.append(icon);
+        }
+        const heading = document.createElement('div');
+        heading.className = 'site-search-result-heading';
+        heading.append(kind, title);
+        link.append(heading, snippet);
         row.append(link);
         return row;
       }));

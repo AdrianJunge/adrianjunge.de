@@ -12,8 +12,13 @@
             data-toc-toggle="toc" aria-expanded="true" aria-controls="toc">‹</button>
   </div>
   <details class="article-toc-compact">
-    <summary>On this page</summary>
+    <summary aria-label="Table of contents" title="Table of contents">
+      <% if word_total.to_i.positive? %>
+        <%= render "shared/post_progress", word_total: word_total %>
+      <% else %>
+        Table of contents
+      <% end %>
+    </summary>
     <div id="toc-body"><%= render "shared/toc_links", headings: headings %></div>
   </details>
-  <%= render "shared/post_progress", word_total: word_total %>
 </nav>

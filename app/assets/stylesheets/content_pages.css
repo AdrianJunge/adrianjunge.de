@@ -67,9 +67,8 @@
     width: 5rem;
     height: 5rem;
     flex: 0 0 auto;
-    border: var(--default-border);
-    border-radius: var(--radius-ui);
-    background: rgba(38, 70, 109, 0.86);
+    border: 0;
+    background: transparent;
 }
 
 .content-hero-icon {

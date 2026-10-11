@@ -123,12 +123,17 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
       (() => {
         const results = document.querySelector('[data-site-search-results]');
         const style = getComputedStyle(results);
-        return { scrollable: results.scrollHeight > results.clientHeight, overflow: style.overflowY, color: style.scrollbarColor };
+        const card = results.querySelector('.site-search-result-link').getBoundingClientRect();
+        return {
+          scrollable: results.scrollHeight > results.clientHeight, overflow: style.overflowY, color: style.scrollbarColor,
+          scrollbarGap: results.getBoundingClientRect().left + results.clientWidth - card.right
+        };
       })()
     JS
     assert scroll_style["scrollable"], "Expected enough results to scroll"
     assert_includes %w[auto scroll], scroll_style["overflow"]
     assert_not_equal "auto", scroll_style["color"], "Expected the results scrollbar to use the site theme"
+    assert_operator scroll_style["scrollbarGap"], :>=, 12, "Result cards should leave space before the scrollbar"
     find("[data-site-search-query]").send_keys(*Array.new(expected, :arrow_down))
     assert_selector ".site-search-results li:last-child a:focus"
     assert_operator results.evaluate_script("this.scrollTop"), :>, 0
@@ -231,11 +236,11 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
     end
   end
 
-  test "result snippets and card padding navigate through one full-card link" do
+  test "highlighted matches and card padding navigate through one full-card link" do
     with_search_article do |post|
       [ 390, 1440 ].each do |width|
         page.current_window.resize_to(width, 900)
-        [ :snippet, :padding ].each do |target|
+        [ :match, :padding, :icon ].each do |target|
           visit "/blog"
           open_search
           fill_in "site-search-palette-query", with: "bodyneedle"
@@ -243,9 +248,13 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
           assert_selector ".site-search-results > li > a", count: 1
           assert_selector ".site-search-result-link .site-search-result-title", text: "Search destination"
           assert_no_selector ".site-search-result-link a, .site-search-result-link button", visible: :all
+          assert_selector ".site-search-result-link img.site-search-result-icon[alt='']"
+          assert_selector ".site-search-result-link p mark", text: "bodyneedle", exact_text: true
 
-          if target == :snippet
-            card.find("p", text: "Only the article body contains bodyneedle.").click
+          if target == :match
+            card.find("p mark", text: "bodyneedle").click
+          elsif target == :icon
+            card.find("img").click
           else
             rectangle = card.evaluate_script("({ x: this.getBoundingClientRect().x, y: this.getBoundingClientRect().y, height: this.getBoundingClientRect().height })")
             click_at rectangle["x"] + 6, rectangle["y"] + rectangle["height"] / 2

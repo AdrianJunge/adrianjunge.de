@@ -477,12 +477,14 @@ class LandingTest < ApplicationSystemTestCase
 
         return {
           backgroundColor: style.backgroundColor,
-          boxShadow: style.boxShadow
+          boxShadow: style.boxShadow,
+          transform: style.transform
         };
       })()
     JS
     assert_equal "rgba(24, 76, 112, 0.94)", landing_metric_hover_surface["backgroundColor"]
-    assert_not_equal "none", landing_metric_hover_surface["boxShadow"]
+    assert_equal "none", landing_metric_hover_surface["boxShadow"]
+    assert_equal "none", landing_metric_hover_surface["transform"]
     assert_selector ".landing-metric:first-child .landing-metric-sublabel", text: /min read/
     metric_order = page.evaluate_script(<<~JS)
       (() => {

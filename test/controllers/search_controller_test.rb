@@ -10,6 +10,14 @@ class SearchControllerTest < ActionDispatch::IntegrationTest
       assert_equal "2", payload.fetch("version")
       assert_not_includes response.body, SiteProfile.email
       assert_equal SiteSearch.new(repository: repository).documents.pluck(:url), payload.fetch("documents").pluck("url")
+      payload.fetch("documents").each do |document|
+        assert_match %r{\A#{Regexp.escape(asset_path_prefix)}/}, document.fetch("icon").fetch("src")
+      end
+      post = repository.blog_posts.first
+      source = ContentImageHelper.image_attributes(post[:logo]).fetch(:src)
+      indexed_post = payload.fetch("documents").find { |document| document["url"] == post[:link] }
+      assert_equal ApplicationController.helpers.asset_path(source), indexed_post.dig("icon", "src")
+      assert_equal false, indexed_post.dig("icon", "inverted")
       assert_not payload.key?("articles")
       assert_includes response.headers["Cache-Control"], "public"
       etag = response.headers.fetch("ETag")

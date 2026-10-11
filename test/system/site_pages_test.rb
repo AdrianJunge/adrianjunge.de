@@ -65,7 +65,7 @@ class SitePagesTest < ApplicationSystemTestCase
   end
 
   test "top taskbar keeps usable icons on narrow displays" do
-    [ 320, 390, 690, 720 ].each do |width|
+    [ 320, 390, 430, 690, 720, 768, 1024 ].each do |width|
       page.current_window.resize_to(width, 900)
       visit "/"
 
@@ -80,13 +80,20 @@ class SitePagesTest < ApplicationSystemTestCase
           });
           const taskbarRect = taskbar.getBoundingClientRect();
           const iconRect = icon.getBoundingClientRect();
+          const controls = Array.from(taskbar.querySelectorAll('.taskbar-link, .taskbar-button-container'))
+            .map(control => control.getBoundingClientRect());
+          const controlGaps = [
+            controls[0].left - taskbarRect.left,
+            ...controls.slice(1).map((rect, index) => rect.left - controls[index].right),
+            taskbarRect.right - controls.at(-1).right
+          ];
           const taskbarStyle = window.getComputedStyle(taskbar);
           const labelStyles = visibleLabels.map((label) => window.getComputedStyle(label));
           const labelFontSizes = labelStyles.map((style) => parseFloat(style.fontSize));
 
           return {
             taskbarHeight: Math.round(taskbarRect.height),
-            paddingLeft: parseFloat(taskbarStyle.paddingLeft),
+            controlGaps,
             iconLeft: Math.round(iconRect.left),
             iconWidth: Math.round(iconRect.width),
             taskbarBackground: taskbarStyle.backgroundColor,
@@ -99,7 +106,10 @@ class SitePagesTest < ApplicationSystemTestCase
       JS
 
       assert_equal "rgba(7, 31, 52, 0.86)", metrics["taskbarBackground"]
-      assert_operator metrics["paddingLeft"], :>=, width <= 420 ? 6 : 7, "top taskbar padding collapsed at #{width}px"
+      metrics["controlGaps"].each do |gap|
+        assert_operator gap, :>=, 0, "top taskbar controls overlap at #{width}px"
+        assert_in_delta metrics["controlGaps"].first, gap, 1, "top taskbar spacing must match at the edges and between controls at #{width}px"
+      end
       assert_operator metrics["iconLeft"], :>=, 7, "top taskbar icon touched the viewport edge at #{width}px"
       assert_operator metrics["iconWidth"], :>=, 24, "top taskbar icon became too small at #{width}px"
       assert_operator metrics["taskbarHeight"], :>=, 48, "top taskbar became too short at #{width}px"
@@ -109,11 +119,16 @@ class SitePagesTest < ApplicationSystemTestCase
       assert_operator metrics["minLabelFontSize"], :>=, 8.9, "top taskbar labels became too small at #{width}px"
       assert_operator metrics["maxLabelFontSize"], :<=, 11, "top taskbar labels became too large at #{width}px"
       assert page.evaluate_script(<<~JS), "navigation labels or touch targets do not fit at #{width}px"
-        [...document.querySelectorAll('.top-taskbar .taskbar-label')].filter(label => label.getClientRects().length).every(label => {
-          const control = label.closest('a, button, summary');
-          const rect = control.getBoundingClientRect();
-          return label.scrollWidth <= label.clientWidth + 1 && rect.width >= 44 && rect.height >= 44 && rect.left >= 0 && rect.right <= innerWidth;
-        })
+        (() => {
+          const taskbar = document.getElementById('top-taskbar');
+          const labels = [...taskbar.querySelectorAll('.taskbar-label')].filter(label => label.getClientRects().length);
+          const minimumWidth = Math.min(44, taskbar.clientWidth / labels.length);
+          return labels.every(label => {
+            const control = label.closest('a, button, summary');
+            const rect = control.getBoundingClientRect();
+            return label.scrollWidth <= label.clientWidth + 1 && rect.width >= minimumWidth - 0.1 && rect.height >= 44 && rect.left >= 0 && rect.right <= document.documentElement.clientWidth;
+          });
+        })()
       JS
     end
   end

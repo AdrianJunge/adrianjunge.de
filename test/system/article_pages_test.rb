@@ -4,13 +4,13 @@ require_relative "../support/site_page_helpers"
 class ArticlePagesTest < ApplicationSystemTestCase
   include SitePageHelpers
 
-  test "articles keep one progress meter at the bottom of their responsive contents panel" do
+  test "articles keep one progress meter in their responsive contents controls" do
     [ first_blog_post[:link], first_ctf_post[:link] ].each do |path|
-      [ 320, 390, 768, 1024, 1400, 1440 ].each do |width|
+      visit path
+      [ 320, 390, 768, 1024, 1400, 1440, 390 ].each do |width|
         page.current_window.resize_to(width, 1200)
-        visit path
         assert_selector ".post-meta-line", text: /min read/
-        assert_selector "#toc > .article-progress[data-word-total][role='meter']", count: 1
+        assert_selector "#toc .article-progress[data-word-total][role='meter']", count: 1
         assert_selector "[data-article-progress]", count: 1, visible: :all
         assert_no_selector ".writeup-container [data-article-progress]", visible: :all
         assert_selector ".article-progress-percent", text: /\d+%/
@@ -29,17 +29,19 @@ class ArticlePagesTest < ApplicationSystemTestCase
         JS
         assert_in_delta metrics["left"], metrics["right"], 2, "#{path} at #{width}px should center article and TOC together"
         assert_equal false, metrics["overflow"], "#{path} at #{width}px must not overflow horizontally"
-        assert_equal true, metrics["progressIsLast"]
         assert_empty metrics["duplicateIds"]
         if width <= 1400
           assert_selector "#toc"
+          assert_selector ".article-toc-compact > summary[aria-label='Table of contents'] > [data-article-progress]"
           assert_selector "#toc > .article-back-link", text: path.start_with?("/blog/") ? "All blog posts" : /writeups/
           assert_no_selector ".back-button-floating"
           assert_no_selector ".article-toc-compact[open]"
           find(".article-toc-compact > summary").click
           assert_selector ".article-toc-compact[open] .toc-anchor", minimum: 1
+          find(".article-toc-compact > summary").click
         else
           assert_selector "#toc"
+          assert_equal true, metrics["progressIsLast"]
           assert_no_selector ".article-back-link"
           assert_selector ".back-button-floating.article-back-desktop"
           find("#toc-toggle").click
@@ -59,7 +61,7 @@ class ArticlePagesTest < ApplicationSystemTestCase
       [ 320, 768, 1440 ].each do |width|
         page.current_window.resize_to(width, 800)
         visit path
-        assert_selector "#toc > [data-article-progress]"
+        assert_selector "#toc [data-article-progress]"
         page.execute_script("window.scrollTo(0, Math.min(1200, (document.documentElement.scrollHeight - innerHeight) / 2))")
         find(".article-toc-compact > summary").click if width <= 1400
         metrics = page.evaluate_script(<<~JS)
@@ -85,6 +87,7 @@ class ArticlePagesTest < ApplicationSystemTestCase
               viewportHeight: innerHeight,
               meterTop: meter.top,
               meterBottom: meter.bottom,
+              linksTop: links.getBoundingClientRect().top,
               linksBottom: links.getBoundingClientRect().bottom,
               scrollableLinks: getComputedStyle(links).overflowY,
               percent: Number(progress.getAttribute('aria-valuenow')),
@@ -102,15 +105,17 @@ class ArticlePagesTest < ApplicationSystemTestCase
         assert_operator metrics["scrollY"], :>, 100
         assert_operator metrics["top"], :>=, metrics["taskbarBottom"] - 1
         assert_operator metrics["bottom"], :<=, metrics["viewportHeight"] - 8
-        assert_operator metrics["meterTop"], :>=, metrics["linksBottom"]
         assert_operator metrics["meterBottom"], :<=, metrics["bottom"]
         assert_equal "auto", metrics["scrollableLinks"]
         assert_equal false, metrics["overlapsBack"], "Back navigation and the TOC disclosure must have separate rows"
         assert_equal true, metrics["summaryHit"], "the TOC summary must remain directly clickable"
         if width <= 1400
+          assert_operator metrics["meterBottom"], :<=, metrics["linksTop"]
           assert_equal "static", metrics["backPosition"], "compact Back navigation must participate in normal layout"
           assert_equal true, metrics["backInsideToc"]
           assert_operator metrics["backBottom"], :<=, metrics["summaryTop"] + 1
+        else
+          assert_operator metrics["meterTop"], :>=, metrics["linksBottom"]
         end
         assert_operator metrics["percent"], :>, 0
         assert_operator metrics["percent"], :<=, 100
@@ -118,7 +123,7 @@ class ArticlePagesTest < ApplicationSystemTestCase
     end
   end
 
-  test "compact contents close on navigation and escape without losing keyboard focus" do
+  test "compact contents stay open on navigation and close on escape without losing keyboard focus" do
     page.current_window.resize_to(390, 800)
     visit "/blog/java-strings"
     summary = find(".article-toc-compact > summary")
@@ -130,8 +135,8 @@ class ArticlePagesTest < ApplicationSystemTestCase
     summary.click
     links = all("#toc-body .toc-anchor")
     links[links.length / 2].click
-    assert_no_selector ".article-toc-compact[open]"
-    assert_selector "#toc > [data-article-progress]"
+    assert_selector ".article-toc-compact[open]"
+    assert_selector ".article-toc-compact > summary > [data-article-progress]"
     assert_equal true, page.evaluate_script("document.activeElement.matches('.markdown-content :is(h1,h2,h3,h4,h5,h6)')")
     assert_compact_anchor_clears_contents
   end
@@ -156,7 +161,7 @@ class ArticlePagesTest < ApplicationSystemTestCase
       visit "/blog/java-strings"
       assert_no_selector "#toc[data-toc-enhanced]", visible: :all
       assert_no_selector ".article-toc-compact[open]"
-      assert_selector "#toc > [data-article-progress]", count: 1
+      assert_selector ".article-toc-compact > summary > [data-article-progress]", count: 1
       assert_no_selector "#toc-toggle"
       if width <= 1400
         assert_selector "#toc > .article-back-link"

@@ -83,11 +83,13 @@
     min-height: 0;
     gap: 0.7rem;
     margin: 0;
-    padding: 0.25rem;
+    padding: 0.375rem;
+    padding-inline-end: 1rem;
     list-style: none;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
+    scroll-padding-block: 0.375rem;
     scrollbar-width: thin;
     scrollbar-color: rgba(125, 211, 252, 0.6) rgba(18, 55, 87, 0.7);
 }
@@ -116,7 +118,10 @@
 }
 
 .site-search-results .site-search-result-link {
-    display: block;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 0.65rem 0.85rem;
     padding: 0.85rem;
     border: 1px solid #52738e;
     border-radius: var(--radius-ui-control);
@@ -125,6 +130,24 @@
     overflow-wrap: anywhere;
     text-decoration: none;
     transition: var(--button-transition);
+}
+
+.site-search-result-link:has(.site-search-result-icon) {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+}
+
+.site-search-result-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    object-fit: contain;
+}
+
+.site-search-result-icon-inverted {
+    filter: invert(1);
+}
+
+.site-search-result-heading {
+    min-width: 0;
 }
 
 .site-search-results .site-search-result-link:is(:hover, :focus-visible) {
@@ -139,8 +162,15 @@
     font-weight: 700;
 }
 
+.site-search-result-link mark {
+    border-radius: 0.15em;
+    background: #fde68a;
+    color: #1c1917;
+}
+
 .site-search-results p {
-    margin-top: 0.45rem;
+    grid-column: 1 / -1;
+    margin: 0;
     color: #d8e2ec;
     line-height: 1.65;
 }
@@ -180,4 +210,34 @@
     margin-bottom: 0.25rem;
     color: #bdcfe2;
     font-size: 0.8rem;
+}
+
+@media (max-width: 480px) {
+    .site-search-result-link:has(.site-search-result-icon) {
+        grid-template-columns: 2rem minmax(0, 1fr);
+    }
+
+    .site-search-result-icon {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .site-search-result-heading {
+        display: contents;
+    }
+
+    .site-search-result-kind {
+        margin-bottom: 0;
+    }
+
+    .site-search-result-title {
+        grid-column: 1 / -1;
+    }
+
+    .site-search-results p {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        overflow: hidden;
+    }
 }

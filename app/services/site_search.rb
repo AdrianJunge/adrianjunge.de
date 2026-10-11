@@ -4,15 +4,15 @@ class SiteSearch
   include MarkdownHelper
 
   VERSION = "2".freeze
-  CACHE_VERSION = "main-pages-v3".freeze
+  CACHE_VERSION = "icons-v1".freeze
   QUERY_LIMIT = 200
   SNIPPET_LENGTH = 200
   ABOUT_COLLECTIONS = [
-    { path: :ABOUTME_CVES_PATH, id: "cves", title: "CVEs", kind: "CVE" },
-    { path: :ABOUTME_CHALLENGES_PATH, id: "my-challenges", title: "Created CTF Challenges", kind: "Authored challenge" },
-    { path: :ABOUTME_CERTIFICATES_PATH, id: "certificates", title: "Certificates", kind: "Certificate" },
-    { path: :ABOUTME_TALKS_PATH, id: "talks", title: "Talks", kind: "Talk" },
-    { path: :ABOUTME_ACHIEVEMENTS_PATH, id: "achievements", title: "Relevant achievements", kind: "Achievement" }
+    { path: :ABOUTME_CVES_PATH, id: "cves", title: "CVEs", kind: "CVE", icon_kind: "cve" },
+    { path: :ABOUTME_CHALLENGES_PATH, id: "my-challenges", title: "Created CTF Challenges", kind: "Authored challenge", icon_kind: "challenge" },
+    { path: :ABOUTME_CERTIFICATES_PATH, id: "certificates", title: "Certificates", kind: "Certificate", icon_kind: "certificate" },
+    { path: :ABOUTME_TALKS_PATH, id: "talks", title: "Talks", kind: "Talk", icon_kind: "talk" },
+    { path: :ABOUTME_ACHIEVEMENTS_PATH, id: "achievements", title: "Relevant achievements", kind: "Achievement", icon_kind: "achievement" }
   ].map(&:freeze).freeze
   # These are displayed prose/labels, not file locations or arbitrary metadata.
   PUBLIC_TEXT_KEYS = %w[
@@ -72,7 +72,7 @@ class SiteSearch
         section_terms.sum { |term| (heading.include?(term) ? 40 : 0) + (text.include?(term) ? 4 : 0) }
       end&.first || { heading: "", anchor: nil, text: "" }
       url = section_terms.any? && best[:anchor].present? ? "#{document[:url].split('#', 2).first}##{best[:anchor]}" : document[:url]
-      { title: document[:title], kind: document[:kind], heading: best[:heading], url: url,
+      { title: document[:title], kind: document[:kind], icon: document[:icon], heading: best[:heading], url: url,
         snippet: snippet(best[:text], terms), score: score }
     end.sort_by { |result| [ -result[:score], result[:title].downcase, result[:url] ] }
     limit ? results.first([ limit.to_i, 0 ].max) : results
@@ -103,21 +103,23 @@ class SiteSearch
       details = visible_text(metadata)
       details = [ post[:description], post[:which], details ].compact.join(" ")
       sections = markdown_sections(post[:body], introduction: details)
-      document(title: post[:title], url: post[:link], kind: kind, tags: tags, sections: sections)
+      icon = post[:logo].presence || (post[:type] == "ctf" ? "task-bar/flag.svg" : ContentIconRegistry.for("blog"))
+      document(title: post[:title], url: post[:link], kind: kind, icon: icon, tags: tags, sections: sections)
     end
   end
 
   def about_documents
     parsed = @repository.parse_markdown(@repository.about_markdown)
-    records = [ document(title: "About #{SiteProfile.name}", url: "/about", kind: "Page",
+    records = [ document(title: "About #{SiteProfile.name}", url: "/about", kind: "Page", icon: "task-bar/about.svg",
       tags: [ "About me", SiteProfile.name, SiteProfile.handle, "Biography", "Contact", "Email", "PGP key" ],
       sections: markdown_sections(parsed.content, introduction: [ parsed.front_matter["description"], contact_text ].join(" "))) ]
 
     ABOUT_COLLECTIONS.each do |collection|
       entries = collection[:id] == "my-challenges" ? @repository.authored_challenges : @repository.about_entries(ContentConfiguration.const_get(collection[:path]))
       entries = entries.reject { |entry| @repository.hidden_content?(entry) }
+      fallback_icon = ContentIconRegistry.for(collection[:icon_kind])
       records << document(title: collection[:title], url: "/about##{collection[:id]}", kind: "About section",
-        tags: [ collection[:title], collection[:kind] ], text: "#{entries.length} #{collection[:title]} by #{SiteProfile.name}.")
+        icon: fallback_icon, tags: [ collection[:title], collection[:kind] ], text: "#{entries.length} #{collection[:title]} by #{SiteProfile.name}.")
       entries.each do |entry|
         tags = [ collection[:kind], *tag_labels(entry["tags"]) ]
         sections = [ { heading: "", anchor: nil, text: visible_text(entry) } ]
@@ -130,7 +132,8 @@ class SiteSearch
                         text: visible_text(event) }
         end
         records << document(title: [ entry["title"], entry["subtitle"] ].compact_blank.join(": "),
-          url: "/about##{entry.fetch('id')}", kind: collection[:kind], tags: tags, sections: sections)
+          url: "/about##{entry.fetch('id')}", kind: collection[:kind], icon: entry["icon"].presence || fallback_icon,
+          tags: tags, sections: sections)
       end
     end
     records
@@ -141,6 +144,7 @@ class SiteSearch
       metadata = event[:metadata]
       posts = @repository.ctf_posts_for_event(event[:slug])
       document(title: "#{event[:name]} CTF writeups", url: metadata.fetch("writeups"), kind: "CTF event",
+        icon: metadata["logo"].presence || "task-bar/flag.svg",
         tags: [ event[:name], "CTF", "Capture The Flag", *posts.flat_map { |post| Array(post[:categories]) } ],
         text: [ metadata["description"], *posts.map { |post| "#{post[:title]} #{@repository.ctf_event_year(post[:metadata])}" } ].join(" "))
     end
@@ -148,14 +152,14 @@ class SiteSearch
 
   def main_documents
     [
-      document(title: "Home — #{SiteProfile.name} (#{SiteProfile.handle})", url: "/", kind: "Page",
+      document(title: "Home — #{SiteProfile.name} (#{SiteProfile.handle})", url: "/", kind: "Page", icon: "task-bar/home.svg",
         tags: [ "Home", "Contact", "Email", "PGP key", "Bug bounties" ],
         text: "Welcome to my bug collection. CTF player, vulnerability researcher, and computer science student creating writeups, collecting CVEs, bounties, and notes from real targets and challenges, occasionally algorithmic challenges. I poke things politely and sometimes convince software to confess. Politely asking software uncomfortable questions. #{SiteProfile.description} #{SiteProfile.affiliations.map { |affiliation| affiliation['name'] }.join(' ')} KIT KITCTF. #{contact_text} #{SiteProfile.bug_bounty_count} bug bounties."),
-      document(title: "Blog", url: "/blog", kind: "Page", tags: [ "Blog posts", "Writing" ],
+      document(title: "Blog", url: "/blog", kind: "Page", icon: "task-bar/blog.svg", tags: [ "Blog posts", "Writing" ],
         text: "Longer notes on security work, learning, and practical writeups outside the CTF archive."),
-      document(title: "CTF", url: "/ctf", kind: "Page", tags: [ "CTF", "Capture The Flag", "Writeups" ],
+      document(title: "CTF", url: "/ctf", kind: "Page", icon: "task-bar/flag.svg", tags: [ "CTF", "Capture The Flag", "Writeups" ],
         text: "Capture The Flag competition events with published challenge writeups and security research notes."),
-      document(title: "Timeline", url: "/timeline", kind: "Page", tags: [ "Timeline", "Activity" ],
+      document(title: "Timeline", url: "/timeline", kind: "Page", icon: "task-bar/timeline.svg", tags: [ "Timeline", "Activity" ],
         text: "Security research, CTF writeups, blog posts, CVEs, bug bounties, authored challenges, certificates, talks, and achievements ordered by date.")
     ]
   end
@@ -170,8 +174,8 @@ class SiteSearch
       SiteProfile.pgp_path, SiteProfile.modified, SiteProfile.social_links, SiteProfile.affiliations, SiteProfile.bug_bounty_count ]
   end
 
-  def document(title:, url:, kind:, tags:, text: nil, sections: nil)
-    { title: plain_text(title), url: url, kind: kind,
+  def document(title:, url:, kind:, icon:, tags:, text: nil, sections: nil)
+    { title: plain_text(title), url: url, kind: kind, icon: { src: icon, inverted: icon.start_with?("task-bar/") },
       tags: tags.flatten.compact.map { |value| plain_text(value) }.reject(&:blank?).uniq,
       sections: sections || [ { heading: "", anchor: nil, text: plain_text(text) } ] }
   end

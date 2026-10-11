@@ -50,7 +50,7 @@ test('the last contents link can be tapped without the progress meter covering i
     const destination = page.locator('.toc-anchor').last();
     const href = await destination.getAttribute('href');
     await destination.tap();
-    await expect(disclosure).not.toHaveAttribute('open');
+    await expect(disclosure).toHaveAttribute('open', '');
     await expect(destination).toHaveAttribute('aria-current', 'location');
     expect(new URL(page.url()).hash).toBe(href);
     const heading = page.locator(`[id=${JSON.stringify(decodeURIComponent(href.slice(1)))}]`).locator('..');

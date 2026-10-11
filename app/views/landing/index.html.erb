@@ -85,7 +85,7 @@
     <div class="landing-metrics aboutme-stats" role="group" aria-label="Site overview metrics">
         <% landing_metrics.each do |metric| %>
             <% if metric[:link] %>
-                <a href="<%= metric[:link] %>" class="landing-metric aboutme-stat ui-hover-lift">
+                <a href="<%= metric[:link] %>" class="landing-metric aboutme-stat">
                     <% if metric.key?(:value) %>
                         <span class="landing-metric-value aboutme-stat-value"><%= metric[:value] %></span>
                     <% end %>

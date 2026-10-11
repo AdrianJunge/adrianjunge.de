@@ -836,17 +836,43 @@
 }
 
 .content-page .article-toc-compact > summary {
-    display: list-item;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
     min-height: 2.75rem;
     padding: 0.55rem 0;
-    list-style: disclosure-closed inside;
+    list-style: none;
     cursor: pointer;
     color: #e5f6ff;
     font-weight: 700;
 }
 
-.content-page .article-toc-compact[open] > summary {
-    list-style-type: disclosure-open;
+.content-page .article-toc-compact > summary::-webkit-details-marker {
+    display: none;
+}
+
+.content-page .article-toc-compact > summary::before {
+    content: "";
+    flex: 0 0 auto;
+    border-top: 0.3rem solid transparent;
+    border-bottom: 0.3rem solid transparent;
+    border-left: 0.45rem solid currentColor;
+}
+
+.content-page .article-toc-compact[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.content-page .article-toc-compact > summary:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 2px;
+    border-radius: var(--radius-ui-control);
+}
+
+.content-page .article-toc-compact > summary .article-progress {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
 }
 
 @media (min-width: 1401px) {
@@ -1046,8 +1072,7 @@
     }
 
     .content-page .article-toc-compact {
-        /* Keep the contents above the progress meter when the viewport is short.
-           The panel can scroll instead of shrinking the disclosure over its links. */
+        /* Let short viewports scroll the panel without shrinking its controls. */
         flex-shrink: 0;
     }
 
@@ -1061,9 +1086,7 @@
     }
 
     .content-page .article-toc-compact > summary {
-        display: list-item;
-        min-height: 2.75rem;
-        padding: 0.55rem 0;
+        padding: 0.4rem 0;
     }
 
     .content-page .article-back-link {
@@ -1095,7 +1118,6 @@
     }
 
     .content-page .table-of-content .article-progress {
-        margin-top: 0.3rem;
         padding: 0.4rem 0.6rem;
         box-shadow: none;
     }

@@ -25,6 +25,16 @@ test('snippets expose matching context as plain text with bounded length', () =>
   assert.ok(snippet.length <= 202);
 });
 
+test('highlights preserve original accents and ligatures and merge overlapping matches', () => {
+  const text = 'CAFÉ, cafe\u0301, \ufb01le and 👩‍💻 Café';
+  const ranges = search.siteSearchHighlightRanges(text, ['cafe', 'file']);
+  assert.deepEqual(ranges.map(([start, end]) => text.slice(start, end)), ['CAFÉ', 'cafe\u0301', '\ufb01le', 'Café']);
+  assert.deepEqual(search.siteSearchHighlightRanges('banana', ['ana', 'nan', 'ana']), [[1, 6]]);
+  assert.deepEqual(search.siteSearchHighlightRanges('CVE-2026-1234', ['cve', '2026']), [[0, 3], [4, 8]]);
+  assert.deepEqual(search.siteSearchHighlightRanges('nothing matches', ['needle']), []);
+  assert.deepEqual(search.siteSearchHighlightRanges('unchanged', []), []);
+});
+
 test('global results are not silently truncated and replace existing fragments for section destinations', () => {
   const documents = Array.from({ length: 35 }, (_, index) => ({
     title: `Needle page ${index}`, kind: 'Page', url: `/page-${index}#overview`, tags: [],
@@ -75,10 +85,12 @@ class SearchNode {
       contains(name) { return classes.has(name); }
     };
   }
+  get textContent() { return this.text + this.children.map(child => child.textContent).join(''); }
+  set textContent(value) { this.text = String(value); this.children = []; }
   set innerHTML(_) { throw new Error('Search content must be inserted as plain text'); }
   setAttribute(name, value) { this.attributes.set(name, value); }
   append(...nodes) { this.children.push(...nodes); }
-  replaceChildren(...nodes) { this.children = nodes; }
+  replaceChildren(...nodes) { this.text = ''; this.children = nodes; }
   addEventListener(name, listener) {
     const listeners = this.listeners.get(name) || [];
     listeners.push(listener);
@@ -107,7 +119,11 @@ function searchDOM() {
     ['.search-wrapper', wrapper], ['[data-site-search-clear]', clear]
   ]);
   root.querySelector = selector => selectors.get(selector);
-  return { root, input, results, status, retry, wrapper, clear, document: { createElement: tag => new SearchNode(tag), activeElement: input } };
+  return { root, input, results, status, retry, wrapper, clear, document: {
+    createElement: tag => new SearchNode(tag),
+    createTextNode: text => { const node = new SearchNode('#text'); node.textContent = text; return node; },
+    activeElement: input
+  } };
 }
 
 test('live search ignores stale responses, renders plain text, and keeps blank status empty', async () => {
@@ -134,6 +150,7 @@ test('live search ignores stale responses, renders plain text, and keeps blank s
     const latestUpdate = controller.update();
     resolveRequest({ ok: true, json: async () => ({ version: '2', documents: [{
       title: '<script>Needle</script>', kind: 'Page', url: '/example', tags: [],
+      icon: { src: '/assets/example.svg', inverted: true },
       sections: [{ heading: 'Example', anchor: 'example', text: 'Needle <img src=x> remains plain text.' }]
     }] }) });
     await Promise.all([oldUpdate, latestUpdate]);
@@ -143,14 +160,19 @@ test('live search ignores stale responses, renders plain text, and keeps blank s
     const link = dom.results.querySelectorAll('a')[0];
     assert.equal(link.className, 'site-search-result-link');
     assert.deepEqual(dom.results.children[0].children, [link]);
-    assert.deepEqual(link.children.map(child => child.tag), ['span', 'span', 'p']);
-    assert.equal(link.children[0].className, 'site-search-result-kind');
-    assert.equal(link.children[0].textContent, 'Page');
-    assert.equal(link.children[1].className, 'site-search-result-title');
-    assert.equal(link.children[1].textContent, '<script>Needle</script> — Example');
+    const [icon, heading, snippet] = link.children;
+    assert.equal(icon.tag, 'img');
+    assert.equal(icon.src, '/assets/example.svg');
+    assert.equal(icon.alt, '');
+    assert.equal(icon.className, 'site-search-result-icon site-search-result-icon-inverted');
+    assert.equal(heading.children[0].textContent, 'Page');
+    assert.equal(heading.children[1].textContent, '<script>Needle</script> — Example');
     assert.equal(link.href, '/example');
     assert.equal(dom.results.querySelectorAll('a').length, 1);
-    assert.match(link.children[2].textContent, /<img src=x>/);
+    assert.match(snippet.textContent, /<img src=x>/);
+    assert.deepEqual(dom.results.querySelectorAll('mark').map(mark => mark.textContent), ['Needle', 'Needle']);
+    assert.equal(dom.results.querySelectorAll('script').length, 0);
+    assert.deepEqual(dom.results.querySelectorAll('img'), [icon]);
     const onKey = dom.root.listeners.get('keydown')[0];
     let prevented = false;
     onKey({ key: 'ArrowDown', preventDefault() { prevented = true; } });
@@ -158,6 +180,9 @@ test('live search ignores stale responses, renders plain text, and keeps blank s
     assert.ok(prevented);
     onKey({ key: 'ArrowUp', preventDefault() {} });
     assert.equal(globalThis.document.activeElement, dom.input);
+    dom.input.value = 'EXAMPLE';
+    await controller.update();
+    assert.deepEqual(dom.results.querySelectorAll('mark').map(mark => mark.textContent), ['Example']);
     dom.input.value = '';
     await controller.update();
     assert.equal(dom.status.textContent, '');

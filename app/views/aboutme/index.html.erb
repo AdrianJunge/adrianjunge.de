@@ -36,7 +36,7 @@
   <div class="aboutme-stats" role="group" aria-label="Public security work summary">
     <% about_stats.each do |stat| %>
       <% if stat[:anchor] %>
-        <a href="#<%= stat[:anchor] %>" class="aboutme-stat ui-hover-lift" aria-label="Jump to <%= stat[:label] %>">
+        <a href="#<%= stat[:anchor] %>" class="aboutme-stat" aria-label="Jump to <%= stat[:label] %>">
           <span class="aboutme-stat-value"><%= stat[:value] %></span>
           <span class="aboutme-stat-label"><%= stat[:label] %></span>
         </a>

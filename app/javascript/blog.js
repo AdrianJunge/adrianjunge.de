@@ -175,7 +175,6 @@ function initBlogTOC() {
         if (!target) return;
 
         event.preventDefault();
-        if (compactToc.matches && tocDisclosure) tocDisclosure.open = false;
         scrollToAnchor(target, hash);
         const heading = scrollTargetForAnchor(target);
         if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
@@ -262,6 +261,11 @@ function initBlogTOC() {
   function syncTocLayout() {
     const focused = document.activeElement;
     const focusWasInToc = toc?.contains(focused) || focused?.matches('.writeup-toc-restore-button');
+    const progress = toc?.querySelector('[data-article-progress]');
+    const progressParent = compactToc.matches ? tocDisclosure?.querySelector('summary') : toc;
+    if (progress && progressParent && progress.parentElement !== progressParent) {
+      progressParent.appendChild(progress);
+    }
     updateTocState('toc', compactToc.matches ? false : wideTocCollapsed);
     if (tocDisclosure) tocDisclosure.open = !compactToc.matches;
     if (focusWasInToc) {

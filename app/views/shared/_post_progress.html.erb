@@ -1,7 +1,7 @@
 <% word_total = local_assigns[:word_total].to_i %>
 
 <% if word_total.positive? %>
-  <div
+  <span
     class="article-progress"
     data-article-progress
     data-word-total="<%= word_total %>"
@@ -22,5 +22,5 @@
     <span class="article-progress-track" aria-hidden="true">
       <span class="article-progress-bar"></span>
     </span>
-  </div>
+  </span>
 <% end %>

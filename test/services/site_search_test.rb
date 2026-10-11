@@ -37,6 +37,7 @@ class SiteSearchTest < ActiveSupport::TestCase
     assert_equal "#{post[:link]}##{headings[0][:anchor]}", search.search("Orangeonly Pearonly").first[:url]
     assert_equal "#{post[:link]}##{headings[2][:anchor]}", search.search("codeonlyword").first[:url]
     assert_equal "#{post[:link]}##{headings[2][:anchor]}", search.search("altneedle").first[:url]
+    assert_equal post[:logo], search.search("Pearonly").first.dig(:icon, :src)
     assert search.documents.none? { |document| document[:sections].any? { |section| section[:text].include?("Copy code") } }
   end
 
@@ -120,7 +121,8 @@ class SiteSearchTest < ActiveSupport::TestCase
     end
     assert_equal expected.sort, documents.pluck(:url).sort
     assert_equal documents.pluck(:url).uniq, documents.pluck(:url)
-    assert documents.all? { |document| document.keys.sort == %i[kind sections tags title url] }
+    assert documents.all? { |document| document.keys.sort == %i[icon kind sections tags title url] }
+    assert documents.all? { |document| document.dig(:icon, :src).present? }
   end
 
   test "shipped distinctive terms cover every public content class and contact information" do
