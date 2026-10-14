@@ -141,7 +141,7 @@ jobs:
         run: bin/rails test:system
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: screenshots
@@ -154,7 +154,7 @@ jobs:
         run: npm run accessibility:summary
 
       - name: Keep accessibility evidence from system tests
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() && (steps.system_tests.outcome == 'success' || steps.system_tests.outcome == 'failure') }}
         with:
           name: accessibility-reports
@@ -184,7 +184,7 @@ jobs:
       - name: Check touch layouts and mobile interactions
         run: bin/check mobile
       - name: Keep cross-browser traces and reports
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: cross-browser-reports
@@ -271,7 +271,7 @@ jobs:
         run: scripts/container-check.sh adrian-site:ci
 
       - name: Keep production and performance reports
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: production-reports
