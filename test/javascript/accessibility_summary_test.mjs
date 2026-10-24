@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { summarizeAccessibility, accessibilityMarkdown } from '../../scripts/accessibility-summary.mjs';
 
 const baseline = {
-  schema: 1, axeVersion: '4.13.0', triagedOn: '2026-09-27', reviewPolicy: 'Manual review is still required.',
+  schema: 1, axeVersion: '4.14.0', triagedOn: '2026-10-24', reviewPolicy: 'Manual review is still required.',
   rules: { 'color-contrast': { messageKeys: ['pseudoContent'], reason: 'Layered background.', manualStatus: 'pending' } },
   states: { home: { 'color-contrast': 2 }, search: {} },
 };
-const report = (incomplete = [], violations = []) => ({ schema: 1, axeVersion: '4.13.0', incomplete, violations });
+const report = (incomplete = [], violations = []) => ({ schema: 1, axeVersion: '4.14.0', incomplete, violations });
 const node = (reason = 'pseudoContent') => ({ target: ['.sample'], any: [{ data: { messageKey: reason } }], all: [], none: [] });
 
 test('reviewed incomplete limitations stay visible without becoming confirmed failures', () => {

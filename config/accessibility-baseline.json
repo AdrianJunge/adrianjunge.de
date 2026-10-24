@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "axeVersion": "4.13.0",
-  "triagedOn": "2026-09-27",
+  "axeVersion": "4.14.0",
+  "triagedOn": "2026-10-24",
   "reviewPolicy": "This is a reviewed classification of axe's limitations, not proof of accessibility or a completed manual review. Unknown rules, new reasons, changed DOM references, and growth beyond the stated envelopes require triage. Confirmed violations always fail. Review actual contrast and screen-reader behavior manually.",
   "rules": {
     "color-contrast": {

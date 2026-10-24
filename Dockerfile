@@ -5,7 +5,7 @@
 # docker build -t adrian_junge .
 # docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name adrian_junge adrian_junge
 
-ARG RUBY_VERSION=3.4.10
+ARG RUBY_VERSION=3.4.12
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 WORKDIR /rails
