@@ -11,7 +11,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".aboutme-section:not([open])", 5
     assert_select ".aboutme-section[open]", 0
     assert_select "#bug-bounties", 0
-    assert_select ".aboutme-stat:not(a) .aboutme-stat-value", text: "4"
+    assert_select ".aboutme-stat:not(a) .aboutme-stat-value", text: SiteProfile.bug_bounty_count.to_s
     assert_select ".aboutme-stat:not(a) .aboutme-stat-label", text: "Bug bounties"
     assert_select "a[href='#bug-bounties']", 0
     assert_select ".taskbar-link[href=?]", about_path, text: "About"
@@ -58,7 +58,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".landing-metric.aboutme-stat", 4
     assert_select ".landing-metric:first-child[href=?]", timeline_path, text: /Posts/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
-    assert_select ".landing-metric:not(a) .landing-metric-value", text: "4"
+    assert_select ".landing-metric:not(a) .landing-metric-value", text: SiteProfile.bug_bounty_count.to_s
     assert_select ".landing-metric:not(a) .landing-metric-label", text: "Bounties"
     assert_select ".landing-metric[href=?]", "#{about_path}#bug-bounties", false
     assert_select ".landing-metric[href=?]", about_path, text: /& more\.\.\./

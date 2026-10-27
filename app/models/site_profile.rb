@@ -9,10 +9,10 @@ module SiteProfile
   EMAIL = "stdin@adrianjunge.de".freeze
   PGP_PATH = "/pgp-vurlo.asc".freeze
   SOURCE_URL = "https://github.com/AdrianJunge/adrianjunge.de".freeze
-  BUG_BOUNTY_COUNT = 4
+  BUG_BOUNTY_COUNT = 7
   # Update when editing profile copy, identity, or undated About information.
   # This is an editorial date, never the deployment or checkout timestamp.
-  MODIFIED = "2026-10-02".freeze
+  MODIFIED = "2026-10-27".freeze
   DESCRIPTION = "Security research, CVEs, bug bounty work, source review, CTF writeups, and technical notes by #{NAME}.".freeze
   SOCIAL_LINKS = {
     github: "https://github.com/AdrianJunge/",

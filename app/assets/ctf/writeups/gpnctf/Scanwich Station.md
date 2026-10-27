@@ -30,13 +30,13 @@ optional:
 
 # Introduction
 
-**Scanwich Station** was a hybrid web and pwn challenge which I created for [GPNCTF](https://ctftime.org/event/3041) held at the [24th Gulaschprogrammiernacht](https://entropia.de/GPN24) in Karlsruhe. So if you played my challenge, I hope you had some fun digging in some random QR-code library and maybe even learned something about the incredible **GLIBC** heap. I used **codex** to assist me creating this challenge, which was very helpful as there are a lot of details you need to be aware of to successfully exploit the challenge.
+**Scanwich Station** was a hybrid web and pwn challenge which I created for [GPNCTF](https://ctftime.org/event/3041) which took part at the [24th Gulaschprogrammiernacht](https://entropia.de/GPN24) in Karlsruhe. So if you played my challenge, I hope you had some fun digging in some random QR-code library and maybe even learned something about the incredible **GLIBC** heap. I used **codex** to assist me creating this challenge, which was very helpful as there are a lot of details you need to be aware of to successfully exploit the challenge.
 
-The visible application is a restaurant-themed QR-code scanner. A guest uploads a menu PNG with a QR-code and the website prints the decoded QR payload.
+The visible application is a restaurant-themed QR-code scanner. A user can upload a PNG with a QR-code and the website prints the decoded QR payload.
 
 ![landing page](ctf/writeups/gpnctf/scanwich-station/01-home-page.png "landing page")
 
-Casual users can enjoy the guest QR-code decoder path using [pyzbar](https://github.com/NaturalHistoryMuseum/pyzbar/), a Python wrapper around the [ZBar](https://github.com/mchehab/zbar) barcode library. The pwn part is hidden behind the faster kitchen scanner, which uses [quirc](https://github.com/dlbeer/quirc), but is only available for the kitchen staff.
+Casual users can use the guest QR-code decoder path using [pyzbar](https://github.com/NaturalHistoryMuseum/pyzbar/), a Python wrapper around the [ZBar](https://github.com/mchehab/zbar) barcode library. The pwn part is hidden behind the faster kitchen scanner, which uses [quirc](https://github.com/dlbeer/quirc), but is only available for the kitchen staff.
 
 # Access To The Kitchen
 

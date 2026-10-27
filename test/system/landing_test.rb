@@ -503,7 +503,7 @@ class LandingTest < ApplicationSystemTestCase
     assert_selector ".landing-metric[href='/about#cves']", text: "CVEs"
     assert_selector ".landing-metric[href='/about#cves'] .landing-metric-value",
                     text: repository.about_entries(ApplicationController::ABOUTME_CVES_PATH).length.to_s
-    assert_selector ".landing-metric:not(a) .landing-metric-value", text: "4"
+    assert_selector ".landing-metric:not(a) .landing-metric-value", text: SiteProfile.bug_bounty_count.to_s
     assert_selector ".landing-metric:not(a) .landing-metric-label", text: "Bounties"
     assert_no_selector ".landing-metric[href='/about#bug-bounties']"
 

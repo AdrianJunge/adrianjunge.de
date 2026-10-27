@@ -13,11 +13,11 @@ published: "2026-06-13"
 
 # TL;DR
 
-A university lab sent me down a PHP rabbit hole, from ChurchCRM to Joomla and two assigned CVEs. This is the story of that research, the role AI played in it, and what I learned along the way.
+A university lab sent me down a PHP rabbit hole, from [ChurchCRM](https://github.com/ChurchCRM/CRM) to [Joomla](https://github.com/joomla/joomla-cms) and two assigned CVEs. This is the story of that research, the role AI played in it, and what I learned along the way.
 
 # A Random PHP Detour
 
-The main reason I started hunting for CVEs was the [Real-world Vulnerability Discovery and Exploits](https://intellisec.de/teaching/2026-ss/exploits/) practical lab at my university, KIT. Passing the lab required an assigned CVE or a paid bug bounty.
+The main reason I started hunting for CVEs was the [Real-world Vulnerability Discovery and Exploits](https://intellisec.de/teaching/2026-ss/exploits/) practical lab at my university, KIT. Passing the lab required an assigned CVE or a paid bug bounty of at least $50.
 
 While looking for a target for the lab, I randomly found a **CRM** repository written in **PHP** for managing churches called [ChurchCRM](https://github.com/ChurchCRM/CRM).
 

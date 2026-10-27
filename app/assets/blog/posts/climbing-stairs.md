@@ -14,23 +14,23 @@ has_math: true
 
 # Climbing Stairs from Two Angles
 
-The [Climbing Stairs](https://leetcode.com/problems/climbing-stairs/) problem on [LeetCode](https://leetcode.com/) is one of those algorithm questions that looks almost too easy. There are `n` stairs, each move can cover either one or two stairs, and the task is to count how many distinct ordered move sequences can reach the top. For example, for `n = 5`, `1 + 2 + 2` is a valid climb, but `2 + 1 + 2` is a different valid climb.
+Among several interesting challenges on [LeetCode](https://leetcode.com/), although it is marked as an `easy` challenge, the [Climbing Stairs](https://leetcode.com/problems/climbing-stairs/) problem was for me the most interesting one I approached. There are `n` stairs and just like in real life you can decide to take either one or two stairs at a time (assuming you are not a crazy person taking 3 or even more stairs at once without breaking all of your bones). So the task is to find out how many different distinct ways exist the top. For example, for `n = 5` you can take the stairs with `1 + 2 + 2` or with `2 + 1 + 2`.
 
-There are actually two completely different approaches to solving this task. One is the [Fibonacci](https://en.wikipedia.org/wiki/Fibonacci_sequence) recurrence. The other is a direct [combinatorial](https://en.wikipedia.org/wiki/Combinatorics) count. I solved this challenge some time ago in the **combinatorial** way. Later I discussed the same challenge with a friend of mine, who solved it with the **Fibonacci** approach. Both of us were a bit surprised that these two approaches, which felt so different, produced exactly the same result. For me, that discussion made the challenge even more interesting, because it showed how completely different perspectives can lead to the same answer. There are also several ways to implement both ideas, ranging from very inefficient to very practical.
+I solved this problem by doing calculations with [combinatorics](https://en.wikipedia.org/wiki/Combinatorics). Some time later I randomly discussed this challenge with a friend of mine, who solved it completely different using the [Fibonacci](https://en.wikipedia.org/wiki/Fibonacci_sequence) sequence. Both of us were surprised that these two approaches, which felt so different, produced exactly the same result. For me, that discussion made the challenge even more interesting, because it showed how completely different perspectives can lead to the same answer. Even more interesting, there are several ways to implement both ideas.
 
 # The Mental Model: Tiny Tiles
 
-A useful way to look at the problem is to turn the stairs into a board of length `n`. With this view, the task is to count how many ways a board of length `n` can be tiled with pieces of length `1` and `2`. For `n = 5`, the answer is `8`, where `k` is the number of tiles of length `2`:
+A useful way to look at the problem is to turn the stairs into a board of length `n`. With this view, the task is to count how many ways a board of length `n` can be covered with pieces of length `1` and `2`. For `n = 5`, the answer is `8`, where `k` is the number of pieces of length `2`:
 
 ![All eight ways to climb five stairs, grouped by how many two-step moves they use.](blog/posts/climbing-stairs/tilings-n5.svg "All tilings for n = 5")
 
-The two different approaches are already visible in the same drawing:
+The two different approaches are already visible:
 - **Fibonacci** counts the rows by how they end
 - **Combinatorics** counts the rows by how many `2`-tiles they contain
 
 # Two Different Approaches - Same Solution
 
-`W(n)` is the number of ordered sequences made only from `1` and `2` whose sum is exactly `n`. That is exactly the value the [Climbing Stairs](https://leetcode.com/problems/climbing-stairs/) problem asks for:
+`W(n)` is the number of ordered sequences made only from `1` and `2` whose sum is exactly `n`:
 
 <div>
     \[
@@ -46,7 +46,7 @@ The two different approaches are already visible in the same drawing:
     \]
 </div>
 
-For the recurrence, the value of step `0` means that a path has already reached the target and has produced one complete valid sequence. Negative stair counts are impossible, so they add nothing to the calculation:
+For the recurrence, the value of step `0` means that a path has already reached the target and has produced one complete valid sequence:
 
 <div>
     \[
