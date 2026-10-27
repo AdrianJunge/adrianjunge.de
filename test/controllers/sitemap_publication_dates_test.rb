@@ -2,6 +2,8 @@ require "test_helper"
 require "tmpdir"
 
 class SitemapPublicationDatesTest < ActionDispatch::IntegrationTest
+  PROFILE_MODIFIED = "2026-10-02".freeze
+
   setup do
     travel_to Time.zone.local(2026, 10, 10)
     @directory = Dir.mktmpdir("sitemap-publication")
@@ -27,9 +29,9 @@ class SitemapPublicationDatesTest < ActionDispatch::IntegrationTest
   test "collection lastmod values describe visible publications and explicit profile updates" do
     fetch_sitemap
     dates = sitemap_dates
-    assert_equal SiteProfile.modified, dates.fetch("/about")
-    assert_equal SiteProfile.modified, dates.fetch("/")
-    assert_equal SiteProfile.modified, dates.fetch("/timeline")
+    assert_equal PROFILE_MODIFIED, dates.fetch("/about")
+    assert_equal PROFILE_MODIFIED, dates.fetch("/")
+    assert_equal PROFILE_MODIFIED, dates.fetch("/timeline")
     repository = ContentRepository.new(configuration: @configuration)
     assert_equal repository.blog_posts.map { |post| post[:modified] }.max.to_date.iso8601, dates.fetch("/blog")
     assert_equal repository.ctf_posts.map { |post| post[:modified] }.max.to_date.iso8601, dates.fetch("/ctf")
@@ -84,11 +86,10 @@ class SitemapPublicationDatesTest < ActionDispatch::IntegrationTest
   test "the published About page keeps its date when the scheduled BSides talk arrives" do
     dates = [ Time.zone.local(2026, 11, 8), Time.zone.local(2026, 11, 10) ].map do |date|
       travel_to date
-      with_stubbed_content_repository(ContentRepository.new) { get "/sitemap.xml" }
-      assert_response :success
+      fetch_sitemap(repository: ContentRepository.new)
       sitemap_dates.fetch("/about")
     end
-    assert_equal SiteProfile.modified, dates.first
+    assert_equal PROFILE_MODIFIED, dates.first
     assert_equal dates.first, dates.last
   end
 
@@ -104,9 +105,10 @@ class SitemapPublicationDatesTest < ActionDispatch::IntegrationTest
 
   private
 
-  def fetch_sitemap
-    repository = ContentRepository.new(configuration: @configuration)
-    with_stubbed_content_repository(repository) { get "/sitemap.xml" }
+  def fetch_sitemap(repository: ContentRepository.new(configuration: @configuration))
+    stub_const(SiteProfile, :MODIFIED, PROFILE_MODIFIED) do
+      with_stubbed_content_repository(repository) { get "/sitemap.xml" }
+    end
     assert_response :success
   end
 
