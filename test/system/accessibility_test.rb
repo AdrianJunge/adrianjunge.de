@@ -35,7 +35,8 @@ class AccessibilityTest < ApplicationSystemTestCase
     visit "/blog"
     find("[data-site-search-open][aria-keyshortcuts]", match: :first).click
     fill_in "site-search-palette-query", with: "Fibonacci"
-    assert_selector "dialog[open] .site-search-results a", minimum: 1
+    # The full search index can take several seconds to build in a cold test worker.
+    assert_selector "dialog[open][aria-busy='false'] .site-search-results a", minimum: 1, wait: 15
     assert_accessible_state("site-search-dialog-results-mobile")
   end
 
