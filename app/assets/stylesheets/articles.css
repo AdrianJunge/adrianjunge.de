@@ -213,13 +213,12 @@
     display: grid;
     grid-template-columns: minmax(5.75rem, auto) minmax(0, 1fr);
     gap: 0.75rem;
-    align-items: start;
+    align-items: center;
     padding: 0.72rem 0;
     border-bottom: 1px solid rgba(125, 211, 252, 0.12);
 }
 
 .content-page .article-meta-row-label {
-    padding-top: 0.22rem;
     color: rgba(186, 230, 253, 0.66);
     font-size: 0.72rem;
     font-weight: 900;
@@ -287,6 +286,7 @@
 
 .content-page .article-meta-panel .blog-post-authors {
     gap: 0.75rem;
+    margin: 0;
     color: rgba(226, 232, 240, 0.9);
     font-size: 0.88rem;
 }
