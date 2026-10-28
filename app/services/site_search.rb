@@ -200,9 +200,9 @@ class SiteSearch
         tags: [ "Home", "Contact", "Email", "PGP key", "Bug bounties" ],
         sections: [ SiteSearchPassages.section([
           "#{SiteProfile.name} (#{SiteProfile.handle})", "Welcome to my bug collection 🐛",
-          "CTF player, vulnerability researcher, and computer science student creating writeups, collecting CVEs, bounties, and notes from real targets and challenges, occasionally algorithmic challenges. I poke things politely and sometimes convince software to confess.",
+          SiteProfile.landing_lead,
           "Timeline", "About me", "KITCTF", "KIT", "PGP key", SiteProfile.bug_bounty_count, "Bounties"
-        ]), SiteSearchPassages.section([ "Politely asking software uncomfortable questions." ], anchor: "typing") ]),
+        ]), SiteSearchPassages.section([ SiteProfile.landing_tagline ], anchor: "typing") ]),
       document(title: "Blog", url: "/blog", kind: "Page", icon: "task-bar/blog.svg", tags: [ "Blog posts", "Writing" ],
         text: "Longer notes on security work, learning, and practical writeups outside the CTF archive."),
       document(title: "CTF", url: "/ctf", kind: "Page", icon: "task-bar/flag.svg", tags: [ "CTF", "Capture The Flag", "Writeups" ],
@@ -216,7 +216,7 @@ class SiteSearch
   end
 
   def profile_revision
-    [ SiteProfile.name, SiteProfile.handle, SiteProfile.description,
+    [ SiteProfile.name, SiteProfile.handle, SiteProfile.description, SiteProfile.landing_lead, SiteProfile.landing_tagline,
       SiteProfile.pgp_path, SiteProfile.modified, SiteProfile.social_links, SiteProfile.affiliations, SiteProfile.bug_bounty_count ]
   end
 

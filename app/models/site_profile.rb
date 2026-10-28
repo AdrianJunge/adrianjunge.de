@@ -10,10 +10,14 @@ module SiteProfile
   PGP_PATH = "/pgp-vurlo.asc".freeze
   SOURCE_URL = "https://github.com/AdrianJunge/adrianjunge.de".freeze
   BUG_BOUNTY_COUNT = 7
-  # Update when editing profile copy, identity, or undated About information.
-  # This is an editorial date, never the deployment or checkout timestamp.
-  MODIFIED = "2026-10-27".freeze
-  DESCRIPTION = "Security research, CVEs, bug bounty work, source review, CTF writeups, and technical notes by #{NAME}.".freeze
+  # Update when editing profile copy, identity, or undated About information. These are
+  # editorial dates, never deployment or checkout timestamps.
+  MODIFIED = "2026-10-28".freeze
+  # Update when editing visible landing-page copy.
+  LANDING_MODIFIED = "2026-10-28".freeze
+  DESCRIPTION = "Security research, CVEs, bug bounties, CTF writeups, and technical notes by #{NAME}.".freeze
+  LANDING_LEAD = "CTF player and computer science student creating writeups, collecting bounties and CVEs. Sometimes I lose myself in algorithmic challenges.".freeze
+  LANDING_TAGLINE = "Teaching machines to misbehave.".freeze
   SOCIAL_LINKS = {
     github: "https://github.com/AdrianJunge/",
     linkedin: "https://www.linkedin.com/in/adrian-junge-998a63296/",
@@ -40,7 +44,10 @@ module SiteProfile
   def source_url = SOURCE_URL
   def bug_bounty_count = BUG_BOUNTY_COUNT
   def modified = MODIFIED
+  def landing_modified = LANDING_MODIFIED
   def description = DESCRIPTION
+  def landing_lead = LANDING_LEAD
+  def landing_tagline = LANDING_TAGLINE
   def social_links = SOCIAL_LINKS
   def affiliations = AFFILIATIONS
 

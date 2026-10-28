@@ -227,7 +227,7 @@ class RefactoringTest < ApplicationSystemTestCase
     assert_no_selector "script[src*='mathjax']", visible: :all
     page.driver.browser.execute_cdp("Emulation.setEmulatedMedia", features: [ { name: "prefers-reduced-motion", value: "reduce" } ])
     visit "/"
-    assert_selector "#typing", text: "Politely asking software uncomfortable questions."
+    assert_selector "#typing", text: SiteProfile.landing_tagline
     requests = page.evaluate_script("performance.getEntriesByType('resource').map(entry => entry.name)")
     assert_empty requests.grep(/typed\.module/)
     assert_equal "none", page.evaluate_script("getComputedStyle(document.querySelector('.landing-profile-image')).animationName")

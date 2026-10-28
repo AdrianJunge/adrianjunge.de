@@ -69,7 +69,7 @@ card format:
   "title": "Scanwich Station",
   "icon": "ctf/gpnctf.png",
   "url": "/ctf/gpnctf/Scanwich%20Station",
-  "summary": "Hybrid web and pwn challenge about mass assignment, QR-code decoding, signed integer overflow, and GLIBC dynamic symbol poisoning. Published for GPNCTF 2026.",
+  "summary": "Short description of the challenge.",
   "tags": [
     { "label": "GPNCTF 2026", "url": "https://gpn24.ctf.kitctf.de/" },
     "Hard",
@@ -95,9 +95,10 @@ points: 405
 optional:
   authored_challenge:
     event: GPNCTF 2026
-    summary: Summary shown on the about card.
+    # Summary belongs in challenges.json when that file defines the card.
 ```
 
-The `optional` section may be omitted. `event` and `summary` inside
-`authored_challenge` are optional; missing values fall back to the CTF name plus
-`ctf_year` and the writeup description.
+The `optional` section may be omitted. `event` inside `authored_challenge` is
+optional; a missing value falls back to the CTF name plus `ctf_year`. When
+`challenges.json` is empty, authored cards are derived from writeup metadata and
+use the writeup description as their summary.

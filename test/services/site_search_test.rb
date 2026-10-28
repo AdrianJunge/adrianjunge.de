@@ -155,10 +155,11 @@ class SiteSearchTest < ActiveSupport::TestCase
       "Forschungszentrum" => "/about", "CVE-2026-97377" => "/about#suitecrm-portal-get-entry-list-sql-injection",
       "GLIBC dynamic symbol poisoning" => "/about#scanwich-station", "first attempt practical exam" => "/about#htb-cpts",
       "homework" => "/about#joomla-sqli", "Deutsche Hacking Meisterschaft" => "/about#dhm",
-      "annual German" => "/ctf#ctf-event-cscg", "software confess" => "/", "LeetCode KITCTF" => "/about"
+      "annual German" => "/ctf#ctf-event-cscg", "LeetCode KITCTF" => "/about"
     }.each do |query, prefix|
       assert search.search(query).any? { |result| result[:url].start_with?(prefix) }, query
     end
+    assert_includes search.search(SiteProfile.landing_lead).pluck(:url), "/"
     assert_includes search.search("Email contact").pluck(:url), "/"
     assert_includes search.search("PGP key").pluck(:url), "/about"
     assert_includes search.search("authored challenge").pluck(:url), "/ctf/gpnctf/Scanwich%20Station"

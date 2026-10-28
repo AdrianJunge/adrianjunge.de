@@ -10,22 +10,21 @@ function initializeTagline() {
 
   const fallback = element.textContent;
   const phrases = [
-    'Some people collect stamps. I collect stack traces.',
+    fallback,
+
     'My favorite input is the one nobody validated.',
-    'Politely asking software uncomfortable questions.',
     'CTF enthusiast',
     'I like puzzles that crash systems.',
     'Turning weird behavior into writeups.',
-    'Teaching machines to misbehave.',
     'CTF flags, real bugs, questionable sleep schedule.',
-    'Web and PWN player',
-    'Your browser knows everything - XSLeaks just politely ask',
+    'Web and Pwn player',
+    'XSLeaks: your browser has a terrible poker face.',
     'Source code tells jokes in edge cases.',
     'I love breaking stuff so others can fix it.',
     'Making impossible states feel very possible.',
     'The best exploit starts with: wait, that is weird.',
     'If it runs, I poke it.',
-    'If it parses, I probably want to test it.'
+    'Convincing software to confess.',
   ];
   const line = element.closest('.landing-typed-line') || element;
   const cursor = document.createElement('span');

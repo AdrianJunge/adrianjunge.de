@@ -37,6 +37,14 @@ class SitemapPublicationDatesTest < ActionDispatch::IntegrationTest
     assert_equal repository.ctf_posts.map { |post| post[:modified] }.max.to_date.iso8601, dates.fetch("/ctf")
   end
 
+  test "landing copy updates only the Home lastmod" do
+    fetch_sitemap(landing_modified: "2026-10-04")
+    dates = sitemap_dates
+    assert_equal "2026-10-04", dates.fetch("/")
+    assert_equal PROFILE_MODIFIED, dates.fetch("/about")
+    assert_equal PROFILE_MODIFIED, dates.fetch("/timeline")
+  end
+
   test "checkout timestamps and edits to hidden content do not change sitemap output or validators" do
     fetch_sitemap
     original_body = response.body
@@ -105,9 +113,11 @@ class SitemapPublicationDatesTest < ActionDispatch::IntegrationTest
 
   private
 
-  def fetch_sitemap(repository: ContentRepository.new(configuration: @configuration))
+  def fetch_sitemap(repository: ContentRepository.new(configuration: @configuration), landing_modified: PROFILE_MODIFIED)
     stub_const(SiteProfile, :MODIFIED, PROFILE_MODIFIED) do
-      with_stubbed_content_repository(repository) { get "/sitemap.xml" }
+      stub_const(SiteProfile, :LANDING_MODIFIED, landing_modified) do
+        with_stubbed_content_repository(repository) { get "/sitemap.xml" }
+      end
     end
     assert_response :success
   end

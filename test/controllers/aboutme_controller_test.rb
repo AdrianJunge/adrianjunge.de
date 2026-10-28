@@ -81,6 +81,28 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".landing-featured-card", false
   end
 
+  test "landing and About descriptions match their rendered and searchable sources" do
+    search = SiteSearch.new
+
+    get root_path
+    lead = css_select(".landing-lead").text.squish
+    tagline = css_select("#typing").text.squish
+    home_sections = search.documents.find { |document| document[:url] == "/" }.fetch(:sections)
+    assert_equal SiteProfile.landing_lead, lead
+    assert_equal SiteProfile.landing_tagline, tagline
+    assert_includes home_sections.first.fetch(:passages), lead
+    assert_includes home_sections.last.fetch(:passages), tagline
+
+    get about_path
+    repository = production_content_repository
+    front_matter = repository.parse_markdown(repository.about_markdown).front_matter
+    biography = css_select(".aboutme-copy p").first.text.squish
+    about_sections = search.documents.find { |document| document[:url] == "/about" }.fetch(:sections)
+    assert_select "meta[name='description'][content=?]", front_matter.fetch("description")
+    assert_select "meta[property='og:description'][content=?]", front_matter.fetch("description")
+    assert_includes about_sections.flat_map { |section| section.fetch(:passages) }, biography
+  end
+
   test "about content satisfies semantic publication contracts" do
     repository = production_content_repository
 

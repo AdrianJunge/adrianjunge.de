@@ -75,12 +75,13 @@ test('math rendering keeps a sentence search visible after layout settles', asyn
 });
 
 test('same-page searches restore the animated tagline and preserve its highlight', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  const sentence = 'Politely asking software uncomfortable questions.';
+  const sentence = await page.locator('#typing').textContent();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(page.locator('#typing')).not.toHaveText(sentence);
   await page.locator('#search-taskbar-button:not([disabled])').click();
-  await page.locator('[data-site-search-query]').fill('uncomfortable questions');
+  await page.locator('[data-site-search-query]').fill(sentence);
   await page.locator('.site-search-result-link[href^="/#typing:~:text="]').click();
   await expect(page.locator('#typing:target')).toHaveText(sentence);
   // Wait beyond the normal two-second hold to verify it does not erase the match.

@@ -41,11 +41,11 @@
             <p class="landing-kicker"><%= SiteProfile.name %> (<%= SiteProfile.handle %>)</p>
             <h1>Welcome to my <span class="landing-title-nowrap">bug collection <span class="landing-title-emoji">🐛</span></span></h1>
             <p class="landing-lead">
-                <%= italicize_proper_names("CTF player, vulnerability researcher, and computer science student creating writeups, collecting CVEs, bounties, and notes from real targets and challenges, occasionally algorithmic challenges. I poke things politely and sometimes convince software to confess.") %>
+                <%= italicize_proper_names(SiteProfile.landing_lead) %>
             </p>
 
             <div class="landing-typed-line">
-                <span id="typing" class="font-medium inline-block min-h-[1.5rem]">Politely asking software uncomfortable questions.</span>
+                <span id="typing" class="font-medium inline-block min-h-[1.5rem]"><%= SiteProfile.landing_tagline %></span>
             </div>
 
             <div class="landing-actions" role="group" aria-label="Primary links">

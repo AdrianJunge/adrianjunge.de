@@ -15,8 +15,9 @@ class SeoController < ApplicationController
     ctf_modified = newest_public_date(content_repository.ctf_posts.map { |post| post_modified(post) })
     about_modified = newest_public_date([ SiteProfile.modified, *about_content_dates ])
     site_modified = newest_public_date([ blog_modified, ctf_modified, about_modified ])
+    landing_modified = newest_public_date([ site_modified, SiteProfile.landing_modified ])
     entries = [
-      sitemap_entry(root_path, site_modified),
+      sitemap_entry(root_path, landing_modified),
       sitemap_entry(about_path, about_modified),
       sitemap_entry(ctf_path, ctf_modified),
       sitemap_entry(blog_path, blog_modified),

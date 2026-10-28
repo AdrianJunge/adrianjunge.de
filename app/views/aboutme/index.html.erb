@@ -1,5 +1,5 @@
 <% content_for :head do %>
-  <% about_description = @about_info["description"].presence || "About #{SiteProfile.name}, security research, CVEs, bug bounties, certificates, and achievements." %>
+  <% about_description = @about_info.fetch("description") %>
   <% about_seo_items = [
        { title: "CVEs", link: about_path(anchor: "cves") },
        { title: "Created CTF challenges", link: about_path(anchor: "my-challenges") },

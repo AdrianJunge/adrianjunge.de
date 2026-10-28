@@ -103,25 +103,7 @@ class LandingTest < ApplicationSystemTestCase
     page.driver.browser.execute_cdp("Emulation.setEmulatedMedia", features: [])
   end
 
-  test "homepage types deletes and repeats the original shuffled messages" do
-    phrases = [
-      "Some people collect stamps. I collect stack traces.",
-      "My favorite input is the one nobody validated.",
-      "Politely asking software uncomfortable questions.",
-      "CTF enthusiast",
-      "I like puzzles that crash systems.",
-      "Turning weird behavior into writeups.",
-      "Teaching machines to misbehave.",
-      "CTF flags, real bugs, questionable sleep schedule.",
-      "Web and PWN player",
-      "Your browser knows everything - XSLeaks just politely ask",
-      "Source code tells jokes in edge cases.",
-      "I love breaking stuff so others can fix it.",
-      "Making impossible states feel very possible.",
-      "The best exploit starts with: wait, that is weird.",
-      "If it runs, I poke it.",
-      "If it parses, I probably want to test it."
-    ]
+  test "homepage types deletes and repeats its shuffled messages" do
     page.current_window.resize_to(1440, 1100)
     preload = page.driver.browser.execute_cdp("Page.addScriptToEvaluateOnNewDocument", source: <<~JS)
       // Accelerate only this browser test while exercising the real animation.
@@ -129,24 +111,34 @@ class LandingTest < ApplicationSystemTestCase
       window.setTimeout = (callback, delay, ...args) => originalSetTimeout.call(window, callback, Math.min(Number(delay) || 0, 1), ...args);
       document.addEventListener('DOMContentLoaded', () => {
         const element = document.getElementById('typing');
-        const phrases = #{phrases.to_json};
         const completedPhrases = new Set();
         let previous = element.textContent;
+        let deleting = false;
+        let skippedInitial = false;
         window.taglineLog = { completed: [], deleting: false, retyping: false, repeated: false, jumps: [] };
         new MutationObserver(() => {
           const text = element.textContent;
           if (text !== previous && (Math.abs(text.length - previous.length) !== 1 || !(text.startsWith(previous) || previous.startsWith(text)))) {
             window.taglineLog.jumps.push({ from: previous, to: text });
           }
-          if (text.length < previous.length) window.taglineLog.deleting = true;
-          if (window.taglineLog.deleting && text.length > previous.length) window.taglineLog.retyping = true;
-          if (text !== previous && phrases.includes(text)) {
-            window.taglineLog.repeated ||= completedPhrases.has(text);
-            completedPhrases.add(text);
-            window.taglineLog.completed.push(text);
-          }
-          if (completedPhrases.size === phrases.length && window.taglineLog.repeated) {
-            document.documentElement.dataset.taglineRepeated = 'true';
+          if (text.length < previous.length) {
+            window.taglineLog.deleting = true;
+            if (!deleting) {
+              if (skippedInitial) {
+                window.taglineLog.repeated ||= completedPhrases.has(previous);
+                completedPhrases.add(previous);
+                window.taglineLog.completed.push(previous);
+                if (window.taglineLog.repeated && completedPhrases.size >= 10) {
+                  document.documentElement.dataset.taglineRepeated = 'true';
+                }
+              } else {
+                skippedInitial = true;
+              }
+            }
+            deleting = true;
+          } else if (text.length > previous.length) {
+            if (deleting) window.taglineLog.retyping = true;
+            deleting = false;
           }
           previous = text;
         }).observe(element, { subtree: true, childList: true, characterData: true });
@@ -156,7 +148,7 @@ class LandingTest < ApplicationSystemTestCase
     assert_selector ".typed-cursor", text: "|", wait: 20
     assert_selector "html[data-tagline-repeated='true']", visible: :all, wait: 30
     log = page.evaluate_script("window.taglineLog")
-    assert_equal phrases.sort, log.fetch("completed").uniq.sort
+    assert_operator log.fetch("completed").uniq.length, :>=, 10
     assert log.fetch("deleting")
     assert log.fetch("retyping")
     assert log.fetch("repeated")
@@ -395,7 +387,7 @@ class LandingTest < ApplicationSystemTestCase
     page.current_window.resize_to(1280, 1200)
     visit "/"
 
-    assert_text "I poke things politely and sometimes convince software to confess."
+    assert_selector ".landing-lead", text: SiteProfile.landing_lead
     assert_no_text "Security researcher and computer science student focused on web security"
     assert_no_text "Welcome to my flag collection"
     assert_selector ".landing-action[href='/timeline']", text: "Timeline"

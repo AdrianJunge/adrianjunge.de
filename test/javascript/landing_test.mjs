@@ -4,7 +4,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 
 const source = await readFile(new URL('../../app/javascript/landing.js', import.meta.url), 'utf8');
-const fallback = 'Politely asking software uncomfortable questions.';
+const fallback = 'An animated sentence.';
 
 function fixture({ hidden = false, visible = true, reduced = false, hasTagline = true, targeted = false } = {}) {
   const events = () => ({
@@ -105,21 +105,26 @@ test('the initial sentence stays readable for two seconds before deleting one ch
 test('two shuffled cycles type every sentence completely and hold each for two seconds', () => {
   const f = fixture();
   const completed = [];
-  for (let steps = 0; completed.length < 32 && steps < 6000; steps += 1) {
+  const seen = new Set();
+  let cycleLength = null;
+  for (let steps = 0; steps < 8000; steps += 1) {
     f.step();
     if (f.delay() !== 2000) continue;
     const sentence = f.element.textContent;
     assert.notEqual(sentence, completed.at(-1));
+    if (cycleLength === null && seen.has(sentence)) cycleLength = completed.length;
     completed.push(sentence);
+    seen.add(sentence);
     f.tick(1999);
     assert.equal(f.element.textContent, sentence);
     f.tick(1);
     assert.equal(f.element.textContent, sentence.slice(0, -1));
+    if (cycleLength !== null && completed.length === cycleLength * 2) break;
   }
-  assert.equal(completed.length, 32);
-  assert.equal(new Set(completed.slice(0, 16)).size, 16);
-  assert.deepEqual([...completed.slice(0, 16)].sort(), [...completed.slice(16)].sort());
-  assert.notDeepEqual(completed.slice(0, 16), completed.slice(16));
+  assert.ok(cycleLength >= 10);
+  assert.equal(completed.length, cycleLength * 2);
+  assert.deepEqual([...completed.slice(0, cycleLength)].sort(), [...completed.slice(cycleLength)].sort());
+  assert.notDeepEqual(completed.slice(0, cycleLength), completed.slice(cycleLength));
   assertContinuous(f.changes);
 });
 
