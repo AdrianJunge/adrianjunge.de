@@ -25,6 +25,57 @@ test('snippets expose matching context as plain text with bounded length', () =>
   assert.ok(snippet.length <= 202);
 });
 
+test('complete phrases select the result, section and snippet before scattered words', () => {
+  for (const example of cases.phrase_cases) {
+    const results = search.searchSite(example.documents, example.q);
+    assert.deepEqual(results.map(result => result.url), example.urls, example.q);
+    assert.ok(results[0].snippet.includes(example.highlight), example.q);
+    const terms = search.normalizeSiteSearch(example.q).split(' ');
+    const ranges = search.siteSearchHighlightRanges(results[0].snippet, terms, { phrase: example.q });
+    assert.deepEqual(ranges.map(([start, end]) => results[0].snippet.slice(start, end)), [example.highlight]);
+  }
+});
+
+test('long phrases stay complete in snippets and phrase-only highlights ignore isolated words', () => {
+  const query = 'word '.repeat(39) + 'final';
+  const text = 'Earlier word. '.repeat(30) + query + ' Later word.'.repeat(30);
+  const snippet = search.siteSearchSnippet(text, ['word', 'final'], query);
+  assert.equal(snippet, `…${query}…`);
+  assert.deepEqual(search.siteSearchHighlightRanges('We Are The Man In The Middle', ['the', 'p'], {
+    phrase: cases.phrase_cases[0].q, phraseOnly: true
+  }), []);
+  assert.deepEqual(search.siteSearchHighlightRanges('alphabetical beta', ['alpha', 'beta'], {
+    phrase: 'alpha beta', phraseOnly: true
+  }), []);
+});
+
+test('result links use original matched phrases as text fragments and retain section anchors', () => {
+  for (const example of cases.phrase_cases) {
+    const result = search.searchSite(example.documents, example.q)[0];
+    const url = search.siteSearchResultUrl(result);
+    assert.ok(url.startsWith(`${example.urls[0]}:~:text=`), url);
+    assert.equal(decodeURIComponent(url.split(':~:text=')[1]), example.highlight.replace(/\s+/gu, ' '));
+  }
+  const result = search.searchSite(cases.documents, 'CVE-2099-0001')[0];
+  assert.equal(search.siteSearchResultUrl(result), '/about#case-study:~:text=CVE%2D2099%2D0001');
+  assert.equal(search.siteSearchResultUrl({ url: '/about#section' }), '/about#section');
+  assert.equal(search.siteSearchResultUrl({ url: '/blog/example#section:~:text=old', textTarget: { text: 'A-B, C&D (#1) 50%' } }),
+    '/blog/example#section:~:text=A%2DB%2C%20C%26D%20%28%231%29%2050%25');
+});
+
+test('text fragments expand partial words and distinguish article headings and repeated passages', () => {
+  const document = { title: 'Research notes', url: '/blog/notes', kind: 'Blog post', tags: [], sections: [
+    { heading: 'Repeated heading', anchor: 'heading', text: 'Inspect GuardedString for secrets.' },
+    { heading: 'Later', anchor: 'later', text: 'Another GuardedString appears here.' }
+  ] };
+  const partial = search.searchSite([document], 'guard')[0];
+  assert.deepEqual(partial.textTarget, { text: 'GuardedString', prefix: 'Inspect' });
+  assert.equal(search.siteSearchResultUrl(partial), '/blog/notes#heading:~:text=Inspect-,GuardedString');
+  const heading = search.searchSite([document], 'Repeated heading')[0];
+  assert.deepEqual(heading.textTarget, { text: 'Repeated heading', suffix: 'Inspect GuardedString for secrets.' });
+  assert.equal(search.siteSearchResultUrl(heading), '/blog/notes#heading:~:text=Repeated%20heading,-Inspect%20GuardedString%20for%20secrets.');
+});
+
 test('highlights preserve original accents and ligatures and merge overlapping matches', () => {
   const text = 'CAFÉ, cafe\u0301, \ufb01le and 👩‍💻 Café';
   const ranges = search.siteSearchHighlightRanges(text, ['cafe', 'file']);
@@ -33,6 +84,33 @@ test('highlights preserve original accents and ligatures and merge overlapping m
   assert.deepEqual(search.siteSearchHighlightRanges('CVE-2026-1234', ['cve', '2026']), [[0, 3], [4, 8]]);
   assert.deepEqual(search.siteSearchHighlightRanges('nothing matches', ['needle']), []);
   assert.deepEqual(search.siteSearchHighlightRanges('unchanged', []), []);
+});
+
+test('text fragments use displayed passage order and distinguish sibling About cards', () => {
+  const record = (id, passages) => ({ title: 'Same project', kind: 'CVE', url: `/about#${id}`, tags: [],
+    sections: [{ heading: '', anchor: null, text: passages.join(' '), passages }] });
+  const documents = [
+    record('first', ['Same project', 'High', 'Same project', 'CVE-2026-1111', 'First finding']),
+    record('second', ['Same project', 'High', 'Same project', 'CVE-2026-2222', 'Second finding'])
+  ];
+  const targets = search.searchSite(documents, 'CVE-2026-2222');
+  assert.equal(search.siteSearchResultUrl(targets[0]), '/about#second:~:text=CVE%2D2026%2D2222');
+  // Identical neighboring text cannot distinguish the High badges. The
+  // element anchor must win over a text fragment that selects the first card.
+  assert.deepEqual(search.searchSite(documents, 'High').map(search.siteSearchResultUrl), ['/about#first', '/about#second']);
+  for (const document of documents) {
+    document.sections = [{ heading: 'Reported to the security team.', anchor: null,
+      text: '2026-07-24 Reported to the security team.', passages: ['2026-07-24', 'Reported to the security team.'] }];
+  }
+  assert.deepEqual(search.searchSite(documents, 'security').map(search.siteSearchResultUrl), ['/about#first', '/about#second']);
+  const milestone = record('presentation', ['2026-07-27', 'Final presentation for the course']);
+  milestone.sections[0].heading = 'Final presentation for the course';
+  const result = search.searchSite([milestone], 'Final presentation for the course')[0];
+  assert.equal(result.textTarget.prefix, '2026-07-27');
+  assert.equal(result.textTarget.suffix, undefined);
+  const multiBlock = record('blocks', ['First paragraph', 'Second paragraph']);
+  const crossBlock = search.searchSite([multiBlock], 'First paragraph Second paragraph')[0];
+  assert.ok(multiBlock.sections[0].passages.some(text => text.includes(crossBlock.textTarget.text)));
 });
 
 test('global results are not silently truncated and replace existing fragments for section destinations', () => {
@@ -45,6 +123,19 @@ test('global results are not silently truncated and replace existing fragments f
   assert.ok(results.every(result => result.url.endsWith('#notes')));
   assert.ok(results.every(result => !result.url.includes('#overview#')));
   assert.ok(search.searchSite(documents, 'needle').every(result => result.url.endsWith('#overview')));
+});
+
+test('multi-author searches target one rendered name instead of crossing flex items', () => {
+  for (const label of ['Challenge by', 'Article by']) {
+    const passages = [label, 'nrg', ',', 'the_moon_guy'];
+    const document = { title: 'Fantastic Doom', kind: 'CTF writeup', url: '/ctf/ehax/Fantastic%20Doom', tags: [],
+      sections: [{ heading: '', anchor: null, text: passages.join(' '), passages }] };
+    for (const query of ['nrg, the_moon_guy', 'nrg the_moon_guy', 'the_moon_guy', 'the_moon']) {
+      const result = search.searchSite([document], query)[0];
+      assert.ok(['nrg', 'the_moon_guy'].includes(result.textTarget.text));
+      assert.ok(!search.siteSearchResultUrl(result).includes('%2C%20'));
+    }
+  }
 });
 
 test('the shared lazy loader deduplicates concurrent requests and can retry a failed request', async () => {
@@ -126,6 +217,27 @@ function searchDOM() {
   } };
 }
 
+test('sentence results highlight the complete sentence without stray letters in the title or kind', async () => {
+  const engine = await import(`data:text/javascript;base64,${Buffer.from(`${source}\n// Sentence rendering test`).toString('base64')}`);
+  const originalFetch = globalThis.fetch;
+  const originalDocument = globalThis.document;
+  const dom = searchDOM();
+  const example = cases.phrase_cases[0];
+  globalThis.document = dom.document;
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ version: '2', documents: example.documents }) });
+  try {
+    dom.input.value = example.q;
+    await engine.initializeSiteSearch(dom.root).update();
+    const first = dom.results.children[0];
+    assert.deepEqual(first.querySelectorAll('mark').map(mark => mark.textContent), [example.highlight]);
+    assert.equal(first.querySelectorAll('a')[0].href, `${example.urls[0]}:~:text=${encodeURIComponent(example.highlight)}`);
+    assert.ok(first.querySelectorAll('p')[0].classList.contains('site-search-snippet-phrase'));
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.document = originalDocument;
+  }
+});
+
 test('live search ignores stale responses, renders plain text, and keeps blank status empty', async () => {
   const engine = await import(`data:text/javascript;base64,${Buffer.from(`${source}\n// DOM lifecycle test`).toString('base64')}`);
   const originalFetch = globalThis.fetch;
@@ -167,7 +279,7 @@ test('live search ignores stale responses, renders plain text, and keeps blank s
     assert.equal(icon.className, 'site-search-result-icon site-search-result-icon-inverted');
     assert.equal(heading.children[0].textContent, 'Page');
     assert.equal(heading.children[1].textContent, '<script>Needle</script> — Example');
-    assert.equal(link.href, '/example');
+    assert.equal(link.href, '/example#:~:text=Needle,-%3Cimg%20src%3Dx%3E%20remains%20plain');
     assert.equal(dom.results.querySelectorAll('a').length, 1);
     assert.match(snippet.textContent, /<img src=x>/);
     assert.deepEqual(dom.results.querySelectorAll('mark').map(mark => mark.textContent), ['Needle', 'Needle']);

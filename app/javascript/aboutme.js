@@ -2,10 +2,11 @@ function aboutTargetFromHash(hash) {
     if (!hash || hash === "#") return null;
 
     let targetId;
+    const fragment = hash.slice(1).split(':~:')[0];
     try {
-        targetId = decodeURIComponent(hash.slice(1));
+        targetId = decodeURIComponent(fragment);
     } catch (_error) {
-        targetId = hash.slice(1);
+        targetId = fragment;
     }
 
     return targetId ? document.getElementById(targetId) : null;
@@ -45,6 +46,8 @@ function aboutTopScrollOffset() {
 }
 
 function performAboutTargetScroll(target, options = {}) {
+    const indicated = document.querySelector(':target');
+    if (options.preserveTextTarget && indicated && indicated !== target) return;
     const scrollTarget = aboutScrollTargetFor(target);
     const targetTop = window.scrollY + scrollTarget.getBoundingClientRect().top - aboutTopScrollOffset();
 
@@ -75,7 +78,7 @@ function revealAboutHashTarget(options = {}) {
     openDetailsForTarget(target);
 
     if (options.scroll) {
-        scrollToAboutTarget(target, options);
+        scrollToAboutTarget(target, { ...options, preserveTextTarget: true });
     }
 }
 
@@ -175,8 +178,13 @@ function initializeAboutCardDisclosures() {
 const initializedAboutPages = new WeakSet();
 
 function resetAboutCategoryDefaults() {
+    const anchor = aboutTargetFromHash(window.location.hash);
+    const indicated = document.querySelector(':target');
+    // History APIs can change the hash without updating :target. Preserve a
+    // native text target only when it belongs to the current destination.
+    const currentTarget = anchor && indicated && anchor.contains(indicated) ? indicated : null;
     document.querySelectorAll('.aboutme-page > details.aboutme-section').forEach((section) => {
-        section.open = false;
+        section.open = Boolean(currentTarget && section.contains(currentTarget));
     });
 }
 

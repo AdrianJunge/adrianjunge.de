@@ -63,7 +63,7 @@ function initBlogTOC() {
   function hashToId(hash) {
     if (!hash || hash === '#') return null;
 
-    const rawId = hash.replace(/^#/, '');
+    const rawId = hash.replace(/^#/, '').split(':~:')[0];
     try {
       return decodeURIComponent(rawId);
     } catch (_) {
@@ -193,6 +193,16 @@ function initBlogTOC() {
 
   function correctCurrentHashScroll() {
     const target = targetForHash(window.location.hash);
+    // Native text fragments set :target to the matching passage. Preserve
+    // that scroll instead of jumping back to the fallback section heading.
+    const indicated = document.querySelector(':target');
+    if (indicated && indicated !== target) {
+      const bounds = indicated.getBoundingClientRect();
+      if (bounds.bottom < topScrollOffset() || bounds.top > window.innerHeight) {
+        indicated.scrollIntoView({ block: 'center', behavior: 'instant' });
+      }
+      return;
+    }
     if (target) scrollToAnchor(target);
   }
 
@@ -201,7 +211,7 @@ function initBlogTOC() {
       correctCurrentHashScroll();
     }
 
-    removeInitialHashScrollInterruptionListeners();
+    if (article?.dataset.mathState !== 'loading') removeInitialHashScrollInterruptionListeners();
     window.setTimeout(restoreInitialHashScrollRestoration, 0);
   }
 
@@ -216,7 +226,11 @@ function initBlogTOC() {
     } else {
       window.addEventListener('load', finishInitialHashScroll, { once: true });
     }
+  } else if (articlePage.dataset.hasMath === 'true') {
+    addInitialHashScrollInterruptionListeners();
   }
+  article?.addEventListener('article:math-ready', finishInitialHashScroll, { once: true });
+  article?.addEventListener('article:content-restored', removeInitialHashScrollInterruptionListeners, { once: true });
 
   if (articlePage) {
     window.addEventListener('hashchange', correctCurrentHashScroll);
@@ -327,6 +341,22 @@ function initCodeCopy() {
 }
 
 function initHintSpoilers() {
+  function reveal(spoiler, focus = false) {
+    if (!spoiler) return;
+    const content = spoiler.querySelector('.writeup-hint-spoiler-content');
+    const button = spoiler.querySelector('[data-hint-spoiler-reveal]');
+    spoiler.classList.remove('is-hidden');
+    spoiler.classList.add('is-revealed');
+    button.setAttribute('aria-expanded', 'true');
+    button.hidden = true;
+    content.setAttribute('aria-hidden', 'false');
+    content.inert = false;
+    if (focus) {
+      content.tabIndex = -1;
+      content.focus({ preventScroll: true });
+    }
+  }
+  const isTarget = spoiler => window.location.hash.split(':~:')[0] === `#${spoiler.id}` || spoiler.querySelector(':target');
   // Serve readable hints if JavaScript is disabled or fails to load. Only apply
   // the original blur once its Expose control can actually reveal the content.
   document.querySelectorAll('[data-hint-spoiler]').forEach(spoiler => {
@@ -335,6 +365,10 @@ function initHintSpoilers() {
     const button = spoiler.querySelector('[data-hint-spoiler-reveal]');
     if (!content || !button) return;
     spoiler.dataset.hintEnhanced = 'true';
+    if (isTarget(spoiler)) {
+      reveal(spoiler);
+      return;
+    }
     spoiler.classList.add('is-hidden');
     content.inert = true;
     content.setAttribute('aria-hidden', 'true');
@@ -344,21 +378,12 @@ function initHintSpoilers() {
     const btn = event.target.closest('[data-hint-spoiler-reveal]');
     if (!btn) return;
 
-    const spoiler = btn.closest('[data-hint-spoiler]');
-    if (!spoiler) return;
-
-    const content = spoiler.querySelector('.writeup-hint-spoiler-content');
-    spoiler.classList.remove('is-hidden');
-    spoiler.classList.add('is-revealed');
-    btn.setAttribute('aria-expanded', 'true');
-    btn.hidden = true;
-    if (content) {
-      content.setAttribute('aria-hidden', 'false');
-      content.inert = false;
-      content.tabIndex = -1;
-      content.focus({ preventScroll: true });
-    }
+    reveal(btn.closest('[data-hint-spoiler]'), true);
   });
+  document.addEventListener('site-search:reveal', event => reveal(event.target.closest('[data-hint-spoiler]')));
+  window.addEventListener('hashchange', () => document.querySelectorAll('[data-hint-spoiler]').forEach(spoiler => {
+    if (isTarget(spoiler)) reveal(spoiler);
+  }));
 }
 
 function initArticleProgress() {

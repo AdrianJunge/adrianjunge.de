@@ -17,7 +17,7 @@
 }
 
 .article-page {
-    --toc-panel-top: 4.5rem;
+    --toc-panel-top: calc(var(--top-taskbar-height) + 0.15rem);
     --toc-panel-padding: 1.25rem;
     --toc-control-inset: var(--toc-panel-padding);
     --writeup-container-padding: 2rem;
@@ -654,6 +654,7 @@
 
 .content-page .code-block {
     position: relative;
+    isolation: isolate;
     width: fit-content;
     max-width: 100%;
     margin: 1.35rem auto;
@@ -829,10 +830,6 @@
 
 .content-page .article-toc-compact {
     min-height: 0;
-}
-
-.content-page .article-back-link {
-    display: none;
 }
 
 .content-page .article-toc-compact > summary {
@@ -1065,7 +1062,7 @@
         position: static;
         order: 0;
         z-index: 10;
-        padding: 0.6rem 0.85rem;
+        padding: 0;
         overflow-y: auto;
         background: rgb(18, 34, 56);
         box-shadow: 0 0.35rem 0.75rem rgba(2, 12, 24, 0.25);
@@ -1086,40 +1083,50 @@
     }
 
     .content-page .article-toc-compact > summary {
-        padding: 0.4rem 0;
-    }
-
-    .content-page .article-back-link {
-        display: flex;
-        align-items: center;
+        position: relative;
+        min-height: 3rem;
         gap: 0.5rem;
-        flex-shrink: 0;
-        min-height: 2.75rem;
-        padding: 0.45rem 0;
-        border-bottom: 1px solid rgba(125, 211, 252, 0.2);
-        color: #b7d7eb;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-decoration: none;
+        padding: 0.65rem 0.85rem;
+        font-size: 0.8rem;
     }
 
-    .content-page .article-back-link:hover,
-    .content-page .article-back-link:focus-visible {
-        color: #fff;
-        text-decoration: underline;
+    .content-page .article-toc-label {
+        flex-shrink: 0;
     }
 
-    .content-page .article-back-link svg {
-        flex-shrink: 0;
+    .content-page .article-toc-compact > summary:focus-visible {
+        outline-offset: -3px;
     }
 
     .content-page #toc-body {
         max-height: min(28dvh, 12rem);
+        padding: 0.65rem 0.85rem;
     }
 
     .content-page .table-of-content .article-progress {
-        padding: 0.4rem 0.6rem;
+        position: static;
+        gap: 0.5rem;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
         box-shadow: none;
+        backdrop-filter: none;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .content-page .table-of-content .article-progress-count {
+        text-align: right;
+    }
+
+    .content-page .table-of-content .article-progress-track {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        border-radius: 0;
     }
 }
 

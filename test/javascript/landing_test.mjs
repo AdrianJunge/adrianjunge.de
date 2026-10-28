@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const source = await readFile(new URL('../../app/javascript/landing.js', import.meta.url), 'utf8');
 const fallback = 'Politely asking software uncomfortable questions.';
 
-function fixture({ hidden = false, visible = true, reduced = false, hasTagline = true } = {}) {
+function fixture({ hidden = false, visible = true, reduced = false, hasTagline = true, targeted = false } = {}) {
   const events = () => ({
     listeners: new Map(),
     addEventListener(name, callback) {
@@ -25,7 +25,8 @@ function fixture({ hidden = false, visible = true, reduced = false, hasTagline =
   const observers = [];
   const line = { getBoundingClientRect: () => visible ? { top: 100, bottom: 140 } : { top: 1200, bottom: 1240 } };
   const element = {
-    dataset: {}, closest: () => line, after: cursor => cursors.push(cursor),
+    ...events(),
+    dataset: {}, closest: selector => selector === ':target' ? (targeted ? element : null) : line, after: cursor => cursors.push(cursor),
     get textContent() { return text; },
     set textContent(value) { if (value !== text) changes.push({ from: text, to: value, at: now }); text = value; }
   };
@@ -75,6 +76,14 @@ function fixture({ hidden = false, visible = true, reduced = false, hasTagline =
     reduce(value) { media.matches = value; media.emit('change'); }
   };
 }
+
+test('a text fragment keeps its highlighted tagline intact', () => {
+  const f = fixture({ targeted: true });
+  f.tick(10000);
+  assert.equal(f.element.textContent, fallback);
+  assert.equal(f.changes.length, 0);
+  assert.equal(f.timers.size, 0);
+});
 
 function assertContinuous(changes) {
   changes.forEach(({ from, to }) => {

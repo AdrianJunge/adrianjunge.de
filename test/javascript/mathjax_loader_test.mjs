@@ -35,7 +35,7 @@ function loaderFixture({ hasMath = true } = {}) {
     document: {
       readyState: 'complete', querySelector: () => hasMath ? article : null,
       createElement: () => ({}), head: { appendChild: script => scripts.push(script) },
-      fonts: { addEventListener(name, callback) { fontListeners[name] = callback; }, removeEventListener(name) { delete fontListeners[name]; } }
+      fonts: { ready: Promise.resolve(), addEventListener(name, callback) { fontListeners[name] = callback; }, removeEventListener(name) { delete fontListeners[name]; } }
     },
     setTimeout(callback, delay) { const id = Symbol(); timers.set(id, { callback, delay }); return id; },
     clearTimeout(id) { timers.delete(id); },
@@ -123,6 +123,7 @@ test('successful rendering observes widths and a resize failure returns to sourc
   fixture.window.MathJax.startup.defaultPageReady = () => Promise.resolve();
   await fixture.window.MathJax.startup.pageReady();
   assert.equal(fixture.article.dataset.mathState, 'ready');
+  assert.deepEqual(fixture.events, ['article:math-ready']);
   assert.equal(fixture.notice.hidden, true);
   assert.equal(fixture.timers.size, 0);
   fixture.window.MathJax.whenReady = callback => callback();

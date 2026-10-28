@@ -31,10 +31,18 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "aboutme redirects to canonical about route" do
-    get "/aboutme"
+  test "legacy page aliases return not found" do
+    [ "/aboutme", "/posts-timeline", "/posts-timeline?q=Joomla&year=2026" ].each do |path|
+      get path
+      assert_response :not_found
+      assert_nil response.headers["Location"]
+      assert_select "main.error-page"
 
-    assert_redirected_to about_path
+      head path
+      assert_response :not_found
+      assert_nil response.headers["Location"]
+      assert_empty response.body
+    end
   end
 
   test "landing sidebar links to about page" do

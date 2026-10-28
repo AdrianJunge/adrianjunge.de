@@ -59,10 +59,12 @@ function siteSearchDestinationFocus(link) {
   if (destination.origin !== window.location.origin || destination.pathname !== window.location.pathname ||
       destination.search !== window.location.search || !destination.hash) return;
   let id;
-  try { id = decodeURIComponent(destination.hash.slice(1)); }
-  catch (_) { id = destination.hash.slice(1); }
+  const fragment = destination.hash.slice(1).split(':~:')[0];
+  try { id = decodeURIComponent(fragment); }
+  catch (_) { id = fragment; }
   const target = document.getElementById(id);
   if (!target) return;
+  target.dispatchEvent(new CustomEvent('site-search:reveal', { bubbles: true }));
 
   // Reveal before native fragment navigation, including when the URL already
   // contains this hash and therefore will not emit another hashchange.

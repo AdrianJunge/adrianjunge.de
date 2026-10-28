@@ -13,7 +13,7 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
       assert_equal "", find("[data-site-search-close]").text
       query = find("dialog[open] [data-site-search-query]")
       query.fill_in(with: "bodyneedle otherneedle")
-      assert_selector "dialog[open] .site-search-results a[href='#{post[:link]}#search-destination']"
+      assert_selector "dialog[open] .site-search-results a[href^='#{post[:link]}#search-destination:~:text=']"
       assert_equal 1, index_request_count
       query.send_keys(:escape)
       assert_no_selector "dialog[open]"
@@ -79,10 +79,10 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
       assert page.evaluate_script("document.querySelector('dialog').scrollWidth <= document.querySelector('dialog').clientWidth")
       page.driver.browser.execute_cdp("Network.setBlockedURLs", urls: [])
       find("[data-site-search-retry]").click
-      assert_selector "dialog[open] .site-search-results a[href='#{post[:link]}#search-destination']"
+      assert_selector "dialog[open] .site-search-results a[href^='#{post[:link]}#search-destination:~:text=']"
       assert_no_selector "[data-site-search-retry]"
       find("[data-site-search-query]").send_keys(:enter)
-      assert_selector "dialog[open] .site-search-results a[href='#{post[:link]}#search-destination']"
+      assert_selector "dialog[open] .site-search-results a[href^='#{post[:link]}#search-destination:~:text=']"
       assert_current_path "/blog"
     end
   ensure
@@ -94,12 +94,44 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
       visit "/blog"
       open_search
       fill_in "site-search-palette-query", with: "CVE-2099-0001"
-      assert_selector ".site-search-results a[href='/about#fixture-cve']", text: "Fixture Project"
+      assert_selector ".site-search-results a[href^='/about#fixture-cve:~:text=']", text: "Fixture Project"
       assert_selector ".site-search-result-kind", text: "CVE"
-      find(".site-search-results a[href='/about#fixture-cve']").click
+      find(".site-search-results a[href^='/about#fixture-cve:~:text=']").click
       assert_current_path "/about"
       assert_equal "fixture-cve", URI.parse(page.current_url).fragment
       assert_selector "#cves[open] #fixture-cve"
+      assert_selector "#fixture-cve :target", text: "CVE-2099-0001"
+    end
+  end
+
+  test "explicit article coauthors receive native text highlights on blog and CTF pages" do
+    repository = fixture_content_repository
+    posts = [ repository.blog_posts.first, repository.ctf_posts.first ]
+    posts.each do |post|
+      post[:metadata]["article_authors"] = [ { "name" => "Lead Writer", "url" => "https://example.com/lead" }, "Guest Writer" ]
+      post[:authors] = ArticleAuthor.normalize(post[:metadata]["article_authors"])
+      # The CTF introduction must distinguish article attribution from the
+      # challenge authors even when the same names appear in both rows.
+      post[:metadata]["authors"] = post[:metadata]["article_authors"] if post[:type] == "ctf"
+    end
+
+    with_stubbed_content_repository(repository) do
+      page.current_window.resize_to(390, 900)
+      posts.each do |post|
+        visit "/blog"
+        2.times do
+          open_search
+          fill_in "site-search-palette-query", with: "Lead Writer, Guest Writer"
+          find(".site-search-result-link[href^='#{post[:link]}#:~:text=']").click
+          assert_selector ".article-authors :target", text: /\A(?:Lead|Guest) Writer\z/
+          assert page.evaluate_script(<<~JS)
+            (() => {
+              const target = document.querySelector('.article-authors :target').getBoundingClientRect();
+              return target.top >= document.querySelector('#top-taskbar').getBoundingClientRect().bottom && target.bottom <= innerHeight;
+            })()
+          JS
+        end
+      end
     end
   end
 
@@ -244,7 +276,7 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
           visit "/blog"
           open_search
           fill_in "site-search-palette-query", with: "bodyneedle"
-          card = find(".site-search-results > li > a.site-search-result-link[href='#{post[:link]}#search-destination']")
+          card = find(".site-search-results > li > a.site-search-result-link[href^='#{post[:link]}#search-destination:~:text=']")
           assert_selector ".site-search-results > li > a", count: 1
           assert_selector ".site-search-result-link .site-search-result-title", text: "Search destination"
           assert_no_selector ".site-search-result-link a, .site-search-result-link button", visible: :all
@@ -263,6 +295,61 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
           assert_equal "search-destination", URI.parse(page.current_url).fragment
           assert_selector ".markdown-content [id='search-destination']", visible: :all
         end
+      end
+    end
+  end
+
+  test "sentence searches show the entire highlighted phrase on compact and desktop screens" do
+    with_search_article do |post|
+      query = "The reason for this is the following equation holding for any prime P:"
+      post[:body] = "# The reason for this equation\n\nAny following prime P is holding.\n\n# Search destination\n\n" +
+        "At first, we want to know the shared secret.\n\n" * 24 + query + " More explanation follows."
+
+      [ 320, 1440 ].each do |width|
+        page.current_window.resize_to(width, 900)
+        visit "/blog"
+        open_search
+        fill_in "site-search-palette-query", with: query
+        card = find(".site-search-result-link[href^='#{post[:link]}#search-destination:~:text=']")
+        assert_equal query, URI::DEFAULT_PARSER.unescape(card["href"].split(":~:text=", 2).last)
+        assert_selector ".site-search-result-link p mark", text: query, exact_text: true
+        assert_equal [ query ], card.all("mark").map(&:text)
+        assert card.evaluate_script(<<~JS), "The full sentence should remain visible at #{width}px"
+          (() => {
+            const paragraph = this.querySelector('p');
+            const bounds = paragraph.getBoundingClientRect();
+            return [...paragraph.querySelector('mark').getClientRects()].every(rect =>
+              rect.top >= bounds.top - 1 && rect.bottom <= bounds.bottom + 1);
+          })()
+        JS
+        card.find("mark").click
+        assert_current_path post[:link]
+        assert_equal "search-destination", URI.parse(page.current_url).fragment
+        assert_selector ".markdown-content p:target", text: query
+        assert_text_target_visible
+
+        open_search
+        fill_in "site-search-palette-query", with: query
+        find(".site-search-result-link[href^='#{post[:link]}#search-destination:~:text=']").click
+        assert_no_selector "dialog[open]"
+        assert_selector ".markdown-content p:target", text: query
+        assert_text_target_visible
+      end
+    end
+  end
+
+  test "same-page text links reopen a collapsed About card and preserve native text navigation" do
+    with_search_article do
+      visit "/about"
+      2.times do
+        open_search
+        fill_in "site-search-palette-query", with: "CVE-2099-0001"
+        find(".site-search-result-link[href^='/about#fixture-cve:~:text=']").click
+        assert_no_selector "dialog[open]"
+        assert_selector "#cves[open] #fixture-cve :target", text: "CVE-2099-0001"
+        assert_text_target_visible
+        find("#cves > summary").click
+        assert_selector "#cves:not([open])"
       end
     end
   end
@@ -298,6 +385,18 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
   end
 
   private
+
+  def assert_text_target_visible
+    assert page.evaluate_async_script(<<~JS), "The matching passage should stay in view after native navigation"
+      const done = arguments[0];
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const target = document.querySelector(':target');
+        const bounds = target.getBoundingClientRect();
+        const top = document.getElementById('top-taskbar').getBoundingClientRect().bottom;
+        done(bounds.top >= top && bounds.bottom <= window.innerHeight);
+      }));
+    JS
+  end
 
   def open_search
     find("#search-taskbar-button:not([disabled])[aria-keyshortcuts]").click

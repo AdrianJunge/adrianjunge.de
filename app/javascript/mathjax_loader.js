@@ -55,6 +55,7 @@ function loadMathJax() {
           if (article.querySelector('mjx-merror')) throw new Error('Equation formatting failed');
           clearTimeout(loadTimer);
           article.dataset.mathState = 'ready';
+          document.fonts.ready.then(() => article.dispatchEvent(new Event('article:math-ready')));
           let width = Math.round(article.getBoundingClientRect().width);
           observer = new ResizeObserver(([entry]) => {
             const nextWidth = Math.round(entry.contentRect.width);

@@ -37,9 +37,15 @@ class SearchControllerTest < ActionDispatch::IntegrationTest
       get path
       assert_response :success, path
       live_ids = css_select("[id]").map { |node| node["id"] }
+      live_passages = SiteSearchPassages.extract(css_select("main").first)
       records.each do |document|
         fragments = [ document[:url].split("#", 2)[1], *document[:sections].pluck(:anchor) ].compact_blank
         fragments.each { |fragment| assert_includes live_ids, fragment, "missing #{path}##{fragment}" }
+        document[:sections].each do |section|
+          [ section[:heading], *section[:passages] ].compact_blank.each do |passage|
+            assert live_passages.any? { |text| text.include?(passage) }, "#{path} does not display #{passage.inspect}"
+          end
+        end
       end
     end
   end
@@ -52,5 +58,14 @@ class SearchControllerTest < ActionDispatch::IntegrationTest
     get site_search_index_path
     assert_response :success
     assert response.parsed_body.fetch("documents").none? { |document| document.fetch("url").match?(%r{\A/(?:search|reading-paths|research|talks|contact|explore)(?:/|\z)}) }
+  end
+
+  test "blog categories are visible article badges with working timeline filters" do
+    { "/blog/java-strings" => "JVM Internals", "/blog/joomla-sqli" => "AI-Assisted Auditing" }.each do |path, label|
+      get path
+      assert_response :success
+      assert_select ".blog-article-meta-panel .article-meta-tags .article-meta-row-label", text: "Tags"
+      assert_select ".blog-article-meta-panel a.category-badge-article[href=?]", timeline_path(tag: label), text: label
+    end
   end
 end

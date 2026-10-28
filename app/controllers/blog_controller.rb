@@ -21,7 +21,7 @@ class BlogController < ApplicationController
     @has_math = @blog_info["has_math"]
 
     @headings = []
-    @html_content = render_markdown(@markdown_content, headings: @headings, parsed: true)
+    @html_content = render_markdown(@markdown_content, headings: @headings, parsed: true, has_math: @has_math)
 
     @blog_category = post[:which]
     @blog_title = post[:title]

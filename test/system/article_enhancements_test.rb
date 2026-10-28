@@ -84,7 +84,7 @@ class ArticleEnhancementsTest < ApplicationSystemTestCase
     page.driver.browser.execute_cdp("Emulation.setEmulatedMedia", features: [])
   end
 
-  test "article parent links name their fixed destination independently of referrer" do
+  test "desktop article parent links name their fixed destination and hide on small screens" do
     post = production_content_repository.ctf_posts.first
     event = production_content_repository.ctf_event(post[:directory])
     [ [ "/blog/java-strings", "/blog", "All blog posts" ], [ post[:link], "/ctf/#{post[:directory]}", "#{event[:name]} writeups" ] ].each do |path, destination, label|
@@ -92,9 +92,8 @@ class ArticleEnhancementsTest < ApplicationSystemTestCase
       visit path
       assert_selector ".article-back-desktop[href='#{destination}'][aria-label='#{label}'][title='#{label}']"
       page.current_window.resize_to(390, 1000)
-      assert_selector ".article-back-link[href='#{destination}']", text: label
-      find(".article-back-link").click
-      assert_current_path destination
+      assert_no_selector ".article-back-link", visible: :all
+      assert_no_selector ".article-back-desktop"
     end
   end
 

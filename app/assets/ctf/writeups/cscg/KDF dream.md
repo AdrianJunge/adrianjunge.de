@@ -35,7 +35,7 @@ The communication starts with the popular **Diffie-Hellman Key Exchange** using 
 
 # We Are The Man In The Middle
 
-At first, we want to make sure we get to know the shared secret being calculated via the **Diffie-Hellman Key Exchange**. Both parties calculate the same shared secret `\(K = g^{ab} \bmod P\)` through modular exponentiation with a prime `P`, which can then be used for symmetric encryption:
+At first, we want to make sure we get to know the shared secret being calculated via the **Diffie-Hellman Key Exchange**. Both parties calculate the same shared secret $K = g^{ab} \bmod P$ through modular exponentiation with a prime $P$, which can then be used for symmetric encryption:
 
 ![casual diffie-hellman key exchange](ctf/writeups/cscg/kdfdream/casual_dh.png "casual diffie-hellman key exchange")
 
@@ -43,7 +43,7 @@ But this key exchange is highly vulnerable to a **Man-in-the-Middle** attack. We
 
 ![man-in-the-middle diffie-hellman key exchange](ctf/writeups/cscg/kdfdream/mitm_dh.png "man-in-the-middle diffie-hellman key exchange")
 
-As in most CTF challenges, there is not only one way to solve a problem. The **Man-in-the-Middle** can also force a trivial shared secret `K=1` by simply sending `P-1` to each party. The reason for this is the following equation holding for any prime P:
+As in most CTF challenges, there is not only one way to solve a problem. The **Man-in-the-Middle** can also force a trivial shared secret $K=1$ by simply sending $P-1$ to each party. The reason for this is the following equation holding for any prime P:
 
 <div>
   \[
@@ -99,7 +99,7 @@ for i = 1 to n, do
     result = result || K(i)
 ```
 
-`[x]` just means the integer is padded to 4 bytes. The `label` is the hardcoded string `keygen_for_secure_bagdrop` and L is the length of the derived key.
+$[x]$ just means the integer is padded to 4 bytes. The `label` is the hardcoded string `keygen_for_secure_bagdrop` and L is the length of the derived key.
 <span>
 Having a look at the used PRFs, one of them seems more suspicious than the others. **HMAC** and **KMAC** internally use hash functions, so they are not that interesting for us, as predicting the output of a hash function is nearly impossible. You would have to brute force the appropriate input for some desired output. But **CMAC** is different, being based on the symmetric crypto algorithm **AES** and the **Cipher Block Chaining Mode** (CBC).
 <span>
@@ -107,7 +107,7 @@ There are some nice explanations out there on how the [AES-CMAC](https://www.rfc
 <span>
 We will go for the first part of the context of **Bob** influencing his OTP. The reason for this is that at the time of intercepting the nonces and modifying the one dedicated to **Bob**, we already know the nonce for **Alice** and thus can calculate her OTP, which will be important later.
 <span>
-To proceed, we need some formulas. Each `\(M_i\)` got its own block, so overall there are 5 blocks in the **CMAC**. `\(K_{IN}\)` is the shared secret key from the **Diffie-Hellman Key Exchange** used as the encryption key for **AES**. `\(M_i[x:y]\)` represents all of the bytes of `\(M_i\)` starting with index `x` until index `y`. `K'` is the **AES** subkey we can easily calculate via the shared key and `T` is the target OTP we want to forge. The green highlighted parts `\(M_2[14:16]\)` and `\(M_3[0:14]\)` are the first half of the context we can control:
+To proceed, we need some formulas. Each $M_i$ got its own block, so overall there are 5 blocks in the **CMAC**. $K_{IN}$ is the shared secret key from the **Diffie-Hellman Key Exchange** used as the encryption key for **AES**. $M_i[x:y]$ represents all of the bytes of $M_i$ starting with index $x$ until index $y$. $K'$ is the **AES** subkey we can easily calculate via the shared key and $T$ is the target OTP we want to forge. The green highlighted parts $M_2[14:16]$ and $M_3[0:14]$ are the first half of the context we can control:
 
 <div>
 \[
@@ -157,7 +157,7 @@ Now we can just rearrange and substitute the formula as follows:
 \]
 </div>
 
-Now we have on both sides of the equation parts we can control. We just need to brute force `\(M_2[14:16]\)` until the two bytes `\(M_3[14:16]\)`, which we are not able to control, are the correct ones. There might be the rare case in which we can't fulfill the equation, although we tried all of the `\(2^{16} = 65535\)` variations. In this case, we need to repeat the whole exploit. Because of the equation holding, using the calculated context will result in our selected OTP target `T`. Before calculating the context for **Bob**, we need to determine our OTP target `T`. This can be done using the calculated `\(OTP_A\)` from **Alice**, the hardcoded `allgoodprintflag` string `\(m_{flag}\)` and the hardcoded `wearecompromised` string `\(m_{compromised}\)`:
+Now we have on both sides of the equation parts we can control. We just need to brute force $M_2[14:16]$ until the two bytes $M_3[14:16]$, which we are not able to control, are the correct ones. There might be the rare case in which we can't fulfill the equation, although we tried all of the $2^{16} = 65535$ variations. In this case, we need to repeat the whole exploit. Because of the equation holding, using the calculated context will result in our selected OTP target $T$. Before calculating the context for **Bob**, we need to determine our OTP target $T$. This can be done using the calculated $OTP_A$ from **Alice**, the hardcoded `allgoodprintflag` string $m_{flag}$ and the hardcoded `wearecompromised` string $m_{compromised}$:
 
 <div>
   \[

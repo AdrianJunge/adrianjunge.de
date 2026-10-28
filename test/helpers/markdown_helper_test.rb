@@ -163,6 +163,38 @@ class MarkdownHelperTest < ActionView::TestCase
     assert_equal "1. Changed", third.first[:text]
   end
 
+  test "math rendering isolates equations so surrounding prose retains its own text nodes" do
+    source = "Before $K=1$ and $P-1$. The matching sentence."
+    plain = Nokogiri::HTML.fragment(render_markdown(source))
+    assert_empty plain.css(".math-inline")
+
+    rendered = Nokogiri::HTML.fragment(render_markdown(source, has_math: true))
+    assert_equal plain.text, rendered.text
+    equations = rendered.css("p > .math-inline")
+    assert_equal [ "$K=1$", "$P-1$" ], equations.map(&:text)
+    assert_equal ". The matching sentence.", equations.last.next_sibling.text
+    assert equations.last.next_sibling.text?
+    assert_empty Nokogiri::HTML.fragment(render_markdown(source)).css(".math-inline")
+  end
+
+  test "math isolation leaves code display math and escaped dollar signs intact" do
+    source = <<~'MARKDOWN'
+      `$code$` and $x + \$1$.
+
+      ```text
+      $code sample$
+      ```
+
+      <div>$$display$$</div>
+      <div>\(inline\)</div>
+    MARKDOWN
+    rendered = Nokogiri::HTML.fragment(render_markdown(source, has_math: true))
+    assert_equal [ '$x + \$1$', '\(inline\)' ], rendered.css(".math-inline").map(&:text)
+    assert_empty rendered.css("code .math-inline")
+    assert_includes rendered.text, "$$display$$"
+    assert_includes rendered.at_css(".code-block code").text, "$code sample$"
+  end
+
   test "responsive markdown images resolve fingerprinted variants and intrinsic dimensions" do
     fragment = Nokogiri::HTML.fragment(render_markdown("![CTF](ctf/lactf.png)"))
     image = fragment.at_css("img")

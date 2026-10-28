@@ -169,57 +169,64 @@ class ContentCardsTest < ApplicationSystemTestCase
   end
 
   test "timeline about links open target cards below the top taskbar" do
-    page.current_window.resize_to(1280, 1000)
     timeline_item = first_timeline_about_achievement
     target_id = timeline_item[:link].split("#", 2).last
 
-    visit "/timeline"
+    [ 700, 857, 1000 ].each do |height|
+      page.current_window.resize_to(1280, height)
+      visit "/timeline"
 
-    timeline_card = find(".timeline-card-hitbox[href='#{timeline_item[:link]}']", visible: :all)
-                    .find(:xpath, "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-content ')]")
-    page.driver.browser.action.move_to(timeline_card.find(".timeline-title").native).click.perform
-    assert_current_path "/about"
-    assert_equal "##{target_id}", page.evaluate_script("window.location.hash")
+      timeline_card = find(".timeline-card-hitbox[href='#{timeline_item[:link]}']", visible: :all)
+                      .find(:xpath, "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-content ')]")
+      page.driver.browser.action.move_to(timeline_card.find(".timeline-title").native).click.perform
+      assert_current_path "/about"
+      assert_equal "##{target_id}", page.evaluate_script("window.location.hash")
 
-    anchor_metrics = nil
-    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
+      anchor_metrics = nil
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
 
-    loop do
-      anchor_metrics = page.evaluate_script(<<~JS)
-        (() => {
-          const taskbar = document.getElementById("top-taskbar").getBoundingClientRect();
-          const target = document.getElementById(#{target_id.to_json});
-          if (!target) return { targetExists: false };
+      loop do
+        anchor_metrics = page.evaluate_script(<<~JS)
+          (() => {
+            const taskbar = document.getElementById("top-taskbar").getBoundingClientRect();
+            const target = document.getElementById(#{target_id.to_json});
+            if (!target) return { targetExists: false };
 
-          const scrollTarget = target.closest(".aboutme-card") || target.closest(".aboutme-section") || target;
-          const scrollTargetRect = scrollTarget.getBoundingClientRect();
-          const openDetails = [...target.closest(".aboutme-page").querySelectorAll("details")]
-            .filter((details) => details.contains(target))
-            .map((details) => details.open);
+            const scrollTarget = target.closest(".aboutme-card") || target.closest(".aboutme-section") || target;
+            const scrollTargetRect = scrollTarget.getBoundingClientRect();
+            const openDetails = [...target.closest(".aboutme-page").querySelectorAll("details")]
+              .filter((details) => details.contains(target))
+              .map((details) => details.open);
 
-          return {
-            targetExists: true,
-            allParentsOpen: openDetails.every(Boolean),
-            scrollTargetTop: Math.round(scrollTargetRect.top),
-            taskbarBottom: Math.round(taskbar.bottom),
-            viewportHeight: window.innerHeight
-          };
-        })()
-      JS
+            return {
+              targetExists: true,
+              allParentsOpen: openDetails.every(Boolean),
+              scrollTargetTop: Math.round(scrollTargetRect.top),
+              scrollTargetBottom: Math.round(scrollTargetRect.bottom),
+              taskbarBottom: Math.round(taskbar.bottom),
+              viewportHeight: window.innerHeight,
+              remainingScroll: Math.max(0, document.scrollingElement.scrollHeight - window.innerHeight - window.scrollY)
+            };
+          })()
+        JS
 
-      break if anchor_metrics["targetExists"] &&
-        anchor_metrics["allParentsOpen"] &&
-        anchor_metrics["scrollTargetTop"] >= anchor_metrics["taskbarBottom"] + 8 &&
-        anchor_metrics["scrollTargetTop"] <= anchor_metrics["taskbarBottom"] + 48
-      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+        break if anchor_metrics["targetExists"] &&
+          anchor_metrics["allParentsOpen"] &&
+          anchor_metrics["scrollTargetTop"] >= anchor_metrics["taskbarBottom"] + 8 &&
+          anchor_metrics["scrollTargetBottom"] <= anchor_metrics["viewportHeight"] &&
+          (anchor_metrics["scrollTargetTop"] <= anchor_metrics["taskbarBottom"] + 48 || anchor_metrics["remainingScroll"] <= 1)
+        break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
 
-      sleep 0.05
+        sleep 0.05
+      end
+
+      assert anchor_metrics["targetExists"]
+      assert anchor_metrics["allParentsOpen"]
+      assert_operator anchor_metrics["scrollTargetTop"], :>=, anchor_metrics["taskbarBottom"] + 8
+      assert_operator anchor_metrics["scrollTargetBottom"], :<=, anchor_metrics["viewportHeight"]
+      assert anchor_metrics["scrollTargetTop"] <= anchor_metrics["taskbarBottom"] + 48 || anchor_metrics["remainingScroll"] <= 1,
+             "At #{height}px, the card must align below the taskbar unless the document cannot scroll farther: #{anchor_metrics.inspect}"
     end
-
-    assert anchor_metrics["targetExists"]
-    assert anchor_metrics["allParentsOpen"]
-    assert_operator anchor_metrics["scrollTargetTop"], :>=, anchor_metrics["taskbarBottom"] + 8
-    assert_operator anchor_metrics["scrollTargetTop"], :<=, anchor_metrics["taskbarBottom"] + 48
   end
 
   test "ctf overview cards link directly to writeup overviews" do

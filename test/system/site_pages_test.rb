@@ -133,6 +133,87 @@ class SitePagesTest < ApplicationSystemTestCase
     end
   end
 
+  test "enlarged navigation labels reflow without hiding controls or sticky contents" do
+    page.current_window.resize_to(390, 1000)
+    visit "/blog/java-strings"
+    assert_selector "#toc[data-toc-enhanced]"
+
+    measure = lambda do
+      page.evaluate_script(<<~JS)
+        new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => {
+          const taskbar = document.getElementById('top-taskbar').getBoundingClientRect();
+          const controls = [...document.querySelectorAll('#top-taskbar .taskbar-link, #top-taskbar .taskbar-button-container')];
+          const bounds = controls.map(control => control.getBoundingClientRect());
+          const labelsFit = controls.every(control => {
+            const label = control.querySelector('.taskbar-label');
+            const labelBounds = label.getBoundingClientRect();
+            const controlBounds = control.getBoundingClientRect();
+            return label.scrollWidth <= label.clientWidth + 1 &&
+              labelBounds.left >= controlBounds.left && labelBounds.right <= controlBounds.right;
+          });
+          resolve({
+            height: taskbar.height,
+            measuredHeight: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--top-taskbar-height')),
+            rows: new Set(bounds.map(rect => Math.round(rect.top))).size,
+            labelsFit,
+            controlsFit: bounds.every(rect => rect.left >= 0 && rect.right <= document.documentElement.clientWidth && rect.width >= 44 && rect.height >= 44),
+            taskbarBottom: taskbar.bottom,
+            tocTop: document.getElementById('toc').getBoundingClientRect().top
+          });
+        })))
+      JS
+    end
+
+    normal = measure.call
+    assert_equal 1, normal["rows"]
+    page.execute_script("document.documentElement.style.fontSize = '32px'")
+
+    [ 320, 390, 480 ].each do |width|
+      page.current_window.resize_to(width, 1000)
+      enlarged = measure.call
+      assert enlarged["labelsFit"], "navigation labels must remain complete at #{width}px with enlarged text"
+      assert enlarged["controlsFit"], "navigation controls must remain reachable at #{width}px with enlarged text"
+      assert_operator enlarged["rows"], :>, 1
+      assert_in_delta enlarged["height"], enlarged["measuredHeight"], 1
+
+      find(".taskbar-feed-toggle").click
+      assert_selector ".taskbar-feed-menu[open]"
+      assert page.evaluate_script(<<~JS), "the feed menu must fit below wrapped navigation and receive clicks"
+        (() => {
+          const dropdown = document.querySelector('.taskbar-feed-dropdown').getBoundingClientRect();
+          const taskbar = document.getElementById('top-taskbar').getBoundingClientRect();
+          return dropdown.top >= taskbar.bottom && dropdown.left >= 0 &&
+            dropdown.right <= document.documentElement.clientWidth && dropdown.bottom <= innerHeight &&
+            [...document.querySelectorAll('.taskbar-feed-option')].every(link => {
+              const rect = link.getBoundingClientRect();
+              return link.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
+            });
+        })()
+      JS
+      find(".taskbar-feed-toggle").send_keys(:escape)
+      assert_no_selector ".taskbar-feed-menu[open]"
+
+      page.execute_script("window.scrollTo(0, 1600)")
+      reading = measure.call
+      assert_operator reading["tocTop"], :>=, reading["taskbarBottom"], "sticky contents must clear enlarged navigation"
+    end
+
+    page.current_window.resize_to(1440, 1000)
+    wide = measure.call
+    assert_equal 1, wide["rows"]
+    assert_in_delta wide["height"], wide["measuredHeight"], 1
+
+    page.current_window.resize_to(390, 1000)
+    wrapped = measure.call
+    assert_operator wrapped["height"], :>, wide["height"]
+    page.execute_script("document.documentElement.style.removeProperty('font-size')")
+    restored = measure.call
+    assert_equal 1, restored["rows"]
+    assert_in_delta normal["height"], restored["height"], 1
+    assert_in_delta restored["height"], restored["measuredHeight"], 1
+    assert_operator restored["height"], :<, wrapped["height"]
+  end
+
   test "feed controls render in the top taskbar dropdown" do
     {
       "/ctf" => [ ".ctf-rss-feed", ".ctf-atom-feed", ".ctf-json-feed" ],

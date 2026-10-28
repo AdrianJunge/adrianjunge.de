@@ -56,30 +56,19 @@ class FeedsControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "%2520"
   end
 
-  test "legacy section feeds point to the generic website feed" do
-    get ctf_feed_path
-    assert_redirected_to feed_xml_path
+  test "legacy section feeds return not found" do
+    %w[ctf blog].product([ "", ".xml", ".atom", ".json" ]).each do |section, format|
+      path = "/#{section}/feed#{format}"
+      get path
+      assert_response :not_found
+      assert_nil response.headers["Location"]
+      assert_select "main.error-page"
 
-    get "/ctf/feed.atom"
-    assert_redirected_to feed_path(format: :atom)
-
-    get "/ctf/feed.json"
-    assert_redirected_to feed_json_path
-
-    get blog_feed_path
-    assert_redirected_to feed_xml_path
-
-    get "/blog/feed.atom"
-    assert_redirected_to feed_path(format: :atom)
-
-    get "/blog/feed.json"
-    assert_redirected_to feed_json_path
-
-    get "/blog/feed.xml"
-    assert_redirected_to feed_xml_path
-
-    get "/ctf/feed.xml"
-    assert_redirected_to feed_xml_path
+      head path
+      assert_response :not_found
+      assert_nil response.headers["Location"]
+      assert_empty response.body
+    end
   end
 
   test "feeds are stable across requests and honor conditional validators" do

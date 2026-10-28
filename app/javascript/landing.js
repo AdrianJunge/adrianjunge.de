@@ -47,7 +47,7 @@ function initializeTagline() {
     return rect.bottom > 0 && rect.top < window.innerHeight;
   };
   let onScreen = inViewport();
-  const canPlay = () => pageActive && onScreen && !document.hidden && !reducedMotion.matches;
+  const canPlay = () => pageActive && onScreen && !document.hidden && !reducedMotion.matches && !element.closest(':target');
   const characterDelay = () => 50 + Math.round(Math.random() * 25);
 
   function nextPhrase() {
@@ -102,6 +102,19 @@ function initializeTagline() {
     syncPlayback();
   }
 
+  // A same-page search may arrive while another sentence is being typed.
+  // Restore the indexed sentence before native text-fragment navigation.
+  element.addEventListener('site-search:reveal', () => {
+    phrase = fallback;
+    position = fallback.length;
+    phase = 'holding';
+    remaining = 2000;
+    if (element.textContent !== fallback) element.textContent = fallback;
+    window.clearTimeout(timer);
+    timer = null;
+    syncPlayback();
+  });
+
   const observer = new IntersectionObserver(([entry]) => {
     onScreen = entry.isIntersecting;
     syncPlayback();
@@ -109,6 +122,7 @@ function initializeTagline() {
   // Observe the stable line rather than a span that shrinks while deleting.
   observer.observe(line);
   document.addEventListener('visibilitychange', syncPlayback);
+  window.addEventListener('hashchange', syncPlayback);
   window.addEventListener('pagehide', () => {
     pageActive = false;
     syncPlayback();

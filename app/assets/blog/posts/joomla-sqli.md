@@ -1,5 +1,5 @@
 ---
-title: "Teaching AI to hack Joomla so I can skip my homework"
+title: "Teaching AI to hack Joomla so I can skip my homework /s"
 logo: "blog/joomla.png"
 category: "Security Research"
 description: How a manual SQLi hunt turned into an AI-assisted Joomla audit, two assigned CVEs, and a surprisingly valid way to pass a university lab.

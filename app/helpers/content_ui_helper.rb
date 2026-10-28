@@ -14,6 +14,13 @@ module ContentUiHelper
     filter_tag = ContentTagTaxonomy.canonical_value(filter_tag.presence || label)
     timeline_link = url.blank? && filter_scope.blank? && timeline_redirect && filter_tag.present?
     url = timeline_filter_path(tag: filter_tag) if timeline_link
+    filter_label = ContentTagTaxonomy.canonical_label(filter_tag)
+    aria_label = aria_label.presence
+    aria_label ||= "Filter timeline by #{filter_label}" if timeline_link
+    aria_label ||= "Filter by #{filter_label}" if url.blank? && filter_scope.present?
+    if aria_label.present? && !aria_label.squish.downcase.include?(label.squish.downcase)
+      aria_label = "#{label}: #{aria_label}"
+    end
     action = url.present? || filter_scope.present?
     classes = [ "content-tag", *Array(classes) ]
     classes << (url.present? ? "content-tag-link" : nil)
@@ -34,7 +41,7 @@ module ContentUiHelper
         link_options.merge(
           href: url,
           class: classes.compact.join(" "),
-          aria: { label: aria_label.presence || (timeline_link ? "Filter timeline by #{filter_tag}" : nil) },
+          aria: { label: aria_label },
           title: title
         )
       )
@@ -47,7 +54,7 @@ module ContentUiHelper
         type: "button",
         class: classes.compact.join(" "),
         data: { filter_scope: filter_scope, filter_tag: filter_tag },
-        aria: { pressed: "false", label: aria_label.presence || "Filter by #{filter_tag}" },
+        aria: { pressed: "false", label: aria_label },
         title: title
       )
     end

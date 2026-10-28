@@ -19,14 +19,14 @@
       {
         "id": "kitctf-web-intro-2026",
         "date": "2026-05-07",
-        "title": "Talk at KITCTF."
+        "title": "Talk at KITCTF"
       }
     ]
   },
   {
     "id": "joomla-sqli",
     "modified": "2026-09-26",
-    "title": "Teaching AI to hack Joomla so I can skip my homework",
+    "title": "Teaching AI to hack Joomla so I can skip my homework /s",
     "icon": "blog/joomla.png",
     "summary": "How a manual SQLi hunt turned into an AI-assisted Joomla audit and multiple assigned CVEs for a university course.",
     "tags": [
@@ -41,22 +41,22 @@
       {
         "id": "joomla-kitctf-talk-2026",
         "date": "2026-07-09",
-        "title": "Talk at KITCTF."
+        "title": "Talk at KITCTF"
       },
       {
         "id": "joomla-course-presentation-2026",
         "date": "2026-07-27",
-        "title": "Final presentation for the course."
+        "title": "Final presentation for the course"
       },
       {
         "id": "joomla-owasp-karlsruhe-talk-2026",
         "date": "2026-08-11",
-        "title": "Talk at the OWASP Stammtisch Karlsruhe."
+        "title": "Talk at the OWASP Stammtisch Karlsruhe"
       },
       {
         "id": "joomla-bsides-munich-talk-2026",
         "date": "2026-11-09",
-        "title": "Talk at BSides Munich."
+        "title": "Talk at BSides Munich"
       }
     ]
   }

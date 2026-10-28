@@ -72,9 +72,14 @@
 }
 
 .content-hero-icon {
-    width: 3.25rem;
-    height: 3.25rem;
+    width: 4rem;
+    height: 4rem;
     object-fit: contain;
+}
+
+.content-hero-icon-padded {
+    /* The circular artwork fills about 71% of these SVG view boxes. */
+    transform: scale(1.4);
 }
 
 .content-hero-icon-inverted {
@@ -163,6 +168,7 @@
 }
 
 .content-card {
+    --card-media-width: 9rem;
     position: relative;
     color: inherit;
     text-decoration: none;
@@ -236,7 +242,7 @@
 .content-page .ctf-details {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
     justify-content: space-between;
     gap: 1rem;
     width: 100%;
@@ -257,6 +263,7 @@
     color: #fff;
     font-size: 1.35rem;
     line-height: 1.25;
+    text-align: center;
 }
 
 .content-page .ctf-description {
@@ -354,12 +361,14 @@
 .landing-page .landing-writeup-cards .blog-post-title {
     max-width: 100%;
     margin: 0;
+    text-align: center;
 }
 
 .content-page .blog-post-meta,
 .landing-page .landing-writeup-cards .blog-post-meta {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 1rem;
     margin: 0.75rem 0;
 }
@@ -400,7 +409,7 @@
 
 .content-page .blog-post-card-logo,
 .landing-page .landing-writeup-cards .blog-post-card-logo {
-    min-width: 9rem;
+    min-width: var(--card-media-width);
     padding: 1.25rem;
     border-right: 1px solid rgba(125, 164, 209, 0.42);
     background: rgba(14, 58, 93, 0.32);
@@ -491,6 +500,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 0.55rem;
 }
 
@@ -507,6 +517,7 @@
 .landing-page .landing-writeup-cards .blog-post-authors {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.35rem;
     margin: -0.15rem 0 0.35rem;
     color: rgba(226, 232, 240, 0.72);
@@ -516,6 +527,12 @@
 
 .content-page .blog-post-author-link,
 .landing-page .landing-writeup-cards .blog-post-author-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    min-height: 2rem;
+    padding: 0.25rem;
     color: #7dd3fc;
     font-weight: 800;
     text-decoration: none;
@@ -664,6 +681,23 @@
     margin-top: 1.25rem;
 }
 
+@media (min-width: 721px) {
+    .content-card .blog-post-card-logo {
+        flex: 0 0 var(--card-media-width);
+        width: var(--card-media-width);
+        min-width: var(--card-media-width);
+    }
+
+    /* Balance the icon column so captions and tags share the card's center. */
+    :is(.content-card, .profile-card) :is(
+        .blog-post-title, .ctf-name, .blog-post-meta,
+        .timeline-title, .timeline-tags,
+        .aboutme-card-title, .aboutme-card-kicker, .aboutme-card-tags
+    ) {
+        padding-inline-end: var(--card-media-width);
+    }
+}
+
 @media (max-width: 720px) {
     .content-hero {
         padding-right: 0;
@@ -699,8 +733,8 @@
     }
 
     .content-hero-icon {
-        width: 2.9rem;
-        height: 2.9rem;
+        width: 3rem;
+        height: 3rem;
     }
 
     .content-page .ctf-details {
@@ -769,8 +803,8 @@
     }
 
     .content-hero-icon {
-        width: 2.25rem;
-        height: 2.25rem;
+        width: 2.5rem;
+        height: 2.5rem;
     }
 }
 

@@ -7,12 +7,13 @@ module MarkdownHelper
   # Rendered HTML is public, author-controlled content, not user input. Cache
   # only the expensive deterministic rendering, never request-specific URLs.
   RENDER_CACHE = ActiveSupport::Cache::MemoryStore.new(size: 16.megabytes)
-  RENDER_VERSION = "4".freeze
+  RENDER_VERSION = "5".freeze
+  INLINE_MATH_PATTERN = /(?<![\\$])\$(?!\$)(?:\\.|[^$\\])+\$(?!\$)|\\\(.*?\\\)/m
 
-  def render_markdown(text, headings: nil, parsed: false)
+  def render_markdown(text, headings: nil, parsed: false, has_math: false)
     body = parsed ? text.to_s : FrontMatterParser::Parser.new(:md).call(text.to_s).content
-    key = [ RENDER_VERSION, Digest::SHA256.hexdigest(body), ContentImageHelper.manifest_version ]
-    result = RENDER_CACHE.fetch(key) { render_markdown_body(body) }
+    key = [ RENDER_VERSION, Digest::SHA256.hexdigest(body), ContentImageHelper.manifest_version, has_math == true ]
+    result = RENDER_CACHE.fetch(key) { render_markdown_body(body, has_math: has_math == true) }
     headings.replace(result[:headings].deep_dup) if headings
     html_content = "<div class='markdown-content'>#{result[:html]}</div>"
     replace_asset_paths(html_content)
@@ -21,7 +22,7 @@ module MarkdownHelper
 
   private
 
-  def render_markdown_body(body)
+  def render_markdown_body(body, has_math: false)
     render_options = {
       no_links: false,
       hard_wrap: true
@@ -43,7 +44,32 @@ module MarkdownHelper
     }
     renderer = HtmlWithCopy.new(render_options)
     rendered_markdown = Redcarpet::Markdown.new(renderer, extensions).render(body)
+    rendered_markdown = isolate_inline_math(rendered_markdown) if has_math
     { html: rendered_markdown, headings: renderer.headings }
+  end
+
+  def isolate_inline_math(html)
+    fragment = Nokogiri::HTML.fragment(html)
+    fragment.xpath(".//text()[not(ancestor::code or ancestor::pre or ancestor::script or ancestor::style or ancestor::textarea)]").each do |node|
+      text = node.text
+      offset = 0
+      text.to_enum(:scan, INLINE_MATH_PATTERN).each do
+        match = Regexp.last_match
+        node.add_previous_sibling(Nokogiri::XML::Text.new(text[offset...match.begin(0)], node.document))
+        equation = Nokogiri::XML::Node.new("span", node.document)
+        equation["class"] = "math-inline"
+        equation.content = match[0]
+        node.add_previous_sibling(equation)
+        offset = match.end(0)
+      end
+      next if offset.zero?
+
+      # MathJax can replace the equation's text node without removing native
+      # text-fragment highlights from the surrounding prose.
+      node.add_previous_sibling(Nokogiri::XML::Text.new(text[offset..], node.document))
+      node.remove
+    end
+    fragment.to_html
   end
 
   def replace_asset_paths(html_content)

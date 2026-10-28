@@ -39,6 +39,13 @@
 
     <section class="article-meta-panel blog-article-meta-panel" aria-label="Post details">
       <%= render "shared/article_authors", authors: @article_authors if @blog_info["article_authors"].present? %>
+      <% category_badges = render_blog_category_badges(@blog_info) %>
+      <% if category_badges.any? %>
+        <div class="article-meta-row article-meta-tags">
+          <span class="article-meta-row-label">Tags</span>
+          <div class="article-meta-row-value"><%= safe_join(category_badges) %></div>
+        </div>
+      <% end %>
       <%= render "shared/article_description",
                  description: @blog_info["description"],
                  label: "Post description" %>

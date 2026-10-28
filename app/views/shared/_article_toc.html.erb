@@ -1,10 +1,4 @@
 <nav id="toc" class="table-of-content bg-primary" aria-label="Table of contents">
-  <a href="<%= parent_path %>" class="article-back-link">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M19 12H5M12 19l-7-7 7-7"/>
-    </svg>
-    <span><%= article_parent_label %></span>
-  </a>
   <div class="toc-header">
     <h2 class="text-slate-100 font-semibold">Table of contents</h2>
     <button id="toc-toggle" type="button" class="collapse-toc-button toc-toggle-button"
@@ -12,11 +6,10 @@
             data-toc-toggle="toc" aria-expanded="true" aria-controls="toc">‹</button>
   </div>
   <details class="article-toc-compact">
-    <summary aria-label="Table of contents" title="Table of contents">
+    <summary title="Table of contents">
+      <span class="article-toc-label">Contents</span>
       <% if word_total.to_i.positive? %>
         <%= render "shared/post_progress", word_total: word_total %>
-      <% else %>
-        Table of contents
       <% end %>
     </summary>
     <div id="toc-body"><%= render "shared/toc_links", headings: headings %></div>

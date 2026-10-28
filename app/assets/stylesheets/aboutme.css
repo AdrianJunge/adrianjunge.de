@@ -220,6 +220,8 @@ a.aboutme-stat:focus-visible {
 }
 
 .aboutme-card {
+    --card-media-width: 6.75rem;
+    position: relative;
     overflow: hidden;
 }
 
@@ -232,18 +234,62 @@ a.aboutme-stat:focus-visible {
     outline-offset: 3px;
 }
 
-.profile-card-details > summary {
-    padding: .65rem 1.15rem;
-    border-top: 1px solid rgba(125, 164, 209, .3);
+.profile-card > .profile-card-details {
+    position: static;
+    z-index: auto;
+}
+
+.profile-card-details > .profile-card-toggle {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 7;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-ui-control);
+    background: transparent;
     color: #dff7ff;
-    font-size: .9rem;
-    font-weight: 700;
-    line-height: 1.5;
+    list-style: none;
     cursor: pointer;
 }
-.profile-card-details > summary:focus-visible {
+
+.profile-card-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.profile-card-toggle::marker {
+    content: "";
+}
+
+.profile-card-details > .profile-card-toggle:focus-visible {
     outline: 2px solid #7dd3fc;
     outline-offset: -3px;
+}
+
+.profile-card-chevron {
+    transition: transform 160ms ease;
+}
+
+.profile-card-details[open] > .profile-card-toggle .profile-card-chevron {
+    transform: rotate(180deg);
+}
+
+.profile-card-details > .aboutme-card-body {
+    border-top: 1px solid rgba(125, 164, 209, 0.3);
+}
+
+.profile-card-details > .aboutme-card-body > .aboutme-detail-block:first-child {
+    margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-card-chevron {
+        transition: none;
+    }
 }
 
 .aboutme-finding-card::after,
@@ -292,9 +338,9 @@ a.aboutme-stat:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 6.75rem;
-    width: 6.75rem;
-    min-width: 6.75rem;
+    flex: 0 0 var(--card-media-width);
+    width: var(--card-media-width);
+    min-width: var(--card-media-width);
     align-self: stretch;
     padding: 0.95rem;
     border-right: 1px solid rgba(125, 164, 209, 0.42);
@@ -324,6 +370,7 @@ a.aboutme-stat:focus-visible {
     font-size: 1.25rem;
     font-weight: 800;
     overflow-wrap: anywhere;
+    text-align: center;
 }
 
 .aboutme-card-kicker {
@@ -331,6 +378,7 @@ a.aboutme-stat:focus-visible {
     font-size: 0.76rem;
     font-weight: 900;
     line-height: 1.1;
+    text-align: center;
 }
 
 .aboutme-card-summary,
@@ -357,6 +405,7 @@ a.aboutme-stat:focus-visible {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 0.45rem;
 }
 

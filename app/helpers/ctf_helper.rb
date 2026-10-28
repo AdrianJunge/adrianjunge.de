@@ -215,7 +215,7 @@ module CtfHelper
         end,
         content_tag(:ol, class: "writeup-hints-list") do
           safe_join(hints.each_with_index.map do |hint, index|
-            content_tag(:li, class: "writeup-hint-spoiler", data: { hint_spoiler: true }) do
+            content_tag(:li, id: "writeup-hint-#{index + 1}", class: "writeup-hint-spoiler", data: { hint_spoiler: true }) do
               safe_join([
                 content_tag(:div, render_markdown(hint), class: "writeup-hint-content writeup-hint-spoiler-content"),
                 content_tag(

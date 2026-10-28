@@ -145,43 +145,52 @@ test('search backdrop gestures cannot scroll the article underneath', async ({ p
 
 test('a search result on the current page closes search and opens its destination', async ({ page }) => {
   await page.goto('/about');
-  await expect(page.locator('#cves')).not.toHaveAttribute('open');
-  await page.locator('#search-taskbar-button').tap();
-  await page.locator('#site-search-palette-query').fill('CVEs');
-  await page.locator('[data-site-search-results] a[href="/about#cves"]').tap();
-  await expect(page.locator('dialog[open]')).toHaveCount(0);
-  await expect(page.locator('#cves')).toHaveAttribute('open', '');
-  await expect(page.locator('#cves > summary')).toBeFocused();
-  expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe('');
-  await expect.poll(async () => page.locator('#cves > summary').evaluate(element => {
-    const rectangle = element.getBoundingClientRect();
-    return rectangle.top >= document.querySelector('#top-taskbar').getBoundingClientRect().bottom && rectangle.top < innerHeight;
-  })).toBe(true);
-
   // Selecting the same URL again must reveal its destination even though the
   // hash no longer changes and therefore emits no hashchange event.
-  await page.locator('#cves > summary').tap();
-  await expect(page.locator('#cves')).not.toHaveAttribute('open');
-  await page.locator('#search-taskbar-button').tap();
-  await page.locator('[data-site-search-results] a[href="/about#cves"]').tap();
-  await expect(page.locator('dialog[open]')).toHaveCount(0);
-  await expect(page.locator('#cves')).toHaveAttribute('open', '');
-  await expect(page.locator('#cves > summary')).toBeFocused();
+  let aboutDestination;
+  for (let visit = 0; visit < 2; visit += 1) {
+    await expect(page.locator('#cves')).not.toHaveAttribute('open');
+    await page.locator('#search-taskbar-button').tap();
+    await page.locator('#site-search-palette-query').fill('CVEs');
+    const result = page.locator('[data-site-search-results] a[href^="/about#cves:~:text="]');
+    const destination = await result.getAttribute('href');
+    if (visit) expect(destination).toBe(aboutDestination);
+    aboutDestination = destination;
+    await result.tap();
+    await expect(page.locator('dialog[open]')).toHaveCount(0);
+    await expect(page.locator('#cves')).toHaveAttribute('open', '');
+    await expect(page.locator('#cves > summary')).toBeFocused();
+    expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe('');
+    const match = page.locator('#cves :target');
+    await expect(match).toHaveText('CVEs');
+    await expect.poll(async () => match.evaluate(element => {
+      const rectangle = element.getBoundingClientRect();
+      return rectangle.top >= document.querySelector('#top-taskbar').getBoundingClientRect().bottom && rectangle.bottom <= innerHeight;
+    })).toBe(true);
+    if (!visit) await page.locator('#cves > summary').tap();
+  }
 
   await page.goto('/blog/java-strings');
-  await page.locator('#search-taskbar-button').tap();
-  await page.locator('#site-search-palette-query').fill('GuardedString');
-  const articleResult = page.locator('[data-site-search-results] a[href^="/blog/java-strings#"]');
-  await expect(articleResult).toBeVisible();
-  const articleHash = new URL(await articleResult.getAttribute('href'), page.url()).hash;
-  await articleResult.tap();
-  await expect(page.locator('dialog[open]')).toHaveCount(0);
-  const heading = page.locator(`[id=${JSON.stringify(decodeURIComponent(articleHash.slice(1)))}]`).locator('..');
-  await expect(heading).toBeFocused();
-  await expect.poll(async () => heading.evaluate(element => {
-    const rectangle = element.getBoundingClientRect();
-    return rectangle.top >= document.querySelector('#toc').getBoundingClientRect().bottom && rectangle.top < innerHeight;
-  })).toBe(true);
+  for (let visit = 0; visit < 2; visit += 1) {
+    await page.locator('#search-taskbar-button').tap();
+    await page.locator('#site-search-palette-query').fill('GuardedString');
+    const result = page.locator('[data-site-search-results] a[href^="/blog/java-strings#"]');
+    await expect(result).toHaveAttribute('href', /:~:text=/);
+    const hash = new URL(await result.getAttribute('href'), page.url()).hash;
+    const anchor = decodeURIComponent(hash.slice(1).split(':~:')[0]);
+    await result.tap();
+    await expect(page.locator('dialog[open]')).toHaveCount(0);
+    const heading = page.locator(`[id=${JSON.stringify(anchor)}]`).locator('..');
+    await expect(heading).toBeFocused();
+    // Native text fragments scroll to the matching passage, which can be far
+    // below the section heading retained as the keyboard focus destination.
+    const match = page.locator('.markdown-content :target');
+    await expect(match).toHaveText('GuardedString');
+    await expect.poll(async () => match.evaluate(element => {
+      const rectangle = element.getBoundingClientRect();
+      return rectangle.top >= document.querySelector('#toc').getBoundingClientRect().bottom && rectangle.bottom <= innerHeight;
+    })).toBe(true);
+  }
 });
 
 test('About disclosures and timeline filters remain usable with touch', async ({ page }) => {
@@ -211,6 +220,53 @@ test('About disclosures and timeline filters remain usable with touch', async ({
   await expect(year).toHaveValue('');
   await expect(input).toBeFocused();
   await expectNoHorizontalOverflow(page);
+});
+
+test('sticky contents stay above overlapping code copy buttons', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async text => { window.mobileCopiedText = text; } } });
+  });
+
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of ['/blog/java-strings', '/ctf/ehax/Fantastic%20Doom']) {
+      await page.goto(path);
+      await expect(page.locator('#toc')).toHaveAttribute('data-toc-enhanced', 'true');
+      const block = page.locator('.code-block').first();
+      const copy = block.locator('.copy-btn');
+      const source = await block.locator('code').textContent();
+      await copy.evaluate(button => button.scrollIntoView({ block: 'center', behavior: 'instant' }));
+
+      for (const selector of ['.article-toc-compact > summary', '#toc-body']) {
+        const point = await copy.evaluate((button, selector) => {
+          const target = document.querySelector(selector).getBoundingClientRect();
+          const before = button.getBoundingClientRect();
+          scrollBy(0, before.top + before.height / 2 - target.top - target.height / 2);
+          const after = button.getBoundingClientRect();
+          return { x: after.left + after.width / 2, y: after.top + after.height / 2 };
+        }, selector);
+        await expect.poll(() => page.evaluate(({ point, selector }) => {
+          const hit = document.elementFromPoint(point.x, point.y);
+          return Boolean(hit?.closest(selector));
+        }, { point, selector })).toBe(true);
+
+        if (selector.includes('summary')) {
+          await page.touchscreen.tap(point.x, point.y);
+          await expect(page.locator('.article-toc-compact')).toHaveAttribute('open', '');
+          expect(await page.evaluate(() => window.mobileCopiedText)).toBeUndefined();
+        }
+      }
+
+      await copy.evaluate(button => {
+        const panel = document.querySelector('#toc').getBoundingClientRect();
+        const rectangle = button.getBoundingClientRect();
+        scrollBy(0, rectangle.top - panel.bottom - 40);
+      });
+      await copy.tap();
+      await expect(block.locator('.copy-check-icon')).toBeVisible();
+      expect(await page.evaluate(() => window.mobileCopiedText)).toBe(source);
+    }
+  }
 });
 
 test('long code wraps while copy and hint controls preserve the original interactions', async ({ page }) => {

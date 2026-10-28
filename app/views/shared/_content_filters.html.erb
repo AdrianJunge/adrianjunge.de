@@ -38,7 +38,6 @@
     <% if filters.additional_groups.any? %>
       <details class="content-filter-more">
         <summary>More filters</summary>
-        <p class="content-filter-help">Selected tags combine: results must match every selected tag.</p>
         <div class="content-filter-tag-groups">
           <% filters.additional_groups.each do |group| %>
             <%= render "shared/filter_tag_group", group: group, scope: filters.scope %>

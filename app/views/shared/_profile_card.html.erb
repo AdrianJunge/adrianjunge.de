@@ -134,7 +134,11 @@
       <%= header_content %>
     </div>
     <details class="profile-card-details">
-      <summary aria-label="Details for <%= card[:title] %>">Details</summary>
+      <summary class="profile-card-toggle" aria-label="Details for <%= card[:title] %>">
+        <svg class="profile-card-chevron" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M4 7h16l-8 10z"></path>
+        </svg>
+      </summary>
       <div class="aboutme-card-body">
         <%= body_content %>
       </div>

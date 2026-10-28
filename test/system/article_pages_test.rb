@@ -13,6 +13,7 @@ class ArticlePagesTest < ApplicationSystemTestCase
         assert_selector "#toc .article-progress[data-word-total][role='meter']", count: 1
         assert_selector "[data-article-progress]", count: 1, visible: :all
         assert_no_selector ".writeup-container [data-article-progress]", visible: :all
+        assert_no_selector ".article-back-link", visible: :all
         assert_selector ".article-progress-percent", text: /\d+%/
         metrics = page.evaluate_script(<<~JS)
           (() => {
@@ -22,6 +23,8 @@ class ArticlePagesTest < ApplicationSystemTestCase
               left: wrapper.left,
               right: document.documentElement.clientWidth - wrapper.right,
               overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+              panelHeight: toc.getBoundingClientRect().height,
+              summaryHeight: toc.querySelector('summary').getBoundingClientRect().height,
               progressIsLast: toc.lastElementChild.matches('[data-article-progress]'),
               duplicateIds: [...document.querySelectorAll('[id]')].map(node => node.id).filter((id, index, ids) => ids.indexOf(id) !== index)
             };
@@ -32,17 +35,19 @@ class ArticlePagesTest < ApplicationSystemTestCase
         assert_empty metrics["duplicateIds"]
         if width <= 1400
           assert_selector "#toc"
-          assert_selector ".article-toc-compact > summary[aria-label='Table of contents'] > [data-article-progress]"
-          assert_selector "#toc > .article-back-link", text: path.start_with?("/blog/") ? "All blog posts" : /writeups/
+          assert_selector ".article-toc-compact > summary > [data-article-progress]"
+          summary = find(".article-toc-compact > summary", text: "Contents")
+          assert_includes summary.native.accessible_name, "Contents"
+          assert_operator metrics["panelHeight"], :<=, 52, "#{path} at #{width}px should leave room for the article"
+          assert_operator metrics["summaryHeight"], :>=, 44, "#{path} at #{width}px must keep an easy-to-tap contents control"
           assert_no_selector ".back-button-floating"
           assert_no_selector ".article-toc-compact[open]"
-          find(".article-toc-compact > summary").click
+          summary.click
           assert_selector ".article-toc-compact[open] .toc-anchor", minimum: 1
-          find(".article-toc-compact > summary").click
+          summary.click
         else
           assert_selector "#toc"
           assert_equal true, metrics["progressIsLast"]
-          assert_no_selector ".article-back-link"
           assert_selector ".back-button-floating.article-back-desktop"
           find("#toc-toggle").click
           assert_selector "#toc[hidden]", visible: :all
@@ -73,11 +78,6 @@ class ArticlePagesTest < ApplicationSystemTestCase
             const meter = progress.getBoundingClientRect();
             const summary = toc.querySelector('summary');
             const summaryRect = summary.getBoundingClientRect();
-            const back = summaryRect.width ? toc.querySelector('.article-back-link') : document.querySelector('.back-button-floating');
-            const backRect = back?.getBoundingClientRect();
-            const overlapsBack = backRect && backRect.width > 0 && summaryRect.width > 0 &&
-              summaryRect.left < backRect.right && summaryRect.right > backRect.left &&
-              summaryRect.top < backRect.bottom && summaryRect.bottom > backRect.top;
             links.scrollTop = links.scrollHeight;
             resolve({
               position: getComputedStyle(toc).position,
@@ -91,11 +91,6 @@ class ArticlePagesTest < ApplicationSystemTestCase
               linksBottom: links.getBoundingClientRect().bottom,
               scrollableLinks: getComputedStyle(links).overflowY,
               percent: Number(progress.getAttribute('aria-valuenow')),
-              overlapsBack: Boolean(overlapsBack),
-              backPosition: getComputedStyle(back).position,
-              backInsideToc: back.parentElement === toc,
-              backBottom: backRect.bottom,
-              summaryTop: summaryRect.top,
               summaryHit: !summaryRect.width || Boolean(document.elementFromPoint(summaryRect.left + summaryRect.width / 2, summaryRect.top + summaryRect.height / 2)?.closest('summary') === summary),
               scrollY
             });
@@ -107,13 +102,9 @@ class ArticlePagesTest < ApplicationSystemTestCase
         assert_operator metrics["bottom"], :<=, metrics["viewportHeight"] - 8
         assert_operator metrics["meterBottom"], :<=, metrics["bottom"]
         assert_equal "auto", metrics["scrollableLinks"]
-        assert_equal false, metrics["overlapsBack"], "Back navigation and the TOC disclosure must have separate rows"
         assert_equal true, metrics["summaryHit"], "the TOC summary must remain directly clickable"
         if width <= 1400
           assert_operator metrics["meterBottom"], :<=, metrics["linksTop"]
-          assert_equal "static", metrics["backPosition"], "compact Back navigation must participate in normal layout"
-          assert_equal true, metrics["backInsideToc"]
-          assert_operator metrics["backBottom"], :<=, metrics["summaryTop"] + 1
         else
           assert_operator metrics["meterTop"], :>=, metrics["linksBottom"]
         end
@@ -141,16 +132,13 @@ class ArticlePagesTest < ApplicationSystemTestCase
     assert_compact_anchor_clears_contents
   end
 
-  test "compact article back navigation opens its overview without toggling contents" do
-    [ "/blog/java-strings", first_ctf_post[:link] ].each do |path|
-      page.current_window.resize_to(320, 800)
+  test "small screens hide Back navigation on every page type" do
+    [ "/", "/about", "/blog", "/ctf", "/ctf/cscg", "/timeline", first_blog_post[:link], first_ctf_post[:link], "/missing-page" ].each do |path|
       visit path
-      assert_no_selector ".back-button-floating"
-      back = find("#toc > .article-back-link")
-      assert_equal File.dirname(path), URI.parse(back[:href]).path
-      assert_no_selector ".article-toc-compact[open]"
-      back.send_keys(:return)
-      assert_current_path File.dirname(path)
+      [ 320, 390, 720 ].each do |width|
+        page.current_window.resize_to(width, 800)
+        assert_no_selector ".back-button-floating, .article-back-link"
+      end
     end
   end
 
@@ -163,10 +151,8 @@ class ArticlePagesTest < ApplicationSystemTestCase
       assert_no_selector ".article-toc-compact[open]"
       assert_selector ".article-toc-compact > summary > [data-article-progress]", count: 1
       assert_no_selector "#toc-toggle"
-      if width <= 1400
-        assert_selector "#toc > .article-back-link"
-        assert_no_selector ".back-button-floating"
-      end
+      assert_no_selector "#toc > .article-back-link", visible: :all
+      assert_no_selector ".back-button-floating" if width <= 1400
       find(".article-toc-compact > summary").click
       assert_selector ".article-toc-compact[open] .toc-anchor", minimum: 1
       link = find("#toc-body .toc-anchor", match: :first)

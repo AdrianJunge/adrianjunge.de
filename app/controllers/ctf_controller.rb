@@ -60,7 +60,7 @@ class CtfController < ApplicationController
     @has_math = @ctf_info["has_math"]
 
     @headings = []
-    @html_content = render_markdown(@markdown_content, headings: @headings, parsed: true)
+    @html_content = render_markdown(@markdown_content, headings: @headings, parsed: true, has_math: @has_math)
     @challenge_file = content_repository.ctf_asset_for(post, :challenge)
     @pdf_writeup = content_repository.ctf_asset_for(post, :writeup)
 

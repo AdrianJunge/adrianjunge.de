@@ -17,7 +17,7 @@ class AboutmeTest < ApplicationSystemTestCase
       within "#joomla-sqli .aboutme-timeline li.aboutme-timeline-item-upcoming[data-upcoming='true']" do
         assert_selector ".aboutme-timeline-date-row > .content-upcoming-badge:first-child", text: "Upcoming"
         assert_selector "time[datetime='2026-11-09']", text: "2026-11-09"
-        assert_selector ".aboutme-timeline-title", text: "Talk at BSides Munich."
+        assert_selector ".aboutme-timeline-title", text: "Talk at BSides Munich"
         assert_no_text "Upcoming:"
       end
 

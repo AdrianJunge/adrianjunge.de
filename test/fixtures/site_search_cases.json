@@ -11,6 +11,45 @@
     {"title":"Equal A","url":"/blog/tie-a","kind":"CTF writeup","tags":[],"sections":[{"heading":"First","anchor":"first","text":"Tie marker here."}]},
     {"title":"Equal A","url":"/blog/tie-b","kind":"CTF writeup","tags":[],"sections":[{"heading":"First","anchor":"first","text":"Tie marker here."}]}
   ],
+  "phrase_cases": [
+    {
+      "q": "The reason for this is the following equation holding for any prime P:",
+      "documents": [
+        {"title":"P prime any holding equation following is this for reason the","url":"/scattered","kind":"Page","tags":[],"sections":[{"heading":"","anchor":null,"text":"Scattered keywords."}]},
+        {"title":"KDF dream","url":"/ctf/cscg/KDF%20dream","kind":"CTF writeup","tags":[],"sections":[
+          {"heading":"The reason for this equation","anchor":"background","text":"Any following prime P is holding."},
+          {"heading":"We Are The Man In The Middle","anchor":"we-are-the-man-in-the-middle","text":"At first, we want to make sure we get to know the shared secret. Both parties calculate the same shared secret through modular exponentiation with a prime P. We then examine another approach to the exchange and explain why it works. The reason for this is the following equation holding for any prime P: More explanation follows."}
+        ]}
+      ],
+      "urls": ["/ctf/cscg/KDF%20dream#we-are-the-man-in-the-middle", "/scattered"],
+      "highlight": "The reason for this is the following equation holding for any prime P:"
+    },
+    {
+      "q": "cafe file cafe",
+      "documents": [
+        {"title":"Accent notes","url":"/accents","kind":"Page","tags":[],"sections":[{"heading":"Café file","anchor":"notes","text":"A café elsewhere. CAFÉ  ﬁle\ncafé appears together here."}]}
+      ],
+      "urls": ["/accents#notes"],
+      "highlight": "CAFÉ  ﬁle\ncafé"
+    },
+    {
+      "q": "alpha beta",
+      "documents": [
+        {"title":"Alphabetical beta","url":"/partial","kind":"Page","tags":[],"sections":[{"heading":"","anchor":null,"text":"Partial words."}]},
+        {"title":"Exact words","url":"/exact","kind":"Page","tags":[],"sections":[{"heading":"Formula","anchor":"formula","text":"alpha beta"}]}
+      ],
+      "urls": ["/exact#formula", "/partial"],
+      "highlight": "alpha beta"
+    },
+    {
+      "q": "a + b = c?",
+      "documents": [
+        {"title":"Formula notes","url":"/formula","kind":"Page","tags":[],"sections":[{"heading":"Question","anchor":"question","text":"A separate note before the question a + b = c? Afterwards we explain it."}]}
+      ],
+      "urls": ["/formula#question"],
+      "highlight": "a + b = c?"
+    }
+  ],
   "queries": [
     {"q":"needle","urls":["/blog/title","/blog/tag","/blog/heading#needle-section","/blog/body#background"]},
     {"q":"cafe jcmd","urls":["/blog/cafe#runtime"]},

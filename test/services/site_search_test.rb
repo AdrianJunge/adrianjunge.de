@@ -20,6 +20,28 @@ class SiteSearchTest < ActiveSupport::TestCase
     assert_equal 7, SiteSearch.search_documents(documents, "needle", limit: 7).length
   end
 
+  test "complete phrases select the result section and snippet before scattered words" do
+    cases = JSON.parse(Rails.root.join("test/fixtures/site_search_cases.json").read, symbolize_names: true)
+    cases[:phrase_cases].each do |example|
+      results = SiteSearch.search_documents(example[:documents], example[:q])
+      assert_equal example[:urls], results.pluck(:url), example[:q]
+      assert_includes results.first[:snippet], example[:highlight], example[:q]
+    end
+  end
+
+  test "long phrases remain complete in snippets" do
+    query = "word " * 39 + "final"
+    text = "Earlier word. " * 30 + query + " Later word." * 30
+    assert_equal "…#{query}…", SiteSearch.snippet(text, %w[word final], query)
+  end
+
+  test "the KDF dream sentence appears in its search preview" do
+    query = "The reason for this is the following equation holding for any prime P:"
+    result = SiteSearch.new.search(query).first
+    assert_equal "/ctf/cscg/KDF%20dream#we-are-the-man-in-the-middle", result[:url]
+    assert_includes result[:snippet], query
+  end
+
   test "metadata-only matches retain a document URL even without an introduction section" do
     document = { title: "Needle", url: "/about#parent", kind: "CVE", tags: [], sections: [ { heading: "Section", anchor: "child", text: "needle body" } ] }
     assert_equal "/about#parent", SiteSearch.search_documents([ document ], "needle").first[:url]
@@ -53,9 +75,10 @@ class SiteSearchTest < ActiveSupport::TestCase
                       "writeup_winner" => { "label" => "Recognitionneedle", "proof_url" => "https://example.com/proof" } }
     )
     search = SiteSearch.new(repository: repository)
-    %w[Originalpromptneedle Readersummaryneedle Challengeauthorneedle Articleauthorneedle Hintneedle Hard DEMOCTF 2022 2025-03-03 Recognitionneedle].each do |query|
+    %w[Originalpromptneedle Readersummaryneedle Challengeauthorneedle Articleauthorneedle Hard DEMOCTF 2022 2025-03-03 Recognitionneedle].each do |query|
       assert_includes search.search(query).pluck(:url), post[:link], query
     end
+    assert_includes search.search("Hintneedle").pluck(:url), "#{post[:link]}#writeup-hint-1"
     assert_includes search.search("authored challenge").pluck(:url), post[:link]
     assert_includes search.search("writeup winner").pluck(:url), post[:link]
     document = search.documents.find { |entry| entry[:url] == post[:link] }
@@ -132,7 +155,7 @@ class SiteSearchTest < ActiveSupport::TestCase
       "Forschungszentrum" => "/about", "CVE-2026-97377" => "/about#suitecrm-portal-get-entry-list-sql-injection",
       "GLIBC dynamic symbol poisoning" => "/about#scanwich-station", "first attempt practical exam" => "/about#htb-cpts",
       "homework" => "/about#joomla-sqli", "Deutsche Hacking Meisterschaft" => "/about#dhm",
-      "annual German" => "/ctf/cscg", "software confess" => "/", "LeetCode KITCTF" => "/"
+      "annual German" => "/ctf#ctf-event-cscg", "software confess" => "/", "LeetCode KITCTF" => "/about"
     }.each do |query, prefix|
       assert search.search(query).any? { |result| result[:url].start_with?(prefix) }, query
     end
@@ -141,6 +164,59 @@ class SiteSearchTest < ActiveSupport::TestCase
     assert_includes search.search("authored challenge").pluck(:url), "/ctf/gpnctf/Scanwich%20Station"
     assert_includes search.search("writeup winner").pluck(:url), "/ctf/umdctf/A%20Minecraft%20Movie"
     assert_includes search.search("Best web writeup 2025").pluck(:url), "/ctf/umdctf/A%20Minecraft%20Movie"
+  end
+
+  test "event descriptions link to the listing that displays them" do
+    search = SiteSearch.new
+    assert_equal [ "/ctf#ctf-event-cscg" ], search.search("ecsc").pluck(:url)
+    assert_not_includes search.documents.find { |record| record[:url] == "/ctf/cscg" }.to_json, "ECSC"
+  end
+
+  test "blog category matches have a complete visible article passage" do
+    search = SiteSearch.new
+    { "JVM Internals" => "/blog/java-strings", "AI-Assisted Auditing" => "/blog/joomla-sqli" }.each do |query, path|
+      document = search.documents.find { |record| record[:url] == path }
+      assert_includes document[:sections].first[:passages], query
+      assert_includes search.search(query).pluck(:url), path
+    end
+  end
+
+  test "multiple challenge authors remain separate passages in their rendered order" do
+    repository = fixture_content_repository
+    post = repository.ctf_posts.first
+    post[:metadata]["authors"] = [ { "name" => "nrg", "url" => "https://example.com/nrg" }, "the_moon_guy" ]
+    search = SiteSearch.new(repository: repository)
+    passages = search.documents.find { |record| record[:url] == post[:link] }[:sections].first[:passages]
+    start = passages.index("Challenge by")
+
+    assert_equal [ "Challenge by", "nrg", ",", "the_moon_guy" ], passages.slice(start, 4)
+    assert_not_includes passages, "nrg, the_moon_guy"
+    assert_includes search.search("nrg, the_moon_guy").pluck(:url), post[:link]
+  end
+
+  test "explicit article authors match displayed normalization and keep coauthor boundaries" do
+    variants = [
+      "Solo Writer",
+      { "name" => " <b>Solo</b> Writer ", "url" => "https://example.com/solo" },
+      [ { "name" => "First Writer", "urls" => [ "https://example.com/first" ] }, "Second Writer", "first writer", " " ]
+    ]
+    variants.each do |authors|
+      repository = FixtureContentRepository.new
+      posts = [ repository.blog_posts.first, repository.ctf_posts.first ]
+      posts.each do |post|
+        post[:metadata]["article_authors"] = authors
+        post[:authors] = ArticleAuthor.normalize(authors)
+      end
+      search = SiteSearch.new(repository: repository)
+      posts.each do |post|
+        names = post[:authors].pluck(:name)
+        passages = search.documents.find { |record| record[:url] == post[:link] }[:sections].first[:passages]
+        start = passages.index("Article by")
+        expected = [ "Article by", *names.flat_map.with_index { |name, index| index.zero? ? [ name ] : [ ",", name ] } ]
+        assert_equal expected, passages.slice(start, expected.length), authors.inspect
+        assert_includes search.search(names.join(", ")).pluck(:url), post[:link]
+      end
+    end
   end
 
   test "content and biography edits hiding deletion and profile changes refresh new instances" do
@@ -191,7 +267,7 @@ class SiteSearchTest < ActiveSupport::TestCase
       search = -> { SiteSearch.new(repository: repository_for.call) }
       assert_equal [ "/about#example" ], search.call.search("Oldsummaryneedle").pluck(:url)
       assert_equal [ "/about#earned" ], search.call.search("Oldmilestoneneedle").pluck(:url)
-      assert_equal [ "/ctf/examplectf" ], search.call.search("Oldeventneedle").pluck(:url)
+      assert_equal [ "/ctf#ctf-event-examplectf" ], search.call.search("Oldeventneedle").pluck(:url)
 
       certificate[:summary] = "Newsummaryneedle"
       certificate[:timeline].first[:title] = "Newmilestoneneedle"
@@ -201,7 +277,7 @@ class SiteSearchTest < ActiveSupport::TestCase
       %w[Oldsummaryneedle Oldmilestoneneedle Oldeventneedle].each { |query| assert_empty search.call.search(query), query }
       assert_equal [ "/about#example" ], search.call.search("Newsummaryneedle").pluck(:url)
       assert_equal [ "/about#earned" ], search.call.search("Newmilestoneneedle").pluck(:url)
-      assert_equal [ "/ctf/examplectf" ], search.call.search("Neweventneedle").pluck(:url)
+      assert_equal [ "/ctf#ctf-event-examplectf" ], search.call.search("Neweventneedle").pluck(:url)
 
       certificate[:timeline].first[:hidden] = true
       certificate_path.write([ certificate ].to_json)

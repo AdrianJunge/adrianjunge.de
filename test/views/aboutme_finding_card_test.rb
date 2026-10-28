@@ -25,7 +25,8 @@ class AboutmeFindingCardTest < ActionView::TestCase
 
     assert_select "article.aboutme-finding-card-cve[data-card-disclosure] > details.profile-card-details"
     assert_select "article[role='button'], article[tabindex]", 0
-    assert_select "summary[aria-label='Details for Example Project']", text: "Details"
+    assert_select "summary.profile-card-toggle[aria-label='Details for Example Project']", text: ""
+    assert_select "summary .profile-card-chevron[aria-hidden='true']"
     assert_select ".aboutme-card-header .aboutme-finding-main > .aboutme-finding-project:first-child"
     assert_select ".aboutme-card-header .aboutme-finding-project + .aboutme-finding-badges"
     assert_select "summary a, summary button", 0

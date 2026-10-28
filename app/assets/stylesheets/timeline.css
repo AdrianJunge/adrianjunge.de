@@ -169,6 +169,7 @@
 }
 
 .timeline-page .timeline-content {
+    --card-media-width: 6.75rem;
     display: grid;
     position: relative;
     gap: 0.65rem;
@@ -190,8 +191,8 @@
 }
 
 .timeline-page .timeline-card-logo {
-    width: 6.75rem;
-    min-width: 6.75rem;
+    width: var(--card-media-width);
+    min-width: var(--card-media-width);
     padding: 0.95rem;
 }
 
@@ -230,6 +231,7 @@
     font-size: 1.12rem;
     font-weight: 800;
     line-height: 1.25;
+    text-align: center;
     overflow-wrap: anywhere;
     pointer-events: none;
 }
@@ -265,6 +267,7 @@
     z-index: 40;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 0.45rem;
     min-width: 0;
     pointer-events: none;

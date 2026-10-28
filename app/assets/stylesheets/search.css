@@ -168,6 +168,11 @@
     color: #1c1917;
 }
 
+::target-text {
+    background-color: #fde68a;
+    color: #1c1917;
+}
+
 .site-search-results p {
     grid-column: 1 / -1;
     margin: 0;
@@ -234,7 +239,7 @@
         grid-column: 1 / -1;
     }
 
-    .site-search-results p {
+    .site-search-results p:not(.site-search-snippet-phrase) {
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 3;
