@@ -86,8 +86,8 @@ module SitePageHelpers
     find("[data-filter-year='#{scope}']").select(year.to_s.presence || "All years")
   end
 
-  def filter_count_text(visible, total)
-    "#{visible} / #{total} #{total == 1 ? "item" : "items"}"
+  def filter_count_text(visible, total, separator: "/")
+    "#{visible} #{separator} #{total} #{total == 1 ? "item" : "items"}"
   end
 
   def assert_selector_count(selector, count)

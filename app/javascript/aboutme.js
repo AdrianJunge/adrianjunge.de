@@ -31,10 +31,6 @@ function openDetailsForTarget(target) {
     return details.length > 0;
 }
 
-function aboutScrollTargetFor(target) {
-    return target.closest(".aboutme-card") || target.closest(".aboutme-section") || target;
-}
-
 function aboutTopScrollOffset() {
     const taskbar = document.getElementById("top-taskbar") || document.querySelector(".top-taskbar");
     const taskbarBottom = taskbar ? taskbar.getBoundingClientRect().bottom : 0;
@@ -48,8 +44,9 @@ function aboutTopScrollOffset() {
 function performAboutTargetScroll(target, options = {}) {
     const indicated = document.querySelector(':target');
     if (options.preserveTextTarget && indicated && indicated !== target) return;
-    const scrollTarget = aboutScrollTargetFor(target);
-    const targetTop = window.scrollY + scrollTarget.getBoundingClientRect().top - aboutTopScrollOffset();
+    // A nested achievement event can be far below its card's header. Keep the
+    // actual fragment destination visible after opening its parent disclosures.
+    const targetTop = window.scrollY + target.getBoundingClientRect().top - aboutTopScrollOffset();
 
     window.scrollTo({
         top: Math.max(targetTop, 0),
@@ -76,6 +73,12 @@ function revealAboutHashTarget(options = {}) {
     if (!target) return;
 
     openDetailsForTarget(target);
+
+    const indicated = document.querySelector(':target');
+    if (target.matches('.aboutme-timeline li[id]') && (!indicated || indicated === target)) {
+        target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
+    }
 
     if (options.scroll) {
         scrollToAboutTarget(target, { ...options, preserveTextTarget: true });

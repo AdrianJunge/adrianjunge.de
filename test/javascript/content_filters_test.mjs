@@ -41,6 +41,20 @@ test('card matching combines search, year, and all selected tags', () => {
   assert.equal(filters.matchesCardRecord(record, [ 'fxture' ], '2025', [ 'crypto' ]), false);
 });
 
+test('posts view is a union of blog and writeup kinds combined with the other filters', () => {
+  const record = {
+    searchTerms: ['web'], tagSet: new Set(['web']), yearSet: new Set(['2025'])
+  };
+  for (const kind of ['blog', 'writeup', 'cve', 'timeline_event', 'achievement']) {
+    assert.equal(filters.matchesCardRecord({ ...record, kind }, [], '', [], 'posts'), ['blog', 'writeup'].includes(kind), kind);
+    assert.equal(filters.matchesCardRecord({ ...record, kind }, [], '', [], 'all'), true, kind);
+  }
+  assert.equal(filters.matchesCardRecord({ ...record, kind: 'blog' }, ['web'], '2025', ['web'], 'posts'), true);
+  assert.equal(filters.matchesCardRecord({ ...record, kind: 'writeup' }, ['crypto'], '2025', ['web'], 'posts'), false);
+  assert.equal(filters.matchesCardRecord({ ...record, kind: 'blog' }, [], '2024', [], 'posts'), false);
+  assert.equal(filters.matchesCardRecord({ ...record, kind: 'blog' }, [], '', ['pwn'], 'posts'), false);
+});
+
 test('pipe-delimited values and URL tag parameters normalize consistently', () => {
   assert.deepEqual(filters.tokensFrom(' Web | HARD || '), [ 'web', 'hard' ]);
 

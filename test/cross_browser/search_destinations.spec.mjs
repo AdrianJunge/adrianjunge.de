@@ -3,11 +3,12 @@ import { test, expect } from '@playwright/test';
 const cases = [
   ['ecsc', '/ctf#ctf-event-cscg'],
   ['SuiteCRM', '/about#suitecrm-portal-get-entry-list-sql-injection'],
-  ['CWE-787', '/about#ffmpeg-vf-quirc-dynamic-resolution-out-of-bounds-write'],
+  ['CWE-787', '/about#ffmpeg-vf-quirc-dynamic-resolution-out-of-bounds-write', false],
   ['In ChurchCRM 7.0.5, property assignment handling', '/about#churchcrm-propertyassign-blind-sqli'],
   ['Final presentation for the course', '/about#joomla-course-presentation-2026'],
+  ['KITCTF #3 at GlacierCTF 2024', '/about#kitctf-glacierctf-2024'],
   ['Taking a closer look at in_array', '/ctf/sekaictf/Fancy%20Web#writeup-hint-1'],
-  ['High', '/about#churchcrm-propertyassign-blind-sqli', false]
+  ['High', '/about#churchcrm-propertyassign-blind-sqli']
 ];
 
 for (const width of [390, 1440]) {

@@ -18,7 +18,8 @@ class FixtureContentFiltersTest < ApplicationSystemTestCase
           expected = example.fetch("titles")
           scope = spec.fetch("scope")
           total = spec.fetch("total")
-          assert_selector "[data-filter-count='#{scope}']", exact_text: "#{expected.length} / #{total} #{total == 1 ? 'item' : 'items'}"
+          separator = scope == "timeline" ? "of" : "/"
+          assert_selector "[data-filter-count='#{scope}']", exact_text: "#{expected.length} #{separator} #{total} #{total == 1 ? 'item' : 'items'}"
           actual = all(spec.fetch("title_selector")).map(&:text)
           assert_equal expected.sort, actual.sort, "Wrong results on #{spec.fetch('path')} for #{params.inspect}"
           assert_selector "[data-filter-empty='#{scope}']" if expected.empty?

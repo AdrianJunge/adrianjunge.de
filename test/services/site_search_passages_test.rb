@@ -24,4 +24,16 @@ class SiteSearchPassagesTest < ActiveSupport::TestCase
     HTML
     assert_equal [ "First Author", ",", "Second Author", ",", "Third Author" ], SiteSearchPassages.extract(html)
   end
+
+  test "page context includes controls while preserving inline words and excluding hidden content" do
+    html = <<~HTML
+      <html><head><title>Private title</title></head><body>
+        <button>Web</button><button>Pwn</button><button>Crypto</button>
+        <h2>2019</h2><p><i>OverTheWire</i>'s wargames.</p>
+        <p hidden>Hidden text</p><span class="sr-only">Screen reader text</span>
+        <dialog>Closed search dialog</dialog><noscript>Fallback text</noscript>
+      </body></html>
+    HTML
+    assert_equal "Web Pwn Crypto 2019 OverTheWire's wargames.", SiteSearchPassages.page_text(html)
+  end
 end

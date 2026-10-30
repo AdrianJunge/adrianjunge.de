@@ -79,6 +79,8 @@ function buildCardRecord(card) {
     rawText: null,
     rawTags: null,
     rawYears: null,
+    rawKind: null,
+    kind: '',
     tags: [],
     tagSet: new Set(),
     yearSet: new Set(),
@@ -94,20 +96,24 @@ function syncCardRecord(record) {
   const rawText = card.dataset.filterText || '';
   const rawTags = card.dataset.filterTags || '';
   const rawYears = card.dataset.filterYears || card.dataset.filterYear || '';
+  const rawKind = card.dataset.filterKind || '';
 
-  if (rawText === record.rawText && rawTags === record.rawTags && rawYears === record.rawYears) return;
+  if (rawText === record.rawText && rawTags === record.rawTags && rawYears === record.rawYears && rawKind === record.rawKind) return;
 
   record.rawText = rawText;
   record.rawTags = rawTags;
   record.rawYears = rawYears;
+  record.rawKind = rawKind;
+  record.kind = normalizeToken(rawKind);
   record.tags = tokensFrom(rawTags);
   record.tagSet = new Set(record.tags);
   record.yearSet = new Set(tokensFrom(rawYears));
   record.searchTerms = searchTermsFrom(rawText, record.tags);
 }
 
-function matchesCardRecord(record, queryTerms, selectedYear, activeTagList) {
+function matchesCardRecord(record, queryTerms, selectedYear, activeTagList, selectedView = 'all') {
   return matchesSearchTerms(queryTerms, record.searchTerms) &&
+    (selectedView !== 'posts' || ['blog', 'writeup'].includes(record.kind)) &&
     (selectedYear === '' || record.yearSet.has(selectedYear)) &&
     activeTagList.every(tag => record.tagSet.has(tag));
 }
@@ -221,9 +227,11 @@ function initFilterPanel(panel) {
   const search = panel.querySelector(`[data-filter-search="${scope}"]`);
   const searchWrapper = search && search.closest('.search-wrapper');
   const year = panel.querySelector(`[data-filter-year="${scope}"]`);
+  const order = panel.querySelector(`[data-filter-order="${scope}"]`);
+  const view = panel.querySelector(`[data-filter-view="${scope}"]`);
   const clear = panel.querySelector(`[data-filter-clear="${scope}"]`);
-  const reset = panel.querySelector(`[data-filter-reset="${scope}"]`);
-  const count = panel.querySelector(`[data-filter-count="${scope}"]`);
+  const reset = document.querySelector(`[data-filter-reset="${scope}"]`);
+  const count = document.querySelector(`[data-filter-count="${scope}"]`);
   const empty = document.querySelector(`[data-filter-empty="${scope}"]`);
   const resultContainers = Array.from(document.querySelectorAll(`[data-filter-results="${scope}"]`));
   const cards = Array.from(document.querySelectorAll(`[data-filter-card="${scope}"]`));
@@ -243,6 +251,8 @@ function initFilterPanel(panel) {
     const params = new URLSearchParams(window.location.search);
     if (search) search.value = params.get('q') || '';
     if (year) year.value = validSelectValue(year, params.get('year') || '');
+    if (order) order.value = params.get('order') === 'oldest' ? 'oldest' : 'newest';
+    if (view) view.value = params.get('view') === 'posts' ? 'posts' : 'all';
 
     activeTags.clear();
     tagValuesFromParams(params).forEach(tag => activeTags.add(canonicalFilterTag(tag, tagLabels, tagAliases)));
@@ -257,6 +267,14 @@ function initFilterPanel(panel) {
     params.delete('year');
     params.delete('tag');
     params.delete('tags');
+    if (order) {
+      params.delete('order');
+      if (order.value === 'oldest') params.set('order', 'oldest');
+    }
+    if (view) {
+      params.delete('view');
+      if (view.value === 'posts') params.set('view', 'posts');
+    }
 
     const rawQuery = search ? search.value.trim() : query;
     if (rawQuery) params.set('q', rawQuery);
@@ -270,20 +288,40 @@ function initFilterPanel(panel) {
     if (nextUrl !== currentUrl) window.history[replace ? 'replaceState' : 'pushState']({}, '', nextUrl);
   }
 
+  function applyOrder() {
+    if (!order || groups.length === 0) return;
+
+    const direction = order.value === 'oldest' ? 1 : -1;
+    const byDate = (left, right) => direction * (Number(left.dataset.filterSort) - Number(right.dataset.filterSort)) ||
+      Number(left.dataset.filterSortIndex || 0) - Number(right.dataset.filterSortIndex || 0);
+    const reorder = elements => {
+      const sorted = [...elements].sort(byDate);
+      const parent = sorted[0]?.parentElement;
+      if (!parent || sorted.every((element, index) => parent.children[index] === element)) return;
+      parent.append(...sorted);
+    };
+
+    groups.forEach(({ cards: groupCards }) => reorder(groupCards));
+    reorder(groups.map(({ group }) => group));
+  }
+
   function applyFilters(options = {}) {
     const updateUrl = options.updateUrl !== false;
     const query = normalizeToken(search && search.value);
     const queryTerms = normalizeSearchWords(query);
     const selectedYear = normalizeToken(year && year.value);
+    const selectedView = normalizeToken(view && view.value);
     const activeTagList = [...activeTags];
     const visibleRecords = [];
     let visible = 0;
+
+    applyOrder();
 
     cardRecords.forEach(record => {
       syncCardRecord(record);
 
       const { card, displayTarget } = record;
-      const matched = matchesCardRecord(record, queryTerms, selectedYear, activeTagList);
+      const matched = matchesCardRecord(record, queryTerms, selectedYear, activeTagList, selectedView);
 
       displayTarget.hidden = !matched;
       card.setAttribute('aria-hidden', (!matched).toString());
@@ -313,7 +351,7 @@ function initFilterPanel(panel) {
 
     if (count) {
       const label = cards.length === 1 ? 'item' : 'items';
-      const value = `${visible} / ${cards.length} ${label}`;
+      const value = `${visible} ${count.dataset.filterCountSeparator || '/'} ${cards.length} ${label}`;
       if (count.textContent !== value) count.textContent = value;
     }
 
@@ -325,7 +363,7 @@ function initFilterPanel(panel) {
       container.setAttribute('aria-hidden', hideResults.toString());
     });
     if (reset) {
-      const resetVisible = query !== '' || selectedYear !== '' || activeTags.size > 0;
+      const resetVisible = query !== '' || selectedYear !== '' || activeTags.size > 0 || selectedView === 'posts';
       reset.classList.toggle('is-visible', resetVisible);
       reset.setAttribute('aria-hidden', (!resetVisible).toString());
       reset.tabIndex = resetVisible ? 0 : -1;
@@ -339,6 +377,8 @@ function initFilterPanel(panel) {
   readStateFromUrl();
   if (search) search.addEventListener('input', () => applyFilters({ replace: true }));
   if (year) year.addEventListener('change', applyFilters);
+  if (order) order.addEventListener('change', applyFilters);
+  if (view) view.addEventListener('change', applyFilters);
   if (clear && search) {
     clear.addEventListener('click', () => {
       search.value = '';
@@ -350,6 +390,7 @@ function initFilterPanel(panel) {
     reset.addEventListener('click', () => {
       if (search) search.value = '';
       if (year) year.value = '';
+      if (view) view.value = 'all';
       activeTags.clear();
       applyFilters();
       search?.focus();

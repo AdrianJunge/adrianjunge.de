@@ -25,7 +25,8 @@ class AboutmeFindingCardTest < ActionView::TestCase
 
     assert_select "article.aboutme-finding-card-cve[data-card-disclosure] > details.profile-card-details"
     assert_select "article[role='button'], article[tabindex]", 0
-    assert_select "summary.profile-card-toggle[aria-label='Details for Example Project']", text: ""
+    assert_select "summary.profile-card-toggle[aria-label='Details for Example Project (CVE-2026-0001)']", text: ""
+    assert_select "article[aria-label='Example Project (CVE-2026-0001)']", 1
     assert_select "summary .profile-card-chevron[aria-hidden='true']"
     assert_select ".aboutme-card-header .aboutme-finding-main > .aboutme-finding-project:first-child"
     assert_select ".aboutme-card-header .aboutme-finding-project + .aboutme-finding-badges"
@@ -35,6 +36,7 @@ class AboutmeFindingCardTest < ActionView::TestCase
     assert_select "summary a[href=?]", "https://github.com/example/project/security/advisories/GHSA-example", 0
     assert_select "summary .aboutme-finding-summary-link.aboutme-finding-advisory-link", 0
     assert_select ".aboutme-cve-id.cve-badge[href=?][target=?][rel=?]", "https://www.cve.org/CVERecord?id=CVE-2026-0001", "_blank", "noopener noreferrer", text: "CVE-2026-0001"
+    assert_select ".aboutme-finding-badges > .aboutme-cve-id:first-child", text: "CVE-2026-0001"
     assert_select ".aboutme-cwe-id.cwe-badge[href=?][target=?][rel=?]", "https://cwe.mitre.org/data/definitions/79.html", "_blank", "noopener noreferrer", text: "CWE-79"
     assert_select ".aboutme-detail-block", text: /allowing session actions/
     assert_select ".aboutme-detail-block h3", text: "References"
@@ -58,6 +60,7 @@ class AboutmeFindingCardTest < ActionView::TestCase
     assert_select ".aboutme-link-row", 0
     assert_select ".aboutme-detail-block h3", text: "Disclosure timeline"
     assert_select ".aboutme-timeline li", 1
+    assert_select ".aboutme-timeline time[datetime='2026-01-01']", text: "1 Jan 2026"
   end
 
   test "finding card omits CVE fields when no CVE ID is present" do

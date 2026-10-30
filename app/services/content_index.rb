@@ -42,7 +42,7 @@ class ContentIndex
 
   def all_items
     @all_items ||= repository.cached_collection(:timeline) do
-      merged_timeline_items(post_items + about_items).sort_by { |item| -item[:published].to_i }
+      merged_timeline_items(post_items + about_items + timeline_event_items).sort_by { |item| -item[:published].to_i }
     end
   end
 
@@ -66,7 +66,7 @@ class ContentIndex
         title: post[:title],
         description: post[:description],
         published: post[:published],
-        display_date: post[:published].strftime("%Y-%m-%d"),
+        display_date: post_display_date(post),
         link: post[:link],
         tags: [ post[:which] ] + repository.metadata_tags(metadata),
         timeline_group: metadata["timeline_group"].presence,
@@ -91,7 +91,7 @@ class ContentIndex
         title: post[:title],
         description: post[:description],
         published: post[:published],
-        display_date: post[:published].strftime("%Y-%m-%d"),
+        display_date: post_display_date(post),
         link: post[:link],
         tags: [ post[:which] ] + repository.metadata_tags(metadata),
         timeline_group: metadata["timeline_group"].presence,
@@ -113,6 +113,29 @@ class ContentIndex
           about_entry_item(entry, collection)
         end
       end
+    end
+  end
+
+  def timeline_event_items
+    repository.timeline_events.map do |event|
+      date = event.fetch("date")
+      period_end = ContentDate.bounds(event["end_date"])&.last
+      published = period_end ? ContentDate.bounds(date).first : repository.parsed_time(date, fallback: nil)
+      content_item(
+        id: "timeline-event-#{event.fetch('id')}",
+        kind: "timeline_event",
+        source: "Timeline",
+        title: event.fetch("title"),
+        description: event["summary"].to_s,
+        published: published,
+        filter_years: (published.year..(period_end || published).year).to_a,
+        display_date: repository.timeline_event_display_date(event),
+        date_datetime: date.match?(ContentDate::MONTH) ? date : published.iso8601,
+        link: event["url"].presence,
+        url: "/timeline#timeline-event-#{event.fetch('id')}",
+        tags: about_tag_labels(event["tags"]),
+        logo: event["icon"].presence
+      )
     end
   end
 
@@ -159,7 +182,8 @@ class ContentIndex
       published = repository.parsed_time(event["date"], fallback: about_published_time(entry, collection[:path]))
       description = event["summary"].presence || about_description(entry)
       title = event["title"].presence || entry["title"].presence || collection[:label]
-      tags = about_tags(entry, collection) + [ entry["title"] ]
+      tag_source = event.key?("tags") ? entry.merge("tags" => event["tags"]) : entry
+      tags = about_tags(tag_source, collection) + [ entry["title"] ]
 
       content_item(
         id: "about-#{collection[:kind]}-#{event_id.parameterize}",
@@ -183,6 +207,7 @@ class ContentIndex
     kind_labels = timeline_content_type_labels(tags)
 
     attrs.merge(
+      filter_years: attrs[:filter_years] || [ attrs[:published].year ],
       kind_labels: kind_labels,
       tags: tags,
       search_text: search_text_for([ attrs[:title], attrs[:description], attrs[:source], attrs[:display_date], tags.map { |tag| ContentTagTaxonomy.canonical_label(tag) } ])
@@ -220,6 +245,7 @@ class ContentIndex
 
     primary.merge(
       published: published,
+      filter_years: [ published.year ],
       display_date: date_source[:display_date].presence || primary[:display_date],
       logo: primary[:logo].presence || group.find { |item| item[:logo].present? }&.dig(:logo),
       kind_labels: kind_labels,
@@ -230,6 +256,8 @@ class ContentIndex
   end
 
   def timeline_merge_key(item)
+    return if item[:kind] == "timeline_event"
+
     explicit_group = item[:timeline_group].to_s.parameterize
     return "timeline-group:#{explicit_group}" if explicit_group.present?
 
@@ -304,22 +332,38 @@ class ContentIndex
       repository.file_time(path)
   end
 
+  def post_display_date(post)
+    metadata = post[:metadata] || {}
+    ContentDate.display_label(metadata["published"]) ||
+      ContentDate.display_label(metadata["year"]) ||
+      fallback_display_date(post[:published])
+  end
+
   def about_card_display_date(entry, published)
-    latest_timeline = latest_timeline_time(entry)
-    return latest_timeline.strftime("%Y-%m-%d") if latest_timeline
+    latest_date = latest_timeline_date(entry)
+    return ContentDate.display_label(latest_date) if latest_date
     return "TBA" if entry["title"].to_s.match?(/\bTBA\b/i)
 
-    published.strftime("%Y-%m-%d")
+    fallback_display_date(published)
   end
 
   def about_timeline_event_display_date(event, published)
-    event["date"].presence || published.strftime("%Y-%m-%d")
+    ContentDate.display_label(event["date"]) || fallback_display_date(published)
   end
 
   def latest_timeline_time(entry)
+    repository.parsed_time(latest_timeline_date(entry), fallback: nil)
+  end
+
+  def latest_timeline_date(entry)
     Array(entry["timeline"]).filter_map do |item|
-      repository.parsed_time(item["date"], fallback: nil)
-    end.max
+      parsed = repository.parsed_time(item["date"], fallback: nil)
+      [ parsed, item["date"] ] if parsed
+    end.max_by(&:first)&.last
+  end
+
+  def fallback_display_date(published)
+    published == ContentDate::EPOCH ? "TBA" : ContentDate.display_label(published)
   end
 
   def search_text_for(values)

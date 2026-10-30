@@ -64,7 +64,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".landing-action[href=?]", about_path, text: /About me/
     assert_select ".landing-metrics.aboutme-stats"
     assert_select ".landing-metric.aboutme-stat", 4
-    assert_select ".landing-metric:first-child[href=?]", timeline_path, text: /Posts/
+    assert_select ".landing-metric:first-child[href=?]", timeline_path(view: "posts"), text: /Posts/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
     assert_select ".landing-metric:not(a) .landing-metric-value", text: SiteProfile.bug_bounty_count.to_s
     assert_select ".landing-metric:not(a) .landing-metric-label", text: "Bounties"
@@ -73,8 +73,8 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".landing-metric[href=?]", "#{about_path}#my-challenges", false
     assert_select ".landing-metric[href=?]", "#{about_path}#certificates", false
     assert_select ".landing-metric[href=?]", "#{about_path}#achievements", false
-    assert_select ".landing-metric[href=?] .landing-metric-value", timeline_path, text: repository.post_count.to_s
-    assert_select ".landing-metric[href=?] .landing-metric-sublabel", timeline_path,
+    assert_select ".landing-metric[href=?] .landing-metric-value", timeline_path(view: "posts"), text: repository.post_count.to_s
+    assert_select ".landing-metric[href=?] .landing-metric-sublabel", timeline_path(view: "posts"),
                   text: repository.format_reading_time(repository.total_post_reading_time_minutes)
     assert_select ".landing-metric .aboutme-stat-icon", false
     assert_select "#landing-featured-title", false

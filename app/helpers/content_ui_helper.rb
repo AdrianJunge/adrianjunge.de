@@ -9,15 +9,21 @@ module ContentUiHelper
     render "shared/content_filters", filters: ContentFiltersPresenter.new(**options)
   end
 
-  def content_tag_badge(label, classes:, title: nil, url: nil, filter_scope: nil, filter_tag: label, aria_label: nil, static_class: nil, label_class: nil, arrow: nil, link_target: nil, timeline_redirect: true)
+  def content_tag_badge(label, classes:, title: nil, url: nil, filter_scope: nil, filter_tag: label, aria_label: nil, static_class: nil, label_class: nil, arrow: nil, link_target: nil, timeline_redirect: true, record_link: false, datetime: nil)
     label = ContentTagTaxonomy.canonical_label(label)
     filter_tag = ContentTagTaxonomy.canonical_value(filter_tag.presence || label)
+    if record_link && (record_url = ContentVulnerabilityTag.record_url(label))
+      url = record_url
+      filter_scope = nil
+      aria_label = "Open #{label} on #{ContentVulnerabilityTag.cve?(label) ? 'CVE.org' : 'MITRE'}"
+    end
     timeline_link = url.blank? && filter_scope.blank? && timeline_redirect && filter_tag.present?
     url = timeline_filter_path(tag: filter_tag) if timeline_link
     filter_label = ContentTagTaxonomy.canonical_label(filter_tag)
     aria_label = aria_label.presence
     aria_label ||= "Filter timeline by #{filter_label}" if timeline_link
     aria_label ||= "Filter by #{filter_label}" if url.blank? && filter_scope.present?
+    aria_label ||= "Open #{label}" if url.present?
     if aria_label.present? && !aria_label.squish.downcase.include?(label.squish.downcase)
       aria_label = "#{label}: #{aria_label}"
     end
@@ -59,10 +65,10 @@ module ContentUiHelper
       )
     end
 
-    content_tag(:span, content, class: classes.compact.join(" "), title: title)
+    content_tag(datetime.present? ? :time : :span, content, class: classes.compact.join(" "), title: title, datetime: datetime)
   end
 
-  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, cve: false, cwe: false, static_class: "blog-post-static-chip", title: nil, timeline_redirect: true)
+  def content_filter_chip(label, scope:, tag_value: label, interactive: true, class_name: nil, winner: false, authored: false, difficulty_key: nil, category_key: nil, severity_key: nil, cve: false, cwe: false, static_class: "blog-post-static-chip", title: nil, timeline_redirect: true, record_link: false)
     raw_label = label.to_s
     style = content_tag_style(
       raw_label,
@@ -90,7 +96,8 @@ module ContentUiHelper
       title: title,
       label_class: style[:label_class],
       link_target: nil,
-      timeline_redirect: timeline_redirect
+      timeline_redirect: timeline_redirect,
+      record_link: record_link
     )
   end
 
@@ -139,7 +146,8 @@ module ContentUiHelper
     content_tag_badge(
       label,
       classes: classes,
-      title: title.presence || "Challenge category: #{label}"
+      title: title.presence || "Challenge category: #{label}",
+      record_link: true
     )
   end
 
@@ -199,11 +207,6 @@ module ContentUiHelper
       )
     end
 
-    auto_cve = !config[:category] && !config[:severity] && ContentVulnerabilityTag.cve?(config[:label])
-    auto_cwe = !config[:category] && !config[:severity] && ContentVulnerabilityTag.cwe?(config[:label])
-    auto_category = !config[:category] && !config[:severity] && !auto_cve && !auto_cwe && ContentCategoryTag.recognized?(config[:label])
-    auto_severity = !config[:category] && !config[:severity] && !auto_cve && !auto_cwe && !WriteupDifficulty.filter_label?(config[:label]) && ContentSeverityTag.recognized?(config[:label])
-
     content_filter_chip(
       config[:label],
       scope: config.fetch(:scope, default_scope),
@@ -213,13 +216,14 @@ module ContentUiHelper
       winner: config[:winner],
       authored: config[:authored],
       difficulty_key: config[:difficulty_filter] ? config[:difficulty_key] || config[:label] : nil,
-      category_key: (config[:category] || auto_category) ? config[:category_key] || config[:label] : nil,
-      severity_key: (config[:severity] || auto_severity) ? config[:severity_key] || config[:label] : nil,
-      cve: config[:cve] || auto_cve,
-      cwe: config[:cwe] || auto_cwe,
+      category_key: config[:category] ? config[:category_key] || config[:label] : nil,
+      severity_key: config[:severity] ? config[:severity_key] || config[:label] : nil,
+      cve: config[:cve],
+      cwe: config[:cwe],
       static_class: config[:static_class].presence || "blog-post-static-chip",
       title: config[:title],
-      timeline_redirect: config.key?(:timeline_redirect) ? config[:timeline_redirect] : true
+      timeline_redirect: config.key?(:timeline_redirect) ? config[:timeline_redirect] : true,
+      record_link: true
     )
   end
 
@@ -243,6 +247,11 @@ module ContentUiHelper
     label = ContentTagTaxonomy.canonical_label(label)
     classes = []
     label_class = nil
+    if difficulty_key.blank? && severity_key.blank? && category_key.blank?
+      difficulty_key = label if WriteupDifficulty.filter_label?(label)
+      severity_key = label if difficulty_key.blank? && ContentSeverityTag.recognized?(label)
+      category_key = label if ContentCategoryTag.recognized?(label)
+    end
     difficulty_key = WriteupDifficulty.css_key(difficulty_key) if difficulty_key.present?
     category_key = ContentCategoryTag.css_key(category_key) if category_key.present?
     severity_key = ContentSeverityTag.css_key(severity_key) if severity_key.present?
@@ -273,7 +282,9 @@ module ContentUiHelper
   def content_tag_badge_content(label, label_class:, arrow:)
     label_node = content_tag(:span, label, class: [ "content-tag-label", label_class ].compact.join(" "))
     nodes = [ label_node ]
-    nodes << content_tag(:span, ">", class: "content-tag-arrow", aria: { hidden: "true" }) if arrow
+    if arrow
+      nodes << content_tag(:span, "", class: "content-tag-arrow content-tag-chevron", aria: { hidden: "true" })
+    end
 
     safe_join(nodes)
   end

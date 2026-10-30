@@ -177,6 +177,26 @@ class ContentCatalogTest < ActiveSupport::TestCase
     end
   end
 
+  test "standalone timeline catalog edits and visibility refresh index snapshots" do
+    with_checkout do |config|
+      path = config.path(:TIMELINE_EVENTS_PATH)
+      repository = -> { ContentRepository.new(configuration: config) }
+      event = { id: "separate-event", title: "First event", date: "2026-01-01" }
+
+      path.write([ event ].to_json)
+      first = ContentIndex.new(repository: repository.call).all_items
+      assert_equal [ "First event" ], first.map { |item| item[:title] }
+      assert_equal "timeline-event-separate-event", first.first[:id]
+
+      path.write([ event.merge(title: "Edited event") ].to_json)
+      assert_equal [ "Edited event" ], ContentIndex.new(repository: repository.call).all_items.map { |item| item[:title] }
+
+      path.write([ event.merge(hidden: true) ].to_json)
+      assert_empty repository.call.timeline_events
+      assert_empty ContentIndex.new(repository: repository.call).all_items
+    end
+  end
+
   test "injected and subclass repositories retain their independent content behavior" do
     with_checkout do |config|
       write_post(config.path(:BLOG_BASE_PATH).join("sample.md"), title: "Shared file")
@@ -215,6 +235,8 @@ class ContentCatalogTest < ActiveSupport::TestCase
       config = ContentConfiguration.new(root: directory)
       [ :BASE_PATH, :BLOG_BASE_PATH, :ABOUTME_BASE_PATH ].each { |name| config.path(name).mkpath }
       config.path(:CTF_INFO_PATH).write("{}")
+      config.path(:TIMELINE_EVENTS_PATH).dirname.mkpath
+      config.path(:TIMELINE_EVENTS_PATH).write("[]")
       %i[ABOUTME_CVES_PATH ABOUTME_CHALLENGES_PATH ABOUTME_CERTIFICATES_PATH ABOUTME_TALKS_PATH ABOUTME_ACHIEVEMENTS_PATH].each do |name|
         config.path(name).write("[]")
       end

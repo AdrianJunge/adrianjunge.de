@@ -20,6 +20,26 @@ class ContentRepositoryTest < ActiveSupport::TestCase
     end
   end
 
+  test "standalone timeline event IDs must be unique" do
+    events = [
+      { "id" => "duplicate", "title" => "First", "date" => "2026-01-01" },
+      { "id" => "duplicate", "title" => "Second", "date" => "2026-02-01" }
+    ]
+    assert_raises(ContentRepository::InvalidContent) do
+      ContentRepository.new.normalize_timeline_events(events, path: "events.json")
+    end
+  end
+
+  test "timeline date labels derive periods and preserve custom point labels" do
+    repository = ContentRepository.new
+    assert_equal "Oct 2021–2025", repository.timeline_event_display_date({ "date" => "2021-10", "end_date" => "2025" })
+    assert_equal "Mar–Apr 2023", repository.timeline_event_display_date({ "date" => "2023-03", "end_date" => "2023-04" })
+    assert_equal "Around Sep 2019", repository.timeline_event_display_date({ "date" => "2019-09", "display_date" => "Around Sep 2019" })
+    assert_equal "12 Oct 2024", repository.timeline_event_display_date({ "date" => "2024-10-12" })
+    assert_equal "Sep 2019", repository.timeline_event_display_date({ "date" => "2019-09" })
+    assert_equal "2019", repository.timeline_event_display_date({ "date" => "2019" })
+  end
+
   test "authoring parse failures include the source path" do
     repository = ContentRepository.new
     error = assert_raises(ContentRepository::InvalidContent) do
@@ -210,6 +230,10 @@ class ContentRepositoryTest < ActiveSupport::TestCase
       .flat_map { |entry| entry["timeline"] }
       .map { |event| event["id"] }
     assert_not_includes talk_events, "fixture-talk-hidden"
+
+    assert_equal [ "fixture-timeline-only" ], repository.timeline_events.map { |event| event["id"] }
+    assert_includes repository.timeline_events(include_hidden: true).map { |event| event["id"] }, "fixture-timeline-hidden"
+    assert_equal "2025-09-01", repository.timeline_events.first["date"]
 
     production_collections = ContentTestHelpers::ABOUT_COLLECTIONS.map do |spec|
       about_collection_entries(spec, repository: production_content_repository)

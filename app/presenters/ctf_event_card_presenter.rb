@@ -17,7 +17,7 @@ class CtfEventCardPresenter < ContentCardPresenter
 
     super(
       variant: :event, id: "ctf-event-#{event['directory'].presence || name.downcase}",
-      url: event["writeups"], title: name, description: event["description"],
+      url: event["writeups"], title: name, title_tag: :h2, description: event["description"],
       media: { image: event["logo"], alt: "#{name} Logo", image_class: "blog-logo" },
       filter_scope: "ctfs", tags: card_tags, date: count_label, reading_time: reading_time,
       data: {

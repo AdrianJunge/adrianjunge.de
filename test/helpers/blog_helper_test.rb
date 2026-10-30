@@ -14,6 +14,9 @@ class BlogHelperTest < ActionView::TestCase
     }
 
     assert_equal description, css_select(".blog-post-description").first.text
+    assert_select ".blog-post-card h2.blog-post-title", text: "Example"
+    assert_select ".blog-post-date time[datetime='2026-01-01']", text: "1 Jan 2026"
+    assert_select ".blog-post-card[data-filter-text*='2026-01-01']"
   end
 
   test "blog cards render reading time" do

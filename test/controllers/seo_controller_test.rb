@@ -77,7 +77,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     cases = [
       [ blog_path, repository.blog_posts.map { |post| [ post[:title], post[:link] ] } ],
       [ ctf_path, repository.ctf_events.map { |event| [ event[:name], event[:metadata]["writeups"] ] } ],
-      [ timeline_path, index.all_items.map { |item| [ item[:title], item[:link] ] } ]
+      [ timeline_path, index.all_items.map { |item| [ item[:title], item[:link].presence || item[:url] ] } ]
     ]
 
     cases.each do |path, expected_items|

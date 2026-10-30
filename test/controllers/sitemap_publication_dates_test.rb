@@ -12,7 +12,8 @@ class SitemapPublicationDatesTest < ActionDispatch::IntegrationTest
       BLOG_BASE_PATH: FixtureContentRepository::ROOT.join("blog", "posts"),
       CTF_INFO_PATH: FixtureContentRepository::ROOT.join("ctf", "ctfs.json"),
       BASE_PATH: FixtureContentRepository::ROOT.join("ctf", "writeups"),
-      ABOUTME_BASE_PATH: FixtureContentRepository::ROOT.join("about")
+      ABOUTME_BASE_PATH: FixtureContentRepository::ROOT.join("about"),
+      TIMELINE_EVENTS_PATH: FixtureContentRepository::TIMELINE_EVENTS_PATH
     }.each do |key, source|
       destination = @configuration.path(key)
       FileUtils.mkdir_p(destination.dirname)
@@ -101,6 +102,29 @@ class SitemapPublicationDatesTest < ActionDispatch::IntegrationTest
     assert_equal dates.first, dates.last
   end
 
+  test "standalone timeline event dates do not become publication dates" do
+    fetch_sitemap
+    original_dates = sitemap_dates
+
+    change_timeline_events do |events|
+      events << { "id" => "scheduled-only", "title" => "Future timeline event", "date" => "2040-02-01" }
+      events.find { |event| event["hidden"] }["modified"] = "2026-10-09"
+    end
+    fetch_sitemap
+    assert_equal original_dates, sitemap_dates
+
+    travel_to Time.zone.local(2041, 1, 1)
+    fetch_sitemap
+    assert_equal original_dates, sitemap_dates
+    travel_to Time.zone.local(2026, 10, 10)
+
+    change_timeline_events { |events| events.first["modified"] = "2026-10-03" }
+    fetch_sitemap
+    assert_equal "2026-10-03", sitemap_dates.fetch("/timeline")
+    assert_equal original_dates.fetch("/about"), sitemap_dates.fetch("/about")
+    assert_equal original_dates.fetch("/"), sitemap_dates.fetch("/")
+  end
+
   test "article changes update their own and collection dates without rewriting publication" do
     post_path = @configuration.path(:BLOG_BASE_PATH).join("alpha-post.md")
     post_path.write(post_path.read.sub("title: Alpha Research", "title: Alpha Research\nupdated: '2026-10-03'"))
@@ -133,5 +157,12 @@ class SitemapPublicationDatesTest < ActionDispatch::IntegrationTest
     talks = JSON.parse(path.read)
     yield talks
     path.write(JSON.pretty_generate(talks))
+  end
+
+  def change_timeline_events
+    path = @configuration.path(:TIMELINE_EVENTS_PATH)
+    events = JSON.parse(path.read)
+    yield events
+    path.write(JSON.pretty_generate(events))
   end
 end

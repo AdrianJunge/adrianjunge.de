@@ -56,6 +56,14 @@ timeline entries become separate `/timeline` search/index items. Use
 `timeline_group` only when two content sources represent the same real item and
 should merge in `/timeline`.
 
+Talk and achievement events inherit the parent card's tags by default. Set an
+event's optional `tags` array to replace those inherited tags in `/timeline`;
+the collection type and parent title still identify the event. For example,
+`"tags": ["Audit Competition"]` classifies one audit without copying the parent
+platform's bug-bounty tags. An empty array deliberately removes inherited tags.
+Parent tags stay unchanged on `/about`; use an explicit `url` for platform links
+that should not filter the timeline.
+
 Dates belong to `timeline` entries, not to the card itself. For content with a
 single relevant date, add one timeline event such as `Published challenge`,
 `Earned certificate`, or `Presented talk`.

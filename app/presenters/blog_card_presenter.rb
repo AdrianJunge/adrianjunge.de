@@ -1,9 +1,10 @@
 class BlogCardPresenter < ContentCardPresenter
-  def initialize(post:, url:, interactive_tags: true, section_url: nil)
+  def initialize(post:, url:, interactive_tags: true, section_url: nil, title_tag: :h2)
     post_info = post.fetch(:metadata)
     title = post[:title].presence || post_info["title"].presence || post[:slug].humanize
     description = post_info["description"] || "No description available"
-    published = post[:published]&.strftime("%Y-%m-%d") || post_info["published"] || "Unknown date"
+    published_raw = post_info["published"].presence || post[:published]&.strftime("%Y-%m-%d") || "Unknown date"
+    published = ContentDate.display_label(published_raw) || published_raw
     raw_categories = Array(post_info["categories"]).presence || []
     categories = ContentTagTaxonomy.canonical_values(raw_categories)
     content_type = ContentTagTaxonomy.canonical_label(post_info["category"])
@@ -13,7 +14,7 @@ class BlogCardPresenter < ContentCardPresenter
     published_year = ContentDate.parse(post_info["published"].presence || post_info["year"])&.year
     difficulty = WriteupDifficulty.filter_label_for(post_info) ? WriteupDifficulty.from_metadata(post_info) : nil
     filter_tags = ContentTagTaxonomy.canonical_values([ content_type, difficulty&.fetch(:label, nil) ] + categories)
-    filter_text = ([ title, description, published, published_year, post_info["topic"], content_type, difficulty&.fetch(:label, nil) ] + raw_categories + categories).compact.join(" ")
+    filter_text = ([ title, description, published_raw, published, published_year, post_info["topic"], content_type, difficulty&.fetch(:label, nil) ] + raw_categories + categories).compact.join(" ")
     tags = []
     tags << { label: content_type } if content_type.present?
     tags.concat(display_categories.map { |category| { label: category } })
@@ -38,8 +39,10 @@ class BlogCardPresenter < ContentCardPresenter
         placeholder_class: "blog-logo-placeholder"
       },
       title: title,
+      title_tag: title_tag,
       description: description,
       date: published,
+      date_datetime: (published_raw if ContentDate.parse(published_raw)),
       reading_time: post_info["reading_time_label"],
       filter_scope: "blogs",
       interactive_tags: interactive_tags,

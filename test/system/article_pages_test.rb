@@ -22,6 +22,8 @@ class ArticlePagesTest < ApplicationSystemTestCase
             return {
               left: wrapper.left,
               right: document.documentElement.clientWidth - wrapper.right,
+              width: wrapper.width,
+              viewportWidth: document.documentElement.clientWidth,
               overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
               panelHeight: toc.getBoundingClientRect().height,
               summaryHeight: toc.querySelector('summary').getBoundingClientRect().height,
@@ -31,6 +33,10 @@ class ArticlePagesTest < ApplicationSystemTestCase
           })()
         JS
         assert_in_delta metrics["left"], metrics["right"], 2, "#{path} at #{width}px should center article and TOC together"
+        if width == 320
+          assert_operator metrics["width"], :>=, metrics["viewportWidth"] - 34,
+                          "#{path} at 320px should retain the width inside page padding"
+        end
         assert_equal false, metrics["overflow"], "#{path} at #{width}px must not overflow horizontally"
         assert_empty metrics["duplicateIds"]
         if width <= 1400
@@ -237,6 +243,12 @@ class ArticlePagesTest < ApplicationSystemTestCase
 
     assert_selector ".post-meta-line", text: /#{Regexp.escape(stats_label)}/
     assert_match(/min read\s*·\s*#{Regexp.escape(stats_label)}/, find(".post-meta-line").text.squish)
+    assert_selector ".post-meta-line time[datetime='#{post[:metadata].fetch('published')}']",
+                    text: ContentDate.display_label(post[:metadata].fetch("published"))
+    page.current_window.resize_to(390, 844)
+    assert_equal [ "none", "none" ], page.evaluate_script(<<~JS)
+      [...document.querySelectorAll('.post-meta-separator')].map(node => getComputedStyle(node).display)
+    JS
     assert_selector ".writeup-year-link[href='#{event_url}'][target='_blank'][rel='noopener noreferrer']",
                     text: /#{Regexp.escape(post[:which].upcase)}-#{Regexp.escape(event_year.to_s)}/
   end
@@ -538,7 +550,7 @@ class ArticlePagesTest < ApplicationSystemTestCase
     visit first_winner[:link]
     open_more_filters
     assert_selector ".writeup-winner-article .writeup-winner-badge[href='#{first_winner_badge[:proof_url]}']", text: first_winner_badge[:label]
-    assert_selector ".writeup-recognition-badges-article .writeup-winner-badge .content-tag-arrow", text: ">"
+    assert_selector ".writeup-recognition-badges-article .writeup-winner-badge .content-tag-chevron"
 
     page.current_window.resize_to(320, 900)
     visit first_winner[:link]
@@ -585,7 +597,7 @@ class ArticlePagesTest < ApplicationSystemTestCase
     visit post[:link]
     assert_selector ".writeup-badges-article .difficulty-badge-#{difficulty[:key]}", text: difficulty[:label]
     assert_selector ".writeup-badges-article .authored-challenge-badge[href='#{event_url}'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
-    assert_selector ".writeup-recognition-badges-article .authored-challenge-badge .content-tag-arrow", text: ">"
+    assert_selector ".writeup-recognition-badges-article .authored-challenge-badge .content-tag-chevron"
     Array(post[:metadata]["categories"]).each do |category|
       assert_selector ".writeup-badges-article .category-badge.category-badge-#{ContentCategoryTag.css_key(category)}.category-badge-article",
                       text: /^#{Regexp.escape(category)}$/i

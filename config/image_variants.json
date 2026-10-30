@@ -927,5 +927,107 @@
     "height": 800,
     "src": "task-bar/timeline.svg",
     "width": 800
+  },
+  "timeline/haus-der-flaggen.png": {
+    "height": 216,
+    "src": "variants/timeline/haus-der-flaggen-768.webp",
+    "variants": [
+      {
+        "path": "variants/timeline/haus-der-flaggen-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/timeline/haus-der-flaggen-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/timeline/haus-der-flaggen-384.webp",
+        "width": 384
+      },
+      {
+        "path": "variants/timeline/haus-der-flaggen-768.webp",
+        "width": 768
+      }
+    ],
+    "width": 384
+  },
+  "timeline/juice-shop.svg": {
+    "height": 1268,
+    "src": "timeline/juice-shop.svg",
+    "width": 1134
+  },
+  "timeline/laokoon.svg": {
+    "height": 85,
+    "src": "timeline/laokoon.svg",
+    "width": 136
+  },
+  "timeline/overthewire.png": {
+    "height": 384,
+    "src": "variants/timeline/overthewire-768.webp",
+    "variants": [
+      {
+        "path": "variants/timeline/overthewire-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/timeline/overthewire-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/timeline/overthewire-384.webp",
+        "width": 384
+      },
+      {
+        "path": "variants/timeline/overthewire-768.webp",
+        "width": 768
+      }
+    ],
+    "width": 384
+  },
+  "timeline/picoctf.png": {
+    "height": 384,
+    "src": "variants/timeline/picoctf-768.webp",
+    "variants": [
+      {
+        "path": "variants/timeline/picoctf-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/timeline/picoctf-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/timeline/picoctf-384.webp",
+        "width": 384
+      },
+      {
+        "path": "variants/timeline/picoctf-768.webp",
+        "width": 768
+      }
+    ],
+    "width": 384
+  },
+  "timeline/tryhackme.png": {
+    "height": 384,
+    "src": "variants/timeline/tryhackme-552.webp",
+    "variants": [
+      {
+        "path": "variants/timeline/tryhackme-94.webp",
+        "width": 94
+      },
+      {
+        "path": "variants/timeline/tryhackme-188.webp",
+        "width": 188
+      },
+      {
+        "path": "variants/timeline/tryhackme-376.webp",
+        "width": 376
+      },
+      {
+        "path": "variants/timeline/tryhackme-552.webp",
+        "width": 552
+      }
+    ],
+    "width": 376
   }
 }

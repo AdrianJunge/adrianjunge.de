@@ -203,6 +203,33 @@ class ImageExportTest(unittest.TestCase):
                 self.assertEqual(0, result.convert("RGBA").getpixel((0, 0))[3])
                 self.assertEqual(255, result.convert("RGBA").getpixel((32, 16))[3])
 
+    def test_timeline_high_density_variants_preserve_source_size_limits(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            originals, assets = root / "originals", root / "assets"
+            cases = [
+                ("timeline/large.png", (1200, 800), [96, 192, 384, 768]),
+                ("timeline/small.png", (200, 100), [96, 192, 200]),
+                ("ctf/large.png", (1200, 800), [96, 192, 384]),
+            ]
+            for logical, dimensions, widths in cases:
+                source = originals / logical
+                source.parent.mkdir(parents=True, exist_ok=True)
+                image = Image.new("RGBA", dimensions, (0, 0, 0, 0))
+                image.paste((255, 0, 0, 255), (10, 10, dimensions[0] - 10, dimensions[1] - 10))
+                image.save(source)
+                original_bytes = source.read_bytes()
+                manifest = {}
+                with patch.object(export, "ORIGINALS", originals), patch.object(export, "ASSETS", assets):
+                    export.export_logo(source, manifest)
+                self.assertEqual(original_bytes, source.read_bytes())
+                self.assertEqual(widths, [entry["width"] for entry in manifest[logical]["variants"]])
+                with Image.open(assets / manifest[logical]["src"]) as largest:
+                    self.assertEqual(widths[-1], largest.width)
+                    self.assertEqual(0, largest.convert("RGBA").getpixel((0, 0))[3])
+                with Image.open(assets / logical) as fallback:
+                    self.assertLessEqual(max(fallback.size), 384)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "fixture-timeline-only",
+    "title": "Timeline Only Milestone",
+    "date": "2025-09-01",
+    "summary": "A standalone synthetic event with uniquetimelineword.",
+    "tags": ["Fixture Timeline"],
+    "icon": "other/achievement.svg"
+  },
+  {
+    "id": "fixture-timeline-hidden",
+    "title": "Hidden timeline event",
+    "date": "2025-10-01",
+    "hidden": true
+  }
+]

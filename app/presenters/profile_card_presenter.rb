@@ -3,12 +3,15 @@ class ProfileCardPresenter
   def initialize(card)
     card = card.symbolize_keys
     @attributes = card.dup
-    @attributes[:tags] = Array(card[:tags]).compact.partition { |tag| tag[:url].blank? }.flatten
+    @attributes[:tags] = ContentVulnerabilityTag.cve_first(
+      Array(card[:tags]).compact.partition { |tag| tag[:url].blank? }.flatten
+    )
     %i[body_blocks timeline children].each { |key| @attributes[key] = Array(card[key]).compact }
     @attributes[:collapsible] = card[:collapsible] && %i[body_blocks timeline children].any? { |key| self[key].any? }
     @attributes[:card_url] = self[:collapsible] ? nil : card[:card_url].presence
     @attributes[:reading_time] = card[:reading_time].to_s.presence
     @attributes[:icon] = card[:icon].to_s.presence
+    @attributes[:accessible_title] = card[:accessible_title].presence || card[:title].presence || "item"
     @attributes[:class_name] = [
       "profile-card", "aboutme-card", "ui-card-surface", ("ui-hover-lift" if self[:card_url]), card[:class_name],
       ("aboutme-card-static" unless self[:collapsible]), ("aboutme-card-linked" if self[:card_url]),

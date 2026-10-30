@@ -1,14 +1,26 @@
+<% date = local_assigns[:date].presence %>
 <% items = Array(local_assigns[:items]).map(&:to_s).reject(&:blank?) %>
 <% reading_time = local_assigns[:reading_time].to_s.presence %>
 <% extra_items = Array(local_assigns[:extra_items]).map(&:to_s).reject(&:blank?) %>
-<% items << reading_time if reading_time.present? %>
-<% items.concat(extra_items) %>
+<% metadata = [] %>
+<% metadata << { label: ContentDate.display_label(date) || date.to_s, datetime: (date if ContentDate.parse(date)) } if date %>
+<% metadata.concat(items.map { |item| { label: item } }) %>
+<% metadata << { label: reading_time } if reading_time %>
+<% metadata.concat(extra_items.map { |item| { label: item } }) %>
 
-<% if items.any? %>
+<% if metadata.any? %>
   <p class="post-meta-line">
-    <%= safe_join(
-          items.map { |item| content_tag(:span, item, class: "post-meta-item") },
-          content_tag(:span, "·", class: "post-meta-separator", aria: { hidden: true })
-        ) %>
+    <% metadata.each_with_index do |item, index| %>
+      <span class="post-meta-group">
+        <% if index.positive? %>
+          <span class="post-meta-separator" aria-hidden="true">·</span>
+        <% end %>
+        <% if item[:datetime] %>
+          <time datetime="<%= item[:datetime] %>" class="post-meta-item"><%= item[:label] %></time>
+        <% else %>
+          <span class="post-meta-item"><%= item[:label] %></span>
+        <% end %>
+      </span>
+    <% end %>
   </p>
 <% end %>

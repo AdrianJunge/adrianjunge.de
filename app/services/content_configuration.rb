@@ -12,6 +12,7 @@ class ContentConfiguration
   ABOUTME_CERTIFICATES_PATH = ABOUTME_BASE_PATH.join("certificates.json")
   ABOUTME_TALKS_PATH = ABOUTME_BASE_PATH.join("talks.json")
   ABOUTME_ACHIEVEMENTS_PATH = ABOUTME_BASE_PATH.join("achievements.json")
+  TIMELINE_EVENTS_PATH = Rails.root.join("app", "assets", "timeline", "events.json")
 
   attr_reader :root
 

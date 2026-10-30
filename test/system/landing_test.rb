@@ -438,7 +438,7 @@ class LandingTest < ApplicationSystemTestCase
     assert_selector ".landing-metrics.aboutme-stats"
     assert_selector ".landing-metric", count: 4
     assert_selector ".landing-metric.aboutme-stat", count: 4
-    assert_selector ".landing-metric:first-child[href='/timeline']", text: "Posts"
+    assert_selector ".landing-metric:first-child[href='/timeline?view=posts']", text: "Posts"
     assert_equal "center", page.evaluate_script("window.getComputedStyle(document.querySelector('.landing-metric')).justifyContent")
     landing_metric_surface = page.evaluate_script(<<~JS)
       (() => {
@@ -499,8 +499,8 @@ class LandingTest < ApplicationSystemTestCase
     assert_selector ".landing-metric:not(a) .landing-metric-label", text: "Bounties"
     assert_no_selector ".landing-metric[href='/about#bug-bounties']"
 
-    assert_selector ".landing-metric[href='/timeline']", text: "Posts"
-    assert_selector ".landing-metric[href='/timeline'] .landing-metric-value", text: repository.post_count.to_s
+    assert_selector ".landing-metric[href='/timeline?view=posts']", text: "Posts"
+    assert_selector ".landing-metric[href='/timeline?view=posts'] .landing-metric-value", text: repository.post_count.to_s
     assert_selector ".landing-metric[href='/about']", text: "& more..."
     assert_no_selector ".landing-metric[href='/about'] .landing-metric-value"
     assert_no_selector ".landing-metric", text: "Created CTF Challenges"

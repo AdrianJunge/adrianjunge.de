@@ -85,6 +85,10 @@ class KeyboardNavigationTest < ApplicationSystemTestCase
       assert_equal "source=keyboard", URI.parse(page.current_url).query
       assert_equal "main-content", URI.parse(page.current_url).fragment
       press_key(:tab)
+      if path == "/timeline"
+        assert_selector "[data-filter-view]:focus"
+        press_key(:tab)
+      end
       assert_selector "[data-filter-year]:focus"
 
       page.go_back
@@ -109,6 +113,8 @@ class KeyboardNavigationTest < ApplicationSystemTestCase
     assert_equal "", find("[data-filter-search]").value
     assert_selector "[data-filter-tag][aria-pressed='true']", minimum: 1
     assert_equal [ [ "tag", "CVE" ] ], URI.decode_www_form(URI.parse(page.current_url).query)
+    press_key(:tab)
+    assert_selector "[data-filter-view]:focus"
     press_key(:tab)
     assert_selector "[data-filter-year]:focus"
   end

@@ -63,11 +63,22 @@ module AuthoredChallenge
     sources << metadata
 
     sources.each do |source|
+      next if hidden_metadata?(source)
+
       value = raw_value(source, *keys)
+      return nil if hidden_metadata?(value)
       return value if value.present? || value == true || value == false
     end
 
     nil
+  end
+
+  def hidden_metadata?(value)
+    return false unless value.is_a?(Hash)
+
+    ContentRepository::HIDDEN_CONTENT_KEYS.any? do |key|
+      ContentRepository::HIDDEN_CONTENT_VALUES.include?(raw_value(value, key).to_s.strip.downcase)
+    end
   end
 
   def raw_value(hash, *keys)

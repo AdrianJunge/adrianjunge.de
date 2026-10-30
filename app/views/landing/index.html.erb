@@ -28,7 +28,7 @@
 <% kit_link = SiteProfile.affiliations.find { |entry| entry["@type"] == "CollegeOrUniversity" }.fetch("url") %>
 <% pgp_link = SiteProfile.pgp_path %>
 <% landing_metrics = [
-  { label: "Posts", value: @amount_posts, sublabel: @amount_post_reading_time, link: timeline_link },
+  { label: "Posts", value: @amount_posts, sublabel: @amount_post_reading_time, link: timeline_path(view: "posts") },
   { label: "CVEs", value: @amount_cves, link: about_path(anchor: "cves") },
   { label: "Bounties", value: @amount_bug_bounties },
   { label: "& more...", link: about_link }
@@ -124,11 +124,11 @@
         <% @most_recent_posts.each do |post| %>
             <% if post[:type] == "blog" %>
                 <div class="blog-post-entry">
-                    <%= render_blog_post_card(post, interactive_tags: false, show_section_icon: true) %>
+                    <%= render_blog_post_card(post, interactive_tags: false, show_section_icon: true, title_tag: :h3) %>
                 </div>
             <% elsif post[:type] == "ctf" %>
                 <div class="blog-post-entry writeup-post-entry">
-                    <%= render_writeup_card(post[:slug], post[:link], post[:metadata] || {}, logo: post[:logo], interactive_tags: false, show_hints: false, external_recognition_links: false, show_section_icon: true) %>
+                    <%= render_writeup_card(post[:slug], post[:link], post[:metadata] || {}, logo: post[:logo], interactive_tags: false, show_hints: false, external_recognition_links: false, show_section_icon: true, title_tag: :h3) %>
                 </div>
             <% end %>
         <% end %>

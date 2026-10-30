@@ -43,12 +43,15 @@ class ContentValidatorTest < ActiveSupport::TestCase
     with_content_root do |configuration|
       about = configuration.path(:ABOUTME_TEXT_PATH)
       catalog = configuration.path(:ABOUTME_TALKS_PATH)
+      timeline_catalog = configuration.path(:TIMELINE_EVENTS_PATH)
       about.delete
       catalog.delete
+      timeline_catalog.delete
 
       result = ContentValidator.new(configuration: configuration).call
       assert_includes result.errors, "#{about}: required content file is missing"
       assert_includes result.errors, "#{catalog}: required content file is missing"
+      assert_includes result.errors, "#{timeline_catalog}: required content file is missing"
     end
   end
 

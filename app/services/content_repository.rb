@@ -77,6 +77,23 @@ class ContentRepository
     end
   end
 
+  def timeline_events(include_hidden: false)
+    @timeline_events ||= {}
+    @timeline_events[include_hidden] ||= cached_collection([ :timeline_events, include_hidden ]) do
+      path = configuration.path(:TIMELINE_EVENTS_PATH)
+      events = normalize_timeline_events(read_json_array(path), path: path)
+      include_hidden ? events : events.reject { |event| hidden_content?(event) }
+    end
+  end
+
+  def timeline_event_display_date(event)
+    if event["end_date"].present?
+      ContentDate.period_label(event.fetch("date"), event.fetch("end_date"))
+    else
+      event["display_date"].presence || ContentDate.display_label(event.fetch("date"))
+    end
+  end
+
   def ctf_metadata
     @visible_ctf_metadata ||= begin
       metadata = @ctf_metadata ||= read_json_object(configuration.path(:CTF_INFO_PATH))
@@ -430,6 +447,15 @@ class ContentRepository
     end
   end
 
+  def normalize_timeline_events(entries, path:)
+    ids = {}
+    Array(entries).map do |raw_event|
+      event = raw_event.deep_stringify_keys
+      register_fragment!(ids, event["id"], path)
+      event
+    end
+  end
+
   def cached_collection(key)
     return yield unless @cache_catalog
 
@@ -440,7 +466,8 @@ class ContentRepository
     @content_revision ||= ContentCatalog.revision(
       [ ctf_base_path, blog_base_path, configuration.path(:CTF_INFO_PATH) ] +
       Dir.glob(ctf_base_path.join("*", "*.md")) + Dir.glob(blog_base_path.join("*.md")) +
-      Dir.glob(configuration.path(:ABOUTME_BASE_PATH).join("*"))
+      Dir.glob(configuration.path(:ABOUTME_BASE_PATH).join("*")) +
+      [ configuration.path(:TIMELINE_EVENTS_PATH) ]
     )
   end
 

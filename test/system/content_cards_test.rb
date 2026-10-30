@@ -168,7 +168,7 @@ class ContentCardsTest < ApplicationSystemTestCase
     end
   end
 
-  test "timeline about links open target cards below the top taskbar" do
+  test "timeline about links reveal their target below the top taskbar" do
     timeline_item = first_timeline_about_achievement
     target_id = timeline_item[:link].split("#", 2).last
 
@@ -192,8 +192,7 @@ class ContentCardsTest < ApplicationSystemTestCase
             const target = document.getElementById(#{target_id.to_json});
             if (!target) return { targetExists: false };
 
-            const scrollTarget = target.closest(".aboutme-card") || target.closest(".aboutme-section") || target;
-            const scrollTargetRect = scrollTarget.getBoundingClientRect();
+            const scrollTargetRect = target.getBoundingClientRect();
             const openDetails = [...target.closest(".aboutme-page").querySelectorAll("details")]
               .filter((details) => details.contains(target))
               .map((details) => details.open);
@@ -225,7 +224,7 @@ class ContentCardsTest < ApplicationSystemTestCase
       assert_operator anchor_metrics["scrollTargetTop"], :>=, anchor_metrics["taskbarBottom"] + 8
       assert_operator anchor_metrics["scrollTargetBottom"], :<=, anchor_metrics["viewportHeight"]
       assert anchor_metrics["scrollTargetTop"] <= anchor_metrics["taskbarBottom"] + 48 || anchor_metrics["remainingScroll"] <= 1,
-             "At #{height}px, the card must align below the taskbar unless the document cannot scroll farther: #{anchor_metrics.inspect}"
+             "At #{height}px, the destination must align below the taskbar unless the document cannot scroll farther: #{anchor_metrics.inspect}"
     end
   end
 

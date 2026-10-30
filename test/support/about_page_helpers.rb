@@ -43,16 +43,27 @@ module AboutPageHelpers
         card = find("##{entry.fetch('id')}", visible: :all)
         tags = normalized_about_tags(entry["tags"])
         ordered_tags = tags.partition { |tag| tag[:url].blank? }.flatten
+        cve_tags, other_tags = ordered_tags.partition { |tag| ContentVulnerabilityTag.cve?(tag[:label]) }
+        ordered_tags = cve_tags + other_tags
 
         within card do
           assert_equal ordered_tags.map { |tag| tag.fetch(:label) },
                        all(".aboutme-card-tags > *", visible: :all).map { |tag| tag.text.squish }
 
-          ordered_tags.select { |tag| tag[:url].present? }.each do |tag|
-            rendered_tag = all("a.aboutme-card-tag", visible: :all).find do |link|
-              href_matches?(tag.fetch(:url), link["href"])
+          ordered_tags.each do |tag|
+            expected_url = if ContentVulnerabilityTag.cve?(tag[:label])
+              "https://www.cve.org/CVERecord?id=#{tag[:label]}"
+            elsif ContentVulnerabilityTag.cwe?(tag[:label])
+              "https://cwe.mitre.org/data/definitions/#{tag[:label].delete_prefix('CWE-').to_i}.html"
+            else
+              tag[:url]
             end
-            assert rendered_tag, "expected #{entry['id']} to link tag #{tag[:label]} to #{tag[:url]}"
+            next if expected_url.blank?
+
+            rendered_tag = all("a.aboutme-card-tag", visible: :all).find do |link|
+              href_matches?(expected_url, link["href"])
+            end
+            assert rendered_tag, "expected #{entry['id']} to link tag #{tag[:label]} to #{expected_url}"
           end
 
           expected_links = Array(entry["links"]).select do |link|

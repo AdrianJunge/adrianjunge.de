@@ -36,7 +36,7 @@ class ContentCardPresenter
   }.freeze
 
   CONTENT_KEYS = %i[
-    id title url description date date_datetime reading_time tags meta_items authors authors_label
+    id title title_tag url description date date_datetime reading_time tags meta_items authors authors_label
     source media media_html section_link filter_scope interactive_tags data aria aria_label
   ].freeze
 
@@ -46,6 +46,9 @@ class ContentCardPresenter
     @variant = variant.to_sym
     style = VARIANTS.fetch(@variant)
     content.assert_valid_keys(*CONTENT_KEYS)
+    if content.key?(:title_tag) && !%i[h2 h3].include?(content[:title_tag])
+      raise ArgumentError, "Card title_tag must be h2 or h3"
+    end
     @attributes = style.merge(content)
     @attributes[:url] = content[:url].presence
     @attributes[:tags] = Array(content[:tags]).compact

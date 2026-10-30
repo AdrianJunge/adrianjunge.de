@@ -140,14 +140,26 @@ function siteSearchTextTarget(document, section, query, terms, pageText) {
   }
 }
 
-export function siteSearchResultUrl(result) {
-  if (!result.textTarget?.text) return result.url;
+export function siteSearchResultUrl(result, { currentUrl } = {}) {
+  let url = result.url;
+  if (currentUrl) {
+    const current = new URL(currentUrl);
+    const destination = new URL(url, current);
+    if (current.origin === destination.origin && current.pathname === '/timeline' &&
+        destination.pathname === '/timeline' && current.searchParams.get('order') === 'oldest') {
+      // A global result must clear filters that could hide its card, while
+      // keeping the reader's selected chronological direction.
+      destination.search = '?order=oldest';
+      url = `${destination.pathname}${destination.search}${destination.hash}`;
+    }
+  }
+  if (!result.textTarget?.text) return url;
   // Hyphens are text-fragment syntax, even though encodeURIComponent leaves
   // them untouched. Encode all punctuation that could act as a delimiter.
   const encode = value => encodeURIComponent(value).replace(/[!'()*-]/g, character => `%${character.charCodeAt(0).toString(16).toUpperCase()}`);
   const { text, prefix, suffix } = result.textTarget;
   const directive = [prefix ? `${encode(prefix)}-` : null, encode(text), suffix ? `-${encode(suffix)}` : null].filter(Boolean).join(',');
-  const url = result.url.split(':~:')[0];
+  url = url.split(':~:')[0];
   return `${url}${url.includes('#') ? '' : '#'}:~:text=${directive}`;
 }
 
@@ -160,6 +172,14 @@ export function searchSite(documents, value, { limit } = {}) {
     const path = document.url.split('#')[0];
     const text = [document.title, ...document.sections.flatMap(section => [section.heading, ...(section.passages || [section.text])])].join(' ');
     pageTexts.set(path, `${pageTexts.get(path) || ''} ${text}`);
+  }
+  // The rendered page can also contain filter labels, navigation, and cards
+  // indexed at another destination. They must count when disambiguating a
+  // text fragment, without becoming additional searchable fields or results.
+  for (const document of documents) {
+    if (typeof document.page_text === 'string') {
+      pageTexts.set(document.url.split('#')[0], document.page_text);
+    }
   }
   const results = documents.flatMap(document => {
     const title = normalizeSiteSearch(document.title);
@@ -279,7 +299,7 @@ export function initializeSiteSearch(root) {
         const row = document.createElement('li');
         const link = document.createElement('a');
         link.className = 'site-search-result-link';
-        link.href = siteSearchResultUrl(match);
+        link.href = siteSearchResultUrl(match, { currentUrl: globalThis.location?.href });
         const title = document.createElement('span');
         title.className = 'site-search-result-title';
         const titleText = [match.title, match.heading].filter(Boolean).join(' — ');

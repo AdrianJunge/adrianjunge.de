@@ -1,5 +1,5 @@
 <div class="content-filter-panel" data-filter-scope="<%= filters.scope %>" data-filter-aliases="<%= filters.aliases.to_json %>" inert>
-  <div class="content-filter-row">
+  <div class="<%= class_names("content-filter-row", "content-filter-row-with-order": filters.order.present?, "content-filter-row-with-view": filters.view.present?) %>">
     <div class="content-filter-search search-wrapper">
       <label for="<%= filters.search_id %>" class="sr-only">Search</label>
       <input
@@ -18,6 +18,15 @@
       </button>
     </div>
 
+    <% if filters.view.present? %>
+      <div class="content-filter-select-wrap content-filter-view-wrap">
+        <label for="<%= filters.scope %>-view-filter">Show</label>
+        <select id="<%= filters.scope %>-view-filter" name="view" class="content-filter-select" data-filter-view="<%= filters.scope %>">
+          <%= options_for_select([["All entries", "all"], ["Posts", "posts"]], filters.view) %>
+        </select>
+      </div>
+    <% end %>
+
     <% if filters.years.any? %>
       <div class="content-filter-select-wrap">
         <label for="<%= filters.scope %>-year-filter"><%= filters.year_label %></label>
@@ -26,6 +35,15 @@
           <% filters.years.each do |year| %>
             <option value="<%= year %>"><%= year %></option>
           <% end %>
+        </select>
+      </div>
+    <% end %>
+
+    <% if filters.order.present? %>
+      <div class="content-filter-select-wrap">
+        <label for="<%= filters.scope %>-order-filter">Order</label>
+        <select id="<%= filters.scope %>-order-filter" name="order" class="content-filter-select" data-filter-order="<%= filters.scope %>">
+          <%= options_for_select([["Newest first", "newest"], ["Oldest first", "oldest"]], filters.order) %>
         </select>
       </div>
     <% end %>
@@ -46,9 +64,8 @@
       </details>
     <% end %>
   <% end %>
-  <div class="content-filter-state">
-    <span role="status" aria-live="polite" aria-atomic="true" data-filter-count="<%= filters.scope %>"><%= filters.total %> / <%= filters.total %> <%= filters.total == 1 ? "item" : "items" %></span>
-    <button type="button" class="content-filter-reset" data-filter-reset="<%= filters.scope %>" aria-hidden="true" tabindex="-1">Clear filters</button>
-  </div>
+  <% unless filters.external_status %>
+    <%= render "shared/content_filter_state", scope: filters.scope, total: filters.total %>
+  <% end %>
 </div>
-<noscript><style>.content-filter-panel { display: none; }</style><p class="content-filter-help">All entries are shown. Use your browser’s Find command to search this page.</p></noscript>
+<noscript><style>.content-filter-panel { display: none; }</style><p class="content-filter-help"><%= filters.view == "posts" ? "Blog posts and CTF writeups are shown." : "All entries are shown." %> Use your browser’s Find command to search this page.<% if filters.view == "posts" %> <%= link_to "Show all entries", timeline_path %>.<% end %></p></noscript>

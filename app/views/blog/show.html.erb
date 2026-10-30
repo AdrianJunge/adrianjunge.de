@@ -35,7 +35,7 @@
 <%= render layout: "shared/article_shell", locals: { headings: @headings, word_total: @blog_info["word_count"], has_math: @has_math } do %>
     <p class="writeup-year text-white text-center"><%= @blog_category %></p>
     <h1 class="writeup-title text-white text-center"><%= @blog_title %></h1>
-    <%= render "shared/post_meta", items: [ @blog_info["published"] ], reading_time: @blog_info["reading_time_label"] %>
+    <%= render "shared/post_meta", date: @blog_info["published"], reading_time: @blog_info["reading_time_label"] %>
 
     <section class="article-meta-panel blog-article-meta-panel" aria-label="Post details">
       <%= render "shared/article_authors", authors: @article_authors if @blog_info["article_authors"].present? %>

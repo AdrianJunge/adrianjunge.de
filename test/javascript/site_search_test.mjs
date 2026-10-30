@@ -113,6 +113,37 @@ test('text fragments use displayed passage order and distinguish sibling About c
   assert.ok(multiBlock.sections[0].passages.some(text => text.includes(crossBlock.textTarget.text)));
 });
 
+test('rendered page context distinguishes filter controls and unindexed cards without becoming searchable', () => {
+  const passages = ['Sep 2019–2021', 'First steps with OverTheWire', 'Beginnings', 'OverTheWire', 'Linux', 'Web', 'Pwn', 'Crypto'];
+  const milestone = { title: 'First steps with OverTheWire', kind: 'Timeline', url: '/timeline#overthewire', tags: ['Pwn'],
+    sections: [{ heading: '', anchor: null, text: passages.join(' '), passages }] };
+  const page = { title: 'Timeline', kind: 'Page', url: '/timeline', tags: [], sections: [],
+    page_text: `Contextonlylabel Pwn 2019 ${passages.join(' ')}` };
+  const result = search.searchSite([page, milestone], 'Pwn')[0];
+  assert.deepEqual(result.textTarget, { text: 'Pwn', prefix: 'Web' });
+  assert.equal(search.siteSearchResultUrl(result), '/timeline#overthewire:~:text=Web-,Pwn');
+  assert.deepEqual(search.searchSite([page, milestone], 'Contextonlylabel'), []);
+  assert.deepEqual(search.searchSite([page, milestone], '2019')[0].textTarget, { text: '2019', prefix: 'Sep' });
+
+  // Another visible timeline card need not have a /timeline search document.
+  // Its matching badges still make this target ambiguous, so keep the anchor.
+  page.page_text += ' Other card Web Pwn Crypto';
+  assert.equal(search.siteSearchResultUrl(search.searchSite([page, milestone], 'Pwn')[0]), '/timeline#overthewire');
+  // Page context is authoritative regardless of record order.
+  assert.equal(search.siteSearchResultUrl(search.searchSite([milestone, page], 'Pwn')[0]), '/timeline#overthewire');
+});
+
+test('same-page timeline search preserves oldest order while clearing filters', () => {
+  const result = { url: '/timeline#overthewire', textTarget: { text: 'Pwn', prefix: 'Web' } };
+  const currentUrl = 'https://example.com/timeline?order=oldest&view=posts&year=2026&tag=CVE&q=unrelated';
+  assert.equal(search.siteSearchResultUrl(result, { currentUrl }), '/timeline?order=oldest#overthewire:~:text=Web-,Pwn');
+  assert.equal(search.siteSearchResultUrl({ url: '/timeline#overthewire' }, { currentUrl }), '/timeline?order=oldest#overthewire');
+  assert.equal(search.siteSearchResultUrl({ url: '/about#research' }, { currentUrl }), '/about#research');
+  for (const source of ['https://example.com/blog?order=oldest', 'https://example.com/timeline?order=invalid', 'https://example.com/timeline?view=posts']) {
+    assert.equal(search.siteSearchResultUrl(result, { currentUrl: source }), '/timeline#overthewire:~:text=Web-,Pwn');
+  }
+});
+
 test('global results are not silently truncated and replace existing fragments for section destinations', () => {
   const documents = Array.from({ length: 35 }, (_, index) => ({
     title: `Needle page ${index}`, kind: 'Page', url: `/page-${index}#overview`, tags: [],

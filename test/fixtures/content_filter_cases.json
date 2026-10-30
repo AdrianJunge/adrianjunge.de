@@ -52,8 +52,13 @@
       ]
     },
     {
-      "path": "/timeline", "scope": "timeline", "title_selector": ".timeline-title", "total": 11,
+      "path": "/timeline", "scope": "timeline", "title_selector": ".timeline-title", "total": 12,
       "cases": [
+        { "params": {"view": "posts"}, "titles": ["Space Writeup", "Winning Writeup", "Middle Writeup", "Alpha Research", "Gamma Notes", "Beta Algorithms"] },
+        { "params": {"view": "posts", "tag": "Web", "year": "2025"}, "titles": ["Alpha Research"] },
+        { "params": {"view": "posts", "q": "certificate"}, "titles": ["Alpha Research"] },
+        { "params": {"view": "posts", "tag": "CVE"}, "titles": [] },
+        { "params": {"q": "uniquetimelineword"}, "titles": ["Timeline Only Milestone"] },
         { "params": {"q": "certificate"}, "titles": ["Alpha Research"] },
         { "params": {"q": "cve20990001"}, "titles": ["Fixture Project"] },
         { "params": {"q": "cwe787"}, "titles": ["Fixture Project"] },

@@ -5,7 +5,6 @@
     "summary": "Immunefi bug bounty & audit platform for smart contracts and DeFi projects.",
     "icon": "other/immunefi.png",
     "tags": [
-      "Bug Bounty",
       "Audit Competition",
       {
         "label": "Immunefi Bug Bounty",
@@ -21,6 +20,7 @@
         "id": "firedancer-v1-audit-competition",
         "title": "Firedancer v1 audit competition",
         "date": "2026-04-09",
+        "tags": ["Audit Competition"],
         "summary": "Participated in the Firedancer v1 audit competition.",
         "url": "https://immunefi.com/audit-competition/firedancer-v1-audit-comp/leaderboard/#:~:text=vurlo"
       }

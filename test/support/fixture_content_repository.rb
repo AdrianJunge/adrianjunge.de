@@ -7,6 +7,7 @@ class FixtureContentRepository < ContentRepository
     ApplicationController::ABOUTME_TALKS_PATH.to_s => ROOT.join("about", "talks.json"),
     ApplicationController::ABOUTME_ACHIEVEMENTS_PATH.to_s => ROOT.join("about", "achievements.json")
   }.freeze
+  TIMELINE_EVENTS_PATH = ROOT.join("timeline", "events.json").freeze
 
   def initialize
     super(
@@ -51,8 +52,17 @@ class FixtureContentRepository < ContentRepository
     end
   end
 
+  def timeline_events(include_hidden: false)
+    events = normalize_timeline_events(read_fixture_json(TIMELINE_EVENTS_PATH), path: TIMELINE_EVENTS_PATH)
+    include_hidden ? events : events.reject { |event| hidden_content?(event) }
+  end
+
   def file_time(path, year = nil)
-    fixture_path = ABOUT_PATHS.fetch(path.to_s, path)
+    fixture_path = if path.to_s == ContentConfiguration::TIMELINE_EVENTS_PATH.to_s
+      TIMELINE_EVENTS_PATH
+    else
+      ABOUT_PATHS.fetch(path.to_s, path)
+    end
     super(fixture_path, year)
   end
 

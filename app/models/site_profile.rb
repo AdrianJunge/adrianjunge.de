@@ -12,7 +12,7 @@ module SiteProfile
   BUG_BOUNTY_COUNT = 7
   # Update when editing profile copy, identity, or undated About information. These are
   # editorial dates, never deployment or checkout timestamps.
-  MODIFIED = "2026-10-28".freeze
+  MODIFIED = "2026-10-29".freeze
   # Update when editing visible landing-page copy.
   LANDING_MODIFIED = "2026-10-28".freeze
   DESCRIPTION = "Security research, CVEs, bug bounties, CTF writeups, and technical notes by #{NAME}.".freeze

@@ -9,17 +9,19 @@ class SiteSearchPassages
     writeup-hints-title writeup-hints-count
   ].freeze
   EXCLUDED = "script, style, svg, button, textarea, [hidden], [aria-hidden='true'], .copy-status, .sr-only, .visually-hidden, .aboutme-card-link-label".freeze
+  CONTEXT_EXCLUDED = EXCLUDED.split(", ").reject { |selector| selector == "button" }.join(", ").freeze
 
-  def self.extract(root)
+  def self.extract(root, include_controls: false)
     root = root.is_a?(String) ? Nokogiri::HTML.fragment(root) : root.dup
-    root.css(EXCLUDED).remove
+    root.css(include_controls ? CONTEXT_EXCLUDED : EXCLUDED).remove
+    block_elements = include_controls ? BLOCK_ELEMENTS + %w[button option] : BLOCK_ELEMENTS
     passages = []
     previous = nil
     root.xpath(".//text()").each do |node|
       next if node.text.empty?
 
       container = node.ancestors.find do |ancestor|
-        BLOCK_ELEMENTS.include?(ancestor.name) || (ancestor["class"].to_s.split & SEPARATE_CLASSES).any?
+        block_elements.include?(ancestor.name) || (ancestor["class"].to_s.split & SEPARATE_CLASSES).any?
       end || root
       if container == previous
         passages[-1] << node.text
@@ -34,5 +36,14 @@ class SiteSearchPassages
   def self.section(passages, heading: "", anchor: nil)
     passages = Array(passages).map { |text| text.to_s.squish }.reject(&:blank?)
     { heading: heading, anchor: anchor, text: passages.join(" "), passages: passages }
+  end
+
+  # Text-fragment uniqueness includes labels that are not useful search results,
+  # such as filter buttons, year headings, and navigation. Keep this context
+  # separate from indexed passages so a control cannot create an extra result.
+  def self.page_text(html)
+    page = Nokogiri::HTML(html)
+    page.css("head, noscript, dialog:not([open])").remove
+    extract(page.at_css("body"), include_controls: true).join(" ")
   end
 end

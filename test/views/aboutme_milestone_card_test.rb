@@ -39,7 +39,7 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
     assert_select ".aboutme-detail-block h3", text: "References"
     assert_select ".aboutme-card-details .aboutme-reference-link[href=?][target=?][rel=?]", "https://example.com/reference", "_blank", "noopener noreferrer", text: "Reference"
     assert_select ".aboutme-detail-block h3", text: "Timeline"
-    assert_select ".aboutme-timeline time[datetime=?]", "2026-01-02"
+    assert_select ".aboutme-timeline time[datetime=?]", "2026-01-02", text: "2 Jan 2026"
     assert_select ".aboutme-timeline-title", 0
     assert_select ".aboutme-timeline-link.aboutme-timeline-event-link[href=?][target=?][rel=?][aria-label=?][title=?]",
                   "https://example.com/event",
@@ -84,11 +84,11 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
 
     assert_select ".aboutme-timeline li[data-upcoming='false']", 1 do
       assert_select ".content-upcoming-badge", 0
-      assert_select "time[datetime='2026-08-31']", text: "2026-08-31"
+      assert_select "time[datetime='2026-08-31']", text: "31 Aug 2026"
     end
     assert_select ".aboutme-timeline li.aboutme-timeline-item-upcoming[data-upcoming='true']", 1 do
       assert_select ".aboutme-timeline-date-row > .content-upcoming-badge.aboutme-upcoming-badge", text: "Upcoming"
-      assert_select "time[datetime='2026-11-09']", text: "2026-11-09"
+      assert_select "time[datetime='2026-11-09']", text: "9 Nov 2026"
       assert_select ".aboutme-timeline-title", text: "Talk at the future event."
     end
     assert_no_match(/Upcoming:/, rendered)

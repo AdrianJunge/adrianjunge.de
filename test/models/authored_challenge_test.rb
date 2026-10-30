@@ -31,6 +31,19 @@ class AuthoredChallengeTest < ActiveSupport::TestCase
     assert_nil AuthoredChallenge.filter_label_for({})
   end
 
+  test "hidden recognition values and optional containers never produce public badges" do
+    %w[hidden draft wip].each do |flag|
+      [ true, "yes" ].each do |value|
+        authored = { "label" => "Private author", flag => value }
+        winner = { "label" => "Private winner", "proof_url" => "https://example.com/proof", flag => value }
+        assert_nil AuthoredChallenge.from_metadata("optional" => { "authored_challenge" => authored })
+        assert_nil WriteupWinner.from_metadata("writeup_winner" => winner)
+        assert_nil AuthoredChallenge.from_metadata(optional: { authored_challenge: true, flag.to_sym => value })
+      end
+    end
+    assert AuthoredChallenge.from_metadata("authored_challenge" => { "hidden" => false })
+  end
+
   test "boolean authored challenge metadata uses fallback details" do
     assert_equal(
       {

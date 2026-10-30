@@ -275,9 +275,9 @@ class AboutLayoutTest < ApplicationSystemTestCase
         const cveTag = finding.querySelector(".aboutme-cve-id");
         const cweTag = finding.querySelector(".aboutme-cwe-id");
         const cveTagStyle = window.getComputedStyle(cveTag);
-        const cveTagActionStyle = window.getComputedStyle(cveTag, "::after");
+        const cveTagActionStyle = window.getComputedStyle(cveTag.querySelector(".content-tag-chevron"));
         const cweTagStyle = window.getComputedStyle(cweTag);
-        const cweTagActionStyle = window.getComputedStyle(cweTag, "::after");
+        const cweTagActionStyle = window.getComputedStyle(cweTag.querySelector(".content-tag-chevron"));
         const projectLink = finding.querySelector(".aboutme-finding-project-link");
         const referenceList = finding.querySelector(".aboutme-card-body .aboutme-card-details");
         const referenceListStyle = window.getComputedStyle(referenceList);
@@ -294,7 +294,7 @@ class AboutLayoutTest < ApplicationSystemTestCase
         const mediumSeverityStyle = window.getComputedStyle(mediumSeverity);
         const challengeTag = document.querySelector("#my-challenges ##{challenge_case.fetch("id")} a.aboutme-card-tag[target='_blank']");
         const challengeTagStyle = window.getComputedStyle(challengeTag);
-        const challengeTagActionStyle = window.getComputedStyle(challengeTag, "::after");
+        const challengeTagActionStyle = window.getComputedStyle(challengeTag.querySelector(".content-tag-chevron"));
         const cveDetailHeading = finding.querySelector(".aboutme-detail-block h3");
         const cveDetailHeadingStyle = window.getComputedStyle(cveDetailHeading);
         const cveDetailParagraph = finding.querySelector(".aboutme-detail-block p");
@@ -329,7 +329,7 @@ class AboutLayoutTest < ApplicationSystemTestCase
         const achievementTagActionStyle = window.getComputedStyle(achievementTag, "::after");
         const achievementEventTag = document.querySelector("#achievements .aboutme-finding-badges a.aboutme-card-tag[target='_blank']");
         const achievementEventTagStyle = window.getComputedStyle(achievementEventTag);
-        const achievementEventTagActionStyle = window.getComputedStyle(achievementEventTag, "::after");
+        const achievementEventTagActionStyle = window.getComputedStyle(achievementEventTag.querySelector(".content-tag-chevron"));
         const timelinePlainTitle = document.querySelector("#achievements .aboutme-timeline-title");
         const timelinePlainTitleStyle = window.getComputedStyle(timelinePlainTitle);
         const timelineEventTag = document.querySelector("#achievements .aboutme-timeline-event-link");
@@ -360,19 +360,18 @@ class AboutLayoutTest < ApplicationSystemTestCase
           cveTagBackground: cveTagStyle.backgroundColor,
           cveTagBorder: cveTagStyle.borderTopColor,
           cveTagCursor: cveTagStyle.cursor,
-          cveTagActionContent: cveTagActionStyle.content,
+          cveTagActionBorder: cveTagActionStyle.borderTopWidth,
           cveTagActionWidth: cveTagActionStyle.width,
           cweTagClass: cweTag.className,
           cweTagBackground: cweTagStyle.backgroundColor,
           cweTagBorder: cweTagStyle.borderTopColor,
           cweTagCursor: cweTagStyle.cursor,
-          cweTagActionContent: cweTagActionStyle.content,
+          cweTagActionBorder: cweTagActionStyle.borderTopWidth,
           cweTagActionWidth: cweTagActionStyle.width,
           challengeTagClass: challengeTag.className,
           challengeTagBackground: challengeTagStyle.backgroundColor,
           challengeTagBorder: challengeTagStyle.borderTopColor,
           challengeTagCursor: challengeTagStyle.cursor,
-          challengeTagActionContent: challengeTagActionStyle.content,
           challengeTagActionBorderTopWidth: challengeTagActionStyle.borderTopWidth,
           cveDetailHeadingColor: cveDetailHeadingStyle.color,
           cveDetailHeadingFontSize: cveDetailHeadingStyle.fontSize,
@@ -414,7 +413,7 @@ class AboutLayoutTest < ApplicationSystemTestCase
           achievementEventTagCursor: achievementEventTagStyle.cursor,
           achievementEventTagShadow: achievementEventTagStyle.boxShadow,
           achievementEventTagTextDecorationLine: achievementEventTagStyle.textDecorationLine,
-          achievementEventTagActionContent: achievementEventTagActionStyle.content,
+          achievementEventTagActionBorder: achievementEventTagActionStyle.borderTopWidth,
           achievementEventTagActionWidth: achievementEventTagActionStyle.width,
           timelineEventTagClass: timelineEventTag.className,
           timelineEventTagText: timelineEventTag.textContent.trim(),
@@ -460,20 +459,19 @@ class AboutLayoutTest < ApplicationSystemTestCase
     assert_equal "rgba(14, 116, 144, 0.42)", metrics["cveTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.34)", metrics["cveTagBorder"]
     assert_equal "pointer", metrics["cveTagCursor"]
-    assert_equal '""', metrics["cveTagActionContent"]
+    assert_equal "2px", metrics["cveTagActionBorder"]
     assert_not_equal "0px", metrics["cveTagActionWidth"]
     assert_includes metrics["cweTagClass"], "ui-hover-lift"
     assert_includes metrics["cweTagClass"], "cwe-badge"
     assert_equal "rgba(14, 116, 144, 0.42)", metrics["cweTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.34)", metrics["cweTagBorder"]
     assert_equal "pointer", metrics["cweTagCursor"]
-    assert_equal '""', metrics["cweTagActionContent"]
+    assert_equal "2px", metrics["cweTagActionBorder"]
     assert_not_equal "0px", metrics["cweTagActionWidth"]
     assert_includes metrics["challengeTagClass"], "ui-hover-lift"
     assert_equal "rgba(14, 116, 144, 0.42)", metrics["challengeTagBackground"]
     assert_equal "rgba(125, 211, 252, 0.34)", metrics["challengeTagBorder"]
     assert_equal "pointer", metrics["challengeTagCursor"]
-    assert_equal '""', metrics["challengeTagActionContent"]
     assert_equal "2px", metrics["challengeTagActionBorderTopWidth"]
     assert_equal "rgb(254, 243, 199)", metrics["cveDetailHeadingColor"]
     assert_equal metrics["cveDetailHeadingColor"], metrics["challengeDetailHeadingColor"]
@@ -520,7 +518,7 @@ class AboutLayoutTest < ApplicationSystemTestCase
     assert_equal "pointer", metrics["achievementEventTagCursor"]
     assert_not_equal "none", metrics["achievementEventTagShadow"]
     assert_equal "none", metrics["achievementEventTagTextDecorationLine"]
-    assert_equal '""', metrics["achievementEventTagActionContent"]
+    assert_equal "2px", metrics["achievementEventTagActionBorder"]
     assert_not_equal "0px", metrics["achievementEventTagActionWidth"]
     assert_not_includes metrics["timelineEventTagClass"], "aboutme-card-tag"
     assert metrics["timelineEventTagText"].present?

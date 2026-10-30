@@ -41,28 +41,6 @@ module AboutmeHelper
     text.match?(/[.!?]\z/) ? text : "#{text}."
   end
 
-  def aboutme_tag_style_classes(label, class_name)
-    classes = class_name.to_s.split
-    typed_severity = label.to_s.start_with?("severity:")
-    label = ContentTagTaxonomy.canonical_label(label)
-    class_text = classes.join(" ")
-
-    if ContentVulnerabilityTag.cve?(label) || classes.include?("aboutme-cve-id")
-      classes.push("aboutme-cve-id", "cve-badge")
-    elsif ContentVulnerabilityTag.cwe?(label) || classes.include?("aboutme-cwe-id")
-      classes.push("aboutme-cwe-id", "cwe-badge")
-    elsif !typed_severity && (difficulty_key = (WriteupDifficulty.css_key(label) if WriteupDifficulty.filter_label?(label)) || class_text[/\baboutme-difficulty-tag-([a-z0-9-]+)\b/, 1])
-      classes.push("aboutme-difficulty-tag", "aboutme-difficulty-tag-#{difficulty_key}", "difficulty-badge", "difficulty-badge-#{difficulty_key}")
-    elsif (severity_key = ContentSeverityTag.css_key(label) || class_text[/\baboutme-severity-([a-z0-9-]+)\b/, 1])
-      classes.push("aboutme-severity", "severity-badge", "severity-badge-#{severity_key}", "aboutme-severity-#{severity_key}")
-    elsif ContentCategoryTag.recognized?(label)
-      category_key = ContentCategoryTag.css_key(label)
-      classes.push("category-badge", "category-badge-#{category_key}")
-    end
-
-    classes
-  end
-
   def aboutme_extra_tags(raw_tags)
     Array(raw_tags).filter_map do |tag|
       if tag.respond_to?(:to_h)

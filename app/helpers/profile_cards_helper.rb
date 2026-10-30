@@ -28,28 +28,32 @@ module ProfileCardsHelper
   def profile_card_tag(label:, url: nil, class_name: nil, datetime: nil, filter_tag: nil)
     return nil if label.blank?
 
-    tag_value = ContentTagTaxonomy.canonical_value(filter_tag.presence || label)
     raw_label = filter_tag.presence || label
+    style = content_tag_style(raw_label)
     label = ContentTagTaxonomy.canonical_label(label)
+    url = ContentVulnerabilityTag.record_url(label) || url
     timeline_link = url.blank? && datetime.blank?
-    url = timeline_filter_path(tag: tag_value) if timeline_link
-    linked = url.present?
+    linked = url.present? || timeline_link
     tag_classes = [
       "aboutme-card-tag",
       ("aboutme-tag-#{label.parameterize}" if label.present?),
       (linked ? "aboutme-tag-action" : "aboutme-tag-static"),
       ("aboutme-tag-timeline" if timeline_link),
-      *aboutme_tag_style_classes(raw_label, class_name),
+      class_name,
+      *style[:classes],
+      ("aboutme-cve-id" if style[:classes].include?("cve-badge")),
+      ("aboutme-cwe-id" if style[:classes].include?("cwe-badge")),
+      ("aboutme-severity" if style[:classes].include?("severity-badge")),
+      ("aboutme-difficulty-tag aboutme-difficulty-tag-#{WriteupDifficulty.css_key(label)}" if style[:classes].include?("difficulty-badge")),
       ("ui-hover-lift" if linked)
-    ].compact.uniq.join(" ")
+    ].compact.uniq
 
-    if datetime.present?
-      return profile_card_optional_link(label, url, class_name: tag_classes) if linked
-
-      return content_tag(:time, label, datetime: datetime, class: tag_classes)
-    end
-
-    linked ? profile_card_optional_link(label, url, class_name: tag_classes) : content_tag(:span, label, class: tag_classes)
+    content_tag_badge(
+      label, classes: tag_classes, url: url,
+      filter_tag: ContentTagTaxonomy.canonical_value(raw_label),
+      label_class: style[:label_class], record_link: true,
+      timeline_redirect: datetime.blank?, datetime: datetime
+    )
   end
 
   def profile_about_card(entry, kind:)
@@ -63,6 +67,11 @@ module ProfileCardsHelper
 
     collapsible = body_blocks.any? || timeline_items.any?
     primary_url = profile_about_primary_url(entry)
+    accessible_title = if kind.to_s == "cve"
+      ContentVulnerabilityTag.card_label(entry["title"], tags: entry["tags"], subtitle: entry["subtitle"])
+    else
+      entry["title"].presence || entry["subtitle"].presence || "item"
+    end
 
     {
       id: entry["id"],
@@ -82,7 +91,8 @@ module ProfileCardsHelper
       collapsible: collapsible,
       card_url: primary_url,
       reading_time: aboutme_reading_time_for_url(primary_url),
-      aria_label: "Open #{entry["title"].presence || entry["subtitle"].presence || "item"}"
+      accessible_title: accessible_title,
+      aria_label: "Open #{accessible_title}"
     }
   end
 

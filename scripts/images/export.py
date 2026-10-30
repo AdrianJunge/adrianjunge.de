@@ -47,7 +47,9 @@ def export_logo(source: Path, manifest: dict, assets: Path | None = None) -> Non
         fallback_export = fallback.convert("RGB") if target.suffix.lower() in {".jpg", ".jpeg"} else fallback
         fallback_export.save(target, optimize=True)
         variants = []
-        for bound in (96, 192, 384):
+        # Detailed timeline artwork also supports high-density displays and zoom.
+        bounds = (96, 192, 384, 768) if relative.parts[0] == "timeline" else (96, 192, 384)
+        for bound in bounds:
             image = original.copy()
             image.thumbnail((bound, bound), Image.Resampling.LANCZOS)
             if variants and variants[-1]["width"] == image.width:

@@ -1,4 +1,4 @@
-<% timeline_description = "Security research, CTF writeups, blog posts, CVEs, bug bounties, authored challenges, certificates, talks, and achievements ordered by date." %>
+<% timeline_description = SitePageCopy.description(:timeline) %>
 
 <% content_for :head do %>
   <%= seo_meta_tags(
@@ -35,68 +35,80 @@
              search_id: "timeline-search-input",
              clear_id: "timeline-search-clear",
              search_value: @initial_query,
+             order: @timeline_order,
+             view: @timeline_view,
+             external_status: true,
              placeholder: "Search writeups, blog posts, CVEs, talks, achievements..."
            ) %>
 
-  <div class="timeline-shell" data-filter-results="timeline">
-    <ul class="timeline">
-      <% @timeline.each do |year, items| %>
-        <li class="timeline-year-group" data-filter-group="timeline">
-          <div class="timeline-year-header">
-            <h2><%= year %></h2>
-            <span class="timeline-year-count" data-filter-group-count="timeline">
-              <%= items.size %> <%= items.size == 1 ? "item" : "items" %>
-            </span>
-          </div>
+  <div class="timeline-shell">
+    <div class="timeline-panel">
+      <%= render "shared/content_filter_state", scope: "timeline", total: @timeline_items.length,
+                 visible: @timeline_visible_count, separator: "of", class_name: "timeline-results-summary" %>
+      <ul class="timeline" data-filter-results="timeline">
+        <% @timeline.each do |year, items| %>
+          <% visible_count = items.count { |item| @timeline_view != "posts" || %w[blog writeup].include?(item[:kind]) } %>
+          <li class="timeline-year-group" data-filter-group="timeline" data-filter-sort="<%= year %>" <%= "hidden" if visible_count.zero? %>>
+            <div class="timeline-year-header">
+              <h2><%= year %></h2>
+              <span class="timeline-year-count" data-filter-group-count="timeline">
+                <%= visible_count %> <%= visible_count == 1 ? "item" : "items" %>
+              </span>
+            </div>
 
-          <ul class="timeline-year-items">
-            <% items.each do |item| %>
-              <% item_upcoming = upcoming_date?(item[:published]) %>
-              <% timeline_content_type_tags = Array(item[:kind_labels]).map { |kind_label| kind_label[:tag_value].presence || kind_label[:label] } %>
-              <% visible_tags = item[:tags].reject { |tag_name| [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(tag_name) || timeline_content_type_tags.include?(tag_name) } %>
-              <li
-                class="<%= class_names("timeline-item", "timeline-item-upcoming": item_upcoming) %>"
-                data-filter-card="timeline"
-                data-filter-text="<%= [ ("Upcoming" if item_upcoming), item[:search_text] ].compact.join(" ") %>"
-                data-filter-years="<%= item[:published].year %>"
-                data-filter-tags="<%= item[:tags].join("|") %>"
-                data-upcoming="<%= item_upcoming %>"
-              >
-                <div class="timeline-date">
-                  <span class="timeline-date-heading">
-                    <time datetime="<%= item[:published].iso8601 %>">
-                      <%= item[:display_date] %>
-                    </time>
-                  </span>
-                  <% if item_upcoming || Array(item[:kind_labels]).any? %>
-                    <span class="timeline-side-tags">
-                      <%= content_upcoming_badge(class_name: "timeline-upcoming-badge") if item_upcoming %>
-                      <% Array(item[:kind_labels]).each do |kind_label| %>
-                        <%= content_filter_chip(
-                              kind_label[:label],
-                              scope: "timeline",
-                              tag_value: kind_label[:tag_value].presence || kind_label[:label],
-                              class_name: "timeline-kind-pill"
-                            ) %>
-                      <% end %>
+            <ul class="timeline-year-items">
+              <% items.each do |item| %>
+                <% item_upcoming = upcoming_date?(item[:published]) %>
+                <% timeline_content_type_tags = Array(item[:kind_labels]).map { |kind_label| kind_label[:tag_value].presence || kind_label[:label] } %>
+                <% visible_tags = item[:tags].reject { |tag_name| [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(tag_name) || timeline_content_type_tags.include?(tag_name) } %>
+                <li
+                  <% if item[:kind] == "timeline_event" %>id="<%= item[:id] %>"<% end %>
+                  class="<%= class_names("timeline-item", "timeline-item-upcoming": item_upcoming) %>"
+                  data-filter-card="timeline"
+                  data-filter-kind="<%= item[:kind] %>"
+                  <%= "hidden" if @timeline_view == "posts" && !%w[blog writeup].include?(item[:kind]) %>
+                  data-filter-sort="<%= item[:published].to_i %>"
+                  data-filter-sort-index="<%= @timeline_positions.fetch(item[:id]) %>"
+                  data-filter-text="<%= [ ("Upcoming" if item_upcoming), item[:search_text] ].compact.join(" ") %>"
+                  data-filter-years="<%= (item[:filter_years].presence || [ item[:published].year ]).join("|") %>"
+                  data-filter-tags="<%= item[:tags].join("|") %>"
+                  data-upcoming="<%= item_upcoming %>"
+                >
+                  <div class="timeline-date">
+                    <span class="timeline-date-heading">
+                      <time datetime="<%= item[:date_datetime].presence || item[:published].iso8601 %>">
+                        <%= item[:display_date] %>
+                      </time>
                     </span>
-                  <% end %>
-                </div>
+                    <% if item_upcoming || Array(item[:kind_labels]).any? %>
+                      <span class="timeline-side-tags">
+                        <%= content_upcoming_badge(class_name: "timeline-upcoming-badge") if item_upcoming %>
+                        <% Array(item[:kind_labels]).each do |kind_label| %>
+                          <%= content_filter_chip(
+                                kind_label[:label],
+                                scope: "timeline",
+                                tag_value: kind_label[:tag_value].presence || kind_label[:label],
+                                class_name: "timeline-kind-pill"
+                              ) %>
+                        <% end %>
+                      </span>
+                    <% end %>
+                  </div>
 
-                <div class="timeline-connector">
-                  <div class="dot"></div>
-                </div>
+                  <div class="timeline-connector">
+                    <div class="dot"></div>
+                  </div>
 
-                <%= render_content_card(timeline_card_options(item, visible_tags: visible_tags)) %>
-              </li>
-            <% end %>
-          </ul>
-        </li>
-      <% end %>
-    </ul>
-  </div>
-
-  <div class="content-filter-empty" data-filter-empty="timeline" hidden>
-    <p>No indexed content matches the current filters.</p>
+                  <%= render_content_card(timeline_card_options(item, visible_tags: visible_tags)) %>
+                </li>
+              <% end %>
+            </ul>
+          </li>
+        <% end %>
+      </ul>
+      <div class="content-filter-empty" data-filter-empty="timeline" hidden>
+        <p>No indexed content matches the current filters.</p>
+      </div>
+    </div>
   </div>
 </main>

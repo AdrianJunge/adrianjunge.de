@@ -1,5 +1,5 @@
+<% blog_description = SitePageCopy.description(:blog) %>
 <% content_for :head do %>
-  <% blog_description = "Longer notes on security work, learning, and practical writeups outside the CTF archive." %>
   <%= seo_meta_tags(
         title: "Blog",
         description: blog_description,
@@ -23,7 +23,7 @@
              icon_path: "task-bar/blog.svg",
              icon_alt: "Blog",
              title: "Blog",
-             description: "Longer notes on security work, learning, and practical writeups outside the CTF archive." %>
+             description: blog_description %>
 
   <%= render_content_filters(
              scope: "blogs",

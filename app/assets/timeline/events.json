@@ -1,0 +1,88 @@
+[
+  {
+    "id": "overthewire-beginnings",
+    "title": "First steps with OverTheWire",
+    "date": "2019-09",
+    "end_date": "2021",
+    "summary": "Building foundations in Linux, web security, binary exploitation, reversing and cryptography through OverTheWire's wargames.",
+    "tags": ["Beginnings", "OverTheWire", "Linux", "Web", "Pwn", "Crypto"],
+    "icon": "timeline/overthewire.png",
+    "url": "https://overthewire.org/wargames/",
+    "modified": "2026-10-29"
+  },
+  {
+    "id": "tryhackme-beginnings",
+    "title": "TryHackMe",
+    "date": "2021-10",
+    "end_date": "2025",
+    "summary": "Building practical hacking skills through guided rooms and challenges on web security, Linux privilege escalation and OSINT.",
+    "tags": ["Beginnings", "TryHackMe", "Penetration Testing"],
+    "icon": "timeline/tryhackme.png",
+    "url": "https://tryhackme.com/p/vurlo",
+    "modified": "2026-10-29"
+  },
+  {
+    "id": "juice-shop-beginnings",
+    "title": "OWASP Juice Shop",
+    "date": "2022-09",
+    "end_date": "2023",
+    "summary": "Exploring web vulnerabilities in OWASP Juice Shop.",
+    "tags": ["Beginnings", "OWASP Juice Shop", "Web"],
+    "icon": "timeline/juice-shop.svg",
+    "url": "https://github.com/juice-shop/juice-shop",
+    "modified": "2026-10-29"
+  },
+  {
+    "id": "leetcode-beginnings",
+    "title": "LeetCode",
+    "date": "2023-01",
+    "end_date": "2024",
+    "summary": "Practicing algorithms and data structures through coding challenges.",
+    "tags": ["Beginnings", "LeetCode", "Algorithms"],
+    "icon": "blog/leetcode.png",
+    "url": "https://leetcode.com/u/vurlo/",
+    "modified": "2026-10-29"
+  },
+  {
+    "id": "cscg-first-challenges",
+    "title": "First CSCG challenges",
+    "date": "2023-03",
+    "end_date": "2023-04",
+    "summary": "Solving my first CSCG challenges.",
+    "tags": ["Beginnings", "CSCG", "CTF Competition"],
+    "icon": "ctf/cscg.png",
+    "url": "https://cscg.de/",
+    "modified": "2026-10-29"
+  },
+  {
+    "id": "picoctf-beginnings",
+    "title": "picoCTF",
+    "date": "2023-10-02",
+    "end_date": "2025",
+    "summary": "Practicing fundamentals, web security, cryptography, forensics, reversing and binary exploitation through picoCTF challenges.",
+    "tags": ["Beginnings", "picoCTF", "CTF Practice"],
+    "icon": "timeline/picoctf.png",
+    "url": "https://learn.cylabacademy.org/profile",
+    "modified": "2026-10-29"
+  },
+  {
+    "id": "haus-der-flaggen-2024",
+    "title": "Haus der Flaggen 2024",
+    "date": "2024-10-12",
+    "summary": "Taking part in Haus der Flaggen 2024, with hardware, industrial security and web challenges.",
+    "tags": ["Haus der Flaggen", "CTF Competition"],
+    "icon": "timeline/haus-der-flaggen.png",
+    "url": "https://bonn.jetzt/event/haus-der-flaggen-ctf-2024",
+    "modified": "2026-10-29"
+  },
+  {
+    "id": "laokoon-ctf-2026",
+    "title": "Laokoon CTF 2026",
+    "date": "2026-03-28",
+    "summary": "Flag Wars: a Jeopardy-style CTF in Bonn hosted by Laokoon Security, IBM and CGI.",
+    "tags": ["Laokoon Security", "CTF Competition"],
+    "icon": "timeline/laokoon.svg",
+    "url": "https://laokoon-security.com/ctf2026/",
+    "modified": "2026-10-30"
+  }
+]

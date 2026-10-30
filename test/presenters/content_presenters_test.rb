@@ -4,7 +4,7 @@ class ContentPresentersTest < ActiveSupport::TestCase
   test "normalized blog cards retain the same metadata across index and landing variants" do
     post = fixture_content_repository.blog_post("alpha-post")
     index = BlogCardPresenter.new(post: post, url: post[:link])
-    landing = BlogCardPresenter.new(post: post, url: post[:link], interactive_tags: false, section_url: "/blog")
+    landing = BlogCardPresenter.new(post: post, url: post[:link], interactive_tags: false, section_url: "/blog", title_tag: :h3)
 
     %i[title description date reading_time tags data media].each do |key|
       assert_equal index[key], landing[key], "Different #{key} for the same post"
@@ -12,6 +12,11 @@ class ContentPresentersTest < ActiveSupport::TestCase
     assert_equal post[:title], index[:title]
     assert_equal post[:logo], index[:media][:image]
     assert_equal post[:link], index[:url]
+    assert_equal :h2, index[:title_tag]
+    assert_equal :h3, landing[:title_tag]
+    assert_equal "2 Feb 2025", index[:date]
+    assert_equal "2025-02-02", index[:date_datetime]
+    assert_includes index[:data][:filter_text], "2025-02-02"
     assert index[:interactive_tags]
     assert_not landing[:interactive_tags]
     assert_equal "/blog", landing[:section_link][:url]
@@ -19,6 +24,7 @@ class ContentPresentersTest < ActiveSupport::TestCase
 
   test "card variants reject layout overrides and unknown variants" do
     assert_raises(ArgumentError) { ContentCardPresenter.new(variant: :post, root_tag: :a) }
+    assert_raises(ArgumentError) { ContentCardPresenter.new(variant: :post, title_tag: :h1) }
     assert_raises(KeyError) { ContentCardPresenter.new(variant: :unknown) }
   end
 
@@ -45,6 +51,7 @@ class ContentPresentersTest < ActiveSupport::TestCase
     )
 
     assert_equal "1 writeup", card[:date]
+    assert_equal :h2, card[:title_tag]
     assert_equal "/ctf/example", card[:url]
     assert_equal "2026|2025", card[:data][:filter_years]
     assert_equal tags.join("|"), card[:data][:filter_tags]
@@ -65,9 +72,8 @@ class ContentPresentersTest < ActiveSupport::TestCase
     filters = ContentFiltersPresenter.new(scope: "timeline", years: [ 2025, nil, "", 2026, "2025" ], tag_groups: groups)
 
     assert_equal [ "2026", "2025" ], filters.years
-    assert_equal [ "Blog post", "CTF writeup", "Talk" ], filters.common_group[:tags]
-    assert_equal [ "Algorithms" ], filters.additional_groups.first[:tags]
-    assert_equal [ "Web", "Security" ], filters.additional_groups.last[:tags]
+    assert_equal [ "Blog post", "CTF writeup", "Talk", "Algorithms" ], filters.common_group[:tags]
+    assert_equal [ "Web", "Security" ], filters.additional_groups.first[:tags]
     assert_equal original, groups
     assert_equal "timeline-search-input", filters.search_id
   end

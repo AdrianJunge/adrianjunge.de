@@ -1,0 +1,6 @@
+<% separator = local_assigns.fetch(:separator, "/") %>
+<% visible = local_assigns.fetch(:visible, total) %>
+<div class="<%= class_names("content-filter-state", local_assigns[:class_name]) %>">
+  <span role="status" aria-live="polite" aria-atomic="true" data-filter-count="<%= scope %>" data-filter-count-separator="<%= separator %>"><%= visible %> <%= separator %> <%= total %> <%= total == 1 ? "item" : "items" %></span>
+  <button type="button" class="content-filter-reset" data-filter-reset="<%= scope %>" aria-hidden="true" tabindex="-1">Clear filters</button>
+</div>

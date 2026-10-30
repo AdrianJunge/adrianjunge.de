@@ -1,6 +1,29 @@
 require "test_helper"
 
 class ContentUiHelperTest < ActionView::TestCase
+  test "card CVE tags always open their canonical record while filter controls remain filters" do
+    render inline: <<~ERB
+      <%= content_card_tag(' cve-2099-1234 ', default_scope: 'timeline', default_interactive: true) %>
+      <%= content_card_tag({ 'label' => 'CVE-2099-5678', 'url' => 'https://example.org/old-record' }, default_scope: nil, default_interactive: false) %>
+      <%= content_card_tag('cwe-89', default_scope: 'timeline', default_interactive: true) %>
+      <%= content_category_badge(label: 'CWE-284', context: :article) %>
+      <%= content_filter_chip('CVE-2099-1234', scope: 'timeline') %>
+      <%= content_filter_chip('CWE-89', scope: 'timeline') %>
+    ERB
+
+    %w[CVE-2099-1234 CVE-2099-5678].each do |identifier|
+      assert_select "a.cve-badge[href=?][target='_blank'][rel='noopener noreferrer'][aria-label=?]", "https://www.cve.org/CVERecord?id=#{identifier}", "Open #{identifier} on CVE.org" do
+        assert_select ".content-tag-label", text: identifier
+      end
+    end
+    assert_select "a.cve-badge[data-filter-tag], a.cve-badge[data-filter-scope]", 0
+    assert_select "button.cve-badge[data-filter-tag='CVE-2099-1234'][data-filter-scope='timeline']", 1
+    assert_select "a.cwe-badge[href='https://cwe.mitre.org/data/definitions/89.html'][aria-label='Open CWE-89 on MITRE'] .content-tag-chevron[aria-hidden='true']", 1
+    assert_select "a.cwe-badge[data-filter-tag]", 0
+    assert_select "button.cwe-badge[data-filter-tag='CWE-89'][data-filter-scope='timeline']", 1
+    assert_select "a.category-badge-article[href='https://cwe.mitre.org/data/definitions/284.html'][aria-label='Open CWE-284 on MITRE'] .content-tag-chevron", 1
+  end
+
   test "recognition filter names include the visible award while preserving their filter value" do
     render inline: <<~ERB
       <%= content_filter_chip('Best web writeup 2025', scope: 'timeline', tag_value: 'Writeup winner', winner: true) %>

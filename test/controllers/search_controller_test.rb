@@ -38,6 +38,7 @@ class SearchControllerTest < ActionDispatch::IntegrationTest
       assert_response :success, path
       live_ids = css_select("[id]").map { |node| node["id"] }
       live_passages = SiteSearchPassages.extract(css_select("main").first)
+      live_passages.concat(css_select(".timeline-kind-pill, .timeline-tag-pill").map { |node| node.text.squish })
       records.each do |document|
         fragments = [ document[:url].split("#", 2)[1], *document[:sections].pluck(:anchor) ].compact_blank
         fragments.each { |fragment| assert_includes live_ids, fragment, "missing #{path}##{fragment}" }
@@ -47,6 +48,85 @@ class SearchControllerTest < ActionDispatch::IntegrationTest
           end
         end
       end
+    end
+  end
+
+  test "standalone search result points to a visible timeline card absent from About" do
+    repository = fixture_content_repository
+    with_stubbed_content_repository(repository) do
+      get timeline_path
+      assert_response :success
+      assert_select "#timeline-event-fixture-timeline-only.timeline-item .timeline-title", text: "Timeline Only Milestone"
+      assert_select "#timeline-event-fixture-timeline-only .timeline-meta", text: /uniquetimelineword/
+      assert_select "#timeline-event-fixture-timeline-hidden", 0
+      structured_data = css_select("script[type='application/ld+json']").flat_map { |node| Array.wrap(JSON.parse(node.text)) }
+      collection = structured_data.find { |document| document["@type"] == "CollectionPage" }
+      assert collection
+      assert_includes collection.dig("mainEntity", "itemListElement").pluck("url"),
+                      SiteProfile.absolute_url("/timeline#timeline-event-fixture-timeline-only")
+
+      get about_path
+      assert_response :success
+      assert_select "#fixture-timeline-only, #timeline-event-fixture-timeline-only", 0
+    end
+  end
+
+  test "timeline disambiguation context matches the rendered page including controls and non-milestone cards" do
+    repository = fixture_content_repository
+    with_stubbed_content_repository(repository) do
+      search = SiteSearch.new(repository: repository)
+      document = search.documents.find { |record| record[:url] == timeline_path }
+      get timeline_path
+      assert_response :success
+      assert_equal SiteSearchPassages.page_text(response.body), document.fetch(:page_text)
+      assert_includes document[:page_text], "Oldest first"
+      assert_includes document[:page_text], repository.ctf_posts.first[:title]
+      assert_includes document[:page_text], "2023"
+      assert_empty search.search("Oldest first")
+    end
+  end
+
+  test "timeline month precision retains its visible date label in search and markup" do
+    repository = fixture_content_repository
+    events = repository.timeline_events
+    events.first.merge!("date" => "2019-09", "display_date" => "Around Sep 2019")
+
+    repository.define_singleton_method(:timeline_events) { events }
+    search = SiteSearch.new(repository: repository)
+    url = "/timeline#timeline-event-fixture-timeline-only"
+    document = search.documents.find { |entry| entry[:url] == url }
+    assert_equal "Around Sep 2019", document[:sections].first[:passages].first
+    assert_includes search.search("Around Sep 2019").pluck(:url), url
+
+    with_stubbed_content_repository(repository) do
+      get timeline_path
+      assert_response :success
+      assert_select "#timeline-event-fixture-timeline-only[data-filter-years='2019'] time[datetime='2019-09']", text: "Around Sep 2019"
+      assert_select "#timeline-event-fixture-timeline-only time[datetime='2019-09-30T00:00:00Z']", 0
+    end
+  end
+
+  test "timeline search passages follow rendered side badges and canonical card tags" do
+    repository = fixture_content_repository
+    events = repository.timeline_events
+    events.first["tags"] = [
+      "Beginnings", "algorithm", "ctf competition", "web", "difficulty:hard",
+      "Topic one", "Topic two", "Topic three", "Overflowneedle", WriteupWinner::FILTER_LABEL
+    ]
+    repository.define_singleton_method(:timeline_events) { events }
+    search = SiteSearch.new(repository: repository)
+    document = search.documents.find { |entry| entry[:url] == "/timeline#timeline-event-fixture-timeline-only" }
+
+    with_stubbed_content_repository(repository) do
+      get timeline_path
+      assert_response :success
+      card = css_select("#timeline-event-fixture-timeline-only").sole
+      visible_passages = card.css("time, .timeline-kind-pill, .timeline-title, .timeline-tag-pill, .timeline-meta").map { |node| node.text.squish }
+      assert_equal visible_passages, document[:sections].flat_map { |section| section[:passages] }
+      assert_equal [ "Algorithms", "CTF Competition", "Beginnings", "Web", "Hard", "Topic one", "Topic two", "Topic three" ], document[:tags]
+      assert_not_includes document.to_json, "difficulty:hard"
+      assert_not_includes document.to_json, WriteupWinner::FILTER_LABEL
+      assert_empty search.search("Overflowneedle")
     end
   end
 

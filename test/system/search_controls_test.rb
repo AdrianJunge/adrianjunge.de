@@ -19,7 +19,7 @@ class SearchControlsTest < ApplicationSystemTestCase
         search.click
         save_archive_screenshot("blank", width) if path == "/blog"
         search.send_keys(:tab)
-        assert_selector "[data-filter-year]:focus"
+        assert_archive_select_focus(path)
 
         year = find("[data-filter-year]")
         option = year.all("option").find { |item| item[:value].present? }
@@ -56,13 +56,21 @@ class SearchControlsTest < ApplicationSystemTestCase
           assert_selector "[data-filter-card]", count: visible_count
           assert_current_path filtered_url
           search.send_keys(:tab)
-          assert_selector "[data-filter-year]:focus"
+          assert_archive_select_focus(path)
         end
       end
     end
   end
 
   private
+
+  def assert_archive_select_focus(path)
+    if path == "/timeline"
+      assert_selector "[data-filter-view]:focus"
+      page.driver.browser.action.send_keys(:tab).perform
+    end
+    assert_selector "[data-filter-year]:focus"
+  end
 
   def assert_clear_hidden(wrapper)
     within wrapper do

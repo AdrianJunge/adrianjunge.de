@@ -16,7 +16,7 @@ class AboutmeTest < ApplicationSystemTestCase
       assert_selector "#joomla-sqli .aboutme-timeline li[data-upcoming='false']", count: 3
       within "#joomla-sqli .aboutme-timeline li.aboutme-timeline-item-upcoming[data-upcoming='true']" do
         assert_selector ".aboutme-timeline-date-row > .content-upcoming-badge:first-child", text: "Upcoming"
-        assert_selector "time[datetime='2026-11-09']", text: "2026-11-09"
+        assert_selector "time[datetime='2026-11-09']", text: "9 Nov 2026"
         assert_selector ".aboutme-timeline-title", text: "Talk at BSides Munich"
         assert_no_text "Upcoming:"
       end
@@ -316,13 +316,10 @@ class AboutmeTest < ApplicationSystemTestCase
           if (!target) return { targetExists: false };
 
           const targetRect = target.getBoundingClientRect();
-          const cardRect = card.getBoundingClientRect();
           return {
             targetExists: true,
             sectionOpen: section.open,
             cardOpen: card.querySelector(".profile-card-details").open,
-            cardOffset: Math.round(cardRect.top - taskbar.bottom),
-            cardTop: Math.round(cardRect.top),
             targetTop: Math.round(targetRect.top),
             targetBottom: Math.round(targetRect.bottom),
             taskbarBottom: Math.round(taskbar.bottom),
@@ -336,8 +333,7 @@ class AboutmeTest < ApplicationSystemTestCase
       break if anchor_metrics["targetExists"] &&
         anchor_metrics["sectionOpen"] &&
         anchor_metrics["cardOpen"] &&
-        anchor_metrics["cardTop"] >= anchor_metrics["taskbarBottom"] + 8 &&
-        (anchor_metrics["cardTop"] <= anchor_metrics["taskbarBottom"] + 48 ||
+        (anchor_metrics["targetTop"] <= anchor_metrics["taskbarBottom"] + 48 ||
           (anchor_metrics["scrollTop"] - anchor_metrics["maximumScrollTop"]).abs <= 1) &&
         anchor_metrics["targetTop"] >= anchor_metrics["taskbarBottom"] + 8 &&
         anchor_metrics["targetBottom"] <= anchor_metrics["viewportHeight"] + 1
@@ -349,12 +345,12 @@ class AboutmeTest < ApplicationSystemTestCase
     assert anchor_metrics["targetExists"]
     assert anchor_metrics["sectionOpen"]
     assert anchor_metrics["cardOpen"]
-    assert_operator anchor_metrics["cardTop"], :>=, anchor_metrics["taskbarBottom"] + 8
-    assert anchor_metrics["cardTop"] <= anchor_metrics["taskbarBottom"] + 48 ||
+    assert anchor_metrics["targetTop"] <= anchor_metrics["taskbarBottom"] + 48 ||
       (anchor_metrics["scrollTop"] - anchor_metrics["maximumScrollTop"]).abs <= 1,
-      "Expected the card below the taskbar or at the document's natural scroll limit: #{anchor_metrics.inspect}"
+      "Expected the event below the taskbar or at the document's natural scroll limit: #{anchor_metrics.inspect}"
     assert_operator anchor_metrics["targetTop"], :>=, anchor_metrics["taskbarBottom"] + 8
     assert_operator anchor_metrics["targetBottom"], :<=, anchor_metrics["viewportHeight"] + 1
+    assert_selector "##{event.fetch('id')}:focus"
   end
 
   test "my challenges link to their writeups" do
@@ -464,7 +460,7 @@ class AboutmeTest < ApplicationSystemTestCase
 
       assert_equal expected_events.map { |event| event["title"].presence || event["event"] },
                    rendered_events.map { |event| event["title"] }
-      assert_equal expected_events.map { |event| event["date"].to_s },
+      assert_equal expected_events.map { |event| ContentDate.display_label(event["date"]) || event["date"].to_s },
                    rendered_events.map { |event| event["date"] }
       assert_equal expected_events.map { |event| event["summary"].to_s },
                    rendered_events.map { |event| event["summary"] }

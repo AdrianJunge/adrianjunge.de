@@ -2,7 +2,8 @@ class ContentIconRegistry
   ICONS = {
     "blog" => "task-bar/blog.svg", "cve" => "other/cve.svg", "bug-bounty" => "other/bug-bounty.svg",
     "certificate" => "other/certificate.svg", "talk" => "other/talk-slides.png",
-    "achievement" => "other/achievement.svg", "challenge" => "ctf/kitctf.png"
+    "achievement" => "other/achievement.svg", "challenge" => "ctf/kitctf.png",
+    "timeline_event" => "task-bar/timeline.svg"
   }.freeze
 
   def self.for(kind, title: nil)

@@ -38,11 +38,12 @@ module CtfHelper
     ))
   end
 
-  def render_writeup_card(writeup, writeup_path, info, logo: nil, interactive_tags: true, show_hints: true, external_recognition_links: true, show_section_icon: false)
+  def render_writeup_card(writeup, writeup_path, info, logo: nil, interactive_tags: true, show_hints: true, external_recognition_links: true, show_section_icon: false, title_tag: :h2)
     categories = normalized_categories(info["categories"]).presence || [ "Unknown category" ]
     title = info["title"].presence || writeup.capitalize
     description = info["reader_summary"].presence || info["description"] || "No description available"
-    published = info["published"] || "Unknown date"
+    published_raw = info["published"].presence || "Unknown date"
+    published = ContentDate.display_label(published_raw) || published_raw
     authors = writeup_authors(info)
     published_year = writeup_year(info)
     winner = writeup_winner(info)
@@ -57,7 +58,7 @@ module CtfHelper
     points_label = writeup_points_label(info)
     challenge_stats_label = writeup_challenge_stats_label(info)
     filter_tags = ContentTagTaxonomy.canonical_values([ winner_filter_label, authored_filter_label, difficulty_label ] + categories)
-    filter_text = ([ title, description, published, published_year, solve_count_label, points_label, challenge_stats_label, difficulty_label, winner_label, winner_filter_label, authored_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
+    filter_text = ([ title, description, published_raw, published, published_year, solve_count_label, points_label, challenge_stats_label, difficulty_label, winner_label, winner_filter_label, authored_filter_label ] + categories + authors.map { |author| author[:name] }).compact.join(" ")
 
     tags = []
     if winner
@@ -107,8 +108,10 @@ module CtfHelper
         wrapper_class: "blog-post-card-logo writeup-post-card-logo"
       },
       title: title,
+      title_tag: title_tag,
       description: description,
       date: published,
+      date_datetime: (published_raw if ContentDate.parse(published_raw)),
       reading_time: info["reading_time_label"],
       meta_items: [
         { label: challenge_stats_label, class_name: "blog-post-challenge-stats" }

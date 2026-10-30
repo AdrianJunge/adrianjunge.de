@@ -2,10 +2,10 @@ class ContentFiltersPresenter
   COMMON_TAGS = [ "Blog post", "CTF writeup", "CVE", "Bug bounty", "Certificate", "Talk" ].freeze
 
   attr_reader :scope, :years, :total, :search_id, :clear_id, :search_value, :placeholder, :year_label,
-              :common_group, :additional_groups, :aliases
+              :common_group, :additional_groups, :aliases, :order, :view, :external_status
 
   def initialize(scope:, years: [], tags: [], tag_groups: [], total: 0, search_id: nil, clear_id: nil,
-                 search_value: nil, placeholder: "Search...", year_label: "Year")
+                 search_value: nil, placeholder: "Search...", year_label: "Year", order: nil, view: nil, external_status: false)
     @scope = scope
     @years = clean_values(years).uniq.sort.reverse
     @total = total.to_i
@@ -14,6 +14,9 @@ class ContentFiltersPresenter
     @search_value = search_value
     @placeholder = placeholder
     @year_label = year_label
+    @order = order
+    @view = view
+    @external_status = external_status
     @aliases = ContentTagTaxonomy::LABEL_ALIASES
 
     groups = normalize_groups(tag_groups)
@@ -22,8 +25,7 @@ class ContentFiltersPresenter
     @additional_groups = []
     return unless first_group
 
-    common_tags = COMMON_TAGS.select { |tag| first_group[:tags].include?(tag) }
-    common_tags = first_group[:tags].first(6) if common_tags.empty?
+    common_tags = (COMMON_TAGS.select { |tag| first_group[:tags].include?(tag) } + first_group[:tags]).uniq.first(6)
     @common_group = first_group.merge(label: "Common filters", tags: common_tags)
     @additional_groups = [
       first_group.merge(tags: first_group[:tags] - common_tags),

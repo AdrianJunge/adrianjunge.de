@@ -1,5 +1,5 @@
+<% ctf_description = SitePageCopy.description(:ctf) %>
 <% content_for :head do %>
-  <% ctf_description = "Capture The Flag competition events with published challenge writeups and security research notes." %>
   <% ctf_items = @ctfs.map { |name, ctf| { title: name, link: ctf["writeups"] } } %>
   <%= seo_meta_tags(
         title: "CTF events",
@@ -25,7 +25,7 @@
              icon_alt: "CTF",
              icon_class: "content-hero-icon-padded",
              title: "CTF events",
-             description: "Capture The Flag competitions grouped by event. Open an event to browse its challenge writeups." %>
+             description: ctf_description %>
 
   <%= render_content_filters(
              scope: "ctfs",

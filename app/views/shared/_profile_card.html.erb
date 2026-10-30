@@ -84,7 +84,7 @@
             <% if item["date"].present? %>
               <span class="aboutme-timeline-date-row">
                 <%= content_upcoming_badge(class_name: "aboutme-upcoming-badge") if item_upcoming %>
-                <time datetime="<%= item["date"] %>"><%= item["date"] %></time>
+                <time datetime="<%= item["date"] %>"><%= ContentDate.display_label(item["date"]) || item["date"] %></time>
               </span>
             <% end %>
             <span class="aboutme-timeline-content">
@@ -129,12 +129,12 @@
 <% end %>
 
 <% if card[:collapsible] %>
-  <article class="<%= card[:class_name] %>" id="<%= card[:id].presence %>" data-card-disclosure>
+  <article class="<%= card[:class_name] %>" id="<%= card[:id].presence %>" aria-label="<%= card[:accessible_title] %>" data-card-disclosure>
     <div class="aboutme-card-header">
       <%= header_content %>
     </div>
     <details class="profile-card-details">
-      <summary class="profile-card-toggle" aria-label="Details for <%= card[:title] %>">
+      <summary class="profile-card-toggle" aria-label="Details for <%= card[:accessible_title] %>">
         <svg class="profile-card-chevron" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
           <path d="M4 7h16l-8 10z"></path>
         </svg>
@@ -145,7 +145,7 @@
     </details>
   </article>
 <% else %>
-  <article class="<%= card[:class_name] %>" id="<%= card[:id].presence %>">
+  <article class="<%= card[:class_name] %>" id="<%= card[:id].presence %>" aria-label="<%= card[:accessible_title] %>">
     <% if card[:card_url].present? %>
       <%= link_to(card[:card_url], profile_card_link_attributes(card[:card_url], card[:aria_label].presence || card[:title].presence || "Open item")) do %>
         <span class="aboutme-card-link-label"><%= card[:aria_label].presence || card[:title].presence || "Open item" %></span>

@@ -17,7 +17,7 @@ class ContentJsonSchemas
     end
   end
 
-  DATE_PATTERN = "^(?:\\d{4}|\\d{4}\\s*[-–—]\\s*\\d{4}|\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:?\\d{2}))?)$"
+  DATE_PATTERN = "^(?:\\d{4}|\\d{4}\\s*[-–—]\\s*\\d{4}|\\d{4}-\\d{2}|\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:?\\d{2}))?)$"
 
   STRING = { "type" => "string" }.freeze
   DATE = { "type" => "string", "pattern" => DATE_PATTERN }.freeze
@@ -58,6 +58,7 @@ class ContentJsonSchemas
       "modified" => DATE,
       "summary" => STRING,
       "url" => STRING,
+      "tags" => { "type" => "array", "items" => TAG },
       "timeline_group" => STRING,
       "hidden" => { "type" => "boolean" }
     }
@@ -85,6 +86,27 @@ class ContentJsonSchemas
     }
   }.freeze
 
+  TIMELINE_EVENT = {
+    "type" => "object",
+    "required" => %w[id title date],
+    "additionalProperties" => false,
+    "properties" => {
+      "id" => { "type" => "string", "pattern" => "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+      "title" => STRING,
+      "date" => DATE,
+      "end_date" => DATE,
+      "display_date" => STRING,
+      "summary" => STRING,
+      "icon" => STRING,
+      "url" => STRING,
+      "tags" => { "type" => "array", "items" => STRING },
+      "updated" => DATE,
+      "modified" => DATE,
+      "hidden" => { "type" => "boolean" },
+      "draft" => { "type" => "boolean" }
+    }
+  }.freeze
+
   CTF_ENTRY = {
     "type" => "object",
     "required" => %w[logo website description],
@@ -106,7 +128,8 @@ class ContentJsonSchemas
     ContentConfiguration::ABOUTME_CERTIFICATES_PATH.to_s => ABOUT_CARD,
     ContentConfiguration::ABOUTME_CHALLENGES_PATH.to_s => ABOUT_CARD,
     ContentConfiguration::ABOUTME_TALKS_PATH.to_s => ABOUT_CARD,
-    ContentConfiguration::ABOUTME_ACHIEVEMENTS_PATH.to_s => ABOUT_CARD
+    ContentConfiguration::ABOUTME_ACHIEVEMENTS_PATH.to_s => ABOUT_CARD,
+    ContentConfiguration::TIMELINE_EVENTS_PATH.to_s => TIMELINE_EVENT
   }.freeze
 
   OBJECT_SCHEMAS = {
@@ -124,7 +147,9 @@ class ContentJsonSchemas
     schema = schema_for(path)
     return [] unless schema
 
-    validation_errors(schema, data) + metadata_errors(data)
+    errors = validation_errors(schema, data) + metadata_errors(data)
+    errors.concat(timeline_event_errors(data)) if path.to_s == ContentConfiguration::TIMELINE_EVENTS_PATH.to_s
+    errors
   end
 
   def self.validation_errors(schema, data)
@@ -147,7 +172,7 @@ class ContentJsonSchemas
     when Hash
       data.flat_map do |key, value|
         item_pointer = "#{pointer}/#{pointer_key(key)}"
-        error = if %w[date published updated modified].include?(key) && value.present? && ContentDate.parse(value).nil?
+        error = if %w[date end_date published updated modified].include?(key) && value.present? && ContentDate.parse(value).nil?
           "unsupported date"
         elsif %w[url website authorlink author_link author_url event_url event-url event_link event-link category_url proof_url proof].include?(key) && value.present? && !ContentUrl.valid?(value)
           "unsupported URL (use a local path, fragment, or HTTP(S) URL)"
@@ -159,6 +184,35 @@ class ContentJsonSchemas
       end
     else
       []
+    end
+  end
+
+  def self.timeline_event_errors(data)
+    return [] unless data.is_a?(Array)
+
+    data.each_with_index.flat_map do |event, index|
+      next [] unless event.is_a?(Hash)
+
+      errors = []
+      if event["title"].is_a?(String) && event["title"].blank?
+        errors << { "data_pointer" => "/#{index}/title", "type" => "must contain non-whitespace text" }
+      end
+      next errors unless event.key?("end_date")
+
+      %w[date end_date].each do |key|
+        if event[key].to_s.match?(ContentDate::RANGE)
+          errors << { "data_pointer" => "/#{index}/#{key}", "type" => "period endpoints must be a single year, month, date or timestamp" }
+        end
+      end
+      if event.key?("display_date")
+        errors << { "data_pointer" => "/#{index}/display_date", "type" => "period labels are derived from date and end_date" }
+      end
+      first = ContentDate.bounds(event["date"])&.first
+      last = ContentDate.bounds(event["end_date"])&.last
+      if first && last && last < first
+        errors << { "data_pointer" => "/#{index}/end_date", "type" => "end_date must not precede date" }
+      end
+      errors
     end
   end
 

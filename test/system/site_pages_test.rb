@@ -650,7 +650,7 @@ class SitePagesTest < ApplicationSystemTestCase
             const card = item.querySelector(".timeline-content").getBoundingClientRect();
             const date = item.querySelector(".timeline-date").getBoundingClientRect();
             const heading = item.querySelector(".timeline-date-heading").getBoundingClientRect();
-            const tags = [...item.querySelector(".timeline-side-tags").children]
+            const tags = [...item.querySelectorAll(".timeline-side-tags > *")]
               .map((tag) => tag.getBoundingClientRect());
             const tagsLeft = Math.min(...tags.map((tag) => tag.left));
             const tagsRight = Math.max(...tags.map((tag) => tag.right));
@@ -658,7 +658,7 @@ class SitePagesTest < ApplicationSystemTestCase
             return {
               date: Math.abs(center(date) - center(card)),
               heading: Math.abs(center(heading) - center(card)),
-              tags: Math.abs(((tagsLeft + tagsRight) / 2) - center(card)),
+              tags: tags.length ? Math.abs(((tagsLeft + tagsRight) / 2) - center(card)) : 0,
               metadataAboveCard: date.bottom <= card.top + 1
             };
           });

@@ -34,7 +34,7 @@ test('native year selection, text filtering, reset, and history work together', 
   const cards = page.locator('[data-filter-card="timeline"]:visible');
   await expect(cards.first()).toBeVisible();
   for (const card of await cards.all()) {
-    await expect(card.locator('time').first()).toHaveAttribute('datetime', new RegExp(`^${year}-`));
+    expect((await card.getAttribute('data-filter-years')).split('|')).toContain(year);
   }
   await page.locator('[data-filter-search]').fill('unmatched-qa-smoke-query');
   await expect(cards).toHaveCount(0);
@@ -45,6 +45,8 @@ test('native year selection, text filtering, reset, and history work together', 
   await expect(page.locator('[data-filter-search]')).toBeFocused();
   await expect(yearSelect).toHaveValue('');
   await expect(page).toHaveURL(/\/timeline$/);
+  await page.keyboard.press('Tab');
+  await expect(page.locator('[data-filter-view]')).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(yearSelect).toBeFocused();
   await page.goBack();

@@ -75,13 +75,16 @@ class SiteSearchTest < ActiveSupport::TestCase
                       "writeup_winner" => { "label" => "Recognitionneedle", "proof_url" => "https://example.com/proof" } }
     )
     search = SiteSearch.new(repository: repository)
-    %w[Originalpromptneedle Readersummaryneedle Challengeauthorneedle Articleauthorneedle Hard DEMOCTF 2022 2025-03-03 Recognitionneedle].each do |query|
+    %w[Originalpromptneedle Readersummaryneedle Challengeauthorneedle Articleauthorneedle Hard DEMOCTF 2022 Recognitionneedle].each do |query|
       assert_includes search.search(query).pluck(:url), post[:link], query
     end
+    assert_includes search.search("3 Mar 2025").pluck(:url), post[:link]
     assert_includes search.search("Hintneedle").pluck(:url), "#{post[:link]}#writeup-hint-1"
     assert_includes search.search("authored challenge").pluck(:url), post[:link]
     assert_includes search.search("writeup winner").pluck(:url), post[:link]
     document = search.documents.find { |entry| entry[:url] == post[:link] }
+    assert_includes document[:sections].flat_map { |section| section[:passages] }, "3 Mar 2025"
+    assert_not_includes document[:tags], "2025-03-03"
     assert_not_includes document.to_json, "https://example.com/proof"
   end
 
@@ -107,6 +110,21 @@ class SiteSearchTest < ActiveSupport::TestCase
     assert search.documents.any? { |entry| entry[:url] == "/blog/alpha-post" }
   end
 
+  test "standalone timeline events have searchable on-page anchors without leaking hidden events" do
+    search = SiteSearch.new(repository: fixture_content_repository)
+    url = "/timeline#timeline-event-fixture-timeline-only"
+
+    document = search.documents.find { |entry| entry[:url] == url }
+    assert document
+    assert_equal "Timeline Only Milestone", document[:title]
+    assert_equal "Timeline", document[:kind]
+    assert_not_includes document[:tags], "Milestone"
+    assert_includes document.to_json, "uniquetimelineword"
+    assert_includes search.search("uniquetimelineword").pluck(:url), url
+    assert_not_includes search.documents.to_json, "fixture-timeline-hidden"
+    assert_not_includes search.documents.to_json, "Hidden timeline event"
+  end
+
   test "hidden nested metadata and private paths never enter the payload" do
     repository = fixture_content_repository
     post = repository.ctf_posts.first
@@ -130,6 +148,7 @@ class SiteSearchTest < ActiveSupport::TestCase
     expected = %w[/ /about /blog /ctf /timeline]
     expected.concat((repository.blog_posts + repository.ctf_posts).pluck(:link))
     expected.concat(repository.ctf_events.map { |event| event[:metadata].fetch("writeups") })
+    expected.concat(repository.timeline_events.map { |event| "/timeline#timeline-event-#{event.fetch('id')}" })
     SiteSearch::ABOUT_COLLECTIONS.each do |collection|
       expected << "/about##{collection[:id]}"
       entries = collection[:id] == "my-challenges" ? repository.authored_challenges : repository.about_entries(ContentConfiguration.const_get(collection[:path]))
@@ -144,7 +163,11 @@ class SiteSearchTest < ActiveSupport::TestCase
     end
     assert_equal expected.sort, documents.pluck(:url).sort
     assert_equal documents.pluck(:url).uniq, documents.pluck(:url)
-    assert documents.all? { |document| document.keys.sort == %i[icon kind sections tags title url] }
+    documents.each do |document|
+      expected_keys = %i[icon kind sections tags title url]
+      expected_keys << :page_text if document[:url] == "/timeline"
+      assert_equal expected_keys.sort, document.keys.sort
+    end
     assert documents.all? { |document| document.dig(:icon, :src).present? }
   end
 
@@ -294,6 +317,26 @@ class SiteSearchTest < ActiveSupport::TestCase
     end
   end
 
+  test "standalone event edits and hiding refresh global search documents" do
+    with_temporary_repository do |configuration, repository_for|
+      path = configuration.path(:TIMELINE_EVENTS_PATH)
+      event = { id: "independent-event", title: "Oldtimelineneedle", date: "2026-01-01" }
+      search = -> { SiteSearch.new(repository: repository_for.call) }
+      url = "/timeline#timeline-event-independent-event"
+
+      path.write([ event ].to_json)
+      assert_includes search.call.search("Oldtimelineneedle").pluck(:url), url
+
+      path.write([ event.merge(title: "Newtimelineneedle") ].to_json)
+      assert_empty search.call.search("Oldtimelineneedle")
+      assert_includes search.call.search("Newtimelineneedle").pluck(:url), url
+
+      path.write([ event.merge(hidden: true) ].to_json)
+      assert_empty search.call.search("Oldtimelineneedle")
+      assert search.call.documents.none? { |document| document[:url] == url }
+    end
+  end
+
   private
 
   def with_temporary_repository
@@ -301,6 +344,8 @@ class SiteSearchTest < ActiveSupport::TestCase
       configuration = ContentConfiguration.new(root: directory)
       %i[BASE_PATH BLOG_BASE_PATH ABOUTME_BASE_PATH].each { |name| configuration.path(name).mkpath }
       configuration.path(:CTF_INFO_PATH).write("{}")
+      configuration.path(:TIMELINE_EVENTS_PATH).dirname.mkpath
+      configuration.path(:TIMELINE_EVENTS_PATH).write("[]")
       SiteSearch::ABOUT_COLLECTIONS.each { |collection| configuration.path(collection[:path]).write("[]") }
       configuration.path(:ABOUTME_TEXT_PATH).write("---\ntitle: About\ndescription: Profile\n---\nFixture biography.")
       yield configuration, -> { ContentRepository.new(configuration: configuration) }

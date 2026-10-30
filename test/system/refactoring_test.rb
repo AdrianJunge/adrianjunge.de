@@ -70,7 +70,7 @@ class RefactoringTest < ApplicationSystemTestCase
     visit "/timeline?tag=does-not-exist&year=1900"
     assert_selector "[data-filter-empty='timeline']"
     assert_no_selector "[data-filter-selected]", visible: :all
-    assert_equal "", find(".content-filter-select").value
+    assert_equal "", find("[data-filter-year]").value
     find("[data-filter-reset='timeline']").click
     assert_selector ".timeline-item", minimum: 1
     visit "/timeline?tag=Medium"
@@ -90,7 +90,7 @@ class RefactoringTest < ApplicationSystemTestCase
     severity = ".content-filter-panel [data-filter-tag='severity:medium']"
     assert_selector difficulty, text: /^Medium$/
     assert_selector severity, text: /^Medium$/
-    years = all(".content-filter-select option").map(&:value).reject(&:empty?).first(2)
+    years = all("[data-filter-year] option").map(&:value).reject(&:empty?).first(2)
     assert_equal 2, years.length
 
     # Replace only this browser page's card metadata with a small controlled fixture.
@@ -118,7 +118,7 @@ class RefactoringTest < ApplicationSystemTestCase
     JS
     visible_ids = -> { all(".timeline-item[data-contract-fixture]").map { |card| card["data-contract-fixture"] }.sort }
     find("[data-filter-search='timeline']").fill_in(with: "quasar")
-    find(".content-filter-select").select(years.first)
+    find("[data-filter-year]").select(years.first)
     assert_selector ".timeline-item:not([hidden])", count: 3
     find(difficulty).click
     assert_selector ".timeline-item:not([hidden])", count: 2
@@ -135,12 +135,12 @@ class RefactoringTest < ApplicationSystemTestCase
     find(difficulty).click
     assert_selector ".timeline-item:not([hidden])", count: 2
     assert_equal %w[both-current severity-only], visible_ids.call
-    find(".content-filter-select").select(years.last)
+    find("[data-filter-year]").select(years.last)
     assert_selector ".timeline-item:not([hidden])", count: 1
     assert_equal %w[both-other-year], visible_ids.call
     find("[data-filter-search='timeline']").fill_in(with: "nebula")
     assert_selector "[data-filter-empty='timeline']"
-    find(".content-filter-select").select(years.first)
+    find("[data-filter-year]").select(years.first)
     assert_selector ".timeline-item:not([hidden])", count: 1
     assert_equal %w[both-other-query], visible_ids.call
   end

@@ -64,7 +64,9 @@ class ContentValidator
         next if errors.any?
 
         validate_images(data, path)
-        if ContentJsonSchemas::ARRAY_SCHEMAS.key?(schema_path)
+        if schema_path == ContentConfiguration::TIMELINE_EVENTS_PATH.to_s
+          repository.normalize_timeline_events(data, path: path)
+        elsif ContentJsonSchemas::ARRAY_SCHEMAS.key?(schema_path)
           repository.normalize_about_entries(data, path: path).each do |entry|
             [ entry, *Array(entry["timeline"]) ].each do |item|
               id = item.fetch("id")

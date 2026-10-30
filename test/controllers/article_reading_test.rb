@@ -19,7 +19,8 @@ class ArticleReadingTest < ActionDispatch::IntegrationTest
     [ production_content_repository.blog_posts.first, production_content_repository.ctf_posts.first ].each do |post|
       get post[:link]
       assert_response :success
-      assert_select ".post-meta-item", text: post[:metadata]["published"]
+      assert_select "time.post-meta-item[datetime=?]", post[:metadata]["published"],
+                    text: ContentDate.display_label(post[:metadata]["published"])
       assert_select "link[rel='alternate'][type='application/rss+xml'][href=?]", feed_xml_url
       assert_select "link[rel='alternate'][type='application/atom+xml'][href=?]", feed_url(format: :atom)
       assert_select "link[rel='alternate'][type='application/feed+json'][href=?]", feed_json_url

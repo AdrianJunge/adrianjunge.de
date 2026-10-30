@@ -63,8 +63,8 @@ class CtfHelperTest < ActionView::TestCase
 
     assert_select "button.filter-chip.category-badge.category-badge-privesc.category-badge-filter[data-filter-tag='Privilege Escalation'] .content-tag-label", text: "Privilege Escalation"
     assert_select "button.filter-chip.severity-badge.severity-badge-high.aboutme-severity-high.severity-badge-filter[data-filter-tag='severity:high'] .content-tag-label", text: "High"
-    assert_select "button.filter-chip.cve-badge.cve-badge-filter[data-filter-tag='CVE-2099-1234'] .content-tag-label", text: "CVE-2099-1234"
-    assert_select "button.filter-chip.cwe-badge.cwe-badge-filter[data-filter-tag='CWE-284'] .content-tag-label", text: "CWE-284"
+    assert_select "a.cve-badge[href='https://www.cve.org/CVERecord?id=CVE-2099-1234'] .content-tag-label", text: "CVE-2099-1234"
+    assert_select "a.cwe-badge[href='https://cwe.mitre.org/data/definitions/284.html'] .content-tag-label", text: "CWE-284"
   end
 
   test "writeup cards support multiple authors with independent urls" do
@@ -104,7 +104,9 @@ class CtfHelperTest < ActionView::TestCase
     }
 
     assert_select ".blog-post-challenge-stats", text: "7 solves / 405 points"
-    assert_equal "2026-01-01 · 4 min read · 7 solves / 405 points", css_select(".blog-post-date").first.text.squish
+    assert_equal "1 Jan 2026 · 4 min read · 7 solves / 405 points", css_select(".blog-post-date").first.text.squish
+    assert_select ".writeup-post-card h2.blog-post-title", text: "Example"
+    assert_select ".writeup-post-card time[datetime='2026-01-01']", text: "1 Jan 2026"
     assert_equal "1 solve", writeup_solve_count_label("solve_count" => "1")
     assert_equal "1 point", writeup_points_label("points" => "1")
     assert_equal "1 solve / 1 point", writeup_challenge_stats_label("solve_count" => "1", "points" => "1")
@@ -179,8 +181,8 @@ class CtfHelperTest < ActionView::TestCase
 
     assert_select ".blog-post-meta-row > a.writeup-winner-badge[href='https://example.com/proof'][target='_blank'][rel='noopener noreferrer']", text: /Contest win/
     assert_select ".blog-post-meta-row > a.authored-challenge-badge[href='https://example.com/ctf'][target='_blank'][rel='noopener noreferrer']", text: /Authored challenge/
-    assert_select ".blog-post-meta-row > a.writeup-winner-badge.content-tag-link.content-tag-action .content-tag-arrow", text: ">"
-    assert_select ".blog-post-meta-row > a.authored-challenge-badge.content-tag-link.content-tag-action .content-tag-arrow", text: ">"
+    assert_select ".blog-post-meta-row > a.writeup-winner-badge.content-tag-link.content-tag-action .content-tag-chevron", 1
+    assert_select ".blog-post-meta-row > a.authored-challenge-badge.content-tag-link.content-tag-action .content-tag-chevron", 1
     assert_select ".blog-post-meta-row > button.writeup-winner-badge", false
     assert_select ".blog-post-meta-row > button.authored-challenge-badge", false
     assert_select ".blog-post-meta-row > a.filter-chip.content-tag-timeline-link[href=?]", "/timeline?tag=Web", text: "Web"

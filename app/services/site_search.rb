@@ -4,7 +4,7 @@ class SiteSearch
   include MarkdownHelper
 
   VERSION = "2".freeze
-  CACHE_VERSION = "visible-passages-v2".freeze
+  CACHE_VERSION = "visible-page-context-v6".freeze
   QUERY_LIMIT = 200
   SNIPPET_LENGTH = 200
   ABOUT_COLLECTIONS = [
@@ -31,7 +31,7 @@ class SiteSearch
 
   def documents
     @documents ||= @repository.cached_collection([ :site_search, VERSION, CACHE_VERSION, MarkdownHelper::RENDER_VERSION, Date.current, profile_revision ]) do
-      records = main_documents + article_documents + about_documents + event_documents
+      records = main_documents + article_documents + about_documents + event_documents + timeline_event_documents
       duplicates = records.group_by { |document| document[:url] }.select { |_url, entries| entries.length > 1 }.keys
       raise ContentRepository::InvalidContent, "Duplicate search destinations: #{duplicates.join(', ')}" if duplicates.any?
 
@@ -140,7 +140,7 @@ class SiteSearch
       tags.concat(author_names(metadata["authors"]))
       tags.concat(author_names(metadata["article_authors"]))
       tags.concat(Array(post[:authors]).map { |author| author[:name] })
-      tags.concat([ metadata["author"], @repository.ctf_event_year(metadata), metadata["published"] ])
+      tags.concat([ metadata["author"], @repository.ctf_event_year(metadata) ])
 
       sections = markdown_sections(post[:body], introduction: article_introduction(post, metadata))
       if post[:type] == "ctf"
@@ -194,6 +194,25 @@ class SiteSearch
     end
   end
 
+  def timeline_event_documents
+    @repository.timeline_events.map do |event|
+      icon = event["icon"].presence || ContentIconRegistry.for("timeline_event")
+      tags = ContentTagTaxonomy.canonical_values(tag_labels(event["tags"]))
+      side_tags = tags.select { |tag| ContentTagTaxonomy.content_type?(tag) }
+      card_tags = ContentVulnerabilityTag.cve_first(tags.reject { |tag| side_tags.include?(tag) || ContentTagTaxonomy.recognition?(tag) }).first(6)
+      side_labels = side_tags.map { |tag| ContentTagTaxonomy.canonical_label(tag) }
+      card_labels = card_tags.map { |tag| ContentTagTaxonomy.canonical_label(tag) }
+      document(
+        title: event.fetch("title"),
+        url: "/timeline#timeline-event-#{event.fetch('id')}",
+        kind: "Timeline",
+        icon: icon,
+        tags: side_labels + card_labels,
+        sections: [ SiteSearchPassages.section([ @repository.timeline_event_display_date(event), *side_labels, event["title"], *card_labels, event["summary"] ]) ]
+      )
+    end
+  end
+
   def main_documents
     [
       document(title: "Home — #{SiteProfile.name} (#{SiteProfile.handle})", url: "/", kind: "Page", icon: "task-bar/home.svg",
@@ -204,20 +223,32 @@ class SiteSearch
           "Timeline", "About me", "KITCTF", "KIT", "PGP key", SiteProfile.bug_bounty_count, "Bounties"
         ]), SiteSearchPassages.section([ SiteProfile.landing_tagline ], anchor: "typing") ]),
       document(title: "Blog", url: "/blog", kind: "Page", icon: "task-bar/blog.svg", tags: [ "Blog posts", "Writing" ],
-        text: "Longer notes on security work, learning, and practical writeups outside the CTF archive."),
+        text: SitePageCopy.description(:blog)),
       document(title: "CTF", url: "/ctf", kind: "Page", icon: "task-bar/flag.svg", tags: [ "CTF", "Capture The Flag", "Writeups" ],
-        sections: [ SiteSearchPassages.section([ "CTF events", "Capture The Flag competitions grouped by event. Open an event to browse its challenge writeups." ]) ] +
+        sections: [ SiteSearchPassages.section([ "CTF events", SitePageCopy.description(:ctf) ]) ] +
           @repository.ctf_events.map do |event|
             SiteSearchPassages.section([ event[:name], event[:metadata]["description"] ], heading: event[:name], anchor: "ctf-event-#{event[:slug]}")
           end),
       document(title: "Timeline", url: "/timeline", kind: "Page", icon: "task-bar/timeline.svg", tags: [ "Timeline", "Activity" ],
-        text: "Security research, CTF writeups, blog posts, CVEs, bug bounties, authored challenges, certificates, talks, and achievements ordered by date.")
+        text: SitePageCopy.description(:timeline))
+        .merge(page_text: timeline_page_text)
     ]
+  end
+
+  def timeline_page_text
+    controller = ApplicationController.new
+    controller.set_request!(ActionDispatch::Request.new(Rack::MockRequest.env_for("/timeline")))
+    controller.instance_variable_set(:@content_repository, @repository)
+    view = controller.view_context
+    view.assign(TimelinePagePresenter.new(repository: @repository).assigns.stringify_keys)
+    html = view.render(template: "posts/timeline", layout: "layouts/application")
+    SiteSearchPassages.page_text(html)
   end
 
   def profile_revision
     [ SiteProfile.name, SiteProfile.handle, SiteProfile.description, SiteProfile.landing_lead, SiteProfile.landing_tagline,
-      SiteProfile.pgp_path, SiteProfile.modified, SiteProfile.social_links, SiteProfile.affiliations, SiteProfile.bug_bounty_count ]
+      SiteProfile.pgp_path, SiteProfile.modified, SiteProfile.social_links, SiteProfile.affiliations, SiteProfile.bug_bounty_count,
+      SitePageCopy::DESCRIPTIONS ]
   end
 
   def document(title:, url:, kind:, icon:, tags:, text: nil, sections: nil)
@@ -259,7 +290,8 @@ class SiteSearch
   def article_introduction(post, metadata)
     ctf = post[:type] == "ctf"
     source = ctf ? [ post[:which].to_s.upcase, @repository.ctf_event_year(metadata) ].compact.join("-") : post[:which]
-    passages = [ source, post[:title], metadata["published"], metadata["reading_time_label"] ]
+    published = ContentDate.display_label(metadata["published"]) || metadata["published"]
+    passages = [ source, post[:title], published, metadata["reading_time_label"] ]
     passages << search_view.writeup_challenge_stats_label(metadata) if ctf
     if metadata["article_authors"].present?
       authors = post[:authors] || ArticleAuthor.normalize(metadata["article_authors"])

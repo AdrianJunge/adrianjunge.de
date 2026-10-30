@@ -234,7 +234,7 @@ class ContentFiltersTest < ApplicationSystemTestCase
                     text: /^#{Regexp.escape(cve_case[:label])}$/
     assert_selector ".content-filter-panel .filter-chip.cwe-badge-filter",
                     text: /^#{Regexp.escape(cwe_case[:label])}$/
-    timeline_items.map { |item| item[:label] }.uniq.each do |label|
+    timeline_items.filter_map { |item| item[:label] }.uniq.each do |label|
       assert_selector ".content-filter-panel .filter-chip", text: /^#{Regexp.escape(label)}$/
     end
     assert_selector ".timeline-tags .difficulty-badge-filter.difficulty-badge-#{difficulty_case[:key]}[data-filter-tag='difficulty:#{difficulty_case[:key]}']",
@@ -243,9 +243,9 @@ class ContentFiltersTest < ApplicationSystemTestCase
                     text: /^#{Regexp.escape(severity_case[:label])}$/
     assert_selector ".timeline-tags .timeline-tag-pill[data-filter-tag='#{ctf_competition_case[:label]}']",
                     text: /^#{Regexp.escape(ctf_competition_case[:label])}$/
-    assert_selector ".timeline-tags .cve-badge-filter[data-filter-tag='#{cve_case[:label]}']",
+    assert_selector ".timeline-tags a.cve-badge[href='https://www.cve.org/CVERecord?id=#{cve_case[:label]}']:not([data-filter-tag]) .content-tag-label",
                     text: /^#{Regexp.escape(cve_case[:label])}$/
-    assert_selector ".timeline-tags .cwe-badge-filter[data-filter-tag='#{cwe_case[:label]}']",
+    assert_selector ".timeline-tags a.cwe-badge[href='https://cwe.mitre.org/data/definitions/#{cwe_case[:label].delete_prefix('CWE-').to_i}.html']:not([data-filter-tag]) .content-tag-label",
                     text: /^#{Regexp.escape(cwe_case[:label])}$/
     assert_selector ".timeline-tags .writeup-winner-badge-timeline[data-filter-tag='Writeup winner']", text: first_winner_label
     within timeline_content_card(timeline_items.find { |item| item[:kind] == "blog" }) do
@@ -258,10 +258,10 @@ class ContentFiltersTest < ApplicationSystemTestCase
     end
     difficulty_backgrounds = page.evaluate_script(<<~JS)
       [...document.querySelectorAll(".content-filter-panel .difficulty-badge-filter")]
-        .map((chip) => window.getComputedStyle(chip).getPropertyValue("--difficulty-bg").trim())
+        .map((chip) => window.getComputedStyle(chip).backgroundColor)
         .filter((value, index, values) => values.indexOf(value) === index)
     JS
-    assert_operator difficulty_backgrounds.length, :>, 1
+    assert_equal [ "rgba(14, 116, 144, 0.42)" ], difficulty_backgrounds
 
     fill_in "timeline-search-input", with: search_query
     assert_current_path "/timeline?#{Rack::Utils.build_query(q: search_query)}"
@@ -273,7 +273,7 @@ class ContentFiltersTest < ApplicationSystemTestCase
     find(".content-filter-panel .filter-chip", text: "Certificate").click
     assert_current_path "/timeline?tag=Certificate"
     assert_selector ".content-filter-panel .filter-chip.is-active", text: "Certificate"
-    assert_selector "[data-filter-count='timeline']", text: filter_count_text(certificate_count, total_items)
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(certificate_count, total_items, separator: "of")
     assert_selector ".timeline-content", count: certificate_count
     assert_hidden_timeline_item timeline_items.select { |item| item[:tags].include?("Certificate") }
     assert_timeline_year_counts_match_visible_cards
@@ -281,7 +281,7 @@ class ContentFiltersTest < ApplicationSystemTestCase
     find("[data-filter-reset='timeline']").click
     find(".content-filter-panel .filter-chip.writeup-winner-badge-filter", text: "Writeup winner").click
     assert_selector ".content-filter-panel .filter-chip.writeup-winner-badge-filter.is-active", text: "Writeup winner"
-    assert_selector "[data-filter-count='timeline']", text: filter_count_text(winner_items.length, total_items)
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(winner_items.length, total_items, separator: "of")
     winner_items.each do |item|
       assert_selector ".timeline-content", text: item[:title]
     end
@@ -291,17 +291,16 @@ class ContentFiltersTest < ApplicationSystemTestCase
     find("[data-filter-reset='timeline']").click
     find(".content-filter-panel .filter-chip.difficulty-badge-filter", text: /^#{Regexp.escape(difficulty_case[:label])}$/).click
     assert_selector ".content-filter-panel .filter-chip.difficulty-badge-filter.is-active", text: difficulty_case[:label]
-    assert_selector "[data-filter-count='timeline']", text: filter_count_text(difficulty_case[:items].length, total_items)
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(difficulty_case[:items].length, total_items, separator: "of")
     assert_selector ".timeline-content", text: difficulty_case[:items].first[:title]
     assert_hidden_timeline_item difficulty_case[:items]
     assert_timeline_year_counts_match_visible_cards
 
     find("[data-filter-reset='timeline']").click
-    find(".timeline-tags .cve-badge-filter", text: /^#{Regexp.escape(cve_case[:label])}$/).click
-    assert_selector ".timeline-tags .cve-badge-filter.is-active", text: cve_case[:label]
+    find(".content-filter-panel .cve-badge-filter", text: /^#{Regexp.escape(cve_case[:label])}$/).click
     assert_selector ".content-filter-panel .cve-badge-filter.is-active", text: cve_case[:label]
-    assert_selector ".timeline-tags .cve-badge-filter[aria-pressed='true']", text: cve_case[:label]
-    assert_selector "[data-filter-count='timeline']", text: filter_count_text(cve_case[:items].length, total_items)
+    assert_no_selector ".timeline-tags .cve-badge[data-filter-tag], .timeline-tags .cve-badge[aria-pressed]"
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(cve_case[:items].length, total_items, separator: "of")
     assert_hidden_timeline_item cve_case[:items]
     assert_timeline_year_counts_match_visible_cards
 
@@ -309,7 +308,7 @@ class ContentFiltersTest < ApplicationSystemTestCase
     find(".timeline-tags .timeline-tag-pill", text: tag_case[:tag], match: :first).click
     assert_selector ".timeline-tags .timeline-tag-pill.is-active", text: tag_case[:tag]
     assert_selector ".content-filter-panel .filter-chip.is-active", text: tag_case[:tag]
-    assert_selector "[data-filter-count='timeline']", text: filter_count_text(tag_case[:items].length, total_items)
+    assert_selector "[data-filter-count='timeline']", text: filter_count_text(tag_case[:items].length, total_items, separator: "of")
     assert_selector ".timeline-content", text: tag_case[:items].first[:title]
     assert_hidden_timeline_item tag_case[:items]
     assert_timeline_year_counts_match_visible_cards
@@ -671,8 +670,9 @@ class ContentFiltersTest < ApplicationSystemTestCase
 
     open_more_filters
 
-    assert_selector ".content-filter-tag-group-label", text: "CONTENT TYPE"
-    within find(".content-filter-tag-group", text: "CONTENT TYPE") do
+    within ".content-filter-common" do
+      assert_selector ".filter-chip", text: /^Certificate$/
+      assert_selector ".filter-chip", text: /^Algorithms$/
       assert_selector ".filter-chip", text: /^Security Research$/
     end
     assert_selector ".content-filter-panel .filter-chip", text: tag_case[:tag]

@@ -1,11 +1,5 @@
 /* Timeline component styles and responsive states. */
 
-.timeline-shell {
-    width: calc(100% - 2rem);
-    max-width: 72rem;
-    margin: 0 auto;
-}
-
 .content-page.timeline-page {
     display: block;
     align-items: stretch;
@@ -13,11 +7,40 @@
     padding: 0;
 }
 
-.timeline-page .timeline {
+.timeline-page .timeline-panel {
+    --timeline-padding: clamp(1rem, 3vw, 3rem);
     border: 1px solid rgba(98, 132, 180, 0.68);
     border-radius: var(--radius-ui);
     background: rgba(18, 34, 56, 0.9);
     box-shadow: 0 1rem 2rem rgba(2, 12, 24, 0.26);
+    overflow: hidden;
+}
+
+.content-page.timeline-page .timeline-results-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    margin: var(--timeline-padding) var(--timeline-padding) 0;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.timeline-page .timeline-results-summary [data-filter-count] {
+    grid-column: 2;
+    text-align: center;
+    color: #a5f3fc;
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+}
+
+.timeline-page .timeline-results-summary .content-filter-reset {
+    grid-column: 3;
+    justify-self: end;
+}
+
+.timeline-page .timeline-results-summary .content-filter-reset:not(.is-visible) {
+    display: none;
 }
 
 .timeline-shell {
@@ -30,7 +53,6 @@
 
 .timeline-page .timeline {
     --date-width: 8rem;
-    --timeline-padding: clamp(1rem, 3vw, 3rem);
     display: grid;
     position: relative;
     gap: 1.5rem;
@@ -38,8 +60,6 @@
     margin: 0;
     padding: var(--timeline-padding);
     overflow: hidden;
-    border-radius: var(--radius-ui);
-    background: rgba(18, 34, 56, 0.9);
     list-style: none;
 }
 
@@ -282,6 +302,15 @@
 }
 
 @media (max-width: 720px) {
+    .content-page.timeline-page .timeline-results-summary {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .timeline-page .timeline-results-summary [data-filter-count],
+    .timeline-page .timeline-results-summary .content-filter-reset {
+        grid-column: 1;
+    }
+
     .timeline-shell {
         width: calc(100% - 2rem);
         margin-right: auto;
@@ -298,9 +327,12 @@
         padding-right: 1rem;
     }
 
+    .timeline-page .timeline-panel {
+        --timeline-padding: 1rem;
+    }
+
     .timeline-page .timeline {
         --date-width: 0;
-        --timeline-padding: 1rem;
     }
 
     .timeline-page .timeline::before {

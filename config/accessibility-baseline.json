@@ -1,12 +1,12 @@
 {
   "schema": 1,
   "axeVersion": "4.14.0",
-  "triagedOn": "2026-10-24",
+  "triagedOn": "2026-10-30",
   "reviewPolicy": "This is a reviewed classification of axe's limitations, not proof of accessibility or a completed manual review. Unknown rules, new reasons, changed DOM references, and growth beyond the stated envelopes require triage. Confirmed violations always fail. Review actual contrast and screen-reader behavior manually.",
   "rules": {
     "color-contrast": {
       "messageKeys": ["pseudoContent"],
-      "reason": "The site background includes a pseudo-element layer. axe cannot determine the composited background for these nodes; their contrast remains unresolved until checked visually and with a contrast tool across the background. The envelopes allow modest content/date variation, not new failure types.",
+      "reason": "The site background includes a pseudo-element layer. axe cannot determine the composited background for these nodes; their contrast remains unresolved until checked visually and with a contrast tool across the background. The 2026-10-30 growth review found 52 nodes in eight new timeline milestones, eight new year-heading nodes, four Show/Order control nodes, and six additional About introduction nodes, all with the same pseudoContent reason. Sampled shared tags met contrast requirements in default, hover, focus and selected states; this does not complete the page-wide manual review. The envelopes allow modest content/date variation, not new failure types.",
       "manualStatus": "pending contrast review"
     },
     "aria-valid-attr-value": {
@@ -18,8 +18,8 @@
   },
   "states": {
     "home-default-mobile": {"color-contrast": 70, "aria-valid-attr-value": 1},
-    "timeline-default-mobile": {"color-contrast": 600, "aria-valid-attr-value": 1},
-    "about-default-mobile": {"color-contrast": 45, "aria-valid-attr-value": 1},
+    "timeline-default-mobile": {"color-contrast": 670, "aria-valid-attr-value": 1},
+    "about-default-mobile": {"color-contrast": 50, "aria-valid-attr-value": 1},
     "blog-java-strings-default-mobile": {"color-contrast": 460, "aria-valid-attr-value": 1},
     "blog-java-strngs-default-mobile": {"color-contrast": 30, "aria-valid-attr-value": 1},
     "timeline-more-filters-open-selected-mobile": {"color-contrast": 130, "aria-valid-attr-value": 1},

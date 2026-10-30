@@ -6,6 +6,7 @@
     "icon": "other/suitecrm.png",
     "summary": "A low-privileged portal API context could pass SQL expressions through the where and order_by inputs of portal_get_entry_list. Insufficient sanitization during query construction allowed blind extraction of database metadata and potentially sensitive data. Depending on the query context and database permissions, an attacker could also manipulate data or degrade performance with complex queries. On MySQL installations with FILE privilege, SELECT INTO OUTFILE could potentially lead to code execution.",
     "tags": [
+      "High",
       "SuiteCRM",
       "CVE-2026-97377",
       {

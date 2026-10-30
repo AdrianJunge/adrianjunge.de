@@ -131,6 +131,12 @@
     align-items: center;
 }
 
+.content-page .post-meta-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
 .content-page .post-meta-separator {
     color: rgba(125, 211, 252, 0.68);
     font-weight: 900;
@@ -1131,6 +1137,10 @@
 }
 
 @media (max-width: 640px) {
+    .content-page .post-meta-separator {
+        display: none;
+    }
+
     .content-page .next-previous-writeups,
     .content-page .writeup-challengefiles {
         align-items: center;
@@ -1158,14 +1168,6 @@
     .content-page .markdown-content pre code .code-line::before {
         min-width: 1.85rem;
         padding-right: 0.55rem;
-    }
-}
-
-@media (max-width: 380px) {
-    .content-page .writeup-wrapper {
-        width: calc(100% - 2rem);
-        margin-right: auto;
-        margin-left: auto;
     }
 }
 
