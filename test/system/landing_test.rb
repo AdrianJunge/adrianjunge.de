@@ -250,7 +250,8 @@ class LandingTest < ApplicationSystemTestCase
     assert_selector_count ".landing-writeup-cards .blog-logo-placeholder", expected_placeholder_count
     if expected_card_scopes.include?("writeups")
       ctf_logo_count = landing_latest_posts.count { |post| post[:type] == "ctf" && landing_post_logo?(post) }
-      assert_selector ".landing-writeup-cards .writeup-post-card .blog-post-authors", count: expected_writeup_count
+      author_count = landing_latest_posts.count { |post| post[:type] == "ctf" && authors_from_metadata(post[:metadata]).any? }
+      assert_selector ".landing-writeup-cards .writeup-post-card .blog-post-authors", count: author_count
       assert_selector_count ".landing-writeup-cards .writeup-post-card .blog-logo[src*='/ctf/']", ctf_logo_count
     end
     landing_authored_posts = landing_latest_posts.select { |post| post[:type] == "ctf" && AuthoredChallenge.from_metadata(post[:metadata] || {}) }

@@ -104,29 +104,30 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
     end
   end
 
-  test "explicit article coauthors receive native text highlights on blog and CTF pages" do
+  test "coauthor searches highlight the first displayed attribution on blog and CTF pages" do
     repository = fixture_content_repository
     posts = [ repository.blog_posts.first, repository.ctf_posts.first ]
     posts.each do |post|
       post[:metadata]["article_authors"] = [ { "name" => "Lead Writer", "url" => "https://example.com/lead" }, "Guest Writer" ]
       post[:authors] = ArticleAuthor.normalize(post[:metadata]["article_authors"])
-      # The CTF introduction must distinguish article attribution from the
-      # challenge authors even when the same names appear in both rows.
+      # Challenge attribution appears first on CTF pages. Repeated names must
+      # follow that visible order when choosing a text-fragment destination.
       post[:metadata]["authors"] = post[:metadata]["article_authors"] if post[:type] == "ctf"
     end
 
     with_stubbed_content_repository(repository) do
       page.current_window.resize_to(390, 900)
       posts.each do |post|
+        authors_selector = post[:type] == "ctf" ? ".writeup-authors-article" : ".article-authors"
         visit "/blog"
         2.times do
           open_search
           fill_in "site-search-palette-query", with: "Lead Writer, Guest Writer"
           find(".site-search-result-link[href^='#{post[:link]}#:~:text=']").click
-          assert_selector ".article-authors :target", text: /\A(?:Lead|Guest) Writer\z/
+          assert_selector "#{authors_selector} :target", text: /\A(?:Lead|Guest) Writer\z/
           assert page.evaluate_script(<<~JS)
             (() => {
-              const target = document.querySelector('.article-authors :target').getBoundingClientRect();
+              const target = document.querySelector(#{"#{authors_selector} :target".to_json}).getBoundingClientRect();
               return target.top >= document.querySelector('#top-taskbar').getBoundingClientRect().bottom && target.bottom <= innerHeight;
             })()
           JS

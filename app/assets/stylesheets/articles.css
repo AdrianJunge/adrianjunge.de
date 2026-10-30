@@ -279,22 +279,17 @@
 }
 
 .content-page .writeup-authors-article {
-    justify-content: center;
-    margin: -0.65rem 0 1.45rem;
+    margin: -0.35rem 0 0.7rem;
     text-align: center;
 }
 
-.content-page .article-meta-panel .writeup-authors-article {
-    justify-content: stretch;
-    margin: 0;
-    text-align: left;
-}
-
 .content-page .article-meta-panel .blog-post-authors {
+    display: grid;
     gap: 0.75rem;
     margin: 0;
     color: rgba(226, 232, 240, 0.9);
     font-size: 0.88rem;
+    text-align: left;
 }
 
 .content-page .article-meta-panel .writeup-article-actions {

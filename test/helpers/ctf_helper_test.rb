@@ -18,6 +18,7 @@ class CtfHelperTest < ActionView::TestCase
     }
 
     assert_equal description, css_select(".blog-post-description").first.text
+    assert_select ".blog-post-authors", 0
   end
 
   test "writeup cards can link a section icon to the CTF index" do
@@ -83,11 +84,23 @@ class CtfHelperTest < ActionView::TestCase
       }
     }
 
-    assert_select ".blog-post-authors", text: /Challenge by/
+    assert_select ".blog-post-title + .blog-post-authors .content-author-list", text: "External Author, Local Author, No Link"
+    assert_select ".blog-post-authors + .blog-post-meta", 1
     assert_select ".blog-post-reading-time", text: "4 min read"
     assert_select ".blog-post-author-link[href=?][target=?][rel=?]", "https://example.com", "_blank", "noopener noreferrer", text: "External Author"
     assert_select ".blog-post-author-link[href=?]", "/about", text: "Local Author"
     assert_select ".blog-post-author-name", text: "No Link"
+  end
+
+  test "challenge authors omit missing and placeholder names while retaining known contributors" do
+    [ {}, { "author" => "" }, { "author" => " Unknown author " }, { "authors" => [ "unknown", { "name" => " " } ] } ].each do |metadata|
+      assert_empty writeup_authors(metadata)
+    end
+
+    assert_equal [ { name: "nrg", url: "https://example.com/nrg" }, { name: "the_moon_guy", url: nil } ],
+                 writeup_authors("authors" => [ { "name" => " nrg ", "url" => "https://example.com/nrg" }, "Unknown author", "the_moon_guy" ])
+    assert_equal [ { name: "nrg", url: nil }, { name: "the_moon_guy", url: nil } ],
+                 writeup_authors("author" => "nrg, unknown, the_moon_guy")
   end
 
   test "writeup cards render optional solve counts and points next to reading time" do

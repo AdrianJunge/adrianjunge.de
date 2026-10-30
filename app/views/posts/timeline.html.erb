@@ -61,19 +61,21 @@
                 <% item_upcoming = upcoming_date?(item[:published]) %>
                 <% timeline_content_type_tags = Array(item[:kind_labels]).map { |kind_label| kind_label[:tag_value].presence || kind_label[:label] } %>
                 <% visible_tags = item[:tags].reject { |tag_name| [ WriteupWinner::FILTER_LABEL, AuthoredChallenge::FILTER_LABEL ].include?(tag_name) || timeline_content_type_tags.include?(tag_name) } %>
-                <li
-                  <% if item[:kind] == "timeline_event" %>id="<%= item[:id] %>"<% end %>
-                  class="<%= class_names("timeline-item", "timeline-item-upcoming": item_upcoming) %>"
-                  data-filter-card="timeline"
-                  data-filter-kind="<%= item[:kind] %>"
-                  <%= "hidden" if @timeline_view == "posts" && !%w[blog writeup].include?(item[:kind]) %>
-                  data-filter-sort="<%= item[:published].to_i %>"
-                  data-filter-sort-index="<%= @timeline_positions.fetch(item[:id]) %>"
-                  data-filter-text="<%= [ ("Upcoming" if item_upcoming), item[:search_text] ].compact.join(" ") %>"
-                  data-filter-years="<%= (item[:filter_years].presence || [ item[:published].year ]).join("|") %>"
-                  data-filter-tags="<%= item[:tags].join("|") %>"
-                  data-upcoming="<%= item_upcoming %>"
-                >
+                <li <%= tag.attributes(
+                  id: (item[:id] if item[:kind] == "timeline_event"),
+                  class: class_names("timeline-item", "timeline-item-upcoming": item_upcoming),
+                  hidden: @timeline_view == "posts" && !%w[blog writeup].include?(item[:kind]),
+                  data: {
+                    filter_card: "timeline",
+                    filter_kind: item[:kind],
+                    filter_sort: item[:published].to_i,
+                    filter_sort_index: @timeline_positions.fetch(item[:id]),
+                    filter_text: [ ("Upcoming" if item_upcoming), item[:search_text] ].compact.join(" "),
+                    filter_years: (item[:filter_years].presence || [ item[:published].year ]).join("|"),
+                    filter_tags: item[:tags].join("|"),
+                    upcoming: item_upcoming
+                  }
+                ) %>>
                   <div class="timeline-date">
                     <span class="timeline-date-heading">
                       <time datetime="<%= item[:date_datetime].presence || item[:published].iso8601 %>">

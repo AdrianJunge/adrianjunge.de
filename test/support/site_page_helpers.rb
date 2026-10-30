@@ -543,7 +543,12 @@ module SitePageHelpers
         end
       end
 
-    authors.presence || [ { name: "Unknown author", url: nil } ]
+    authors.filter_map do |author|
+      name = author[:name].to_s.strip
+      next if name.blank? || name.match?(/\Aunknown(?: author)?\z/i)
+
+      author.merge(name: name)
+    end
   end
 
   def author_from_entry(author, link_map)

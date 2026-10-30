@@ -214,8 +214,47 @@ class SiteSearchTest < ActiveSupport::TestCase
     start = passages.index("Challenge by")
 
     assert_equal [ "Challenge by", "nrg", ",", "the_moon_guy" ], passages.slice(start, 4)
+    assert_equal post[:title], passages[start - 1]
+    assert_equal ContentDate.display_label(post[:metadata]["published"]), passages[start + 4]
     assert_not_includes passages, "nrg, the_moon_guy"
     assert_includes search.search("nrg, the_moon_guy").pluck(:url), post[:link]
+  end
+
+  test "missing and placeholder challenge authors are absent from search tags and passages" do
+    variants = [ {}, { "author" => " " }, { "author" => " Unknown Author " },
+      { "authors" => [ "unknown", { "name" => "UNKNOWN AUTHOR" }, " " ] } ]
+    variants.each do |metadata|
+      repository = FixtureContentRepository.new
+      post = repository.ctf_posts.first
+      post[:metadata].except!("author", "authors")
+      post[:metadata].merge!(metadata)
+      search = SiteSearch.new(repository: repository)
+      document = search.documents.find { |record| record[:url] == post[:link] }
+
+      assert_not_includes document[:sections].first[:passages], "Challenge by", metadata.inspect
+      assert document[:tags].none? { |tag| tag.match?(/\Aunknown(?: author)?\z/i) }, metadata.inspect
+      assert_not_includes search.search("unknown author").pluck(:url), post[:link], metadata.inspect
+    end
+  end
+
+  test "mixed placeholder and real challenge authors index only the displayed names" do
+    variants = [
+      { "author" => "Unknown author, Real Challenge Writer" },
+      { "authors" => [ "Unknown", { "name" => " Real Challenge Writer " }, "unknown author" ] }
+    ]
+    variants.each do |metadata|
+      repository = FixtureContentRepository.new
+      post = repository.ctf_posts.first
+      post[:metadata].except!("author", "authors")
+      post[:metadata].merge!(metadata)
+      search = SiteSearch.new(repository: repository)
+      document = search.documents.find { |record| record[:url] == post[:link] }
+
+      assert_includes document[:tags], "Real Challenge Writer"
+      assert_includes document[:sections].first[:passages], "Real Challenge Writer"
+      assert_no_match(/unknown author/i, document.to_json)
+      assert_includes search.search("Real Challenge Writer").pluck(:url), post[:link]
+    end
   end
 
   test "explicit article authors match displayed normalization and keep coauthor boundaries" do

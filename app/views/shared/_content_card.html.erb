@@ -21,7 +21,7 @@
       <% if card[:authors_label].present? %>
         <span><%= card[:authors_label] %></span>
       <% end %>
-      <%= safe_join(card[:authors].map { |author| content_author_node(author) }, ", ".html_safe) %>
+      <span class="content-author-list"><%= safe_join(card[:authors].map { |author| content_author_node(author) }, ", ") %></span>
     </span>
   <% end %>
 <% end %>
@@ -31,8 +31,8 @@
     <%= content_tag(card[:title_tag], card[:title], class: card[:title_class]) %>
   <% end %>
 
-  <%= tags_content %>
   <%= authors_content %>
+  <%= tags_content %>
 
   <% if card[:description].present? %>
     <%= content_tag(card[:description_tag], italicize_proper_names(card[:description]), class: card[:description_class]) %>

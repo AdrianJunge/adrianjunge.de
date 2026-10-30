@@ -86,6 +86,22 @@ class SearchControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "challenge author search context follows the displayed title attribution and publication order" do
+    repository = fixture_content_repository
+    post = repository.ctf_posts.first
+    post[:metadata]["authors"] = [ { "name" => "nrg", "url" => "https://example.com/nrg" }, "the_moon_guy" ]
+    document = SiteSearch.new(repository: repository).documents.find { |record| record[:url] == post[:link] }
+
+    with_stubbed_content_repository(repository) do
+      get post[:link]
+      assert_response :success
+      header = css_select(".writeup-year, .writeup-title, .writeup-authors-article, .post-meta-line")
+      visible_passages = header.flat_map { |node| SiteSearchPassages.extract(node) }
+      assert_equal visible_passages, document[:sections].first[:passages].first(visible_passages.length)
+      assert_select ".writeup-authors-article .content-author-list", text: "nrg, the_moon_guy"
+    end
+  end
+
   test "timeline month precision retains its visible date label in search and markup" do
     repository = fixture_content_repository
     events = repository.timeline_events

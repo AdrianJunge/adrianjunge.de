@@ -52,6 +52,12 @@
       <% end %>
     </p>
     <h1 class="writeup-title text-white text-center"><%= @ctf_info["title"] %></h1>
+    <% if writeup_author_entries.any? %>
+      <p class="writeup-authors-article blog-post-authors">
+        <span>Challenge by</span>
+        <span class="content-author-list"><%= safe_join(writeup_author_entries.map { |author| content_author_node(author) }, ", ") %></span>
+      </p>
+    <% end %>
     <%= render "shared/post_meta",
                date: @ctf_info["published"],
                reading_time: @ctf_info["reading_time_label"],
@@ -81,15 +87,6 @@
                 <%= safe_join(detail_badges) %>
               </div>
             <% end %>
-          </div>
-        </div>
-      <% end %>
-
-      <% if writeup_author_entries.any? %>
-        <div class="article-meta-row writeup-authors-article blog-post-authors">
-          <span class="article-meta-row-label">Challenge by</span>
-          <div class="article-meta-row-value">
-            <%= safe_join(writeup_author_entries.map { |author| content_author_node(author) }, ", ".html_safe) %>
           </div>
         </div>
       <% end %>

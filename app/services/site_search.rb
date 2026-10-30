@@ -4,7 +4,7 @@ class SiteSearch
   include MarkdownHelper
 
   VERSION = "2".freeze
-  CACHE_VERSION = "visible-page-context-v6".freeze
+  CACHE_VERSION = "visible-page-context-v7".freeze
   QUERY_LIMIT = 200
   SNIPPET_LENGTH = 200
   ABOUT_COLLECTIONS = [
@@ -136,11 +136,16 @@ class SiteSearch
       metadata = public_metadata(post[:metadata])
       kind = post[:type] == "ctf" ? "CTF writeup" : "Blog post"
       tags = [ kind, post[:which], post[:topic], *Array(metadata["categories"]), *@repository.metadata_tags(metadata) ]
-      tags << WriteupDifficulty.from_metadata(metadata)[:label] if post[:type] == "ctf"
-      tags.concat(author_names(metadata["authors"]))
+      if post[:type] == "ctf"
+        tags << WriteupDifficulty.from_metadata(metadata)[:label]
+        tags.concat(search_view.send(:writeup_authors, metadata).pluck(:name))
+      else
+        tags.concat(author_names(metadata["authors"]))
+        tags << metadata["author"]
+      end
       tags.concat(author_names(metadata["article_authors"]))
       tags.concat(Array(post[:authors]).map { |author| author[:name] })
-      tags.concat([ metadata["author"], @repository.ctf_event_year(metadata) ])
+      tags << @repository.ctf_event_year(metadata)
 
       sections = markdown_sections(post[:body], introduction: article_introduction(post, metadata))
       if post[:type] == "ctf"
@@ -291,7 +296,12 @@ class SiteSearch
     ctf = post[:type] == "ctf"
     source = ctf ? [ post[:which].to_s.upcase, @repository.ctf_event_year(metadata) ].compact.join("-") : post[:which]
     published = ContentDate.display_label(metadata["published"]) || metadata["published"]
-    passages = [ source, post[:title], published, metadata["reading_time_label"] ]
+    passages = [ source, post[:title] ]
+    if ctf
+      authors = search_view.send(:writeup_authors, metadata)
+      passages.concat([ "Challenge by", *author_passages(authors) ]) if authors.any?
+    end
+    passages.concat([ published, metadata["reading_time_label"] ])
     passages << search_view.writeup_challenge_stats_label(metadata) if ctf
     if metadata["article_authors"].present?
       authors = post[:authors] || ArticleAuthor.normalize(metadata["article_authors"])
@@ -303,8 +313,6 @@ class SiteSearch
                  search_view.render_writeup_difficulty_badge(metadata, context: :article),
                  *search_view.render_writeup_category_badges(metadata, context: :article) ].compact
       passages.concat([ "Tags", *badges.flat_map { |badge| SiteSearchPassages.extract(badge) } ])
-      authors = search_view.send(:writeup_authors, metadata)
-      passages.concat([ "Challenge by", *author_passages(authors) ]) if authors.any?
       hints = search_view.render_writeup_hints(metadata)
       passages.concat(SiteSearchPassages.extract(Nokogiri::HTML.fragment(hints).at_css(".writeup-hints-summary"))) if hints
       passages.concat([ "About this writeup", metadata["reader_summary"] ]) if metadata["reader_summary"].present?
