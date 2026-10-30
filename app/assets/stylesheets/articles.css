@@ -292,6 +292,11 @@
     text-align: left;
 }
 
+.content-page .article-meta-panel .content-author-list {
+    justify-content: flex-start;
+    gap: 0.42rem;
+}
+
 .content-page .article-meta-panel .writeup-article-actions {
     display: grid;
     align-items: center;

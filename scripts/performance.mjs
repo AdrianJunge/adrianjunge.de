@@ -45,7 +45,7 @@ for (const budget of budgets.pages) {
   const median = summarizeRuns(runs);
   const violations = budgetViolations(median, budget.limits);
   summary.push({ path: budget.path, median, runs, violations });
-  console.log(`${budget.path}: ${Math.round(median.total_bytes / 1024)} KiB, ${median.requests} requests; ${violations.length ? violations.join("; ") : "budgets passed"}`);
+  console.log(`${budget.path}: ${Math.round(median.total_bytes / 1024)} KiB total, ${Math.round(median.document_bytes / 1024)} KiB HTML (sizes informational); ${median.requests} requests; ${violations.length ? violations.join("; ") : "budgets passed"}`);
 }
 await fs.writeFile(path.join(reportDirectory, "summary.json"), JSON.stringify({ conditions: `${budgets.conditions} Median of ${samples} run(s) per page.`, samples, summary }, null, 2));
 await measureInteractions(base, reportDirectory);

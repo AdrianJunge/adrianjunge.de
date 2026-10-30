@@ -524,28 +524,26 @@
 }
 
 .content-author-list {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
     min-width: 0;
+    max-width: 100%;
 }
 
 .content-page .blog-post-author-link,
 .landing-page .landing-writeup-cards .blog-post-author-link {
-    display: inline-block;
-    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
     min-height: 2rem;
-    padding: 0.25rem 0;
+    padding: 0.25rem;
     color: #7dd3fc;
     font-weight: 800;
     text-decoration: none;
-}
-
-/* Expand short names' tap targets without adding space before punctuation. */
-.content-page .blog-post-author-link::before,
-.landing-page .landing-writeup-cards .blog-post-author-link::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 50%;
-    width: max(100%, 2rem);
-    transform: translateX(-50%);
 }
 
 .content-page .blog-post-author-link:hover,

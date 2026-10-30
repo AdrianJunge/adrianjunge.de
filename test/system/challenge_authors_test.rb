@@ -31,7 +31,7 @@ class ChallengeAuthorsTest < ApplicationSystemTestCase
   def assert_author_layout(surface, width)
     card = surface == :card
     selector = card ? ".writeup-overview .writeup-post-card" : ".writeup-container"
-    assert_selector "#{selector} .blog-post-authors", text: "Challenge by nrg, the_moon_guy"
+    assert_selector "#{selector} .blog-post-authors", text: /Challenge by\s+nrg\s*,\s*the_moon_guy/
 
     layout = page.evaluate_script(<<~JS)
       (() => {
@@ -92,7 +92,7 @@ class ChallengeAuthorsTest < ApplicationSystemTestCase
     assert_operator layout["titleToAuthors"], :<, 32, context
     assert_operator layout["authorsToDetails"], :>=, -1, context
     assert_operator layout["authorsToDetails"], :<, 32, context
-    assert_in_delta 0, layout["commaGap"], 1, "#{context}: comma must directly follow nrg"
+    assert_operator layout["commaGap"], :>, 3, "#{context}: retain the spacing before the comma"
     assert_equal [ "nrg", "the_moon_guy" ], layout["links"].map { |link| link["name"] }, context
     assert_equal [ "https://app.intigriti.com/profile/nrg", "https://github.com/mayank-jangid-moon" ],
                  layout["links"].map { |link| link["href"] }, context

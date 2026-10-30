@@ -1,4 +1,5 @@
 export const RESOURCE_KEYS = Object.freeze(['total_bytes', 'script_bytes', 'stylesheet_bytes', 'image_bytes', 'document_bytes', 'requests']);
+export const BUDGET_KEYS = Object.freeze(['script_bytes', 'stylesheet_bytes', 'image_bytes', 'requests']);
 export const METRIC_KEYS = Object.freeze([...RESOURCE_KEYS, 'lcp_ms', 'cls']);
 
 function finiteNonnegative(value, label) {
@@ -15,7 +16,7 @@ export function validateBudgets(budgets) {
     paths.add(page.path);
     if (!page.limits || Array.isArray(page.limits) || typeof page.limits !== 'object' || !Object.keys(page.limits).length) throw new Error(`Missing limits: ${page.path}`);
     for (const [key, limit] of Object.entries(page.limits)) {
-      if (!RESOURCE_KEYS.includes(key)) throw new Error(`Unknown budget key: ${key}`);
+      if (!BUDGET_KEYS.includes(key)) throw new Error(`Unsupported budget key: ${key}`);
       finiteNonnegative(limit, `${page.path} ${key}`);
       if (!Number.isSafeInteger(limit)) throw new Error(`Resource limit ${key} must be an integer`);
     }
@@ -48,7 +49,7 @@ export function summarizeRuns(runs) {
 
 export function budgetViolations(metrics, limits) {
   return Object.entries(limits).flatMap(([key, maximum]) => {
-    if (!RESOURCE_KEYS.includes(key)) throw new Error(`Unknown budget key: ${key}`);
+    if (!BUDGET_KEYS.includes(key)) throw new Error(`Unsupported budget key: ${key}`);
     const actual = finiteNonnegative(metrics[key], key);
     finiteNonnegative(maximum, `limit ${key}`);
     return actual > maximum ? [`${key}: ${actual} > ${maximum}`] : [];

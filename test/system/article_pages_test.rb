@@ -227,6 +227,7 @@ class ArticlePagesTest < ApplicationSystemTestCase
   end
 
   test "ctf solve counts and points appear after reading time" do
+    page.current_window.resize_to(1440, 1200)
     post = ctf_post_with_challenge_stats
     stats_label = challenge_stats_label(post[:metadata])
     event_url = writeup_event_url_for(post)
@@ -242,13 +243,13 @@ class ArticlePagesTest < ApplicationSystemTestCase
     visit post[:link]
 
     assert_selector ".post-meta-line", text: /#{Regexp.escape(stats_label)}/
+    assert_selector ".post-meta-line .post-meta-separator", count: 2
     assert_match(/min read\s*·\s*#{Regexp.escape(stats_label)}/, find(".post-meta-line").text.squish)
     assert_selector ".post-meta-line time[datetime='#{post[:metadata].fetch('published')}']",
                     text: ContentDate.display_label(post[:metadata].fetch("published"))
     page.current_window.resize_to(390, 844)
-    assert_equal [ "none", "none" ], page.evaluate_script(<<~JS)
-      [...document.querySelectorAll('.post-meta-separator')].map(node => getComputedStyle(node).display)
-    JS
+    assert_no_selector ".post-meta-line .post-meta-separator"
+    assert_match(/min read\s+#{Regexp.escape(stats_label)}/, find(".post-meta-line").text.squish)
     assert_selector ".writeup-year-link[href='#{event_url}'][target='_blank'][rel='noopener noreferrer']",
                     text: /#{Regexp.escape(post[:which].upcase)}-#{Regexp.escape(event_year.to_s)}/
   end

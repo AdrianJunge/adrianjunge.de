@@ -17,11 +17,10 @@ class ContentCardAccessibilityTest < ApplicationSystemTestCase
           [...document.querySelectorAll('.blog-post-author-link')].map(link => {
             link.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
             const rect = link.getBoundingClientRect();
-            const tapTarget = getComputedStyle(link, '::before');
             const offsets = [[0, 0], [0, -11], [0, 11], [-11, 0], [11, 0]];
             return {
               name: link.textContent.trim(),
-              width: Math.max(rect.width, parseFloat(tapTarget.width) || 0),
+              width: rect.width,
               height: rect.height,
               hits: offsets.map(([x, y]) => link.contains(document.elementFromPoint(
                 rect.left + rect.width / 2 + x, rect.top + rect.height / 2 + y
