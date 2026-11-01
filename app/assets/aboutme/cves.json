@@ -1,5 +1,324 @@
 [
   {
+    "id": "ffmpeg-huffyuv-short-bgr-predictor-heap-disclosure",
+    "title": "FFmpeg",
+    "subtitle": "Uninitialized heap memory disclosure in the Huffyuv decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 2.3 through 9.0.2 could expose heap memory when decoding a short packed-BGR Huffyuv bitstream. If entropy data ended early, decode_slice() could add uninitialized s->temp[0] bytes to BGR24 or BGRA output pixels, leaking heap contents through decoded frames.",
+    "tags": [
+      "Moderate",
+      "FFmpeg",
+      {
+        "label": "CVE-2026-120247",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-120247"
+      },
+      {
+        "label": "CWE-908",
+        "url": "https://cwe.mitre.org/data/definitions/908.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24869"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/7c73707355708c846f718cca90096bc1a33c8989"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-2.3-through-9.0.2-huffyuv-decoder-uninitialized-heap-memory-disclosure"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-09-22",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-10-04",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24869"
+      },
+      {
+        "date": "2026-10-11",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24869"
+      },
+      {
+        "date": "2026-10-31",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-11-01",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-120247"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-cdxl-ham-partial-stack-palette-disclosure",
+    "title": "FFmpeg",
+    "subtitle": "Uninitialized stack palette disclosure in the CDXL HAM decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 4.4 through 9.0.2 could copy uninitialized CDXL HAM palette entries from the stack into decoded BGR24 pixels. A crafted type-0 CDXL image could select entries left unwritten by a partial palette, exposing stack bytes and pointer fragments.",
+    "tags": [
+      "Moderate",
+      "FFmpeg",
+      {
+        "label": "CVE-2026-120246",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-120246"
+      },
+      {
+        "label": "CWE-457",
+        "url": "https://cwe.mitre.org/data/definitions/457.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24856"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/47313ad3f9f33b892384b976fb7c09b3c85fd74e"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-4.4-through-9.0.2-uninitialized-memory-disclosure-via-cdxl-ham-decoder"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-09-22",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-10-02",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24856"
+      },
+      {
+        "date": "2026-10-05",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24856"
+      },
+      {
+        "date": "2026-10-31",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-11-01",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-120246"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-sunrast-short-paletted-heap-disclosure",
+    "title": "FFmpeg",
+    "subtitle": "Uninitialized heap memory disclosure in the Sun Raster decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 0.10 through 9.0.2 could expose heap memory while decoding truncated 1-bit or 4-bit paletted Sun Raster images. The decoder expanded unwritten bytes in a temporary bitmap into PAL8 output pixels, revealing stale heap contents such as allocator data.",
+    "tags": [
+      "Moderate",
+      "FFmpeg",
+      {
+        "label": "CVE-2026-120245",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-120245"
+      },
+      {
+        "label": "CWE-908",
+        "url": "https://cwe.mitre.org/data/definitions/908.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24877"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/356a391bf57df2fb80fd61f2821c8c83d15ce180"
+      },
+      {
+        "label": "Additional patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/66b6ca270b33fd74367d7d371f6de16ec664446e"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-0.10-through-9.0.2-uninitialized-memory-disclosure-via-sun-raster-decoder"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-09-22",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-10-04",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24877"
+      },
+      {
+        "date": "2026-10-10",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24877"
+      },
+      {
+        "date": "2026-10-12",
+        "title": "Additional Sun Raster palette-read fix committed.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/66b6ca270b33fd74367d7d371f6de16ec664446e"
+      },
+      {
+        "date": "2026-10-31",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-11-01",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-120245"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-pcx-short-rle-scanline-heap-disclosure",
+    "title": "FFmpeg",
+    "subtitle": "Uninitialized heap memory disclosure in the PCX decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 2.1 through 9.0.2 could expose heap memory when a crafted PCX image ended its RLE data before completing a scanline. The decoder still copied the full scanline from an incompletely written av_malloc() buffer into visible output pixels.",
+    "tags": [
+      "Moderate",
+      "FFmpeg",
+      {
+        "label": "CVE-2026-120244",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-120244"
+      },
+      {
+        "label": "CWE-908",
+        "url": "https://cwe.mitre.org/data/definitions/908.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24868"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/ecd5dfc308a164757e7f25b1afefd8db21b43cf9"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-2.1-through-9.0.2-uninitialized-memory-leak-via-pcx-decoder"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-09-22",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-10-04",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24868"
+      },
+      {
+        "date": "2026-10-11",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24868"
+      },
+      {
+        "date": "2026-10-31",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-11-01",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-120244"
+      }
+    ]
+  },
+  {
+    "id": "ffmpeg-g2meet-kempf-stack-palette-disclosure",
+    "title": "FFmpeg",
+    "subtitle": "Uninitialized stack palette disclosure in the Go2Meeting decoder",
+    "icon": "other/ffmpeg.png",
+    "summary": "FFmpeg 2.0 through 9.0.2 could leak stack memory from a short Kempf palette in a crafted G2M3 or G2M4 stream. Out-of-range palette indices could make kempf_restore_buf() copy uninitialized stack bytes, including pointers or stack guards, into decoded output.",
+    "tags": [
+      "Moderate",
+      "FFmpeg",
+      {
+        "label": "CVE-2026-120243",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-120243"
+      },
+      {
+        "label": "CWE-457",
+        "url": "https://cwe.mitre.org/data/definitions/457.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Repository",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg"
+      },
+      {
+        "label": "Pull request",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24858"
+      },
+      {
+        "label": "Patch commit",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/commit/edad2d0dafcf44fa315eab716fd0183ce808053b"
+      },
+      {
+        "label": "Advisory source",
+        "url": "https://www.vulncheck.com/advisories/ffmpeg-2.0-through-9.0.2-information-disclosure-via-g2m-kempf-palette"
+      }
+    ],
+    "timeline": [
+      {
+        "date": "2026-09-22",
+        "title": "Reported the vulnerability to the FFmpeg security team."
+      },
+      {
+        "date": "2026-10-03",
+        "title": "Fix pull request created.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24858"
+      },
+      {
+        "date": "2026-10-10",
+        "title": "Fix pull request merged.",
+        "url": "https://code.ffmpeg.org/FFmpeg/FFmpeg/pulls/24858"
+      },
+      {
+        "date": "2026-10-31",
+        "title": "Requested a CVE through VulnCheck."
+      },
+      {
+        "date": "2026-11-01",
+        "title": "CVE published.",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-120243"
+      }
+    ]
+  },
+  {
     "id": "suitecrm-portal-get-entry-list-sql-injection",
     "title": "SuiteCRM",
     "subtitle": "SQL injection through the legacy SOAP portal_get_entry_list method",
