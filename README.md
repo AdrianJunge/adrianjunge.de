@@ -28,6 +28,7 @@ bin/check cross-browser    # Firefox and WebKit
 bin/check mobile           # Chromium/WebKit touch and viewport checks
 bin/check performance      # Production build, budgets and screenshots
 bin/check --help           # All modes, including images and dependency audits
+bin/check-ci               # Locked setup, all checks, production Docker build and container check
 RAILS_ENV=test bin/rails runner scripts/profile_content.rb  # Catalog timing
 ```
 

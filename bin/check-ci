@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+app_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$app_root"
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  printf '%s\n' 'Usage: bin/check-ci' \
+    'Install locked dependencies and browsers, run bin/check all, then build and check the production container.' \
+    'Requires the project Ruby, Node 24+, Python 3.12 with venv, Chrome, GnuPG, DejaVu fonts, and Docker.'
+  exit
+fi
+if (( $# != 0 )); then
+  printf '%s\n' 'Usage: bin/check-ci (or --help)' >&2
+  exit 2
+fi
+
+required_ruby="$(< .ruby-version)"
+active_ruby="$(ruby -e 'print RUBY_VERSION' 2>/dev/null || true)"
+if [[ "$active_ruby" != "$required_ruby" ]] && command -v rbenv >/dev/null 2>&1; then
+  ruby_bin="$(rbenv root)/versions/$required_ruby/bin"
+  if [[ -x "$ruby_bin/ruby" ]]; then
+    export PATH="$ruby_bin:$PATH"
+  fi
+fi
+active_ruby="$(ruby -e 'print RUBY_VERSION' 2>/dev/null || true)"
+if [[ "$active_ruby" != "$required_ruby" ]]; then
+  printf 'Activate Ruby %s before running bin/check-ci (active: %s).\n' "$required_ruby" "${active_ruby:-unavailable}" >&2
+  exit 1
+fi
+
+for command in python3.12 docker gpg; do
+  if ! command -v "$command" >/dev/null 2>&1; then
+    printf 'Missing required command: %s\n' "$command" >&2
+    exit 1
+  fi
+done
+if ! command -v google-chrome >/dev/null 2>&1 && ! command -v google-chrome-stable >/dev/null 2>&1; then
+  printf '%s\n' 'Install Google Chrome for browser and performance checks.' >&2
+  exit 1
+fi
+font_dir="${IMAGE_FONT_DIR:-/usr/share/fonts/truetype/dejavu}"
+if [[ ! -r "$font_dir/DejaVuSans.ttf" || ! -r "$font_dir/DejaVuSans-Bold.ttf" ]]; then
+  printf '%s\n' 'Install DejaVu Sans fonts or set IMAGE_FONT_DIR to their directory.' >&2
+  exit 1
+fi
+docker info --format '{{.ServerVersion}}' >/dev/null
+
+ci_temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/adrianjunge-ci.XXXXXX")"
+trap 'rm -rf -- "$ci_temp_dir"' EXIT
+
+bin/setup --skip-server
+python3.12 -m venv "$ci_temp_dir/images"
+"$ci_temp_dir/images/bin/python" -m pip install -r scripts/images/requirements.txt
+node_modules/.bin/playwright install --with-deps chromium firefox webkit
+IMAGE_PYTHON="$ci_temp_dir/images/bin/python" bin/check all
+docker build --build-arg "RUBY_VERSION=$required_ruby" -t adrian-site:local .
+scripts/container-check.sh adrian-site:local
