@@ -1,18 +1,3 @@
-# Content
-- Writeup
-    - DHM
-        - DHM TV
-        - Perle einer Website
-        - proxy-foo
-    - Codewhite bzw Deadsecctf webmiau exploit aufschlüsseln aka CTF Writeup schreiben für Deadsecctf 2025
-    - googlectf
-        - mythos
-    - smileyctf
-        - teemo-v1
-            - **web/Teemo's Secret**
-            - Autor: Chara
-            - Description: O Teemo i wonder what have u looked at
-
 # Misc
 - Implement Webmention.io
 - Auf Raspberry Pi Server hosten und bei Heroku canceln (auto build pipeline aufbauen für pushes zu main branch)

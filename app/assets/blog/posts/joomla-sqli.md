@@ -8,12 +8,12 @@ categories:
     - SQLI
     - Joomla CMS
     - AI-Assisted Auditing
-published: "2026-06-13"
+published: "2026-06-26"
 ---
 
 # TL;DR
 
-A university lab sent me down a PHP rabbit hole, from [ChurchCRM](https://github.com/ChurchCRM/CRM) to [Joomla](https://github.com/joomla/joomla-cms) and two assigned CVEs. This is the story of that research, the role AI played in it, and what I learned along the way.
+A university lab sent me down a PHP rabbit hole, from [ChurchCRM](https://github.com/ChurchCRM/CRM) with 7 assigned CVEs to [Joomla](https://github.com/joomla/joomla-cms) being assigned 2 more CVEs. This is the story of that research, the role AI played in it, and what I learned along the way.
 
 # A Random PHP Detour
 
