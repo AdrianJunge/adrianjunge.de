@@ -60,7 +60,7 @@ class TimelineOrderControllerTest < ActionDispatch::IntegrationTest
       assert_select ".timeline-item:not([hidden])[data-filter-kind='writeup']", 3
       assert_select "[data-filter-count='timeline']", text: "6 of 12 items"
       assert_select ".timeline-item:not([hidden])[data-filter-kind='cve']", 0
-      assert_select ".timeline-year-group:not([hidden]) .timeline-year-count", text: "2 items", count: 1
+      assert_select ".timeline-year-group:not([hidden]) .timeline-year-count", text: "2 entries", count: 1
 
       get timeline_path, params: { view: "unknown" }
       assert_select "#timeline-view-filter option[value='all'][selected]", text: "All entries"

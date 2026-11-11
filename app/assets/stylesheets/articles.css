@@ -698,6 +698,19 @@
     word-break: inherit;
 }
 
+.content-page .markdown-content pre.command-example {
+    margin: 1.35rem auto;
+    padding: 1rem;
+}
+
+.content-page .markdown-content pre.command-example mark.command-placeholder {
+    padding: 0.08rem 0.25rem;
+    border-radius: 0.25rem;
+    background: #ca8a04;
+    color: #0b1524;
+    font-weight: 800;
+}
+
 .content-page .markdown-content pre code span {
     white-space: inherit;
 }

@@ -118,9 +118,10 @@ module SitePageHelpers
             const visibleCards = [...group.querySelectorAll('[data-filter-card="timeline"]')]
               .filter((card) => card.getAttribute('aria-hidden') !== 'true' && !card.hidden)
               .length;
-            const expected = `${visibleCards} ${visibleCards === 1 ? 'item' : 'items'}`;
+            const expected = `${visibleCards} ${visibleCards === 1 ? 'entry' : 'entries'}`;
 
-            return count && count.innerText.trim() === expected ? null : `${year}: expected ${expected}, got ${count?.innerText.trim()}`;
+            const actual = count?.innerText.trim().replace(/\s+/g, ' ');
+            return actual === expected ? null : `${year}: expected ${expected}, got ${actual}`;
           })
           .filter(Boolean);
       })()

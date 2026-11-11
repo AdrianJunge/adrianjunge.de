@@ -10,7 +10,9 @@ class TimelineOrderSystemTest < ApplicationSystemTestCase
     assert_selector ".content-filter-panel[data-initialized='true']"
     assert_selector "[data-filter-count='timeline']", count: 1, visible: :all
     assert_selector "[data-filter-reset='timeline']", count: 1, visible: :all
-    assert_no_selector ".content-filter-panel [data-filter-count], .content-filter-panel [data-filter-reset]", visible: :all
+    assert_selector ".content-filter-panel [data-filter-count='timeline']"
+    assert_selector ".content-filter-panel [data-filter-reset='timeline']", visible: :all
+    assert_no_selector ".timeline-panel [data-filter-count], .timeline-panel [data-filter-reset]", visible: :all
     assert_timeline_summary total, total
     assert_selector :select, "Order", selected: "Oldest first"
     assert_timeline_order :oldest
@@ -21,6 +23,7 @@ class TimelineOrderSystemTest < ApplicationSystemTestCase
     find("[data-filter-search='timeline']").fill_in(with: "picoCTF")
     assert_selector ".timeline-item", count: 1
     assert_timeline_summary 1, total
+    assert_selector ".timeline-year-group:not([hidden]) .timeline-year-header", text: /20\d{2}\s+1 entry/
     filtered_url = page.current_url
 
     select "Newest first", from: "Order"
@@ -57,7 +60,7 @@ class TimelineOrderSystemTest < ApplicationSystemTestCase
     assert_timeline_summary 0, total
     assert_no_selector "ul.timeline[data-filter-results='timeline']"
     assert_selector ".timeline-panel [data-filter-empty='timeline']"
-    find(".timeline-results-summary [data-filter-reset='timeline']").click
+    find(".content-filter-panel [data-filter-reset='timeline']").click
     assert_timeline_summary total, total
     assert_selector "ul.timeline[data-filter-results='timeline']"
     assert_no_selector ".timeline-panel [data-filter-empty='timeline']"
@@ -75,7 +78,7 @@ class TimelineOrderSystemTest < ApplicationSystemTestCase
   private
 
   def assert_timeline_summary(visible, total)
-    assert_selector ".timeline-panel .timeline-results-summary [data-filter-count='timeline'][role='status'][aria-live='polite'][aria-atomic='true']",
+    assert_selector ".content-filter-panel .content-filter-state [data-filter-count='timeline'][role='status'][aria-live='polite'][aria-atomic='true']",
                     exact_text: filter_count_text(visible, total, separator: "of")
   end
 

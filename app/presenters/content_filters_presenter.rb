@@ -1,14 +1,16 @@
 class ContentFiltersPresenter
   COMMON_TAGS = [ "Blog post", "CTF writeup", "CVE", "Bug bounty", "Certificate", "Talk" ].freeze
 
-  attr_reader :scope, :years, :total, :search_id, :clear_id, :search_value, :placeholder, :year_label,
-              :common_group, :additional_groups, :aliases, :order, :view, :external_status
+  attr_reader :scope, :years, :total, :visible, :separator, :search_id, :clear_id, :search_value, :placeholder, :year_label,
+              :common_group, :additional_groups, :aliases, :order, :view
 
   def initialize(scope:, years: [], tags: [], tag_groups: [], total: 0, search_id: nil, clear_id: nil,
-                 search_value: nil, placeholder: "Search...", year_label: "Year", order: nil, view: nil, external_status: false)
+                 visible: nil, separator: "/", search_value: nil, placeholder: "Search...", year_label: "Year", order: nil, view: nil)
     @scope = scope
     @years = clean_values(years).uniq.sort.reverse
     @total = total.to_i
+    @visible = visible.nil? ? @total : visible.to_i
+    @separator = separator
     @search_id = search_id || "#{scope}-search-input"
     @clear_id = clear_id || "#{scope}-search-clear"
     @search_value = search_value
@@ -16,7 +18,6 @@ class ContentFiltersPresenter
     @year_label = year_label
     @order = order
     @view = view
-    @external_status = external_status
     @aliases = ContentTagTaxonomy::LABEL_ALIASES
 
     groups = normalize_groups(tag_groups)

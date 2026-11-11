@@ -32,19 +32,18 @@
              tags: @filter_tags,
              tag_groups: @filter_tag_groups,
              total: @timeline_items.length,
+             visible: @timeline_visible_count,
+             separator: "of",
              search_id: "timeline-search-input",
              clear_id: "timeline-search-clear",
              search_value: @initial_query,
              order: @timeline_order,
              view: @timeline_view,
-             external_status: true,
              placeholder: "Search writeups, blog posts, CVEs, talks, achievements..."
            ) %>
 
   <div class="timeline-shell">
     <div class="timeline-panel">
-      <%= render "shared/content_filter_state", scope: "timeline", total: @timeline_items.length,
-                 visible: @timeline_visible_count, separator: "of", class_name: "timeline-results-summary" %>
       <ul class="timeline" data-filter-results="timeline">
         <% @timeline.each do |year, items| %>
           <% visible_count = items.count { |item| @timeline_view != "posts" || %w[blog writeup].include?(item[:kind]) } %>
@@ -52,7 +51,7 @@
             <div class="timeline-year-header">
               <h2><%= year %></h2>
               <span class="timeline-year-count" data-filter-group-count="timeline">
-                <%= visible_count %> <%= visible_count == 1 ? "item" : "items" %>
+                <%= visible_count %> <%= visible_count == 1 ? "entry" : "entries" %>
               </span>
             </div>
 

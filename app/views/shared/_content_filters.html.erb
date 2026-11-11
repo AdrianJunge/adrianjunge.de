@@ -64,8 +64,7 @@
       </details>
     <% end %>
   <% end %>
-  <% unless filters.external_status %>
-    <%= render "shared/content_filter_state", scope: filters.scope, total: filters.total %>
-  <% end %>
+  <%= render "shared/content_filter_state", scope: filters.scope, total: filters.total,
+             visible: filters.visible, separator: filters.separator %>
 </div>
 <noscript><style>.content-filter-panel { display: none; }</style><p class="content-filter-help"><%= filters.view == "posts" ? "Blog posts and CTF writeups are shown." : "All entries are shown." %> Use your browser’s Find command to search this page.<% if filters.view == "posts" %> <%= link_to "Show all entries", timeline_path %>.<% end %></p></noscript>

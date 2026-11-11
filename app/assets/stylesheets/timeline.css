@@ -16,33 +16,6 @@
     overflow: hidden;
 }
 
-.content-page.timeline-page .timeline-results-summary {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    margin: var(--timeline-padding) var(--timeline-padding) 0;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.24);
-}
-
-.timeline-page .timeline-results-summary [data-filter-count] {
-    grid-column: 2;
-    text-align: center;
-    color: #a5f3fc;
-    font-size: clamp(1.1rem, 2vw, 1.3rem);
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.4;
-}
-
-.timeline-page .timeline-results-summary .content-filter-reset {
-    grid-column: 3;
-    justify-self: end;
-}
-
-.timeline-page .timeline-results-summary .content-filter-reset:not(.is-visible) {
-    display: none;
-}
-
 .timeline-shell {
     width: calc(100% - 2rem);
     max-width: 72rem;
@@ -82,9 +55,9 @@
 .timeline-page .timeline-year-header {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.75rem;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
     min-width: 0;
 }
 
@@ -97,18 +70,13 @@
 }
 
 .timeline-page .timeline-year-count {
-    display: inline;
-    min-height: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    color: #fef3c7;
-    background: transparent;
-    box-shadow: none;
-    cursor: default;
+    padding-left: 0.5rem;
+    border-left: 1px solid rgba(148, 163, 184, 0.45);
+    color: rgba(203, 213, 225, 0.8);
+    font-size: 0.875rem;
     font-weight: 700;
-    transition: none;
-    user-select: none;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
     white-space: nowrap;
 }
 
@@ -302,15 +270,6 @@
 }
 
 @media (max-width: 720px) {
-    .content-page.timeline-page .timeline-results-summary {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .timeline-page .timeline-results-summary [data-filter-count],
-    .timeline-page .timeline-results-summary .content-filter-reset {
-        grid-column: 1;
-    }
-
     .timeline-shell {
         width: calc(100% - 2rem);
         margin-right: auto;

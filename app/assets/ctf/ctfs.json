@@ -17,13 +17,12 @@
     "website": "https://sekai.team/",
     "description": "SekaiCTF is an annual CTF competition, hosted by PROJECT SEKAI - a well-known international CTF team. The competition itself is known for its sizable prize pools and for serving as a prequalifier for events like MaltaCTF and XCTF."
   },
-  // "DHM": {
-  //   "directory": "dhm",
-  //   "logo": "ctf/dhm.png",
-  //   "writeups": "/ctf/dhm",
-  //   "website": "https://hacking-meisterschaft.de/",
-  //   "description": "The DHM is the annual CTF final round of the CSCG qualifiers, where teams of 6 members compete against each other for the chance to qualify for the ECSC."
-  // },
+  "DHM": {
+    "directory": "dhm",
+    "logo": "ctf/dhm.png",
+    "website": "https://hacking-meisterschaft.de/",
+    "description": "The Deutsche Hacking-Meisterschaft brings together CSCG finalists and qualified DACH teams for an onsite CTF in Germany. It also determines who will represent Germany at the European Cyber Security Challenge (ECSC)."
+  },
   "KITCTF":{
     "directory": "kitctf",
     "logo": "ctf/kitctf.png",

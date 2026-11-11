@@ -193,6 +193,9 @@
 }
 
 .content-page .content-filter-state [data-filter-count] {
+    color: #a5f3fc;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
     cursor: default;
     user-select: none;
 }

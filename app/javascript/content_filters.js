@@ -336,7 +336,7 @@ function initFilterPanel(panel) {
       const groupVisible = groupCards.filter(card => card.getAttribute('aria-hidden') !== 'true').length;
       group.hidden = groupCards.length > 0 && groupVisible === 0;
       if (groupCount) {
-        const value = `${groupVisible} ${groupVisible === 1 ? 'item' : 'items'}`;
+        const value = `${groupVisible} ${groupVisible === 1 ? 'entry' : 'entries'}`;
         if (groupCount.textContent !== value) groupCount.textContent = value;
       }
     });
