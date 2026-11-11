@@ -32,19 +32,23 @@ class ArticleReadingTest < ActionDispatch::IntegrationTest
   end
 
   test "reader summaries describe writeups in SEO without replacing the original challenge prompt" do
-    post = production_content_repository.ctf_posts.find { |candidate| candidate[:metadata]["reader_summary"].present? }
-    assert post, "Expected an authored reader summary"
-    get post[:link]
-    assert_response :success
-    assert_select "meta[name='description'][content=?]", post[:description]
-    assert_select "meta[property='og:description'][content=?]", post[:description]
-    assert_select ".article-description[aria-label='About this writeup'] h2", text: "About this writeup"
-    assert_select ".article-description[aria-label='About this writeup'] p", text: post[:metadata]["reader_summary"].squish
-    assert_select ".article-description[aria-label='Challenge description'] p", text: post[:metadata]["description"].squish
+    repository = fixture_content_repository
+    post = repository.ctf_post("democtf", "Winner")
+    assert_equal post[:metadata]["reader_summary"], post[:description]
 
-    get "/ctf/#{post[:directory]}"
-    assert_response :success
-    assert_select ".blog-post-description", text: post[:metadata]["reader_summary"].squish
-    assert_select ".blog-post-description", text: post[:metadata]["description"].squish, count: 0
+    with_stubbed_content_repository(repository) do
+      get post[:link]
+      assert_response :success
+      assert_select "meta[name='description'][content=?]", post[:description]
+      assert_select "meta[property='og:description'][content=?]", post[:description]
+      assert_select ".article-description[aria-label='About this writeup'] h2", text: "About this writeup"
+      assert_select ".article-description[aria-label='About this writeup'] p", text: post[:metadata]["reader_summary"].squish
+      assert_select ".article-description[aria-label='Challenge description'] p", text: post[:metadata]["description"].squish
+
+      get "/ctf/#{post[:directory]}"
+      assert_response :success
+      assert_select ".blog-post-description", text: post[:metadata]["reader_summary"].squish
+      assert_select ".blog-post-description", text: post[:metadata]["description"].squish, count: 0
+    end
   end
 end
