@@ -485,6 +485,21 @@
     "src": "variants/ctf/writeups/cscg/vidplow/movie.webp",
     "width": 1826
   },
+  "ctf/writeups/dhm/dhmtv/landing_page.png": {
+    "height": 1282,
+    "src": "variants/ctf/writeups/dhm/dhmtv/landing_page.webp",
+    "width": 2481
+  },
+  "ctf/writeups/dhm/dhmtv/landing_page_unavailable.png": {
+    "height": 1277,
+    "src": "ctf/writeups/dhm/dhmtv/landing_page_unavailable.png",
+    "width": 2467
+  },
+  "ctf/writeups/dhm/proxyfoo/h2c_upgrade.png": {
+    "height": 1070,
+    "src": "variants/ctf/writeups/dhm/proxyfoo/h2c_upgrade.webp",
+    "width": 1470
+  },
   "ctf/writeups/dvctf/tarboom/flag.png": {
     "height": 557,
     "src": "variants/ctf/writeups/dvctf/tarboom/flag.webp",
@@ -727,6 +742,25 @@
     "height": 96,
     "src": "other/achievement.svg",
     "width": 96
+  },
+  "other/bug-bounty.png": {
+    "height": 384,
+    "src": "variants/other/bug-bounty-384.webp",
+    "variants": [
+      {
+        "path": "variants/other/bug-bounty-96.webp",
+        "width": 96
+      },
+      {
+        "path": "variants/other/bug-bounty-192.webp",
+        "width": 192
+      },
+      {
+        "path": "variants/other/bug-bounty-384.webp",
+        "width": 384
+      }
+    ],
+    "width": 384
   },
   "other/bug-bounty.svg": {
     "height": 96,

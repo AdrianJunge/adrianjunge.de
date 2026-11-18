@@ -11,7 +11,9 @@
   </summary>
 
   <div class="aboutme-section-body">
-    <% if entries.any? %>
+    <% if section[:kind] == "bug-bounty" %>
+      <%= render "aboutme/bug_bounties" %>
+    <% elsif entries.any? %>
       <div class="<%= section[:grid_class] %>">
         <% entries.each do |entry| %>
           <%= render partial: "aboutme/card", locals: { entry: entry, kind: section[:kind] } %>

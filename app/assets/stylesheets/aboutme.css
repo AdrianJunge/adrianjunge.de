@@ -195,6 +195,90 @@ a.aboutme-stat:focus-visible {
     white-space: nowrap;
 }
 
+.aboutme-bounty-card {
+    inline-size: min(100%, 38rem);
+    margin-inline: auto;
+}
+
+.bounty-counts {
+    --bounty-dot-size: 0.62rem;
+    --bounty-dot-gap: 0.65rem;
+    display: grid;
+    margin: 0;
+    line-height: 1.3;
+    hyphens: auto;
+    overflow-wrap: anywhere;
+}
+
+.bounty-counts > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-inline-size: 0;
+    align-items: center;
+    gap: 0.2rem 0.75rem;
+    padding-block: 0.6rem;
+}
+
+.bounty-counts > div + div {
+    border-block-start: 1px solid rgba(125, 164, 209, 0.3);
+}
+
+.bounty-counts dt {
+    display: flex;
+    grid-column: 1;
+    grid-row: 1;
+    align-items: center;
+    gap: var(--bounty-dot-gap);
+    min-inline-size: 0;
+    font-weight: 700;
+}
+
+.bounty-category dt::before {
+    flex: none;
+    inline-size: var(--bounty-dot-size);
+    block-size: var(--bounty-dot-size);
+    border-radius: 50%;
+    background: var(--bounty-dot-color);
+    box-shadow: 0 0 0 0.14rem rgba(255, 255, 255, 0.09);
+    content: "";
+}
+
+.bounty-high { --bounty-dot-color: #fda4a4; }
+.bounty-medium { --bounty-dot-color: #f5c675; }
+.bounty-low { --bounty-dot-color: #86d2b2; }
+.bounty-informational { --bounty-dot-color: #7dd3fc; }
+
+.bounty-counts dd {
+    margin: 0;
+}
+
+.bounty-counts .aboutme-stat-value {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}
+
+.bounty-counts .aboutme-card-summary {
+    grid-column: 1;
+    grid-row: 2;
+    padding-inline-start: calc(var(--bounty-dot-size) + var(--bounty-dot-gap));
+}
+
+.bounty-counts > div:has(.aboutme-card-summary) .aboutme-stat-value {
+    grid-row: 1 / 3;
+}
+
+.bounty-counts > .bounty-total {
+    border-block-start: 1px solid rgba(125, 164, 209, 0.48);
+}
+
+.bounty-total .aboutme-stat-value {
+    color: #fef3c7;
+    font-variant-numeric: tabular-nums;
+}
+
 .aboutme-finding-grid,
 .aboutme-achievement-grid {
     display: grid;

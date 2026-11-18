@@ -145,7 +145,7 @@ class SiteSearchTest < ActiveSupport::TestCase
   test "every shipped public source has a unique canonical document" do
     repository = production_content_repository
     documents = SiteSearch.new(repository: repository).documents
-    expected = %w[/ /about /blog /ctf /timeline]
+    expected = %w[/ /about /about#bug-bounties /blog /ctf /timeline]
     expected.concat((repository.blog_posts + repository.ctf_posts).pluck(:link))
     expected.concat(repository.ctf_events.map { |event| event[:metadata].fetch("writeups") })
     expected.concat(repository.timeline_events.map { |event| "/timeline#timeline-event-#{event.fetch('id')}" })
@@ -178,7 +178,8 @@ class SiteSearchTest < ActiveSupport::TestCase
       "Forschungszentrum" => "/about", "CVE-2026-97377" => "/about#suitecrm-portal-get-entry-list-sql-injection",
       "GLIBC dynamic symbol poisoning" => "/about#scanwich-station", "first attempt practical exam" => "/about#htb-cpts",
       "homework" => "/about#joomla-sqli", "Deutsche Hacking Meisterschaft" => "/about#dhm",
-      "annual German" => "/ctf#ctf-event-cscg", "LeetCode KITCTF" => "/about"
+      "annual German" => "/ctf#ctf-event-cscg", "LeetCode KITCTF" => "/about",
+      "third-party problem" => "/about#bug-bounties"
     }.each do |query, prefix|
       assert search.search(query).any? { |result| result[:url].start_with?(prefix) }, query
     end

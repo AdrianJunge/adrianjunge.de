@@ -182,7 +182,10 @@ class SiteSearch
           tags: tags, sections: sections)
       end
     end
-    records
+    bounty_card = search_view.render(partial: "aboutme/bug_bounties")
+    records << document(title: "Bug bounties", url: "/about#bug-bounties", kind: "About section",
+      icon: ContentIconRegistry.for("bug-bounty"), tags: [ "Bug bounty", "Bug bounty reports" ],
+      sections: [ SiteSearchPassages.section(SiteSearchPassages.extract(bounty_card)) ])
   end
 
   def event_documents
@@ -225,7 +228,7 @@ class SiteSearch
         sections: [ SiteSearchPassages.section([
           "#{SiteProfile.name} (#{SiteProfile.handle})", "Welcome to my bug collection 🐛",
           SiteProfile.landing_lead,
-          "Timeline", "About me", "KITCTF", "KIT", "PGP key", SiteProfile.bug_bounty_count, "Bounties"
+          "Timeline", "About me", "KITCTF", "KIT", "PGP key", SiteProfile.bug_bounty_count, "Bug bounties"
         ]), SiteSearchPassages.section([ SiteProfile.landing_tagline ], anchor: "typing") ]),
       document(title: "Blog", url: "/blog", kind: "Page", icon: "task-bar/blog.svg", tags: [ "Blog posts", "Writing" ],
         text: SitePageCopy.description(:blog)),
@@ -252,8 +255,8 @@ class SiteSearch
 
   def profile_revision
     [ SiteProfile.name, SiteProfile.handle, SiteProfile.description, SiteProfile.landing_lead, SiteProfile.landing_tagline,
-      SiteProfile.pgp_path, SiteProfile.modified, SiteProfile.social_links, SiteProfile.affiliations, SiteProfile.bug_bounty_count,
-      SitePageCopy::DESCRIPTIONS ]
+      SiteProfile.pgp_path, SiteProfile.modified, SiteProfile.social_links, SiteProfile.affiliations,
+      SiteProfile::BUG_BOUNTY_CATEGORIES, SitePageCopy::DESCRIPTIONS ]
   end
 
   def document(title:, url:, kind:, icon:, tags:, text: nil, sections: nil)

@@ -193,6 +193,51 @@ test('a search result on the current page closes search and opens its destinatio
   }
 });
 
+test('bug bounties are centered and fit a narrow screen with enlarged text', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/about');
+  await page.locator('.aboutme-stat[href="#bug-bounties"]').click();
+  const section = page.locator('#bug-bounties .aboutme-section-body');
+  const card = page.getByRole('article', { name: 'Bug bounties by category' });
+  const sectionBounds = await section.boundingBox();
+  const cardBounds = await card.boundingBox();
+  expect(Math.abs(cardBounds.x + cardBounds.width / 2 - sectionBounds.x - sectionBounds.width / 2)).toBeLessThanOrEqual(1);
+  const mediaBounds = await card.locator('.blog-post-card-logo').boundingBox();
+  const bodyBounds = await card.locator('.blog-post-card-details').boundingBox();
+  expect(mediaBounds.x + mediaBounds.width).toBeLessThanOrEqual(bodyBounds.x + 1);
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  await expect(card.getByText('Third-party code? Sounds like a third-party problem...')).toBeVisible();
+  await expect(card.locator('.bounty-pending')).toHaveCount(0);
+  const rowAlignment = await card.locator('.bounty-counts > div').evaluateAll(rows => rows.map(row => {
+    const label = row.querySelector('dt').getBoundingClientRect();
+    const count = row.querySelector('dd.aboutme-stat-value').getBoundingClientRect();
+    const reference = row.querySelector('.aboutme-card-summary') ? row.getBoundingClientRect() : label;
+    return Math.abs(reference.top + reference.height / 2 - count.top - count.height / 2);
+  }));
+  expect(Math.max(...rowAlignment)).toBeLessThanOrEqual(1);
+  const dotColors = await card.locator('.bounty-category dt').evaluateAll(labels =>
+    labels.map(label => getComputedStyle(label, '::before').backgroundColor));
+  expect(dotColors).toHaveLength(4);
+  expect(new Set(dotColors).size).toBe(4);
+  expect(dotColors).not.toContain('rgba(0, 0, 0, 0)');
+  const noteAlignment = await card.locator('.bounty-informational').evaluate(row => {
+    const textStart = element => {
+      const range = document.createRange();
+      range.selectNodeContents(element.firstChild);
+      return range.getBoundingClientRect().left;
+    };
+    return Math.abs(textStart(row.querySelector('dt')) - textStart(row.querySelector('.aboutme-card-summary')));
+  });
+  expect(noteAlignment).toBeLessThanOrEqual(1);
+  const informationalBounds = await card.locator('.bounty-informational').boundingBox();
+  const totalBounds = await card.locator('.bounty-total').boundingBox();
+  expect(totalBounds.y - informationalBounds.y - informationalBounds.height).toBeLessThanOrEqual(1);
+  const overflow = await card.locator('.bounty-counts').evaluate(element => element.scrollWidth - element.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+  await expectNoHorizontalOverflow(page);
+});
+
 test('About disclosures and timeline filters remain usable with touch', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('/about');

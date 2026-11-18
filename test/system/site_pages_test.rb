@@ -576,8 +576,6 @@ class SitePagesTest < ApplicationSystemTestCase
     JS
 
     assert_no_text "TBA"
-    assert_no_selector "#bug-bounties", visible: :all
-    assert_selector ".aboutme-stat:not(a) .aboutme-stat-value", text: SiteProfile.bug_bounty_count.to_s
     assert_selector_count "#cves article.aboutme-finding-card-static", cves.count { |entry| !about_finding_collapsible?(entry) }
     assert_selector_count "#cves article.aboutme-finding-card-cve > details.profile-card-details", cves.count { |entry| about_finding_collapsible?(entry) }
   end

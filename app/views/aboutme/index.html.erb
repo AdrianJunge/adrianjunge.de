@@ -1,12 +1,7 @@
+<% about_sections = about_profile_sections %>
 <% content_for :head do %>
   <% about_description = @about_info.fetch("description") %>
-  <% about_seo_items = [
-       { title: "CVEs", link: about_path(anchor: "cves") },
-       { title: "Created CTF challenges", link: about_path(anchor: "my-challenges") },
-       { title: "Certificates", link: about_path(anchor: "certificates") },
-       { title: "Talks", link: about_path(anchor: "talks") },
-       { title: "Relevant achievements", link: about_path(anchor: "achievements") }
-     ] %>
+  <% about_seo_items = about_sections.map { |section| { title: section[:title], link: about_path(anchor: section[:id]) } } %>
   <%= seo_meta_tags(
         title: "About #{SiteProfile.name}",
         description: about_description,
@@ -29,23 +24,13 @@
       ) %>
 <% end %>
 
-<% about_stats = about_profile_stats %>
-<% about_sections = about_profile_sections %>
-
 <% about_stats_content = capture do %>
   <div class="aboutme-stats" role="group" aria-label="Public security work summary">
-    <% about_stats.each do |stat| %>
-      <% if stat[:anchor] %>
-        <a href="#<%= stat[:anchor] %>" class="aboutme-stat" aria-label="Jump to <%= stat[:label] %>">
-          <span class="aboutme-stat-value"><%= stat[:value] %></span>
-          <span class="aboutme-stat-label"><%= stat[:label] %></span>
-        </a>
-      <% else %>
-        <div class="aboutme-stat">
-          <span class="aboutme-stat-value"><%= stat[:value] %></span>
-          <span class="aboutme-stat-label"><%= stat[:label] %></span>
-        </div>
-      <% end %>
+    <% about_sections.each do |section| %>
+      <a href="#<%= section[:id] %>" class="aboutme-stat">
+        <span class="aboutme-stat-value"><%= section[:count] %></span>
+        <span class="aboutme-stat-label"><%= section.fetch(:stat_label, section[:title]) %></span>
+      </a>
     <% end %>
   </div>
 <% end %>

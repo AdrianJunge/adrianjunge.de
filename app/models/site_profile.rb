@@ -9,12 +9,18 @@ module SiteProfile
   EMAIL = "stdin@adrianjunge.de".freeze
   PGP_PATH = "/pgp-vurlo.asc".freeze
   SOURCE_URL = "https://github.com/AdrianJunge/adrianjunge.de".freeze
-  BUG_BOUNTY_COUNT = 7
+  BUG_BOUNTY_CATEGORIES = [
+    { label: "High", count: 4 },
+    { label: "Medium", count: 2 },
+    { label: "Low", count: 2 },
+    { label: "Informational", count: 3, note: "Third-party code? Sounds like a third-party problem..." }
+  ].map(&:freeze).freeze
+  BUG_BOUNTY_COUNT = BUG_BOUNTY_CATEGORIES.sum { |category| category.fetch(:count) }
   # Update when editing profile copy, identity, or undated About information. These are
   # editorial dates, never deployment or checkout timestamps.
-  MODIFIED = "2026-10-29".freeze
+  MODIFIED = "2026-11-18".freeze
   # Update when editing visible landing-page copy.
-  LANDING_MODIFIED = "2026-10-28".freeze
+  LANDING_MODIFIED = "2026-11-18".freeze
   DESCRIPTION = "Security research, CVEs, bug bounties, CTF writeups, and technical notes by #{NAME}.".freeze
   LANDING_LEAD = "CTF player and computer science student creating writeups, collecting bounties and CVEs. Sometimes I lose myself in algorithmic challenges.".freeze
   LANDING_TAGLINE = "Teaching machines to misbehave.".freeze

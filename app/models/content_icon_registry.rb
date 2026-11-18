@@ -1,6 +1,6 @@
 class ContentIconRegistry
   ICONS = {
-    "blog" => "task-bar/blog.svg", "cve" => "other/cve.svg", "bug-bounty" => "other/bug-bounty.svg",
+    "blog" => "task-bar/blog.svg", "cve" => "other/cve.svg", "bug-bounty" => "other/bug-bounty.png",
     "certificate" => "other/certificate.svg", "talk" => "other/talk-slides.png",
     "achievement" => "other/achievement.svg", "challenge" => "ctf/kitctf.png",
     "timeline_event" => "task-bar/timeline.svg"

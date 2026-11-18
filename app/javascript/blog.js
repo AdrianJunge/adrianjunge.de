@@ -208,18 +208,21 @@ function initBlogTOC() {
 
   function finishInitialHashScroll() {
     if (!initialHashScrollInterrupted) {
-      correctCurrentHashScroll();
+      // Chrome may resolve a text fragment after load. Let native navigation
+      // settle before correcting the position for the sticky navigation.
+      window.setTimeout(() => {
+        if (!initialHashScrollInterrupted) correctCurrentHashScroll();
+        if (article?.dataset.mathState !== 'loading') removeInitialHashScrollInterruptionListeners();
+      }, 250);
+    } else if (article?.dataset.mathState !== 'loading') {
+      removeInitialHashScrollInterruptionListeners();
     }
 
-    if (article?.dataset.mathState !== 'loading') removeInitialHashScrollInterruptionListeners();
     window.setTimeout(restoreInitialHashScrollRestoration, 0);
   }
 
   if (shouldControlInitialHashScroll) {
     addInitialHashScrollInterruptionListeners();
-    window.requestAnimationFrame(() => {
-      if (!initialHashScrollInterrupted) correctCurrentHashScroll();
-    });
 
     if (document.readyState === 'complete') {
       finishInitialHashScroll();

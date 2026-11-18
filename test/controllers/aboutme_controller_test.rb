@@ -8,12 +8,22 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "main.aboutme-page"
-    assert_select ".aboutme-section:not([open])", 5
+    assert_select ".aboutme-section:not([open])", 6
     assert_select ".aboutme-section[open]", 0
-    assert_select "#bug-bounties", 0
-    assert_select ".aboutme-stat:not(a) .aboutme-stat-value", text: SiteProfile.bug_bounty_count.to_s
-    assert_select ".aboutme-stat:not(a) .aboutme-stat-label", text: "Bug bounties"
-    assert_select "a[href='#bug-bounties']", 0
+    categories = css_select("#cves + #bug-bounties .bounty-counts > .bounty-category").map do |group|
+      values = group.css("dd")
+      { label: group.at_css("dt").text.squish, count: Integer(values.first.text), note: values[1]&.text&.squish }.compact
+    end
+    assert_equal SiteProfile::BUG_BOUNTY_CATEGORIES, categories
+    total = categories.sum { |category| category.fetch(:count) }
+    assert_equal 11, total
+    assert_select "#bug-bounties h2", text: "Bug bounties"
+    assert_select "#bug-bounties .aboutme-section-count", text: "#{total} reports"
+    assert_select "#bug-bounties .bounty-total", text: "Total reports #{total}"
+    assert_select "#bug-bounties .bounty-pending", 0
+    assert_select "#bug-bounties .bounty-informational + .bounty-total", 1
+    assert_select "#bug-bounties .blog-post-card-logo > img.aboutme-card-icon[alt=''][src*='bug-bounty']", 1
+    assert_select ".aboutme-stat[href='#bug-bounties'] .aboutme-stat-value", text: total.to_s
     assert_select ".taskbar-link[href=?]", about_path, text: "About"
 
     ContentTestHelpers::ABOUT_COLLECTIONS.each do |spec|
@@ -52,7 +62,7 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".taskbar-link[href=?]", about_path, text: "About"
   end
 
-  test "landing page exposes repository-derived counters and a fixed bounty count" do
+  test "landing page counters link to posts, CVEs and bug bounties" do
     repository = production_content_repository
     cves = repository.about_entries(ApplicationController::ABOUTME_CVES_PATH)
 
@@ -66,9 +76,8 @@ class AboutmeControllerTest < ActionDispatch::IntegrationTest
     assert_select ".landing-metric.aboutme-stat", 4
     assert_select ".landing-metric:first-child[href=?]", timeline_path(view: "posts"), text: /Posts/
     assert_select ".landing-metric[href=?] .landing-metric-value", "#{about_path}#cves", text: cves.length.to_s
-    assert_select ".landing-metric:not(a) .landing-metric-value", text: SiteProfile.bug_bounty_count.to_s
-    assert_select ".landing-metric:not(a) .landing-metric-label", text: "Bounties"
-    assert_select ".landing-metric[href=?]", "#{about_path}#bug-bounties", false
+    assert_select ".landing-metric[href=?] .landing-metric-value", about_path(anchor: "bug-bounties"), text: SiteProfile.bug_bounty_count.to_s
+    assert_select ".landing-metric[href=?] .landing-metric-label", about_path(anchor: "bug-bounties"), text: "Bug bounties"
     assert_select ".landing-metric[href=?]", about_path, text: /& more\.\.\./
     assert_select ".landing-metric[href=?]", "#{about_path}#my-challenges", false
     assert_select ".landing-metric[href=?]", "#{about_path}#certificates", false

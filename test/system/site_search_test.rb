@@ -193,6 +193,7 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
 
   test "typing and deleting individual characters keeps the dialog and input still" do
     search = SiteSearch.new
+    search.documents
     [ 390, 1440 ].each do |width|
       page.current_window.resize_to(width, 900)
       visit "/blog"
@@ -311,6 +312,7 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
         visit "/blog"
         open_search
         fill_in "site-search-palette-query", with: query
+        assert_search_results 1
         card = find(".site-search-result-link[href^='#{post[:link]}#search-destination:~:text=']")
         assert_equal query, URI::DEFAULT_PARSER.unescape(card["href"].split(":~:text=", 2).last)
         assert_selector ".site-search-result-link p mark", text: query, exact_text: true
@@ -331,6 +333,7 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
 
         open_search
         fill_in "site-search-palette-query", with: query
+        assert_search_results 1
         find(".site-search-result-link[href^='#{post[:link]}#search-destination:~:text=']").click
         assert_no_selector "dialog[open]"
         assert_selector ".markdown-content p:target", text: query
@@ -388,15 +391,26 @@ class SiteSearchSystemTest < ApplicationSystemTestCase
   private
 
   def assert_text_target_visible
-    assert page.evaluate_async_script(<<~JS), "The matching passage should stay in view after native navigation"
-      const done = arguments[0];
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        const target = document.querySelector(':target');
-        const bounds = target.getBoundingClientRect();
-        const top = document.getElementById('top-taskbar').getBoundingClientRect().bottom;
-        done(bounds.top >= top && bounds.bottom <= window.innerHeight);
-      }));
-    JS
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
+    state = nil
+    loop do
+      state = page.evaluate_script(<<~JS)
+        (() => {
+          const target = document.querySelector(':target');
+          const bounds = target.getBoundingClientRect();
+          const top = document.getElementById('top-taskbar').getBoundingClientRect().bottom;
+          return { visible: bounds.top >= top && bounds.bottom <= window.innerHeight,
+            hash: location.hash, target: target.outerHTML.slice(0, 100), top: bounds.top,
+            bottom: bounds.bottom, taskbar: top, height: window.innerHeight, scrollY: window.scrollY };
+        })()
+      JS
+      return if state["visible"]
+
+      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+      sleep 0.05
+    end
+    flunk "The matching passage should stay in view after native navigation: #{state.inspect}"
   end
 
   def open_search

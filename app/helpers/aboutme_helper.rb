@@ -3,10 +3,11 @@ require "cgi"
 module AboutmeHelper
   PROFILE_SECTIONS = [
     { id: "cves", kind: "cve", title: "CVEs", singular: "entry", plural: "entries", empty_text: "No public CVEs are listed yet." },
+    { id: "bug-bounties", kind: "bug-bounty", title: "Bug bounties", singular: "report", plural: "reports" },
     { id: "my-challenges", kind: "challenge", title: "Created CTF Challenges", singular: "challenge", plural: "challenges", empty_text: "No authored challenges are listed yet." },
     { id: "certificates", kind: "certificate", title: "Certificates", singular: "certificate", plural: "certificates", empty_text: "No certificates are listed yet." },
     { id: "talks", kind: "talk", title: "Talks", singular: "talk", plural: "talks", empty_text: "No talks are listed yet." },
-    { id: "achievements", kind: "achievement", title: "Relevant achievements", singular: "event", plural: "events", empty_text: "No achievements are listed yet." }
+    { id: "achievements", kind: "achievement", title: "Relevant achievements", stat_label: "Achievements", singular: "event", plural: "events", empty_text: "No achievements are listed yet." }
   ].map(&:freeze).freeze
 
   def about_profile_sections
@@ -16,16 +17,11 @@ module AboutmeHelper
       "talks" => [ @talks, @talk_event_count ], "achievements" => [ @achievements, @achievement_event_count ]
     }
     PROFILE_SECTIONS.map do |section|
-      entries, count = collections.fetch(section[:id])
-      section.merge(entries: entries, count: count, grid_class: %w[cve bug-bounty].include?(section[:kind]) ? "aboutme-finding-grid" : "aboutme-achievement-grid")
-    end
-  end
+      next section.merge(count: SiteProfile.bug_bounty_count) if section[:kind] == "bug-bounty"
 
-  def about_profile_stats
-    stats = about_profile_sections.map do |section|
-      { label: section[:id] == "achievements" ? "Achievements" : section[:title], value: section[:count], anchor: section[:id] }
+      entries, count = collections.fetch(section[:id])
+      section.merge(entries: entries, count: count, grid_class: section[:kind] == "cve" ? "aboutme-finding-grid" : "aboutme-achievement-grid")
     end
-    stats.insert(1, { label: "Bug bounties", value: SiteProfile.bug_bounty_count })
   end
 
   private

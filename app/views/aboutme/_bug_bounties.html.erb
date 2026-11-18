@@ -1,0 +1,26 @@
+<% bounty_content = capture do %>
+  <dl class="bounty-counts">
+    <% SiteProfile::BUG_BOUNTY_CATEGORIES.each do |category| %>
+      <div class="bounty-category bounty-<%= category.fetch(:label).parameterize %>">
+        <dt><%= category.fetch(:label) %></dt>
+        <dd class="aboutme-stat-value"><%= category.fetch(:count) %></dd>
+        <% if category[:note] %>
+          <dd class="aboutme-card-summary"><%= category[:note] %></dd>
+        <% end %>
+      </div>
+    <% end %>
+    <div class="bounty-total">
+      <dt>Total reports</dt>
+      <dd class="aboutme-stat-value"><%= SiteProfile.bug_bounty_count %></dd>
+    </div>
+  </dl>
+<% end %>
+
+<article class="aboutme-bounty-card aboutme-card aboutme-finding-card ui-card-surface" aria-label="Bug bounties by category">
+  <%= render "shared/card_shell",
+             media: { image: ContentIconRegistry.for("bug-bounty"), alt: "", image_class: "blog-logo aboutme-card-icon",
+                      wrapper_class: "blog-post-card-logo aboutme-card-logo" },
+             content_class: "content-card-content blog-post-card-content",
+             body_class: "content-card-body blog-post-card-details",
+             body_content: bounty_content %>
+</article>

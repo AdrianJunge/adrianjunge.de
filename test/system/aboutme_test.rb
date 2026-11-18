@@ -50,13 +50,13 @@ class AboutmeTest < ApplicationSystemTestCase
     page.current_window.resize_to(1440, 1200)
     visit about_path
     assert_selector "main.aboutme-page"
-    assert_selector ".aboutme-section", count: 5
-    assert_no_selector "#bug-bounties", visible: :all
+    assert_selector ".aboutme-section", count: 6
     assert_no_selector ".aboutme-finding-card-bug-bounty", visible: :all
-    assert_selector ".aboutme-stat:not(a) .aboutme-stat-value", text: SiteProfile.bug_bounty_count.to_s
-    assert_selector ".aboutme-stat:not(a) .aboutme-stat-label", text: "Bug bounties"
-    assert_no_selector "a[href='#bug-bounties']"
     assert_no_selector ".aboutme-section[open]"
+    find_link("#{SiteProfile.bug_bounty_count} Bug bounties").send_keys(:enter)
+    assert_selector "#bug-bounties[open] > summary:focus"
+    assert_selector "#bug-bounties .bounty-counts", text: "Third-party code?"
+    assert_no_selector "#bug-bounties .bounty-pending"
     find("#cves > summary").click
     assert_selector ".aboutme-card-header a", minimum: 1
     assert_no_selector ".profile-card-details summary a", visible: :all

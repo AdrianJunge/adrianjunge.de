@@ -30,7 +30,7 @@
 <% landing_metrics = [
   { label: "Posts", value: @amount_posts, sublabel: @amount_post_reading_time, link: timeline_path(view: "posts") },
   { label: "CVEs", value: @amount_cves, link: about_path(anchor: "cves") },
-  { label: "Bounties", value: @amount_bug_bounties },
+  { label: "Bug bounties", value: @amount_bug_bounties, link: about_path(anchor: "bug-bounties") },
   { label: "& more...", link: about_link }
 ] %>
 
@@ -84,22 +84,15 @@
 
     <div class="landing-metrics aboutme-stats" role="group" aria-label="Site overview metrics">
         <% landing_metrics.each do |metric| %>
-            <% if metric[:link] %>
-                <a href="<%= metric[:link] %>" class="landing-metric aboutme-stat">
-                    <% if metric.key?(:value) %>
-                        <span class="landing-metric-value aboutme-stat-value"><%= metric[:value] %></span>
-                    <% end %>
-                    <span class="landing-metric-label aboutme-stat-label"><%= metric[:label] %></span>
-                    <% if metric[:sublabel].present? %>
-                        <span class="landing-metric-sublabel aboutme-stat-sublabel"><%= metric[:sublabel] %></span>
-                    <% end %>
-                </a>
-            <% else %>
-                <div class="landing-metric aboutme-stat">
+            <a href="<%= metric[:link] %>" class="landing-metric aboutme-stat">
+                <% if metric.key?(:value) %>
                     <span class="landing-metric-value aboutme-stat-value"><%= metric[:value] %></span>
-                    <span class="landing-metric-label aboutme-stat-label"><%= metric[:label] %></span>
-                </div>
-            <% end %>
+                <% end %>
+                <span class="landing-metric-label aboutme-stat-label"><%= metric[:label] %></span>
+                <% if metric[:sublabel].present? %>
+                    <span class="landing-metric-sublabel aboutme-stat-sublabel"><%= metric[:sublabel] %></span>
+                <% end %>
+            </a>
         <% end %>
     </div>
 
