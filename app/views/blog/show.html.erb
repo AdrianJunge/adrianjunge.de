@@ -6,7 +6,6 @@
         description: blog_description,
         type: "article",
         canonical_path: blog_post_path(@post_slug),
-        image: SeoHelper::DEFAULT_IMAGE,
         published_time: @published_time,
         modified_time: @modified_time,
         tags: blog_tags,
@@ -44,6 +43,27 @@
         <div class="article-meta-row article-meta-tags">
           <span class="article-meta-row-label">Tags</span>
           <div class="article-meta-row-value"><%= safe_join(category_badges) %></div>
+        </div>
+      <% end %>
+      <% if @blog_info["slides"].present? %>
+        <div class="article-meta-row writeup-article-actions">
+          <span class="article-meta-row-label">Resources</span>
+          <div class="article-meta-row-value writeup-challengefiles">
+            <% @blog_info["slides"].each do |slide| %>
+              <%= link_to slide.fetch("url"),
+                          content_link_options(slide.fetch("url")).merge(
+                            class: "open-pdf-btn ui-article-action",
+                            target: "_blank",
+                            aria: { label: "#{slide.fetch('label')} (opens in a new tab)" }
+                          ) do %>
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h7l5 5v9a2 2 0 0 1-2 2H6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M13 7V2.5L18.5 8H14a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <%= slide.fetch("label") %>
+              <% end %>
+            <% end %>
+          </div>
         </div>
       <% end %>
       <%= render "shared/article_description",

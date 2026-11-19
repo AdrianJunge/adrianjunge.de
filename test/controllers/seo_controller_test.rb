@@ -10,6 +10,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_select "link[rel='canonical'][href=?]", root_url
     assert_select "meta[property='og:site_name'][content=?]", SeoHelper::SITE_NAME
     assert_select "meta[property='og:type'][content=?]", "website"
+    assert_select "meta[property='og:description'][content=?]", SiteProfile.description
     assert_select "meta[name='twitter:card'][content=?]", "summary_large_image"
     assert_json_ld_type "WebSite"
     assert_nil json_ld_by_type("WebSite")["potentialAction"]
@@ -20,6 +21,24 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_json_ld_type "BreadcrumbList"
     assert_select "link[rel='alternate'][title='Blog Posts (RSS)']", 0
     assert_select "link[rel='alternate'][title='CTF Writeups (RSS)']", 0
+  end
+
+  test "link previews use the Doge card with the description of the shared page" do
+    image = SiteProfile.absolute_url(ActionController::Base.helpers.asset_path(SeoHelper::DEFAULT_IMAGE))
+    repository = production_content_repository
+    pages = [ root_path, about_path, blog_path, ctf_path, timeline_path, repository.ctf_events.first[:metadata].fetch("writeups"),
+              repository.blog_posts.first[:link], repository.ctf_posts.first[:link] ]
+    pages.each do |path|
+      get path, headers: { "User-Agent" => "TelegramBot (like TwitterBot)" }
+      assert_response :success
+      assert_select "meta[property='og:image'][content=?]", image, 1
+      assert_select "meta[name='twitter:image'][content=?]", image, 1
+      assert_select "meta[property='og:image:alt'][content*='Doge']", 1
+      description = css_select("meta[name='description']").sole["content"]
+      assert_predicate description, :present?
+      assert_select "meta[property='og:description'][content=?]", description, 1
+      assert_select "meta[name='twitter:description'][content=?]", description, 1
+    end
   end
 
   test "CTF article metadata mirrors the selected repository record" do
@@ -242,7 +261,7 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
   end
 
   def expected_json_ld_items(items)
-    items.map { |title, link| [ ActionController::Base.helpers.strip_tags(title.to_s).squish, absolute_url_for(link) ] }.sort
+    items.map { |title, link| [ Nokogiri::HTML.fragment(title.to_s).text.squish, absolute_url_for(link) ] }.sort
   end
 
   def meta_contents(selector)

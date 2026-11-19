@@ -322,8 +322,46 @@ test('long code wraps while copy and hint controls preserve the original interac
   await page.goto('/blog/java-strings');
   const blocks = page.locator('.code-block');
   expect(await blocks.count()).toBeGreaterThan(0);
+  const splitTokens = await blocks.first().locator('.code-line-content').evaluateAll(lines =>
+    lines.slice(0, 2).flatMap(line => [...line.querySelectorAll('.nc, .n, .s')].filter(token => {
+      const range = document.createRange();
+      range.selectNodeContents(token);
+      return range.getClientRects().length > 1;
+    }).map(token => token.textContent))
+  );
+  expect(splitTokens).toEqual([]);
+  const splitStringWords = await page.locator('.code-string').evaluateAll(strings => strings.flatMap(wrapper => {
+    const text = wrapper.querySelector('.s')?.firstChild;
+    if (!text) return [];
+    const range = document.createRange();
+    return [...text.data.matchAll(/[A-Za-z0-9_]+/g)].filter(match => {
+      range.setStart(text, match.index);
+      range.setEnd(text, match.index + match[0].length);
+      return new Set([...range.getClientRects()].map(rect => Math.round(rect.top))).size > 1;
+    }).map(match => match[0]);
+  }));
+  expect(splitStringWords).toEqual([]);
   for (const block of await blocks.all()) {
     expect(await block.locator('pre').evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+    const firstLine = block.locator('.code-line-content').first();
+    const button = await block.locator('.copy-btn').boundingBox();
+    const textRects = await firstLine.evaluate(line => {
+      // In pre-wrap, trailing spaces can hang past the last visible character.
+      const words = [];
+      const nodes = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+      const range = document.createRange();
+      for (let node = nodes.nextNode(); node; node = nodes.nextNode()) {
+        for (const word of node.data.matchAll(/\S+/g)) {
+          range.setStart(node, word.index);
+          range.setEnd(node, word.index + word[0].length);
+          words.push(...range.getClientRects());
+        }
+      }
+      return words.map(rect => rect.toJSON());
+    });
+    const besideButton = textRects.filter(rect => rect.top < button.y + button.height && rect.bottom > button.y);
+    if ((await firstLine.textContent()).trim()) expect(besideButton.length).toBeGreaterThan(0);
+    for (const rect of besideButton) expect(rect.right).toBeLessThanOrEqual(button.x);
   }
   const source = await blocks.first().locator('code').textContent();
   await blocks.first().locator('.copy-btn').tap();

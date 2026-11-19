@@ -1,6 +1,28 @@
 require "test_helper"
 
 class ArticleReadingTest < ActionDispatch::IntegrationTest
+  test "blog articles show slide resources before their description" do
+    get "/blog/joomla-sqli"
+    assert_response :success
+
+    assert_select ".blog-article-meta-panel > .article-meta-row.writeup-article-actions + .article-description[aria-label='Post description']", 1
+    assert_select ".blog-article-meta-panel .writeup-article-actions" do
+      assert_select ".article-meta-row-label", text: "Resources"
+      {
+        "KITCTF & university lab slides" => "/talks/teaching-ai-to-hack-joomla-real-world-vuln.pdf",
+        "OWASP Karlsruhe slides" => "/talks/teaching-ai-to-hack-joomla-owasp.pdf",
+        "BSides Munich slides" => "/talks/teaching-ai-to-hack-joomla-bsides.pdf"
+      }.each do |label, url|
+        assert_select "a.open-pdf-btn[href=?][target='_blank'][rel='noopener']", url, text: label
+      end
+      assert_select "a.open-pdf-btn", count: 3
+    end
+
+    get production_content_repository.blog_posts.find { |post| post[:metadata]["slides"].blank? }[:link]
+    assert_response :success
+    assert_select ".blog-article-meta-panel .writeup-article-actions", 0
+  end
+
   test "blog and CTF articles end with previous and next navigation without follow or related sections" do
     [ production_content_repository.blog_posts, production_content_repository.ctf_posts ].each do |posts|
       assert_operator posts.length, :>=, 3

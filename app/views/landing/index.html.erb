@@ -2,10 +2,9 @@
   <% landing_description = SeoHelper::DEFAULT_DESCRIPTION %>
   <% landing_latest_items = Array(@most_recent_posts).map { |post| { title: post[:title], link: post[:link] } } %>
   <%= seo_meta_tags(
-        title: "Welcome to my bug collection 🐛",
+        title: "Welcome to my bug sanctuary 🐛",
         description: landing_description,
         canonical_path: root_path,
-        image: SeoHelper::DEFAULT_IMAGE,
         json_ld: [
           seo_website_schema(description: landing_description),
           seo_collection_schema(
@@ -39,7 +38,7 @@
     <div class="landing-hero-shell">
         <div class="landing-hero-copy">
             <p class="landing-kicker"><%= SiteProfile.name %> (<%= SiteProfile.handle %>)</p>
-            <h1>Welcome to my <span class="landing-title-nowrap">bug collection <span class="landing-title-emoji">🐛</span></span></h1>
+            <h1>Welcome to my <span class="landing-title-nowrap">bug sanctuary <span class="landing-title-emoji">🐛</span></span></h1>
             <p class="landing-lead">
                 <%= italicize_proper_names(SiteProfile.landing_lead) %>
             </p>

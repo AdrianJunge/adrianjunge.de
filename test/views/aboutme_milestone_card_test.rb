@@ -124,6 +124,12 @@ class AboutmeMilestoneCardTest < ActionView::TestCase
     assert_select ".aboutme-link-row", 0
   end
 
+  test "local slide links open in a new tab" do
+    render inline: "<%= profile_card_tag(label: 'Slides', url: '/talks/example.pdf') %>"
+
+    assert_select "a.aboutme-tag-slides[href='/talks/example.pdf'][target='_blank'][rel='noopener']", text: "Slides"
+  end
+
   test "milestone card shows reading time for linked local posts" do
     @aboutme_post_reading_times = { "/blog/example-post" => "3 min read" }
 

@@ -61,6 +61,10 @@ class ContentFrontMatterSchemas
       }
     ]
   }.freeze
+  SLIDE = {
+    "type" => "object", "required" => %w[label url], "additionalProperties" => false,
+    "properties" => { "label" => TEXT, "url" => TEXT }
+  }.freeze
   OPTIONAL_PROPERTIES = {
     "difficulty" => DIFFICULTY, "challenge_difficulty" => DIFFICULTY, "challenge-difficulty" => DIFFICULTY,
     "hint" => HINTS, "hints" => HINTS,
@@ -71,6 +75,7 @@ class ContentFrontMatterSchemas
     "title" => TEXT, "description" => TEXT, "reader_summary" => TEXT, "published" => DATE, "updated" => DATE, "modified" => DATE,
     "logo" => TEXT, "icon" => TEXT, "category" => TEXT, "timeline_group" => TEXT,
     "categories" => { "type" => "array", "items" => TEXT },
+    "slides" => { "type" => "array", "items" => SLIDE },
     "author" => TEXT, "author_url" => NULLABLE_TEXT,
     "author_urls" => { "type" => "object", "additionalProperties" => NULLABLE_TEXT },
     "author_links" => { "type" => "object", "additionalProperties" => NULLABLE_TEXT },

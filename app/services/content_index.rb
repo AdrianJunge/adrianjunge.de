@@ -195,6 +195,7 @@ class ContentIndex
         published: published,
         display_date: about_timeline_event_display_date(event, published),
         link: "/about##{event_id}",
+        slides_url: (event["slides_url"].presence if collection[:kind] == "talk"),
         tags: tags,
         timeline_group: event["timeline_group"].presence,
         logo: event["icon"].presence || about_entry_icon(entry, collection)

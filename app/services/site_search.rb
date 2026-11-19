@@ -226,7 +226,7 @@ class SiteSearch
       document(title: "Home — #{SiteProfile.name} (#{SiteProfile.handle})", url: "/", kind: "Page", icon: "task-bar/home.svg",
         tags: [ "Home", "Contact", "Email", "PGP key", "Bug bounties" ],
         sections: [ SiteSearchPassages.section([
-          "#{SiteProfile.name} (#{SiteProfile.handle})", "Welcome to my bug collection 🐛",
+          "#{SiteProfile.name} (#{SiteProfile.handle})", "Welcome to my bug sanctuary 🐛",
           SiteProfile.landing_lead,
           "Timeline", "About me", "KITCTF", "KIT", "PGP key", SiteProfile.bug_bounty_count, "Bug bounties"
         ]), SiteSearchPassages.section([ SiteProfile.landing_tagline ], anchor: "typing") ]),

@@ -148,6 +148,7 @@ class ContentCardsTest < ApplicationSystemTestCase
     talk_events = talk_entries.flat_map { |entry| Array(entry["timeline"]) }
     talk_items = timeline_items.select { |item| item[:kind] == "talk" }
     expected_links = talk_events.map { |event| "/about##{event.fetch("id")}" }
+    slides_by_link = talk_events.to_h { |event| [ "/about##{event.fetch("id")}", event["slides_url"] ] }
 
     assert_equal repository.timeline_event_count(talk_entries), talk_items.length
     assert_equal expected_links.sort, talk_items.map { |item| item[:link] }.sort
@@ -155,6 +156,7 @@ class ContentCardsTest < ApplicationSystemTestCase
     visit "/timeline"
 
     talk_items.each do |item|
+      slides_url = slides_by_link.fetch(item[:link])
       timeline_entry = timeline_content_card(item).find(
         :xpath,
         "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' timeline-item ')]"
@@ -164,6 +166,12 @@ class ContentCardsTest < ApplicationSystemTestCase
         assert_selector ".timeline-title", exact_text: item[:title]
         assert_selector ".timeline-date time", exact_text: item[:display_date]
         assert_selector ".timeline-kind-pill[data-filter-tag='Talk']", count: 1
+        if slides_url.present?
+          assert_selector "a.timeline-slides-link[href='#{slides_url}'][target='_blank']", text: "Slides", count: 1
+          assert_no_selector ".timeline-tags button[data-filter-tag='Slides']"
+        else
+          assert_no_selector "a.timeline-slides-link"
+        end
       end
     end
   end

@@ -53,6 +53,12 @@ class ContentFrontMatterSchemasTest < ActiveSupport::TestCase
     assert_includes errors("reader_summary" => " ").pluck("data_pointer"), "/reader_summary"
   end
 
+  test "slide resources require a label and safe URL" do
+    assert_empty errors("slides" => [ { "label" => "Talk slides", "url" => "/talks/example.pdf" } ])
+    assert_includes errors("slides" => [ { "url" => "/talks/example.pdf" } ]).pluck("data_pointer"), "/slides/0/label"
+    assert_includes errors("slides" => [ { "label" => "Talk slides", "url" => "javascript:alert(1)" } ]).pluck("data_pointer"), "/slides/0/url"
+  end
+
   private
 
   def errors(values)

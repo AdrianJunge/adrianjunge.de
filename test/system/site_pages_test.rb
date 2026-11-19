@@ -518,7 +518,7 @@ class SitePagesTest < ApplicationSystemTestCase
     assert_in_delta before["top"], top["top"], 1
   end
 
-  test "tag links only open a new tab for external destinations" do
+  test "tag links open external destinations and slide decks in a new tab" do
     tag_pages = [
       "/",
       "/ctf",
@@ -554,10 +554,12 @@ class SitePagesTest < ApplicationSystemTestCase
 
       checked_tag_link_count += tag_links.length
       tag_links.each do |link|
-        if link["external"]
-          assert_equal "_blank", link["target"], "external tag link opened in-tab on #{path}: #{link.inspect}"
-          assert_includes link["rel"].to_s.split, "noopener", "external tag link missed noopener on #{path}: #{link.inspect}"
-          assert_includes link["rel"].to_s.split, "noreferrer", "external tag link missed noreferrer on #{path}: #{link.inspect}"
+        slides_link = link["className"].split.include?("timeline-slides-link") ||
+          link["className"].split.include?("aboutme-tag-slides")
+        if link["external"] || slides_link
+          assert_equal "_blank", link["target"], "tag link opened in-tab on #{path}: #{link.inspect}"
+          assert_includes link["rel"].to_s.split, "noopener", "tag link missed noopener on #{path}: #{link.inspect}"
+          assert_includes link["rel"].to_s.split, "noreferrer", "external tag link missed noreferrer on #{path}: #{link.inspect}" if link["external"]
         else
           assert_nil link["target"], "local tag link opened a new tab on #{path}: #{link.inspect}"
         end

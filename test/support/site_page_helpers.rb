@@ -72,7 +72,7 @@ module SitePageHelpers
     blog_post = first_blog_post
 
     {
-      "/" => "Welcome to my bug collection 🐛",
+      "/" => "Welcome to my bug sanctuary 🐛",
       "/ctf" => "CTF events",
       "/ctf/#{ctf_post[:directory]}" => ctf_event_label(ctf_post[:directory]),
       ctf_post[:link] => ctf_post[:title],

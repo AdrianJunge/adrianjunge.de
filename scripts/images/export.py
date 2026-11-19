@@ -66,17 +66,27 @@ def export_logo(source: Path, manifest: dict, assets: Path | None = None) -> Non
 
 def export_social_card(font_dir: Path, assets: Path | None = None) -> None:
     assets = assets or ASSETS
-    # A typography-led card avoids enlarging the 128px avatar into a blurry hero.
     image = Image.new("RGB", (1200, 630), "#102139")
     draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle((44, 44, 1156, 586), radius=28, fill="#182f4f", outline="#527ba4", width=2)
-    draw.rounded_rectangle((90, 110, 98, 504), radius=4, fill="#80b9fa")
+    draw.rounded_rectangle((36, 32, 1164, 598), radius=28, fill="#142f49", outline="#3b5d79", width=2)
+
+    # Keep the avatar and text inside the central square for cropped thumbnails.
+    center = image.width // 2
+    with Image.open(assets / "landing/profile.webp") as source:
+        avatar = ImageOps.fit(source.convert("RGB"), (208, 208), method=Image.Resampling.LANCZOS)
+    left, top = center - avatar.width // 2, 78
+    mask = Image.new("L", avatar.size)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, avatar.width - 1, avatar.height - 1), radius=24, fill=255)
+    draw.rounded_rectangle((left - 3, top - 3, left + avatar.width + 2, top + avatar.height + 2),
+                           radius=27, fill="#7dd3fc")
+    image.paste(avatar, (left, top), mask)
+
     bold = str(font_dir / "DejaVuSans-Bold.ttf")
     regular = str(font_dir / "DejaVuSans.ttf")
-    draw.text((140, 120), "ADRIANJUNGE.DE", font=ImageFont.truetype(regular, 25), fill="#a9c8e8")
-    draw.text((135, 205), "Adrian Junge (vurlo)", font=ImageFont.truetype(bold, 76), fill="#f1f7ff")
-    draw.text((140, 328), "Security research & bug bounty hunting", font=ImageFont.truetype(regular, 34), fill="#d0e2f5")
-    draw.text((140, 453), "Posts  /  CTF writeups  /  CVEs", font=ImageFont.truetype(regular, 27), fill="#a9c8e8")
+    draw.text((center, 353), "Adrian Junge", anchor="mm", font=ImageFont.truetype(bold, 70), fill="#f1f7ff")
+    draw.text((center, 421), "vurlo · KITCTF", anchor="mm", font=ImageFont.truetype(regular, 34), fill="#99dcfa")
+    draw.text((center, 513), "CTF writeups, CVEs & bug bounties", anchor="mm",
+              font=ImageFont.truetype(regular, 33), fill="#dae9f7")
     target = assets / "landing/social-card.png"
     target.parent.mkdir(parents=True, exist_ok=True)
     image.save(target, optimize=True)

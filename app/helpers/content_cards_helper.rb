@@ -1,6 +1,7 @@
 module ContentCardsHelper
   def timeline_card_options(item, visible_tags: nil)
     visible_tags ||= Array(item[:tags]).reject { |tag| ContentTagTaxonomy.recognition?(tag) || ContentTagTaxonomy.content_type?(tag) }
+    visible_tags = visible_tags.reject { |tag| tag == "Slides" } if item[:kind] == "talk" && item[:slides_url].present?
     tags = []
     if item[:writeup_winner].present?
       tags << { label: item[:writeup_winner][:label], tag_value: WriteupWinner::FILTER_LABEL, winner: true, class_name: "writeup-winner-badge-timeline" }
@@ -22,6 +23,17 @@ module ContentCardsHelper
         category_key: (value if group == :category)
       }
     end)
+    if item[:kind] == "talk" && item[:slides_url].present?
+      tags << {
+        html: content_tag_badge(
+          "Slides",
+          classes: %w[timeline-tag-pill timeline-slides-link],
+          url: item[:slides_url],
+          link_target: "_blank",
+          aria_label: "Slides for #{item[:source]}: #{item[:title]} (opens in a new tab)"
+        )
+      }
+    end
 
     media = { wrapper_class: [ "blog-post-card-logo", ("writeup-post-card-logo" if item[:kind] == "writeup"), "timeline-card-logo" ].compact.join(" ") }
     if item[:kind] == "writeup" && item[:logo].blank?

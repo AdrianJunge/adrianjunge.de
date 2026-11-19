@@ -1,16 +1,20 @@
+require "cgi"
+
 module SeoHelper
   SITE_NAME = SiteProfile.handle
   SITE_AUTHOR = SiteProfile.name
   DEFAULT_DESCRIPTION = SiteProfile.description
   DEFAULT_IMAGE = "landing/social-card.png".freeze
+  SOCIAL_IMAGE_ALT = "Doge wearing sunglasses above “#{SITE_AUTHOR}”, “#{SiteProfile.handle} · KITCTF” and “CTF writeups, CVEs & bug bounties”.".freeze
 
   def seo_meta_tags(title: nil, description: DEFAULT_DESCRIPTION, type: "website", canonical_path: nil,
-                    image: DEFAULT_IMAGE, noindex: false, published_time: nil, modified_time: nil, tags: [],
+                    noindex: false, published_time: nil, modified_time: nil, tags: [],
                     section: nil, authors: [], json_ld: nil, breadcrumbs: nil)
     page_title = seo_title(title)
     page_description = seo_description(description)
     canonical = canonical_url(canonical_path)
-    image_url = seo_image_url(image)
+    image_url = seo_image_url(DEFAULT_IMAGE)
+    image_dimensions = ContentImageHelper.image_attributes(DEFAULT_IMAGE).slice(:width, :height)
     tag_values = Array(tags).map(&:to_s).reject(&:blank?)
     author_values = seo_author_names(authors)
 
@@ -24,7 +28,13 @@ module SeoHelper
       tag.meta(property: "og:title", content: page_title),
       tag.meta(property: "og:description", content: page_description),
       tag.meta(property: "og:type", content: type),
-      tag.meta(name: "twitter:card", content: image_url.present? ? "summary_large_image" : "summary"),
+      tag.meta(property: "og:image", content: image_url),
+      tag.meta(property: "og:image:type", content: "image/png"),
+      *image_dimensions.map { |axis, size| tag.meta(property: "og:image:#{axis}", content: size) },
+      tag.meta(property: "og:image:alt", content: SOCIAL_IMAGE_ALT),
+      tag.meta(name: "twitter:card", content: "summary_large_image"),
+      tag.meta(name: "twitter:image", content: image_url),
+      tag.meta(name: "twitter:image:alt", content: SOCIAL_IMAGE_ALT),
       tag.meta(name: "twitter:title", content: page_title),
       tag.meta(name: "twitter:description", content: page_description)
     ]
@@ -32,11 +42,6 @@ module SeoHelper
     unless noindex
       meta_tags << tag.link(rel: "canonical", href: canonical)
       meta_tags << tag.meta(property: "og:url", content: canonical)
-    end
-
-    if image_url.present?
-      meta_tags << tag.meta(property: "og:image", content: image_url)
-      meta_tags << tag.meta(name: "twitter:image", content: image_url)
     end
 
     if type == "article"
@@ -157,7 +162,7 @@ module SeoHelper
   end
 
   def seo_plain_text(value)
-    strip_tags(value.to_s).squish
+    CGI.unescapeHTML(strip_tags(value.to_s)).squish
   end
 
   def canonical_url(path = nil)

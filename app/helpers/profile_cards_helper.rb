@@ -50,6 +50,8 @@ module ProfileCardsHelper
 
     content_tag_badge(
       label, classes: tag_classes, url: url,
+      link_target: ("_blank" if label == "Slides" && url.present?),
+      aria_label: ("Open Slides (opens in a new tab)" if label == "Slides" && url.present?),
       filter_tag: ContentTagTaxonomy.canonical_value(raw_label),
       label_class: style[:label_class], record_link: true,
       timeline_redirect: datetime.blank?, datetime: datetime

@@ -18,6 +18,8 @@ class ImageExportTest(unittest.TestCase):
         originals.mkdir()
         assets.mkdir()
         Image.new("RGB", (32, 16), "red").save(source)
+        (assets / "landing").mkdir()
+        Image.new("RGB", (128, 128), "gold").save(assets / "landing/profile.webp")
         manifest = root / "manifest.json"
         return originals, assets, source, manifest
 
@@ -50,6 +52,16 @@ class ImageExportTest(unittest.TestCase):
                 del descriptors["example.png"]
                 manifest.write_text(json.dumps(descriptors))
                 with self.assertRaisesRegex(ValueError, "Missing manifest entries: example.png"):
+                    export.check()
+
+    def test_changed_profile_avatar_invalidates_the_social_card(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            originals, assets, _, manifest = self.fixture(root)
+            with patch.object(export, "ORIGINALS", originals), patch.object(export, "ASSETS", assets), patch.object(export, "MANIFEST", manifest):
+                self.publish_fixture(root)
+                Image.new("RGB", (128, 128), "navy").save(assets / "landing/profile.webp")
+                with self.assertRaisesRegex(ValueError, "Stale image export: landing/social-card.png"):
                     export.check()
 
     def test_same_dimensions_changed_original_fails_until_exports_are_rebuilt(self):

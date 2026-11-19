@@ -64,6 +64,10 @@ platform's bug-bounty tags. An empty array deliberately removes inherited tags.
 Parent tags stay unchanged on `/about`; use an explicit `url` for platform links
 that should not filter the timeline.
 
+Talk events can set `slides_url` to link the deck from that event's `/timeline`
+card. Use the deck presented at that event; events without a deck omit the
+field. The parent card's `Slides` tag remains available on `/about`.
+
 Dates belong to `timeline` entries, not to the card itself. For content with a
 single relevant date, add one timeline event such as `Published challenge`,
 `Earned certificate`, or `Presented talk`.

@@ -18,10 +18,10 @@ module SiteProfile
   BUG_BOUNTY_COUNT = BUG_BOUNTY_CATEGORIES.sum { |category| category.fetch(:count) }
   # Update when editing profile copy, identity, or undated About information. These are
   # editorial dates, never deployment or checkout timestamps.
-  MODIFIED = "2026-11-18".freeze
+  MODIFIED = "2026-11-19".freeze
   # Update when editing visible landing-page copy.
-  LANDING_MODIFIED = "2026-11-18".freeze
-  DESCRIPTION = "Security research, CVEs, bug bounties, CTF writeups, and technical notes by #{NAME}.".freeze
+  LANDING_MODIFIED = "2026-11-19".freeze
+  DESCRIPTION = "I'm #{NAME} (#{HANDLE}), a computer science student at KIT. I play CTFs with KITCTF and share my challenge writeups, CVEs and bug bounty findings.".freeze
   LANDING_LEAD = "CTF player and computer science student creating writeups, collecting bounties and CVEs. Sometimes I lose myself in algorithmic challenges.".freeze
   LANDING_TAGLINE = "Teaching machines to misbehave.".freeze
   SOCIAL_LINKS = {

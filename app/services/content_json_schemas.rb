@@ -58,6 +58,7 @@ class ContentJsonSchemas
       "modified" => DATE,
       "summary" => STRING,
       "url" => STRING,
+      "slides_url" => STRING,
       "tags" => { "type" => "array", "items" => TAG },
       "timeline_group" => STRING,
       "hidden" => { "type" => "boolean" }
@@ -174,7 +175,7 @@ class ContentJsonSchemas
         item_pointer = "#{pointer}/#{pointer_key(key)}"
         error = if %w[date end_date published updated modified].include?(key) && value.present? && ContentDate.parse(value).nil?
           "unsupported date"
-        elsif %w[url website authorlink author_link author_url event_url event-url event_link event-link category_url proof_url proof].include?(key) && value.present? && !ContentUrl.valid?(value)
+        elsif %w[url slides_url website authorlink author_link author_url event_url event-url event_link event-link category_url proof_url proof].include?(key) && value.present? && !ContentUrl.valid?(value)
           "unsupported URL (use a local path, fragment, or HTTP(S) URL)"
         elsif %w[hidden draft wip has_math].include?(key) && ![ true, false ].include?(value)
           "must be a boolean"

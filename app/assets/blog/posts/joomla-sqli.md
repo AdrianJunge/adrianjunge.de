@@ -9,6 +9,13 @@ categories:
     - Joomla CMS
     - AI-Assisted Auditing
 published: "2026-06-26"
+slides:
+    - label: KITCTF & university lab slides
+      url: /talks/teaching-ai-to-hack-joomla-real-world-vuln.pdf
+    - label: OWASP Karlsruhe slides
+      url: /talks/teaching-ai-to-hack-joomla-owasp.pdf
+    - label: BSides Munich slides
+      url: /talks/teaching-ai-to-hack-joomla-bsides.pdf
 ---
 
 # TL;DR

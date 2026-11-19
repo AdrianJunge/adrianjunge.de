@@ -40,10 +40,24 @@ class HtmlWithCopy < Redcarpet::Render::HTML
 
     def stream_line(line_number, line_tokens)
       yield %(<span class="code-line" data-line="#{line_number}"><span class="code-line-content">)
-      line_tokens.each do |token, value|
+      line_tokens.each_with_index do |(token, value), index|
         # Rouge's default HTML escaping intentionally drops carriage returns.
         # Preserve them as entities so DOM text also retains CRLF source files.
-        yield @formatter.safe_span(token, CGI.escapeHTML(value).gsub("\r", "&#13;"))
+        escaped = CGI.escapeHTML(value).gsub("\r", "&#13;")
+        if index.zero?
+          # Let deep indentation wrap without changing the copied source.
+          escaped = escaped.sub(/\A[ \t]+/) do |indent|
+            indent.scan(/ {1,4}|\t/).map { |part| %(<span class="code-indent">#{part}</span>) }.join("<wbr>")
+          end
+        end
+        formatted = @formatter.safe_span(token, escaped)
+        if Rouge::Token::Tokens::Str.matches?(token) && value.match?(/\S[ \t]+\S/)
+          formatted = %(<span class="code-string">#{formatted}</span>)
+        end
+        yield formatted
+        if (token <= Rouge::Token::Tokens::Punctuation || token <= Rouge::Token::Tokens::Operator) && value.end_with?("(", "[", "{", ",", ".", "::", "->")
+          yield "<wbr>"
+        end
       end
       yield %(</span></span>)
     end
