@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
+usage='Usage: bin/install-ruby [VERSION] (defaults to .ruby-version)'
+if [[ $# -eq 1 && ( $1 == --help || $1 == -h ) ]]; then
+  echo "$usage"
+  echo 'Install an exact Ruby release under rbenv, for example bin/install-ruby 3.4.13.'
+  exit 0
+fi
+
+version="${1-$(< .ruby-version)}"
+if (( $# > 1 )) || [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][[:alnum:].-]+)?$ ]]; then
+  echo "$usage" >&2
+  exit 2
+fi
+
+if ! command -v rbenv >/dev/null; then
+  echo 'Install rbenv and its ruby-build plugin to use this command.' >&2
+  exit 1
+fi
+
+rbenv_root="$(rbenv root)"
+if [[ ! -x "$rbenv_root/versions/$version/bin/ruby" ]]; then
+  definitions="$(rbenv install --list-all)" || {
+    echo 'Install or update ruby-build to enable rbenv install.' >&2
+    exit 1
+  }
+  plugin="$rbenv_root/plugins/ruby-build"
+  if [[ -e "$plugin/.git" ]] && ! grep -Fxq -- "$version" <<< "$definitions"; then
+    printf 'Updating ruby-build to look for Ruby %s...\n' "$version" >&2
+    git -C "$plugin" pull --ff-only
+  fi
+  rbenv install --skip-existing "$version"
+fi
+
+RBENV_VERSION="$version" rbenv exec ruby --version
